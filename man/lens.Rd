@@ -2,7 +2,12 @@
 % Please edit documentation in R/lens_functions.R
 \name{lens}
 \alias{lens}
-\title{Lens database}
+\title{Lens database
+
+Database of lens projection functions and field of views.
+
+To do: include the character needed to retrieve the lens
+type and the reference}
 \usage{
 lens(type = "equiangular", max_fov = FALSE)
 }
@@ -12,10 +17,12 @@ lens(type = "equiangular", max_fov = FALSE)
 \item{max_fov}{Logical. Use TRUE to return the maximum FOV in degrees.}
 }
 \description{
+Lens database
+
 Database of lens projection functions and field of views.
-}
-\details{
-TODO: include the character to retrieve the lens type and the reference
+
+To do: include the character needed to retrieve the lens
+type and the reference
 }
 \examples{
 lens("equiangular")

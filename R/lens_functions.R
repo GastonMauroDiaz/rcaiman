@@ -1,20 +1,20 @@
-
-
 #' Lens database
 #'
 #' Database of lens projection functions and field of views.
 #'
-#' TODO: include the character to retrieve the lens type and the reference
+#' To do: include the character needed to retrieve the lens
+#' type and the reference
 #'
 #' @param type Character vector of length one. The name of the lens, see details.
 #' @param max_fov Logical. Use TRUE to return the maximum FOV in degrees.
 #'
 #' @export
 #'
-#' @examples
-#' lens("equiangular")
+#' @examples lens("equiangular")
 lens <- function(type = "equiangular", max_fov = FALSE) {
   if (max_fov) index <- 2 else index <- 1
+
+  type <- trimws(type)
 
   switch(type,
     equiangular = list(2 / pi, 180)[[index]],
@@ -115,22 +115,20 @@ calibrate_lens <- function(path_to_csv, degree = 3) {
 #' path <- system.file("external/points_over_perimeter.csv",
 #'                     package = "rcaiman")
 #' calc_zenith_raster_coordinates(path)
-calc_zenith_raster_coordinates <- function (path_to_csv)
-{
-
-  x <- utils::read.csv(path_to_csv)[,-(1:5)]
+calc_zenith_raster_coordinates <- function(path_to_csv) {
+  x <- utils::read.csv(path_to_csv)[, -(1:5)]
 
   # each tracked hole have two columns
-  stopifnot(ncol(x)/2 == round(ncol(x)/2))
+  stopifnot(ncol(x) / 2 == round(ncol(x) / 2))
 
-  nHoles <- ncol(x) / 2
+  n_holes <- ncol(x) / 2
 
   index <- seq(1, ncol(x), 2)
 
   circle <- list()
-  for (i in 1:nHoles) {
-    circle[[i]] <- x[, c(index[i], index[i]+1)] %>%
-      .[!is.na(.[,1]),] %>%
+  for (i in 1:n_holes) {
+    circle[[i]] <- x[, c(index[i], index[i] + 1)] %>%
+      .[!is.na(.[, 1]), ] %>%
       as.matrix() %>%
       conicfit::CircleFitByKasa() %>%
       .[-3]
@@ -140,3 +138,47 @@ calc_zenith_raster_coordinates <- function (path_to_csv)
   colnames(zenith_coordinates) <- c("col", "row")
   zenith_coordinates
 }
+
+
+#' Calculate diameter
+#'
+#' Calculate the diameter of a 180º fisheye image.
+#'
+#' This function is useful to handle devices with field of view different than
+#' 180 degrees. Given a lens projection function and data points consisting of
+#' radii (pixels) and their correspondent zenith angle, it returns the radius of
+#' the horizon (i.e., the radius for the zenith angle equal to 90 degrees)
+#'
+#' @inheritParams zenith_image
+#' @param radius_px Numeric vector. Distance in pixels from the zenith.
+#' @param angle Numeric vector. Zenith angle in degrees.
+#' @export
+#'
+#' @examples # Nikon D50 and Fisheye Nikkor 10.5 mm lens
+#' calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+calc_diameter <- function(lens_coef, radius_px, angle) {
+
+  stopifnot(length(radius_px) == length(angle))
+
+  Rfor90 <- calc_relative_radius(90, lens_coef)
+  RforMyAngle <- calc_relative_radius(angle, lens_coef)
+
+  fun <- function(radius_px, RforMyAngle) {
+    Rfor90 * radius_px / RforMyAngle * 2
+  }
+
+  if (length(radius_px) == 1) {
+    diameter <- round(fun(radius_px, RforMyAngle))
+  } else {
+    diameters <- unlist(Map(fun, radius_px, RforMyAngle))
+    diameter <- round(stats::median(diameters))
+    attr(diameter, "IQR") <- stats::IQR(diameters)
+  }
+
+  if (diameter / 2 != round(diameter / 2)) {
+    diameter <- diameter + 1
+  }
+
+  diameter
+}
+

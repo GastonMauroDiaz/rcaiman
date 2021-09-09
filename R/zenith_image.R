@@ -26,7 +26,7 @@ relative_radius_image <- function (diameter)
 #'
 #' Calculate the relative radius given a zenith angle and lens function.
 #'
-#' @param angle Numeric vector. Angles in degrees.
+#' @param angle Numeric vector. Zenith angles in degrees.
 #' @param lens_coef Numeric vector. Polynomial coefficients
 #'   of the lens projection function.
 #'
