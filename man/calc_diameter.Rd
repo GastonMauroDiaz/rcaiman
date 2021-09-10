@@ -21,7 +21,11 @@ Calculate the diameter of a 180º fisheye image.
 This function is useful to handle devices with field of view different than
 180 degrees. Given a lens projection function and data points consisting of
 radii (pixels) and their correspondent zenith angle, it returns the radius of
-the horizon (i.e., the radius for the zenith angle equal to 90 degrees)
+the horizon (i.e., the radius for the zenith angle equal to 90 degrees).
+
+It is particularly useful when working with non-circular hemispherical
+photography. It will help to find the diameter that a circular image would
+have if the equipment would depict the whole hemisphere.
 }
 \examples{
 # Nikon D50 and Fisheye Nikkor 10.5 mm lens

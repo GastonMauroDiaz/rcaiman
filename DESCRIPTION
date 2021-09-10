@@ -1,6 +1,6 @@
 Package: rcaiman
 Type: Package
-Title: An R package for CAnopy IMage ANalysis
+Title: rcaiman: An R package for CAnopy IMage ANalysis
 Version: 0.0.0.9000
 Author: Gaston Mauro Diaz 
 Maintainer: Gaston Mauro Diaz <gastonmaurodiaz@gmail.com>
@@ -22,3 +22,5 @@ Imports:
     magrittr,
     utils,
     conicfit
+Suggests: 
+    autothresholdr

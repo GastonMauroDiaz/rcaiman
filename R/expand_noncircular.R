@@ -1,5 +1,7 @@
 
-#' Expand non-circular image
+#' Expand non-circular
+#'
+#' Expand a non-circular hemispherical photograph.
 #'
 #' @param caim \linkS4class{RasterBrick}. The return of a call to
 #'   \code{\link{read_caim}}.

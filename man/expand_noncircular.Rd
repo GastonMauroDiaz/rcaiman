@@ -2,7 +2,7 @@
 % Please edit documentation in R/expand_noncircular.R
 \name{expand_noncircular}
 \alias{expand_noncircular}
-\title{Expand non-circular image}
+\title{Expand non-circular}
 \usage{
 expand_noncircular(caim, z, zenith_colrow)
 }
@@ -20,5 +20,5 @@ zenith. See \code{\link{calc_zenith_raster_coordinates}}.}
 caim \linkS4class{RasterBrick}
 }
 \description{
-Expand non-circular image
+Expand a non-circular hemispherical photograph.
 }
