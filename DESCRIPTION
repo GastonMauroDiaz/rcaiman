@@ -23,4 +23,5 @@ Imports:
     utils,
     conicfit
 Suggests: 
+    EBImage,
     autothresholdr
