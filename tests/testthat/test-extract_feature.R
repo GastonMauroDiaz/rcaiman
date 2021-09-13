@@ -1,0 +1,15 @@
+test_that("extract_features() works", {
+  r <- read_caim()
+  z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
+  a <- azimuth_image(z)
+  g <- sky_grid_segmentation(z, a, 10)
+  expect_s4_class(extract_feature(r$Blue, g), "RasterLayer")
+  features <- extract_feature(r$Blue, g, return_raster = FALSE)
+  expect_type(features, "double")
+  local_edition(3)
+  expect_equal(unname(features[1]) %>% round(., 2),
+               round(207.1624, 2))
+  features <- extract_feature(r$Blue, g, fun = max, return_raster = FALSE)
+  expect_type(features, "double")
+  expect_equal(unname(features[1]) %>% round(., 2), 238)
+})

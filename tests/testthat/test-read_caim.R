@@ -28,6 +28,7 @@ test_that("read_caim() assigns good layer names", {
 
 
 test_that("a ROI from a photo can be read correctly", {
+  skip_on_cran()
   read_19_crop_save_and_return_path <- function() {
     path <- system.file("external", package = "rcaiman")
     my_file <- paste0(path, "/19.JPG")
@@ -47,7 +48,6 @@ test_that("a ROI from a photo can be read correctly", {
     path
   }
   local_edition(3)
-  skip_on_cran()
   path <- read_19_crop_save_and_return_path()
   expect_snapshot_file(path, "19_cropped.tif")
   file.remove(path)

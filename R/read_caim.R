@@ -97,6 +97,6 @@ setMethod(
   signature(path_to_file = "missing"),
   function(path_to_file) {
     path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-    read_caim(path, c(1280, 960) - 745, 745 * 2, 754 * 2)
+    read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
   }
 )
