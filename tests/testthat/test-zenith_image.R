@@ -12,7 +12,7 @@ test_that("calc_relative_radius returns between the 0-to-1 range", {
 })
 
 test_that("relative_radius_image works", {
-  write_img_and_return_path <- function(r) {
+  write_img_and_return_path <- function() {
     r <- relative_radius_image(1490)
     path <- tempfile(fileext = ".tif")
     writeRaster(r, path, overwrite = TRUE)
@@ -26,7 +26,7 @@ test_that("relative_radius_image works", {
 })
 
 test_that("zenith_image works", {
-  write_img_and_return_path <- function(r) {
+  write_img_and_return_path <- function() {
     r <- zenith_image(1490, lens_coef = lens("Nikon_FCE9"))
     path <- tempfile(fileext = ".tif")
     writeRaster(r, path, overwrite = TRUE)
@@ -40,7 +40,7 @@ test_that("zenith_image works", {
 })
 
 test_that("azimuth_image works", {
-  write_img_and_return_path <- function(r) {
+  write_img_and_return_path <- function() {
     z <- zenith_image(1490, lens_coef = lens("Nikon_FCE9"))
     r <- azimuth_image(z)
     path <- tempfile(fileext = ".tif")

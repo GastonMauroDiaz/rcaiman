@@ -28,6 +28,8 @@
 #' @return \code{\linkS4class{RasterBrick}}.
 #' @export
 #'
+#' @seealso write_caim
+#'
 #' @examples
 #' r <- read_caim()
 setGeneric("read_caim", function(path_to_file, upper_left = NULL, width = NULL,
@@ -100,3 +102,45 @@ setMethod(
     read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
   }
 )
+
+
+#' Write canopy image
+#'
+#' Wrapper function for \code{\link[raster]{writeRaster}}.
+#'
+#' @param caim \linkS4class{Raster}.
+#' @param path One-length character vector. Path for writing the image.
+#' @param bit_depth One-length numeric vector.
+#'
+#' @export
+#'
+#' @seealso write_bin
+#'
+#' @examples
+#' \dontrun{
+#' caim <- read_caim()
+#' ncaim <- normalize(caim, 0, 255)
+#' write_caim(caim * 2^8, "test_8bit", 8)
+#' write_caim(caim * 2^16, "test_16bit", 16)
+#' }
+write_caim <- function(caim, path, bit_depth) {
+  if (!any(bit_depth == 16, bit_depth == 8)) {
+    stop("bit_depth should be 8 or 16.")
+  }
+
+  projection(caim) <- NA
+  extent(caim) <- extent(0, ncol(caim), 0, nrow(caim))
+
+  file_name <- basename(path)
+  extension(file_name) <- "tif"
+
+  if (bit_depth == 8) {
+    writeRaster(caim, file.path(dirname(path), file_name),
+              format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+  } else {
+    writeRaster(caim, file.path(dirname(path), file_name),
+                format = "GTiff", datatype = "INT2U", overwrite = TRUE)
+  }
+}
+
+

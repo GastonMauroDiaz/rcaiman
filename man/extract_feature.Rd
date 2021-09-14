@@ -30,3 +30,11 @@ vector of length equal to the number of segments in the segmentation. Each
 extracted feature value will be obtained by processing all pixels that belong
 to a segment with the provided function.
 }
+\examples{
+r <- read_caim()
+z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+g <- sky_grid_segmentation(z, a, 10)
+extract_feature(r$Blue, g, return_raster = FALSE)
+plot(extract_feature(r$Blue, g, return_raster = FALSE))
+}

@@ -55,3 +55,6 @@ extension.
 \examples{
 r <- read_caim()
 }
+\seealso{
+write_caim
+}
