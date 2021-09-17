@@ -109,8 +109,8 @@ setMethod(
 #' Wrapper function for \code{\link[raster]{writeRaster}}.
 #'
 #' @param caim \linkS4class{Raster}.
-#' @param path One-length character vector. Path for writing the image.
-#' @param bit_depth One-length numeric vector.
+#' @param path Character vector of length one. Path for writing the image.
+#' @param bit_depth Numeric vector of length one.
 #'
 #' @export
 #'
@@ -118,8 +118,8 @@ setMethod(
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim()
-#' ncaim <- normalize(caim, 0, 255)
+#' require(magrittr)
+#' caim <- read_caim() %>% normalize(., 0, 255)
 #' write_caim(caim * 2^8, "test_8bit", 8)
 #' write_caim(caim * 2^16, "test_16bit", 16)
 #' }
@@ -142,5 +142,8 @@ write_caim <- function(caim, path, bit_depth) {
                 format = "GTiff", datatype = "INT2U", overwrite = TRUE)
   }
 }
+
+
+
 
 

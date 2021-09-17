@@ -77,7 +77,7 @@ calibrate_lens <- function(path_to_csv, degree = 3) {
   csv[, 1] <- csv[, 1] - csv[1, 1]
   csv[, 2] <- csv[, 2] - csv[1, 2]
 
-  csv <- geometry::cart2pol(csv)
+  csv <- pracma::cart2pol(csv)
   px <- csv[, 2]
   max_fov_px <- px[length(px)]
   # remove the data point that is only useful for max_fox_px calculation
@@ -116,6 +116,15 @@ calibrate_lens <- function(path_to_csv, degree = 3) {
 #'                     package = "rcaiman")
 #' calc_zenith_raster_coordinates(path)
 calc_zenith_raster_coordinates <- function(path_to_csv) {
+
+  if (!requireNamespace("conicfit", quietly = TRUE)) {
+    stop(paste("Package \"conicfit\" needed for this function to work.",
+               "Please install it."),
+         call. = FALSE)
+  }
+
+  requireNamespace("conicfit", quietly = TRUE)
+
   x <- utils::read.csv(path_to_csv)[, -(1:5)]
 
   # each tracked hole have two columns

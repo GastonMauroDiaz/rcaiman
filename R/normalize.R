@@ -1,8 +1,3 @@
-normalize <- function(r, mn, mx, ...) {
-  stopifnot(length(mn) == 1)
-  stopifnot(length(mx) == 1)
-  (r - mn) / (mx - mn)
-}
 
 #' Normalize data
 #'
@@ -11,32 +6,34 @@ normalize <- function(r, mn, mx, ...) {
 #' proportional fashion. Conversely, data less than \code{mn} get values less
 #' than \code{0}.
 #'
-#' @param r \code{\linkS4class{Raster}}.
+#' @param r \code{\linkS4class{Raster}} or numeric vector.
 #' @param mn Numeric vector of length one. Minimum expected value.
 #' @param mx Numeric vector of length one. Maximum expected value.
-#' @param ... Additional arguments as for \code{\link[raster]{writeRaster}}.
 #'
 #' @examples
 #' normalize(read_caim(), 0, 255)
+normalize <- function(r, mn, mx) {
+  stopifnot(length(mn) == 1)
+  stopifnot(length(mx) == 1)
+  (r - mn) / (mx - mn)
+}
+
+#' Gamma back correction
 #'
-setGeneric("normalize", normalize)
-#' @export normalize
-
-#' @describeIn normalize Result is a \linkS4class{Raster} of the same type that
-#'   \code{r}.
-setMethod("normalize",
-          signature(r = "Raster"),
-          function(r, mn, mx, ...) {
-            fun <- .makeF8multi(function(r,...) normalize(r, mn, mx), ...)
-            fun(r, ...)
-          }
-)
-
-#' @rdname normalize
-setMethod("normalize",
-          signature(r = "RasterLayer"),
-          function(r, mn, mx, ...) {
-            fun <- .makeF8single(function(r,...) normalize(r, mn, mx), ...)
-            fun(r, ...)
-          }
-)
+#' @param DN_from_JPEG Numeric vector or an object from the
+#'   \code{\linkS4class{Raster}} class. Digital numbers from a JPEG file.
+#' @param gamma Numeric vector of length one. Gamma value. Please see the
+#'   reference for details.
+#'
+#' @return Normalized \code{\linkS4class{Raster}}.
+#' @export
+#'
+#' @references \insertRef{Diaz2018}{rcaiman}
+#'
+#' @examples
+#' r <- read_caim()
+#' gbc(r)
+gbc <- function(DN_from_JPEG, gamma = 2.2) {
+  stopifnot(length(gamma) == 1)
+  (DN_from_JPEG / 255)^gamma
+}

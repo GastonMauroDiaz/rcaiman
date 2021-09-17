@@ -1,5 +1,8 @@
 test_that("expand_noncircular() works", {
-  read_DSC_2881 <- function() {
+  local_edition(3)
+  skip_on_cran()
+
+  read_and_expand_DSC_2881 <- function() {
     path <- system.file("external", package = "rcaiman")
     my_file <- paste0(path, "/DSC_2881.JPG")
 
@@ -22,9 +25,8 @@ test_that("expand_noncircular() works", {
     path
   }
 
-  local_edition(3)
-  skip_on_cran()
-  path <- read_DSC_2881()
+
+  path <- read_and_expand_DSC_2881()
   expect_snapshot_file(path, "DSC_2881_expanded.tif")
   file.remove(path)
 })

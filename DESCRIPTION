@@ -17,11 +17,11 @@ Imports:
     methods,
     testthat,
     rgdal,
-    geometry,
+    pracma,
     stats,
     magrittr,
-    utils,
-    conicfit
+    utils
 Suggests: 
     EBImage,
-    autothresholdr
+    autothresholdr,
+    conicfit

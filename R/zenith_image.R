@@ -102,7 +102,7 @@ azimuth_image <- function (z)
 
   xy <- xyFromCell(z, seq(length = ncell(z)))
   v <- values(z)
-  sph <- geometry::cart2sph(
+  sph <- pracma::cart2sph(
     matrix(c(xy[, 1] - ncol(z) / 2, xy[, 2] - ncol(z) / 2, values(z)), ncol = 3)
   )
 
