@@ -9,7 +9,7 @@ write_bin(bin, path)
 \arguments{
 \item{bin}{\linkS4class{RasterLayer}.}
 
-\item{path}{One-length character vector. Path for writing the image.}
+\item{path}{Character vector of length one. Path for writing the image.}
 }
 \description{
 Wrapper functions for \code{\link[raster]{writeRaster}}.

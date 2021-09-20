@@ -44,6 +44,7 @@
 #' @references \insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
 #'
 #' @examples
+#' a <- 10
 model_sky_dn <- function(x, z, a, bin,
                          prob = 0.95,
                          filling_source = NULL,
@@ -99,8 +100,12 @@ model_sky_dn <- function(x, z, a, bin,
     if (use_azimuth_angle) {
       model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE) +
         sin(Azimuth * pi / 180) + cos(Azimuth * pi / 180))
+
+      # only to avoid note from check, code is OK without this line.
+      b <- d <- e <- NA
+
       skyFun <- function(z, azimuth) {
-        x <- coef(model)
+        x <- coefficients(model)
         x[is.na(x)] <- 0
         for (i in 1:5) assign(letters[i], x[i])
         a + b * z + c * z^2 +
@@ -109,19 +114,20 @@ model_sky_dn <- function(x, z, a, bin,
     } else {
       model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE))
       skyFun <- function(z, azimuth) {
-        x <- coef(model)
+        x <- coefficients(model)
         x[is.na(x)] <- 0
         for (i in 1:5) assign(letters[i], x[i])
         a + b * z + c * z^2
       }
     }
 
+
+    no_threads <- parallel::detectCores() - free_cores
+    bs <- blockSize(z, round(ncell(z) / no_threads))
+
     if (parallel) {
 
       # go parallel
-      no_threads <- parallel::detectCores() - free_cores
-
-      bs <- blockSize(z, round(ncell(z) / no_threads))
 
       Values <- list()
       for (u in 1:bs$n) {

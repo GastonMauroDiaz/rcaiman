@@ -10,6 +10,8 @@
 #' @param mn Numeric vector of length one. Minimum expected value.
 #' @param mx Numeric vector of length one. Maximum expected value.
 #'
+#' @export
+#'
 #' @examples
 #' normalize(read_caim(), 0, 255)
 normalize <- function(r, mn, mx) {

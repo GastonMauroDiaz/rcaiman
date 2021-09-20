@@ -2,24 +2,16 @@
 % Please edit documentation in R/normalize.R
 \name{normalize}
 \alias{normalize}
-\alias{normalize,Raster-method}
-\alias{normalize,RasterLayer-method}
 \title{Normalize data}
 \usage{
-normalize(r, mn, mx, ...)
-
-\S4method{normalize}{Raster}(r, mn, mx, ...)
-
-\S4method{normalize}{RasterLayer}(r, mn, mx, ...)
+normalize(r, mn, mx)
 }
 \arguments{
-\item{r}{\code{\linkS4class{Raster}}.}
+\item{r}{\code{\linkS4class{Raster}} or numeric vector.}
 
 \item{mn}{Numeric vector of length one. Minimum expected value.}
 
 \item{mx}{Numeric vector of length one. Maximum expected value.}
-
-\item{...}{Additional arguments as for \code{\link[raster]{writeRaster}}.}
 }
 \description{
 Normalize data lying between \code{mn} and \code{mx} in the range \code{0} to
@@ -27,13 +19,6 @@ Normalize data lying between \code{mn} and \code{mx} in the range \code{0} to
 proportional fashion. Conversely, data less than \code{mn} get values less
 than \code{0}.
 }
-\section{Methods (by class)}{
-\itemize{
-\item \code{Raster}: Result is a \linkS4class{Raster} of the same type that
-\code{r}.
-}}
-
 \examples{
 normalize(read_caim(), 0, 255)
-
 }

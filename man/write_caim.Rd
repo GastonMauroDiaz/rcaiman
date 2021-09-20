@@ -9,17 +9,17 @@ write_caim(caim, path, bit_depth)
 \arguments{
 \item{caim}{\linkS4class{Raster}.}
 
-\item{path}{One-length character vector. Path for writing the image.}
+\item{path}{Character vector of length one. Path for writing the image.}
 
-\item{bit_depth}{One-length numeric vector.}
+\item{bit_depth}{Numeric vector of length one.}
 }
 \description{
 Wrapper function for \code{\link[raster]{writeRaster}}.
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-ncaim <- normalize(caim, 0, 255)
+require(magrittr)
+caim <- read_caim() \%>\% normalize(., 0, 255)
 write_caim(caim * 2^8, "test_8bit", 8)
 write_caim(caim * 2^16, "test_16bit", 16)
 }

@@ -30,6 +30,6 @@ apply_thr(r$Blue, 120)
 # This function is very useful in combination with the 'autothresholdr'
 package. For examples:
 thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
-apply_thr(r$Blue, thr)
+apply_thr(r$Blue, thr[1])
 }
 }
