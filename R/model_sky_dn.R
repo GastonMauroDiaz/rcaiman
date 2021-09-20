@@ -1,6 +1,6 @@
 #' Model sky digital numbers
 #'
-#' Produce the digital numbers of the whole sky through empirical modelling.
+#' Produce the digital numbers of the whole sky through statistical modelling.
 #'
 #' An explanation of this function can be found on
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
@@ -38,13 +38,33 @@
 #' @param free_cores One-length numeric vector. This number is subtracted to the
 #'   number of cores detected by \code{\link[parallel]{detectCores}}.
 #'
-#' @return \linkS4class{RasterLayer}
+#' @return a list with an object of class \linkS4class{RasterLayer} and of
+#'   class "lm" (see \code{\link[stats{lm}}).
 #' @export
+#'
+#' @seealso mblt functions
 #'
 #' @references \insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
 #'
 #' @examples
-#' a <- 10
+#' \dontrun{
+#' path <- system.file("external", package = "rcaiman")
+#' my_file <- paste0(path, "/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'                method = "auto", mode = "wb"
+#' )
+#'
+#' r <- read_caim(file.path(path, "DSCN5548.JPG"),
+#'                c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
+#' bin <- apply_thr(r$Blue, thr[1] * 1.25)
+#' blue <- gbc(r$Blue)
+#' sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+#' path <- tempfile(fileext = ".tif")
+#' write_caim(sky$image * 2^8, path, 8)
+#' }
 model_sky_dn <- function(x, z, a, bin,
                          prob = 0.95,
                          filling_source = NULL,
