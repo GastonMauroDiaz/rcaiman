@@ -54,28 +54,51 @@ degree of polynomial surface
 Fit a trend surface using spatial::surf.ls as workhorse function.
 }
 \details{
-This function is meant to be used before \code{\link{model_sky_dn}}.
+This function is meant to be used after \code{\link{model_sky_dn}}.
 
 A short explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 the sky DN as a previous step for our method}, after the explanation of the
 \code{\link{model_sky_dn}}.
 
-The argument \code{fact} is passed to the \code{\link[raster]{aggregate}}.
-Whit this parameter, it is possible to control the scale at which the fitting
-is performed. In general, a coarse scale lead to best generalization.
+The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
+argument allows to control the scale at which the fitting is performed. In
+general, a coarse scale lead to best generalization.
 
-If a stake of above canopy references is provided as filling source, the
-function can select the one with less root mean square by comparing them on
-the areas were sky DN are available in both \code{x} and
-\code{filling_source}.
+If a raster stake of above canopy references is provided as filling source,
+\code{fit_surface_to_sky_dn()} function can select the one with less root
+mean square error by analyzing the areas were sky DN are available in both
+\code{x} and \code{filling_source}. If no above canopy reference is available
+the result from a call to \code{\link{model_sky_dn}} can be provided as
+filling source. However, the function can work without a filling source,
+which is the default setup.
 }
 \examples{
-a <- 10
+\dontrun{
+path <- getwd()
+my_file <- paste0(path, "/DSCN5548.JPG")
+download.file("https://osf.io/kp7rx/download", my_file,
+              method = "auto", mode = "wb")
+r <- read_caim(file.path(path, "DSCN5548.JPG"),
+               c(1280, 960) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
+bin <- apply_thr(r$Blue, thr[1] * 1.25)
+blue <- gbc(r$Blue)
+sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+aux_m <- mask_image(z, zlim = c(0,20))
+sky$image[aux_m] <- NA
+m <- mask_image(z, zlim = c(0,70))
+sky <- fit_surface_to_sky_dn(blue, z, m, bin,
+                             filling_source = sky$image)
+}
 }
 \references{
 \insertRef{Diaz2018}{rcaiman}
 }
 \seealso{
-mblt functions
+Other mblt functions: 
+\code{\link{model_sky_dn}()}
 }
+\concept{mblt functions}

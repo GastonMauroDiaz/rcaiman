@@ -30,21 +30,24 @@
 #'
 #' Fit a trend surface using spatial::surf.ls as workhorse function.
 #'
-#' This function is meant to be used before \code{\link{model_sky_dn}}.
+#' This function is meant to be used after \code{\link{model_sky_dn}}.
 #'
 #' A short explanation of this function can be found on
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 #' the sky DN as a previous step for our method}, after the explanation of the
 #' \code{\link{model_sky_dn}}.
 #'
-#' The argument \code{fact} is passed to the \code{\link[raster]{aggregate}}.
-#' Whit this parameter, it is possible to control the scale at which the fitting
-#' is performed. In general, a coarse scale lead to best generalization.
+#' The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
+#' argument allows to control the scale at which the fitting is performed. In
+#' general, a coarse scale lead to best generalization.
 #'
-#' If a stake of above canopy references is provided as filling source, the
-#' function can select the one with less root mean square by comparing them on
-#' the areas were sky DN are available in both \code{x} and
-#' \code{filling_source}.
+#' If a raster stake of above canopy references is provided as filling source,
+#' \code{fit_surface_to_sky_dn()} function can select the one with less root
+#' mean square error by analyzing the areas were sky DN are available in both
+#' \code{x} and \code{filling_source}. If no above canopy reference is available
+#' the result from a call to \code{\link{model_sky_dn}} can be provided as
+#' filling source. However, the function can work without a filling source,
+#' which is the default setup.
 #'
 #' @inheritParams model_sky_dn
 #' @param mask raster
@@ -55,12 +58,31 @@
 #' @return \code{\linkS4class{RasterLayer}}
 #' @export
 #'
-#' @seealso mblt functions
+#' @family mblt functions
 #'
-#' @references \insertRef{Diaz2018}{rcaiman}
+#' @references
+#' \insertRef{Diaz2018}{rcaiman}
 #'
 #' @examples
-#' a <- 10
+#' \dontrun{
+#' path <- getwd()
+#' my_file <- paste0(path, "/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(file.path(path, "DSCN5548.JPG"),
+#'                c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
+#' bin <- apply_thr(r$Blue, thr[1] * 1.25)
+#' blue <- gbc(r$Blue)
+#' sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+#' aux_m <- mask_image(z, zlim = c(0,20))
+#' sky$image[aux_m] <- NA
+#' m <- mask_image(z, zlim = c(0,70))
+#' sky <- fit_surface_to_sky_dn(blue, z, m, bin,
+#'                              filling_source = sky$image)
+#' }
 fit_surface_to_sky_dn <- function(x,
                                   z,
                                   mask,
@@ -132,39 +154,7 @@ fit_surface_to_sky_dn <- function(x,
 
   if (fact > 1) r <- resample(r, blue)
 
-  # # 10/9/2019
-  # # A new method to increase the robustness of the fit.
-  # # It uses a plane to model the DNs near the horizon.
-  #
-  # max_angle <- round(max(z[mask]))
-  # aux_mask <-  mask_image(z, zlim = round(c(max_angle - 1,
-  #                                           max_angle)))
-  #
-  # aux_r <- r
-  # aux_r[!aux_mask] <- NA
-  # aux_r <- median(aux_r[], na.rm = TRUE) - IQR(aux_r[], na.rm = TRUE) %>%
-  #   .filter_values(aux_r, ., NULL)
-  #
-  #
-  # plane <- .fit_trend_surface(aux_r, 1)$image
-  # plane[plane < 1] <- 1
-  # plane[plane > 255] <- 255
-  #
-  # if (max_angle < 80) {
-  #   aux_mask <- mask_image(z, zlim = c(0, max_angle + 10))
-  # } else {
-  #   aux_mask <- mask_image(z)
-  # }
-  # plane[aux_mask] <- NA
-  #
-  # if (fact > 1) plane <- raster::aggregate(plane, fact, fun, na.rm = TRUE)
-  #
-  # Blue <- cover(Blue, plane)
-  #
-  # r <- .fit_trend_surface(Blue, np = np)$image
-  # r <- .filter_values(r)
-  #
-  # if (fact > 1) r <- resample(r, blue)
+  r[is.na(z)] <- NA
 
   list(image = r / 255, model = model)
 }

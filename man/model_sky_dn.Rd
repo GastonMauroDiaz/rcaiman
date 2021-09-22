@@ -70,8 +70,8 @@ An explanation of this function can be found on
 the sky DN as a previous step for our method}.
 }
 \examples{
-# \dontrun{
-path <- system.file("external", package = "rcaiman")
+\dontrun{
+path <- getwd()
 my_file <- paste0(path, "/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
                method = "auto", mode = "wb"
@@ -90,8 +90,12 @@ write_caim(sky$image * 2^8, path, 8)
 }
 }
 \references{
-\insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
+\insertRef{Diaz2018}{rcaiman}
+
+\insertRef{Wagner2001}{rcaiman}
 }
 \seealso{
-mblt functions
+Other mblt functions: 
+\code{\link{fit_surface_to_sky_dn}()}
 }
+\concept{mblt functions}

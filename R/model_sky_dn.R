@@ -42,13 +42,16 @@
 #'   class "lm" (see \code{\link[stats]{lm}}).
 #' @export
 #'
-#' @seealso mblt functions
+#' @family mblt functions
 #'
-#' @references \insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
+#' @references
+#' \insertRef{Diaz2018}{rcaiman}
+#'
+#' \insertRef{Wagner2001}{rcaiman}
 #'
 #' @examples
-#' # \dontrun{
-#' path <- system.file("external", package = "rcaiman")
+#' \dontrun{
+#' path <- getwd()
 #' my_file <- paste0(path, "/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
 #'                method = "auto", mode = "wb"

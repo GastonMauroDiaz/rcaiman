@@ -24,5 +24,5 @@ plot(m - m_from_disk)
 }
 }
 \seealso{
-read_bin
+\code{\link{read_bin}}
 }

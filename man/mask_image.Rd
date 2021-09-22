@@ -43,7 +43,7 @@ m <- mask_image(z)
 plot(m)
 }
 \seealso{
-write_bin
+\code{\link{write_bin}}
 
 Other masking functions: 
 \code{\link{add_mask_images}()}

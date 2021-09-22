@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @family masking functions
-#' @seealso write_bin
+#' @seealso \code{\link{write_bin}}
 #'
 #' @examples
 #' z <- zenith_image(1000, lens())
@@ -172,7 +172,7 @@ setMethod("masking",
 #'
 #' @export
 #'
-#' @seealso write_bin
+#' @seealso \code{\link{write_bin}}
 #'
 #' @examples
 #' \dontrun{
@@ -198,7 +198,7 @@ read_bin <- function(path) {
 #'
 #' @export
 #'
-#' @seealso read_bin
+#' @seealso \code{\link{read_bin}}
 #'
 #' @examples
 #' \dontrun{

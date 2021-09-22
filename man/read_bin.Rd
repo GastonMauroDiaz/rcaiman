@@ -22,5 +22,5 @@ plot(m - m_from_disk)
 }
 }
 \seealso{
-write_bin
+\code{\link{write_bin}}
 }
