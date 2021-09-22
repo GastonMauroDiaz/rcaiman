@@ -1,32 +1,29 @@
 
-.fitTrendSurface <- function(x, sampleProportion, np) {
-  for (i in seq(length = nlayers(x))) {
-    if (nlayers(x) > 1) {
-      tmp <- sampleRandom(raster::subset(x, i), ncell(x) * sampleProportion,
-        sp = TRUE
-      )
-    } else {
-      tmp <- sampleRandom(x, ncell(x) * sampleProportion, sp = TRUE)
-    }
+.fit_trend_surface <- function(x, np) {
 
-    tmp <- cbind(tmp@coords, tmp@data)
+  tmp <- data.frame(x = xFromCell(x, 1:ncell(x)),
+                    y = yFromCell(x, 1:ncell(x)),
+                    z = values(x)) %>%
+         .[!is.na(.$z), ]
+  colnames(tmp) <- c("x", "y", names(x))
 
-    fit <- spatial::surf.ls(x = tmp[, 1], y = tmp[, 2], z = tmp[, 3], np)
-    xl <- xmin(x)
-    xu <- xmax(x)
-    yl <- ymin(x)
-    yu <- ymax(x)
+  fit <- spatial::surf.ls(x = tmp[, 1], y = tmp[, 2], z = tmp[, 3], np)
+  xl <- xmin(x)
+  xu <- xmax(x)
+  yl <- ymin(x)
+  yu <- ymax(x)
 
-    out <- spatial::trmat(fit, xl, xu, yl, yu, ncol(x))
-    out <- raster(out)
-    out <- resample(out, x)
-    if (nlayers(x) > 1) {
-      x[[i]] <- out
-    } else {
-      x <- out
-    }
-  }
-  list(x, fit)
+  out <- spatial::trmat(fit, xl, xu, yl, yu, ncol(x))
+  out <- raster(out)
+  out <- resample(out, x)
+
+  list(image = out, fit = fit)
+}
+
+.filter_values <- function(r, mn = 0, mx = 255) {
+  if (!is.null(mn)) r[r < mn] <- NA
+  if (!is.null(mx)) r[r > mx] <- NA
+  r
 }
 
 #' Fit a trend surface to sky digital numbers
@@ -63,141 +60,111 @@
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'
 #' @examples
+#' a <- 10
 fit_surface_to_sky_dn <- function(x,
-                                  bin,
+                                  z,
                                   mask,
-                                  filling,
+                                  bin,
+                                  filling_source = NULL,
                                   prob = 0.95,
                                   fact = 5,
                                   np = 6) {
 
 
-  compareRaster(bin, filling)
   compareRaster(bin, x)
   compareRaster(bin, mask)
 
   bin[!mask] <- NA
-  filling[!mask] <- NA
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
-  blue <- x
-
-  Blue <- blue
+  Blue <- blue <- x * 255
   Blue[!bin] <- NA
   Blue[!mask] <- NA
+  if (fact > 1) Blue <- raster::aggregate(Blue, fact, fun, na.rm = TRUE)
 
-  if (fact > 1) {
-    Blue <- raster::aggregate(Blue, fact, fun, na.rm = TRUE)
-    filling <- raster::aggregate(filling, fact, mean, na.rm = TRUE)
+  if (!is.null(filling_source)){
+    compareRaster(bin, filling_source)
+
+    filling_source[!mask] <- NA
+    filling_source <- filling_source * 255
+    if (fact > 1) {
+      filling_source <- raster::aggregate(filling_source,
+                                          fact,
+                                          mean,
+                                          na.rm = TRUE)
+    }
+    Filling <- Map(
+      function(x) raster::subset(filling_source, x),
+      1:nlayers(filling_source)
+    )
+
+    # correct bias
+    .findBias <- function(x, y) {
+      m <- mask_image(z, zlim = c(30, 60))
+      mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)
+    }
+    Filling <- Map(function(x) x - .findBias(x, Blue), Filling)
+
+    # select the best filling data
+    rmse <- function(error) sqrt(mean(error^2, na.rm = TRUE))
+    RMSE <- Map(function(x) rmse((x - Blue)[]), Filling)
+    index <- which.min(unlist(RMSE))
+    Filling <- Filling[[index]]
+    RMSE <- RMSE[[index]]
+
+    # force corrected values
+    Filling[Filling > 255] <- 255
+    Filling[Filling < 0] <- 0
+
+    # fill
+    foo <- raster::sampleRegular(Filling, ncell(Filling) * 0.7,
+                                 cells = TRUE
+    )
+    Filling[foo[, 1]] <- NA
+
+    Blue <- cover(Blue, Filling)
   }
-  Filling <- Map(
-    function(x) raster::subset(filling, x),
-    1:nlayers(filling)
-  )
 
-
-  # correct bias in the data for filling
-  .findBias <- function(x, y) {
-    m <- mask_image(z, zlim = c(30, 60))
-    mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)
-  }
-  Filling <- Map(function(x) x - .findBias(x, Blue), Filling)
-
-  # select the better data for filling
-  rmse <- function(error) sqrt(mean(error^2, na.rm = TRUE))
-  RMSE <- Map(function(x) rmse((x - Blue)[]), Filling)
-  index <- which.min(unlist(RMSE))
-  Filling <- Filling[[index]]
-  RMSE <- RMSE[[index]]
-
-  Filling[Filling > 255] <- 255
-  Filling[Filling < 0] <- 0
-
-  # fill
-  foo <- raster::sampleRegular(Filling, ncell(Filling) * 0.7,
-    cells = TRUE
-  )
-  Filling[foo[, 1]] <- NA
-
-  Blue <- cover(Blue, Filling)
-
-  # Fit trend surface
-  r <- .fitTrendSurface(Blue, sampleProportion = 1, np = np)
-  GoF <- r[[2]]
-  r <- r[[1]]
+  r <- .fit_trend_surface(Blue, np = np)
+  model <- r$fit
+  r <- .filter_values(r$image)
 
   if (fact > 1) r <- resample(r, blue)
-  compareRaster(r, blue)
 
-  # 10/9/2019
-  # A trick to increase the robustness of the fit.
-  # It uses a plane to model the DNs near the horizon.
-  aux_mask <- mask
-  ## filter the estimation
-  r[r < 1] <- NA
+  # # 10/9/2019
+  # # A new method to increase the robustness of the fit.
+  # # It uses a plane to model the DNs near the horizon.
+  #
+  # max_angle <- round(max(z[mask]))
+  # aux_mask <-  mask_image(z, zlim = round(c(max_angle - 1,
+  #                                           max_angle)))
+  #
+  # aux_r <- r
+  # aux_r[!aux_mask] <- NA
+  # aux_r <- median(aux_r[], na.rm = TRUE) - IQR(aux_r[], na.rm = TRUE) %>%
+  #   .filter_values(aux_r, ., NULL)
+  #
+  #
+  # plane <- .fit_trend_surface(aux_r, 1)$image
+  # plane[plane < 1] <- 1
+  # plane[plane > 255] <- 255
+  #
+  # if (max_angle < 80) {
+  #   aux_mask <- mask_image(z, zlim = c(0, max_angle + 10))
+  # } else {
+  #   aux_mask <- mask_image(z)
+  # }
+  # plane[aux_mask] <- NA
+  #
+  # if (fact > 1) plane <- raster::aggregate(plane, fact, fun, na.rm = TRUE)
+  #
+  # Blue <- cover(Blue, plane)
+  #
+  # r <- .fit_trend_surface(Blue, np = np)$image
+  # r <- .filter_values(r)
+  #
+  # if (fact > 1) r <- resample(r, blue)
 
-  ## sample the estimation near the horizon
-  aux_mask[] <- raster(EBImage::erode(as.matrix(mask)))[]
-  aux_mask <- mask - aux_mask
-  aux_r <- r
-  aux_r[!aux_mask] <- NA
-  ### filter the sample
-  thr <- median(aux_r[], na.rm = TRUE) - sd(aux_r[], na.rm = TRUE)
-  aux_r[aux_r < thr] <- NA
-
-  ## fit a plane and edit it
-  plane <- .fitTrendSurface(aux_r, 1, 1)
-  plane <- plane[[1]]
-  plane[plane < 1] <- 1
-  plane[plane > 254] <- 254
-  aux_mask <- z
-  aux_mask[!mask] <- NA
-  if (getMax(aux_mask) + 10 < 90) {
-    aux_mask <- doMask(z, zlim = asAngle(c(
-      0,
-      getMax(aux_mask) + 10
-    )))
-  } else {
-    aux_mask <- doMask(z)
-  }
-  plane[aux_mask] <- NA
-
-  ## filter the estimation (again but with other approach)
-  r[!mask] <- NA
-  thr <- median(r[], na.rm = TRUE) - sd(r[], na.rm = TRUE)
-  r[r < thr] <- NA
-
-  ## support the estimation with the plane
-  r[!mask] <- NA
-  r <- cover(r, plane)
-
-  ## adjust a surface to the supported data
-  ### if the result is bad,
-  ### it tries with a more rigid model
-  m <- doMask(z)
-  fun <- function(np) {
-    surf <- .fitTrendSurface(r, 0.7, np)
-    surf[[1]]
-  }
-  unlock <- TRUE
-  np <- 7
-  while (unlock) {
-    np <- np - 1
-    aux_r <- fun(np)
-    r_values <- aux_r[m]
-    unlock <- any(r_values < 0)
-    if (unlock) unlock <- np > 3
-  }
-
-  if (np == 3) {
-    thr <- median(r[], na.rm = TRUE)
-    aux_r <- fun(6)
-    aux_r[aux_r < thr] <- thr
-  }
-
-  aux_r[!m] <- NA
-
-
-  list(skyDN = aux_r, RMSE = RMSE, GoF = GoF)
+  list(image = r / 255, model = model)
 }

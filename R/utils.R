@@ -1,6 +1,8 @@
 radian2degree <- function(x) x * 180 / pi
 degree2radian <- function(x) x * pi / 180
 
+.get_max <- function(r) max(r[], na.rm = TRUE)
+.get_min <- function(r) min(r[], na.rm = TRUE)
 
 .makeF8single <- function(a, ...) { # single layer output
 

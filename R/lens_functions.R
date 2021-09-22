@@ -2,7 +2,7 @@
 #'
 #' Database of lens projection functions and field of views.
 #'
-#' To do: include the character needed to retrieve the lens
+#' TODO: include the character needed to retrieve the lens
 #' type and the reference
 #'
 #' @param type Character vector of length one. The name of the lens, see details.

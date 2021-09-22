@@ -15,7 +15,7 @@ lens(type = "equiangular", max_fov = FALSE)
 Database of lens projection functions and field of views.
 }
 \details{
-To do: include the character needed to retrieve the lens
+TODO: include the character needed to retrieve the lens
 type and the reference
 }
 \examples{

@@ -58,10 +58,11 @@ azimuth angle. If \code{FALSE}, a simplified version based on
 number of cores detected by \code{\link[parallel]{detectCores}}.}
 }
 \value{
-\linkS4class{RasterLayer}
+a list with an object of class \linkS4class{RasterLayer} and of
+  class "lm" (see \code{\link[stats]{lm}}).
 }
 \description{
-Produce the digital numbers of the whole sky through empirical modelling.
+Produce the digital numbers of the whole sky through statistical modelling.
 }
 \details{
 An explanation of this function can be found on
@@ -69,7 +70,7 @@ An explanation of this function can be found on
 the sky DN as a previous step for our method}.
 }
 \examples{
-\dontrun{
+# \dontrun{
 path <- system.file("external", package = "rcaiman")
 my_file <- paste0(path, "/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
@@ -90,4 +91,7 @@ write_caim(sky$image * 2^8, path, 8)
 }
 \references{
 \insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
+}
+\seealso{
+mblt functions
 }

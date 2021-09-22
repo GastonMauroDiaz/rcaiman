@@ -21,7 +21,8 @@ Imports:
     stats,
     magrittr,
     utils,
-    Rdpack
+    Rdpack,
+    spatial
 Suggests: 
     EBImage,
     autothresholdr,

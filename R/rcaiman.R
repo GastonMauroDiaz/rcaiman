@@ -17,7 +17,7 @@ NULL
 #' @import methods
 #' @import raster
 #' @importFrom magrittr %>%
-#' @importFrom stats lm poly coefficients
+#' @importFrom stats lm poly coefficients median IQR
 NULL
 
 

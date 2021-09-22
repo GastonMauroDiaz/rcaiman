@@ -39,7 +39,7 @@
 #'   number of cores detected by \code{\link[parallel]{detectCores}}.
 #'
 #' @return a list with an object of class \linkS4class{RasterLayer} and of
-#'   class "lm" (see \code{\link[stats{lm}}).
+#'   class "lm" (see \code{\link[stats]{lm}}).
 #' @export
 #'
 #' @seealso mblt functions
@@ -47,7 +47,7 @@
 #' @references \insertRef{Diaz2018}{rcaiman} \insertRef{Wagner2001}{rcaiman}
 #'
 #' @examples
-#' \dontrun{
+#' # \dontrun{
 #' path <- system.file("external", package = "rcaiman")
 #' my_file <- paste0(path, "/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
