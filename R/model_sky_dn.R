@@ -24,7 +24,7 @@
 #'   one taken at the same time and place but above the canopy. The orientation
 #'   relative to north must be the same than \code{x}.
 #' @param prob One-length logical vector. Probability for
-#'   \code{\link[stats]{quantile}}. See reference
+#'   \code{\link[stats]{quantile}} calculation. See reference
 #'   \insertCite{Diaz2018;textual}{rcaiman}.
 #' @param use_azimuth_angle One-length logical vector. If \code{TRUE}, Equation
 #'   4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN = a + b
@@ -38,7 +38,7 @@
 #' @param free_cores One-length numeric vector. This number is subtracted to the
 #'   number of cores detected by \code{\link[parallel]{detectCores}}.
 #'
-#' @return a list with an object of class \linkS4class{RasterLayer} and of
+#' @return A list with an object of class \linkS4class{RasterLayer} and of
 #'   class "lm" (see \code{\link[stats]{lm}}).
 #' @export
 #'

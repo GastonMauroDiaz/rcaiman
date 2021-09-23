@@ -55,7 +55,8 @@
 #' @inheritParams stats::quantile
 #' @inheritParams spatial::surf.ls
 #'
-#' @return \code{\linkS4class{RasterLayer}}
+#' @return A list with an object of class \linkS4class{RasterLayer} and of
+#'   class "trls" (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
 #' @family mblt functions
@@ -149,12 +150,12 @@ fit_surface_to_sky_dn <- function(x,
   }
 
   r <- .fit_trend_surface(Blue, np = np)
-  model <- r$fit
+  fit <- r$fit
   r <- .filter_values(r$image)
 
   if (fact > 1) r <- resample(r, blue)
 
   r[is.na(z)] <- NA
 
-  list(image = r / 255, model = model)
+  list(image = r / 255, fit = fit)
 }

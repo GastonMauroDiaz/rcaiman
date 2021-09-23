@@ -115,7 +115,10 @@ sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
 #'   segments are labeled with sequential numbers. By default (\code{FALSE}),
 #'   labeling numbers are not sequential (see Details).
 #'
-#' @return \linkS4class{RasterLayer} with segments shaped like windshields.
+#' @return \linkS4class{RasterLayer} with segments shaped like windshields,
+#'   although some of them will look elongated in height. The pattern is two
+#'   opposite and converging straight sides and two opposite and parallel
+#'   curvy sides.
 #' @export
 #'
 #' @family basic fisheye segmentation functions

@@ -48,7 +48,8 @@ degree of polynomial surface
 }
 }
 \value{
-\code{\linkS4class{RasterLayer}}
+A list with an object of class \linkS4class{RasterLayer} and of
+  class "trls" (see \code{\link[spatial]{surf.ls}}).
 }
 \description{
 Fit a trend surface using spatial::surf.ls as workhorse function.

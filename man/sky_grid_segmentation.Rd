@@ -24,7 +24,10 @@ segments are labeled with sequential numbers. By default (\code{FALSE}),
 labeling numbers are not sequential (see Details).}
 }
 \value{
-\linkS4class{RasterLayer} with segments shaped like windshields.
+\linkS4class{RasterLayer} with segments shaped like windshields,
+  although some of them will look elongated in height. The pattern is two
+  opposite and converging straight sides and two opposite and parallel
+  curvy sides.
 }
 \description{
 Segmenting the hemisphere view into segments of equal angular resolution for

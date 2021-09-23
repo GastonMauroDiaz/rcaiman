@@ -4,18 +4,35 @@
 \alias{regional_thresholding}
 \title{Regional thresholding}
 \usage{
-regional_thresholding(r, segmentation, method)
+regional_thresholding(
+  r,
+  segmentation,
+  method,
+  w = NULL,
+  type = NULL,
+  prob = NULL
+)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. Normalized greyscale image. See
 \code{\link{normalize}} and \code{\link{gbc}}}
 
 \item{segmentation}{\linkS4class{RasterLayer}. The result of segmenting
-\code{r}. Probably, code{\link{rings_segmentation}} will be the most
-used for fisheye images.}
+\code{r}. Probably, code{\link{rings_segmentation}} will be the most used
+for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current
 options.}
+
+\item{w}{Numeric vector of length one. Weight. See reference.}
+
+\item{type}{Character vector of length one. Default is "Generic". Currently,
+the only available calibrated values are from
+\insertCite{Diaz2018}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
+
+\item{prob}{One-length logical vector. Probability for
+\code{\link[stats]{quantile}}. See reference
+\insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{
 \linkS4class{RasterLayer}.
@@ -25,34 +42,33 @@ Regional thresholding of greyscale images
 }
 \details{
 Methods currently implemented are:
-}
-\section{mblt}{
- is the method described in \insertCite{Diaz2018}{rcaiman} but
-  applied regionally instead of locally. Digital numbers from each segment
-  are extracted and passed to \code{quantile(x, 0.9)}, which result is in
-  turn passed to \code{\link{thr_fun}}. The "Generic" coefficients are used.
-  Use mblt_default to use \code{w} equal to \code{0.5}, or mblt_initial_value
-  to use \code{w} equal to \code{1}.
-}
 
-\section{methods from autothresholdr package}{
- this function can call methods
-  from \code{\link[autothresholdr]{auto_thresh}}. Use "IsoData" to use the
-  algorithm by \insertCite{isodata}{rcaiman}, which is the one recommended by
-  \insertCite{Jonckheere2005}{rcaiman}.
-}
+\itemize{ \item \strong{Diaz2018}: method presented in
+\insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
+selected, the arguments \code{w}, \code{type},and \code{prob} should be
+provided. It works extracting the digital numbers from each segment and
+passing them to \code{quantile(x, prob)}, which result is in turn passed to
+\code{thr_image(dns, w, type)}.
 
+\item \strong{Methods from autothresholdr package}: this function can call
+methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
+to use the algorithm by \insertCite{isodata}{rcaiman}, which is the one
+recommended by \insertCite{Jonckheere2005}{rcaiman}. }
+}
 \examples{
 r <- read_caim()
 blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
-bin <- regional_thresholding(blue, rings, "IsoData")
+bin <- regional_thresholding(blue, rings, "Diaz2018", 0.5, "Generic", 0.9)
 }
 \references{
 \insertRef{Diaz2018}{rcaiman}
 
-\insertCite{Jonckheere2005}{rcaiman}
+  \insertCite{Jonckheere2005}{rcaiman}
 
-\insertCite{isodata}{rcaiman}
+  \insertCite{isodata}{rcaiman}
+}
+\seealso{
+\code{\link{thr_image}}
 }

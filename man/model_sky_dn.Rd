@@ -58,7 +58,7 @@ azimuth angle. If \code{FALSE}, a simplified version based on
 number of cores detected by \code{\link[parallel]{detectCores}}.}
 }
 \value{
-a list with an object of class \linkS4class{RasterLayer} and of
+A list with an object of class \linkS4class{RasterLayer} and of
   class "lm" (see \code{\link[stats]{lm}}).
 }
 \description{

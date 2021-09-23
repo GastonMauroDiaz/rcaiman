@@ -20,12 +20,12 @@ test_that("regional_thresholding() works", {
     blue <- gbc(r$Blue)
     z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
     rings <- rings_segmentation(z, 10)
-    bin <- regional_thresholding(blue, rings, "mblt_default")
+    bin <- regional_thresholding(blue, rings, "Diaz2018", 0.5, "Generic", 0.9)
     path <- tempfile(fileext = ".tif")
     write_bin(bin, path)
     path
   }
   path <- write_regional_bin_and_return_path()
-  expect_snapshot_file(path, "mblt_regional.tif")
+  expect_snapshot_file(path, "Diaz2018_regional.tif")
   file.remove(path)
 })

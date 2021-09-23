@@ -45,15 +45,27 @@ image editor can be used, such as GIMP and Adobe Photoshop.
 }
 \section{Functions}{
 \itemize{
-\item \code{read_caim,character-method}: Provide the path to a file. If The file stored in the
-working directory, just provide the file name. Always include the file
-extension.
+\item \code{read_caim,character-method}: Provide the path to a file. If The file is stored in
+the working directory, just provide the file name. File extension should be
+included in the file name.
 
 \item \code{read_caim,missing-method}: It returns an example (see details).
 }}
 
 \examples{
+# This is the example image
 r <- read_caim()
+
+# This is also the example
+path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
+# the zenith raster coordinates can be easily transformed to the "upper_left"
+# argument by subtracting from it the radius expressed in pixels.
+zenith_colrow <- c(1280, 960)
+diameter_px <- 1490
+r <- read_caim(path,
+               upper_left = zenith_colrow - diameter_px/2
+               width = diameter_px,
+               height = diameter_px)
 }
 \seealso{
 write_caim

@@ -2,26 +2,32 @@
 % Please edit documentation in R/apply_thr.R
 \name{apply_thr}
 \alias{apply_thr}
-\title{Apply a global threshold}
+\title{Apply threshold}
 \usage{
 apply_thr(r, thr)
 }
 \arguments{
-\item{r}{\linkS4class{Raster}.}
+\item{r}{\linkS4class{RasterLayer}.}
 
-\item{thr}{Numeric vector of length one. Threshold value.}
+\item{thr}{Numeric vector of length one or \linkS4class{RasterLayer}.
+Threshold value or values.}
 }
 \value{
 \linkS4class{RasterLayer} with values \code{0} and \code{1}.
 }
 \description{
-Apply a global threshold value to an image.
+Global or local thresholding of images.
 }
 \details{
 It is a wrapper function around this operator from the 'raster' package:
-\code{>}. The same threshold value is applied to every layer of the raster
-object. The most frequent use is ingesting a single layered object, often
-called a greyscale images.
+\code{>}.
+
+If a single threshold value is provided as \code{thr} argument, it is applied
+to every pixel of the raster object \code{r}.
+
+If a \linkS4class{RasterLayer} is provided as \code{thr}, then the operation
+is performed pixel by pixel, so it allows local threholding. In other words,
+each pixel can have a personalized threshold.
 }
 \examples{
 r <- read_caim()
@@ -29,7 +35,8 @@ apply_thr(r$Blue, 120)
 \dontrun{
 # This function is very useful in combination with the 'autothresholdr'
 package. For examples:
-thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
-apply_thr(r$Blue, thr[1])
+require(autothresholdr)
+thr <- auto_thresh(r$Blue[], "IsoData")[1]
+apply_thr(r$Blue, thr)
 }
 }
