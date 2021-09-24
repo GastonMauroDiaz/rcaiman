@@ -13,6 +13,9 @@
 #' @export
 #'
 expand_noncircular <-  function (caim, z, zenith_colrow) {
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(zenith_colrow) == "numeric")
+  stopifnot(length(zenith_colrow) == 2)
 
   zenith_xy <- zenith_colrow
   zenith_xy[2] <- nrow(caim) - zenith_colrow[2]

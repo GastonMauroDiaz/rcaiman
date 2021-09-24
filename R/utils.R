@@ -4,95 +4,12 @@ degree2radian <- function(x) x * pi / 180
 .get_max <- function(r) max(r[], na.rm = TRUE)
 .get_min <- function(r) min(r[], na.rm = TRUE)
 
-.makeF8single <- function(a, ...) { # single layer output
+.is_even <- function(x) round(x/2) == x/2
 
-  function(x, filename = "", ...) {
-    # code from raster-package vignette
-    # "Writing functions for large raster files"
-    # function referred as f8
-    out <- raster(x)
-    big <- ! canProcessInMemory(out, 3)
-    filename <- trim(filename)
-    if (big & filename == '') {
-      filename <- rasterTmpFile()
-    }
-    if (filename != '') {
-      out <- writeStart(out, filename, ...)
-      todisk <- TRUE
-    } else {
-      vv <- matrix(ncol=nrow(out), nrow=ncol(out))
-      todisk <- FALSE
-    }
+.is_whole <- function(x) round(x) == x
 
-    bs <- blockSize(x)
-    pb <- pbCreate(bs$n, ...)
-
-    if (todisk) {
-      for (i in 1:bs$n) {
-        v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
-        v <- a(v, ...) # new code
-        out <- writeValues(out, v, bs$row[i])
-        pbStep(pb, i)
-      }
-      out <- writeStop(out)
-    } else {
-      for (i in 1:bs$n) {
-        v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
-        v <- a(v, ...) # new code
-        cols <- bs$row[i]:(bs$row[i]+bs$nrows[i]-1)
-        vv[,cols] <- matrix(v, nrow=out@ncols)
-        pbStep(pb, i)
-      }
-      out <- setValues(out, as.vector(vv))
-    }
-    pbClose(pb)
-    return(out)
-  }
-}
-
-.makeF8multi <- function(a, ...) { # multi layer output
-
-  function(x, filename = "", ...) {
-    # based on code from raster-package vignette
-    # "Writing functions for large raster files"
-    # function referred as f8
-    out <- brick(x) #
-    big <- ! canProcessInMemory(out, 3)
-    filename <- trim(filename)
-    if (big & filename == '') {
-      filename <- rasterTmpFile()
-    }
-    if (filename != '') {
-      out <- writeStart(out, filename, ...)
-      todisk <- TRUE
-    } else {
-      vv <- array(dim = c(ncol(out), nrow(out), nlayers(out)))
-      todisk <- FALSE
-    }
-
-    bs <- blockSize(x)
-    pb <- pbCreate(bs$n, ...)
-
-    if (todisk) {
-      for (i in 1:bs$n) {
-        v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
-        v <- a(v, ...)
-        out <- writeValues(out, v, bs$row[i])
-        pbStep(pb, i)
-      }
-      out <- writeStop(out)
-    } else {
-      for (i in 1:bs$n) {
-        v <- getValues(x, row=bs$row[i], nrows=bs$nrows[i] )
-        v <- a(v, ...)
-        cols <- bs$row[i]:(bs$row[i]+bs$nrows[i]-1)
-        vv[,cols,] <- array(v, dim=c(bs$nrows[i],nrow=out@ncols, nlayers(x)))
-        pbStep(pb, i)
-      }
-      out <- setValues(out, as.vector(vv))
-    }
-    pbClose(pb)
-    return(out)
-  }
+.check_if_r_was_normalized <- function(r) {
+  if (max(r[], na.rm = TRUE) > 1)
+    warning("Please check if \"r\" was correctly normalized")
 }
 

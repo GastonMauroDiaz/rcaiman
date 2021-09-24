@@ -4,7 +4,7 @@ test_that("a call to read_caim() returs the example photo", {
   write_example_photo_and_return_path <- function(r) {
     r <- read_caim()
     path <- tempfile(fileext = ".tif")
-    writeRaster(r, path, datatype = "INT1U", overwrite = TRUE)
+    write_caim(r, path, 8)
     path
   }
   local_edition(3)
@@ -44,7 +44,7 @@ test_that("a ROI from a photo can be read correctly", {
       width = 1530, height = 1476
     )
     path <- tempfile(fileext = ".tif")
-    writeRaster(r, path, datatype = "INT1U", overwrite = TRUE)
+    write_caim(r, path, 8)
     path
   }
   local_edition(3)

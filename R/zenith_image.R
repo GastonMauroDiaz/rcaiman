@@ -98,6 +98,7 @@ zenith_image <- function (diameter, lens_coef)
 #' azimuth_image(z)
 azimuth_image <- function (z)
 {
+  stopifnot(class(z) == "RasterLayer")
   mask <- is.na(z)
 
   xy <- xyFromCell(z, seq(length = ncell(z)))

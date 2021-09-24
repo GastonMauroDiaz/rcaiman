@@ -24,14 +24,15 @@ for fisheye images.}
 \item{method}{Character vector of length one. See details for current
 options.}
 
-\item{w}{Numeric vector of length one. Weight. See reference.}
+\item{w}{Numeric vector of length one. Weight affecting the slope
+coefficient. See \insertCite{Diaz2018}{rcaiman}.}
 
 \item{type}{Character vector of length one. Default is "Generic". Currently,
 the only available calibrated values are from
 \insertCite{Diaz2018}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
 
 \item{prob}{One-length logical vector. Probability for
-\code{\link[stats]{quantile}}. See reference
+\code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{

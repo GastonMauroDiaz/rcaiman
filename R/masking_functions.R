@@ -145,6 +145,7 @@ setGeneric("masking", function(r, m, RGB = c(1,0,0))
 setMethod("masking",
           signature(r = "RasterLayer"),
           function (r, m, RGB) {
+            .check_if_r_was_normalized(r)
             compareRaster(r, m)
             red = green = blue <- r
             .masking(red, green, blue, m, RGB)
@@ -155,6 +156,7 @@ setMethod("masking",
 setMethod("masking",
           signature(r = "RasterStackBrick"),
           function (r, m, RGB) {
+            .check_if_r_was_normalized(r)
             stopifnot(raster::nlayers(r) == 3)
             red <- raster::subset(r, 1)
             green <- raster::subset(r, 2)
@@ -217,8 +219,10 @@ write_bin <- function(bin, path) {
   projection(bin) <- NA
   extent(bin) <- extent(0, ncol(bin), 0, nrow(bin))
 
-  writeRaster(bin * 255, file.path(dirname(path), file_name),
-              format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+  suppressWarnings(
+    writeRaster(bin * 255, file.path(dirname(path), file_name),
+                format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+  )
 }
 
 

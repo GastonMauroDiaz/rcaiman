@@ -21,13 +21,14 @@
 #' rings <- rings_segmentation(z, 15)
 #' plot(rings == 1)
 rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(return_angle) == "logical")
   stopifnot(length(angle_width) == 1)
-  stopifnot(length(angle_width) < 90)
 
-  tmp <- 90 / angle_width
-  if (round(tmp) != tmp) {
+  if (!.is_whole(90 / angle_width)) {
     stop(
-      "angle_width should divide the 0 to 90 range into a whole number of segments."
+      paste("angle_width should divide the,",
+            "0 to 90 range into a whole number of segments.")
     )
   }
 
@@ -66,13 +67,14 @@ rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
 #' sectors <- sectors_segmentation(a, 15)
 #' plot(sectors == 1)
 sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
+  stopifnot(class(a) == "RasterLayer")
+  stopifnot(class(return_angle) == "logical")
   stopifnot(length(angle_width) == 1)
-  stopifnot(length(angle_width) < 360)
 
-  tmp <- 90 / angle_width
-  if (round(tmp) != tmp) {
+  if (!.is_whole(360 / angle_width)) {
     stop(
-      "angle_width should divide the 0 to 360 range into a whole number of segments."
+      paste("angle_width should divide the 0 to 360",
+            "range into a whole number of segments.")
     )
   }
 
@@ -129,11 +131,18 @@ sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
 #' g <- sky_grid_segmentation(z, a, 15)
 #' plot(g == 36009)
 sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(a) == "RasterLayer")
+  stopifnot(class(sequential) == "logical")
   stopifnot(length(angle_width) == 1)
 
-  if (!max(angle_width == c(30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1, 0.5))) {
+
+  if (!max(angle_width == c(30,  15,    10,   7.5,
+                            6,   5,     3.75, 3,
+                            2.5, 1.875, 1,    0.5))) {
     stop(
-      "angle_width should be 30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1 or 0.5 degrees."
+      paste0("angle_width should be 30, 15, 10, 7.5,",
+             "6, 5, 3.75, 3, 2.5, 1.875, 1 or 0.5 degrees.")
     )
   }
 

@@ -52,6 +52,8 @@ regional_thresholding <- function(r, segmentation, method,
   stopifnot(class(method) == "character")
   stopifnot(length(method) == 1)
 
+  .check_if_r_was_normalized(r)
+
   if (method == "Diaz2018") {
     if (any(is.null(w), is.null(type), is.null(prob)))
       stop("Arguments \"w\", \"type\",and \"prob\" should be provided.")

@@ -63,7 +63,7 @@ path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
 zenith_colrow <- c(1280, 960)
 diameter_px <- 1490
 r <- read_caim(path,
-               upper_left = zenith_colrow - diameter_px/2
+               upper_left = zenith_colrow - diameter_px/2,
                width = diameter_px,
                height = diameter_px)
 }

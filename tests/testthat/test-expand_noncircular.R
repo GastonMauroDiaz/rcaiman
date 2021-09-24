@@ -20,7 +20,7 @@ test_that("expand_noncircular() works", {
     r <- expand_noncircular(r, z, zenith_colrow)
 
     path <- tempfile(fileext = ".tif")
-    writeRaster(r, path, datatype = "INT1U", overwrite = TRUE)
+    write_caim(r, path, 8)
 
     path
   }

@@ -5,7 +5,7 @@
 \title{Model sky digital numbers}
 \usage{
 model_sky_dn(
-  x,
+  r,
   z,
   a,
   bin,
@@ -17,7 +17,7 @@ model_sky_dn(
 )
 }
 \arguments{
-\item{x}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
@@ -32,7 +32,7 @@ be a preliminary binarization of \code{x}. If the function returns
 \code{NA}, the quality of this input should be revised.}
 
 \item{prob}{One-length logical vector. Probability for
-\code{\link[stats]{quantile}}. See reference
+\code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 
 \item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
@@ -77,8 +77,10 @@ download.file("https://osf.io/kp7rx/download", my_file,
                method = "auto", mode = "wb"
 )
 
-r <- read_caim(file.path(path, "DSCN5548.JPG"),
-               c(1280, 960) - 745, 745 * 2, 745 * 2)
+r <- read_caim(my_file,
+               c(1280, 960) - 745,
+               745 * 2,
+               745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
@@ -96,6 +98,8 @@ write_caim(sky$image * 2^8, path, 8)
 }
 \seealso{
 Other mblt functions: 
-\code{\link{fit_surface_to_sky_dn}()}
+\code{\link{fit_trend_surface_to_sky_dn}()},
+\code{\link{mblt}()},
+\code{\link{thr_image}()}
 }
 \concept{mblt functions}

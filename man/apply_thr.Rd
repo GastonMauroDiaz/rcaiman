@@ -40,3 +40,6 @@ thr <- auto_thresh(r$Blue[], "IsoData")[1]
 apply_thr(r$Blue, thr)
 }
 }
+\seealso{
+\code{\link{regional_thresholding}}.
+}

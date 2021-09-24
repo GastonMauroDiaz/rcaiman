@@ -19,6 +19,8 @@
 #' @return \linkS4class{RasterLayer} with values \code{0} and \code{1}.
 #' @export
 #'
+#' @seealso \code{\link{regional_thresholding}}.
+#'
 #' @examples
 #' r <- read_caim()
 #' apply_thr(r$Blue, 120)

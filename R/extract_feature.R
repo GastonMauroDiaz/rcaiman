@@ -29,7 +29,11 @@
 #' extract_feature(r$Blue, g, return_raster = FALSE)
 #' plot(extract_feature(r$Blue, g, return_raster = FALSE))
 extract_feature <- function(r, segmentation, fun = mean, return_raster = TRUE) {
+
+  stopifnot(class(r) == "RasterLayer")
+  stopifnot(class(segmentation) == "RasterLayer")
   stopifnot(any(class(fun) == "function", class(fun) == "standardGeneric"))
+  stopifnot(class(return_raster) == "logical")
 
   feature <- tapply(values(r), values(segmentation), fun)
 

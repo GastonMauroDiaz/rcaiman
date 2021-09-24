@@ -6,7 +6,7 @@
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 #' the sky DN as a previous step for our method}.
 #'
-#' @param x \linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+#' @param r \linkS4class{RasterLayer}. A normalized greyscale image. Typically,
 #'   the blue channel extracted from an hemispherical photographs. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.
 #' @param z \linkS4class{RasterLayer}. The result of a call to
@@ -57,8 +57,10 @@
 #'                method = "auto", mode = "wb"
 #' )
 #'
-#' r <- read_caim(file.path(path, "DSCN5548.JPG"),
-#'                c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
@@ -68,26 +70,26 @@
 #' path <- tempfile(fileext = ".tif")
 #' write_caim(sky$image * 2^8, path, 8)
 #' }
-model_sky_dn <- function(x, z, a, bin,
+model_sky_dn <- function(r, z, a, bin,
                          prob = 0.95,
                          filling_source = NULL,
                          use_azimuth_angle = TRUE,
                          parallel = TRUE,
                          free_cores = 0) {
+  .check_if_r_was_normalized(r)
 
-
-  if (max(x[], na.rm = TRUE) > 1)
+  if (max(r[], na.rm = TRUE) > 1)
     warning("Please check if the \"x\" was correctly normalized")
 
   if (!is.null(filling_source)) compareRaster(bin, filling_source)
-  compareRaster(bin, x)
-  compareRaster(z, x)
+  compareRaster(bin, r)
+  compareRaster(z, r)
   compareRaster(z, a)
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
-  blue <- x * 255
-  rm(x)
+  blue <- r * 255
+  rm(r)
   blue[!bin] <- NA
   rm(bin)
 

@@ -41,7 +41,7 @@
 #' zenith_colrow <- c(1280, 960)
 #' diameter_px <- 1490
 #' r <- read_caim(path,
-#'                upper_left = zenith_colrow - diameter_px/2
+#'                upper_left = zenith_colrow - diameter_px/2,
 #'                width = diameter_px,
 #'                height = diameter_px)
 setGeneric("read_caim", function(path_to_file, upper_left = NULL, width = NULL,
@@ -136,6 +136,7 @@ setMethod(
 #' write_caim(caim * 2^16, "test_16bit", 16)
 #' }
 write_caim <- function(caim, path, bit_depth) {
+
   if (!any(bit_depth == 16, bit_depth == 8)) {
     stop("bit_depth should be 8 or 16.")
   }
@@ -147,11 +148,15 @@ write_caim <- function(caim, path, bit_depth) {
   extension(file_name) <- "tif"
 
   if (bit_depth == 8) {
-    writeRaster(caim, file.path(dirname(path), file_name),
-              format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+    suppressWarnings(
+      writeRaster(caim, file.path(dirname(path), file_name),
+                format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+    )
   } else {
-    writeRaster(caim, file.path(dirname(path), file_name),
-                format = "GTiff", datatype = "INT2U", overwrite = TRUE)
+    suppressWarnings(
+      writeRaster(caim, file.path(dirname(path), file_name),
+                  format = "GTiff", datatype = "INT2U", overwrite = TRUE)
+    )
   }
 }
 
