@@ -23,7 +23,8 @@ the blue channel extracted from an hemispherical photographs. Please see
 \item{z}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{mask}{raster}
+\item{mask}{\linkS4class{RasterLayer}. Usually, the result of a call to
+\code{\link{mask_image}}.}
 
 \item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
 be a preliminary binarization of \code{x}. If the function returns
@@ -48,8 +49,8 @@ degree of polynomial surface
 }
 }
 \value{
-A list with an object of class \linkS4class{RasterLayer} and of
-  class "trls" (see \code{\link[spatial]{surf.ls}}).
+A list with an object of class \linkS4class{RasterLayer} and of class
+  "trls" (see \code{\link[spatial]{surf.ls}}).
 }
 \description{
 Fit a trend surface using spatial::surf.ls as workhorse function.
@@ -65,14 +66,6 @@ the sky DN as a previous step for our method}, after the explanation of the
 The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
 general, a coarse scale lead to best generalization.
-
-If a raster stake of above canopy references is provided as filling source,
-\code{fit_trend_surface_to_sky_dn()} function can select the one with less root
-mean square error by analyzing the areas were sky DN are available in both
-\code{x} and \code{filling_source}. If no above canopy reference is available
-the result from a call to \code{\link{model_sky_dn}} can be provided as
-filling source. However, the function can work without a filling source,
-which is the default setup.
 }
 \examples{
 \dontrun{
@@ -93,8 +86,6 @@ thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
 sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
-aux_m <- mask_image(z, zlim = c(0, 20))
-sky$image[aux_m] <- NA
 m <- mask_image(z, zlim = c(0, 70))
 sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
   filling_source = sky$image

@@ -22,8 +22,8 @@
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
 #' calibration of new coefficient should be done in the 0 to 255 domain since
 #' that is what \code{\link{thr_image}} expect, although the input \code{dn}
-#' should be normalized. The latter was a design decision aiming to harmonize
-#' the whole package.
+#' should be normalized. The latter --that might sound counter intuitive-- was a
+#' design decision aiming to harmonize the whole package.
 #'
 #' @param dn Numeric vector or \linkS4class{RasterLayer}. Digital number of the
 #'   background. These values should be normalized and, if they are extracted

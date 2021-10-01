@@ -95,7 +95,7 @@ model_sky_dn <- function(r, z, a, bin,
 
   g <- sky_grid_segmentation(z, a, 5)
   if (!is.null(filling_source)) {
-    grilled_blue <- extract_feature(blue, g, fun, return_raster = TRUE )
+    grilled_blue <- extract_feature(blue, g, fun, return_raster = TRUE)
     .findBias <- function(x, y) {
       m <- mask_image(z, zlim = c(30, 60))
       mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)

@@ -51,4 +51,30 @@
   publisher = {Elsevier {BV}},
 }
 
+@Article{Lang2013,
+  author    = {Mait Lang and Ave Kodar and Tauri Arumäe},
+  journal   = {Forestry Studies},
+  title     = {Restoration of above canopy reference hemispherical image from below canopy measurements for plant area index estimation in forests/ Metsa v{\~{o}}rastiku läbipaistvuse m{\~{o}}{\~{o}}tmine digitaalsete poolsfäärikaamerate abil},
+  year      = {2013},
+  month     = {dec},
+  number    = {1},
+  pages     = {13--27},
+  volume    = {59},
+  doi       = {10.2478/fsmu-2013-0008},
+  publisher = {Walter de Gruyter {GmbH}},
+}
+
+@Article{Lang2010,
+  author    = {Mait Lang and Andres Kuusk and Matti M{\~{o}}ttus and Miina Rautiainen and Tiit Nilson},
+  journal   = {Agricultural and Forest Meteorology},
+  title     = {Canopy gap fraction estimation from digital hemispherical images using sky radiance models and a linear conversion method},
+  year      = {2010},
+  month     = {jan},
+  number    = {1},
+  pages     = {20--29},
+  volume    = {150},
+  doi       = {10.1016/j.agrformet.2009.08.001},
+  publisher = {Elsevier {BV}},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

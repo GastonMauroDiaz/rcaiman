@@ -26,5 +26,6 @@ Imports:
 Suggests: 
     EBImage,
     autothresholdr,
-    conicfit
+    conicfit,
+    akima
 RdMacros: Rdpack
