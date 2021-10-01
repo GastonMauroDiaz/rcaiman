@@ -20,6 +20,7 @@
 #' MBLT subpixel
 #'
 #'
+<<<<<<< HEAD
 #' @inheritParams fit_trend_surface_to_sky_dn
 #' @param bin_plant \linkS4class{RasterLayer}. A binarization of r that works
 #'   as a mask for pure plant pixels.
@@ -57,6 +58,28 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   size_range = NULL
   size_step = NULL
 
+=======
+#' @inheritParams fit_trens_surface_to_sky_dn
+#' @param bin_plant \linkS4class(RasterLayer). A binarization of r that works
+#'   as a mask for pure plant pixels.
+#' @param bin_sky \linkS4class(RasterLayer). A binarization of r that works
+#'   as a mask for pure sky pixels.
+#' @inheritParams model_sky_dn
+#'
+#' @return \linkS4class(RasterLayer)
+#'
+mblt_subpixel <- function (r, m, bin_plant, bin_sky,
+                           parallel = TRUE,
+                           free_threads = 0) {
+
+  if (!requireNamespace("akima", quietly = TRUE)) {
+    stop(paste("Package \"akima\" needed for this function to work.",
+               "Please install it."),
+         call. = FALSE)
+  }
+
+  sample_size <-  30
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
 
   compareRaster(r, m)
   compareRaster(r, bin_plant)
@@ -66,6 +89,7 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   blue <- r * 255
   rm(r)
 
+<<<<<<< HEAD
 
   if (is.null(size_range)) {
     size_range <- ncol(blue) * 0.02
@@ -80,12 +104,24 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
       size_step <- size_step - 1
     }
   }
+=======
+  size_range <- ncol(blue) * 0.02
+  size_range <- round(size_range)
+  if(!.is_even(size_range)) size_range <- size_range + 1
+
+  size_step <- round(size_range * 0.2)
+  if (!.is_even(size_step)) size_step <- size_step - 1
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
 
   bin_plant[!m] <- 0
   bin_sky[!m] <- 0
 
   sizes <- round(sqrt(sample_size*4))
+<<<<<<< HEAD
   if (sizes/2 == round(sizes/2)) sizes <- sizes + 1
+=======
+  if (is.even(sizes)) sizes <- sizes + 1
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
   sizes <- seq(sizes, sizes + size_range, size_step)
 
 
@@ -154,12 +190,20 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   rm(flattened_plant, flattened_sky, stack_plant,
      stack_sky)
 
+<<<<<<< HEAD
   # filter out non-mixed-pixels
+=======
+  # Filter out non-mixed-pixels
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
   mixed_pixel_mask <- !bin_plant & !bin_sky & m
   min_size_plant[!mixed_pixel_mask] <- NA
   min_size_sky[!mixed_pixel_mask] <- NA
 
+<<<<<<< HEAD
   # for unknow reason, I needed to run this.
+=======
+  # For unknow reason, I needed to run this.
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
   min_size_plant <- round(min_size_plant)
   min_size_sky <- round(min_size_sky)
 
@@ -196,7 +240,12 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   if (parallel) {
     ## Initiate cluster
     cl <- parallel::makeCluster(no_threads)
+<<<<<<< HEAD
     parallel::clusterExport(cl, c("sizes_plant", "blue_plant"),
+=======
+    parallel::clusterExport(cl,
+                            c("sizes_plant", "blue_plant"),
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
                             environment())
     stat_plant <- parallel::parLapply(cl,
                                       sizes_plant,
@@ -206,7 +255,12 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
 
     ## Initiate cluster
     cl <- parallel::makeCluster(no_threads)
+<<<<<<< HEAD
     parallel::clusterExport(cl, c("sizes_sky", "blue_sky"),
+=======
+    parallel::clusterExport(cl,
+                            c("sizes_sky", "blue_sky"),
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
                             environment())
     stat_sky <- parallel::parLapply(cl,
                                     sizes_sky,
@@ -259,7 +313,10 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   stat_plant <- fun(stat_plant)
   stat_sky <- fun(stat_sky)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
   # Equation 12 from Leblanc et al. (2005)
   # DOI: 10.1016/j.agrformet.2004.09.006
   Leblanc2005_eq12 <- function(DN, DNmin, DNmax) {
@@ -274,6 +331,7 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
   gf[bin_sky] <- 1
   gf[bin_plant] <- 0
 
+<<<<<<< HEAD
   # fill
   if (!is.null(fill)) {
     gf <- cover(gf, fill)
@@ -281,6 +339,9 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
 
   gf
 
+=======
+  gf
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
 }
 
 
@@ -294,11 +355,19 @@ mblt_subpixel <- function (r, m, bin_plant, bin_sky,
 #' to a software that does not handle subpixel classification, such as Hemisfer
 #' and CIMES.
 #'
+<<<<<<< HEAD
 #' @param subpixel \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{mblt_subpixel}}.
 #' @param segmentation \linkS4class{RasterLayer}.This should match with the type
 #'   of sky grid that will be used in the software that goes next in the
 #'   processing pipeline.
+=======
+#' @param subpixel \linkS4class(RasterLayer). The result of a call to
+#'   \code{\link{mblt_subpixel}}.
+#' @param segmentation \linkS4class(RasterLayer).This should match with the type
+#'   of sky grid that will be used in the software next in the processing
+#'   pipeline.
+>>>>>>> b77f81d592be98e054217d4f5546066cf6d678fa
 #'
 #'
 subpixel_to_bin <- function (subpixel, segmentation) {
