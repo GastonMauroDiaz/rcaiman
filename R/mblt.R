@@ -3,7 +3,7 @@
 #' Transform background digital number into threshold values.
 #'
 #' Transform background digital number into threshold values by means of the
-#' Equation 1 presented in \insertCite{Diaz2018}{rcaiman}, which is a linear
+#' Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a linear
 #' function with the slope modified by a weighting parameter. This simple
 #' function was developed by studying canopy models, also known as targets,
 #' which are planes with holes made of a rigid and dark material. These models
@@ -22,20 +22,20 @@
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
 #' calibration of new coefficient should be done in the 0 to 255 domain since
 #' that is what \code{\link{thr_image}} expect, although the input \code{dn}
-#' should be normalized. The latter was a design decision aiming to harmonize
-#' the whole package.
+#' should be normalized. The latter --that might sound counter intuitive-- was a
+#' design decision aiming to harmonize the whole package.
 #'
 #' @param dn Numeric vector or \linkS4class{RasterLayer}. Digital number of the
 #'   background. These values should be normalized and, if they are extracted
 #'   from JPEG image, gamma back corrected.
 #' @param w Numeric vector of length one. Weight affecting the slope
-#'   coefficient. See \insertCite{Diaz2018}{rcaiman}.
+#'   coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.
 #' @param type Character vector of length one. Default is "Generic". Currently,
 #'   the only available calibrated values are from
-#'   \insertCite{Diaz2018}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.
+#'   \insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.
 #' @param intercept,slope Numeric vector of length one. Default is NULL. These
 #'   arguments allow providing curstomized coefficients. See
-#'   \insertCite{Diaz2018}{rcaiman} for details.
+#'   \insertCite{Diaz2018;textual}{rcaiman} for details.
 #'
 #' @export
 #'
@@ -90,8 +90,9 @@ thr_image <- function (dn,
 #' \code{\link{thr_image}}. The code can be easily inspected by calling
 #' \code{mblt}. Advanced users could use that code as a template.
 #'
-#' The MBLT algorithm was first presented in \insertCite{Diaz2018}{rcaiman}.
-#' This version differs from that in the following main aspects:
+#' The MBLT algorithm was first presented in
+#' \insertCite{Diaz2018;textual}{rcaiman}. This version differs from that in the
+#' following main aspects:
 #'
 #' \itemize{
 #'
@@ -145,6 +146,7 @@ thr_image <- function (dn,
 #' bin <- mblt(blue, z, a)
 #' }
 mblt <- function(r, z, a, w = 0.5) {
+  .check_if_r_was_normalized(r)
   seg <- sky_grid_segmentation(z, a, 30)
   m <- mask_image(z, zlim = c(0,70))
 

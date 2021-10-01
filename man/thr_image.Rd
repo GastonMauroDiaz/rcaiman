@@ -12,22 +12,22 @@ background. These values should be normalized and, if they are extracted
 from JPEG image, gamma back corrected.}
 
 \item{w}{Numeric vector of length one. Weight affecting the slope
-coefficient. See \insertCite{Diaz2018}{rcaiman}.}
+coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.}
 
 \item{type}{Character vector of length one. Default is "Generic". Currently,
 the only available calibrated values are from
-\insertCite{Diaz2018}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
+\insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
 
 \item{intercept, slope}{Numeric vector of length one. Default is NULL. These
 arguments allow providing curstomized coefficients. See
-\insertCite{Diaz2018}{rcaiman} for details.}
+\insertCite{Diaz2018;textual}{rcaiman} for details.}
 }
 \description{
 Transform background digital number into threshold values.
 }
 \details{
 Transform background digital number into threshold values by means of the
-Equation 1 presented in \insertCite{Diaz2018}{rcaiman}, which is a linear
+Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a linear
 function with the slope modified by a weighting parameter. This simple
 function was developed by studying canopy models, also known as targets,
 which are planes with holes made of a rigid and dark material. These models
@@ -46,8 +46,8 @@ through the \code{\link{mblt}} function.
 It is worth noting that Equation 1 was developed with 8-bit images, so
 calibration of new coefficient should be done in the 0 to 255 domain since
 that is what \code{\link{thr_image}} expect, although the input \code{dn}
-should be normalized. The latter was a design decision aiming to harmonize
-the whole package.
+should be normalized. The latter --that might sound counter intuitive-- was a
+design decision aiming to harmonize the whole package.
 }
 \examples{
 thr_image(125)

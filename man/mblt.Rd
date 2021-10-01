@@ -18,7 +18,7 @@ the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{azimuth_image}}.}
 
 \item{w}{Numeric vector of length one. Weight affecting the slope
-coefficient. See \insertCite{Diaz2018}{rcaiman}.}
+coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{
 If \code{w} has length equal to one, \linkS4class{RasterLayer}. Else,
@@ -36,8 +36,9 @@ pipeline combines \code{\link{regional_thresholding}},
 \code{\link{thr_image}}. The code can be easily inspected by calling
 \code{mblt}. Advanced users could use that code as a template.
 
-The MBLT algorithm was first presented in \insertCite{Diaz2018}{rcaiman}.
-This version differs from that in the following main aspects:
+The MBLT algorithm was first presented in
+\insertCite{Diaz2018;textual}{rcaiman}. This version differs from that in the
+following main aspects:
 
 \itemize{
 

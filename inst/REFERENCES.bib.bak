@@ -38,4 +38,17 @@
   publisher = {Institute of Electrical and Electronics Engineers ({IEEE})},
 }
 
+@Article{Jonckheere2005,
+  author    = {Inge Jonckheere and Kris Nackaerts and Bart Muys and Pol Coppin},
+  journal   = {Agricultural and Forest Meteorology},
+  title     = {Assessment of automatic gap fraction estimation of forests from digital hemispherical photography},
+  year      = {2005},
+  month     = {sep},
+  number    = {1-2},
+  pages     = {96--114},
+  volume    = {132},
+  doi       = {10.1016/j.agrformet.2005.06.003},
+  publisher = {Elsevier {BV}},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

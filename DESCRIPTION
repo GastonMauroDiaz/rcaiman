@@ -22,9 +22,11 @@ Imports:
     magrittr,
     utils,
     Rdpack,
-    spatial
+    spatial,
+    rgeos
 Suggests: 
     EBImage,
     autothresholdr,
-    conicfit
+    conicfit,
+    akima
 RdMacros: Rdpack

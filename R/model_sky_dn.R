@@ -76,10 +76,9 @@ model_sky_dn <- function(r, z, a, bin,
                          use_azimuth_angle = TRUE,
                          parallel = TRUE,
                          free_cores = 0) {
+
   .check_if_r_was_normalized(r)
 
-  if (max(r[], na.rm = TRUE) > 1)
-    warning("Please check if the \"x\" was correctly normalized")
 
   if (!is.null(filling_source)) compareRaster(bin, filling_source)
   compareRaster(bin, r)
@@ -95,7 +94,7 @@ model_sky_dn <- function(r, z, a, bin,
 
   g <- sky_grid_segmentation(z, a, 5)
   if (!is.null(filling_source)) {
-    grilled_blue <- extract_feature(blue, g, fun, return_raster = TRUE )
+    grilled_blue <- extract_feature(blue, g, fun, return_raster = TRUE)
     .findBias <- function(x, y) {
       m <- mask_image(z, zlim = c(30, 60))
       mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)

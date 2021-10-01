@@ -42,28 +42,20 @@
 #' argument allows to control the scale at which the fitting is performed. In
 #' general, a coarse scale lead to best generalization.
 #'
-#' If a raster stake of above canopy references is provided as filling source,
-#' \code{fit_trend_surface_to_sky_dn()} function can select the one with less root
-#' mean square error by analyzing the areas were sky DN are available in both
-#' \code{x} and \code{filling_source}. If no above canopy reference is available
-#' the result from a call to \code{\link{model_sky_dn}} can be provided as
-#' filling source. However, the function can work without a filling source,
-#' which is the default setup.
-#'
 #' @inheritParams model_sky_dn
-#' @param mask raster
+#' @param mask \linkS4class{RasterLayer}. Usually, the result of a call to
+#'   \code{\link{mask_image}}.
 #' @inheritParams raster::aggregate
 #' @inheritParams stats::quantile
 #' @inheritParams spatial::surf.ls
 #'
-#' @return A list with an object of class \linkS4class{RasterLayer} and of
-#'   class "trls" (see \code{\link[spatial]{surf.ls}}).
+#' @return A list with an object of class \linkS4class{RasterLayer} and of class
+#'   "trls" (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
 #' @family mblt functions
 #'
-#' @references
-#' \insertRef{Diaz2018}{rcaiman}
+#' @references \insertRef{Diaz2018}{rcaiman}
 #'
 #' @examples
 #' \dontrun{
@@ -84,8 +76,6 @@
 #' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
 #' sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
-#' aux_m <- mask_image(z, zlim = c(0, 20))
-#' sky$image[aux_m] <- NA
 #' m <- mask_image(z, zlim = c(0, 70))
 #' sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
 #'   filling_source = sky$image
@@ -108,63 +98,55 @@ fit_trend_surface_to_sky_dn <- function(r,
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
-  Blue <- blue <- r * 255
+  bblue <- blue <- r * 255
   rm(r)
-  Blue[!bin] <- NA
-  Blue[!mask] <- NA
-  if (fact > 1) Blue <- raster::aggregate(Blue, fact, fun, na.rm = TRUE)
-
+  bblue[!bin] <- NA
+  bblue[!mask] <- NA
+  if (fact > 1) bblue <- raster::aggregate(bblue, fact, fun, na.rm = TRUE)
   if (!is.null(filling_source)) {
     compareRaster(bin, filling_source)
 
     filling_source[!mask] <- NA
     filling_source <- filling_source * 255
     if (fact > 1) {
-      filling_source <- raster::aggregate(filling_source,
+      filling_source <- raster::aggregate(
+        filling_source,
         fact,
         mean,
         na.rm = TRUE
       )
     }
-    Filling <- Map(
-      function(x) raster::subset(filling_source, x),
-      1:nlayers(filling_source)
-    )
 
     # correct bias
     .findBias <- function(x, y) {
       m <- mask_image(z, zlim = c(30, 60))
       mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)
     }
-    Filling <- Map(function(x) x - .findBias(x, Blue), Filling)
-
-    # select the best filling data
-    rmse <- function(error) sqrt(mean(error^2, na.rm = TRUE))
-    RMSE <- Map(function(x) rmse((x - Blue)[]), Filling)
-    index <- which.min(unlist(RMSE))
-    Filling <- Filling[[index]]
-    RMSE <- RMSE[[index]]
+    filling_source <- filling_source - .findBias(filling_source, bblue)
 
     # force corrected values
-    Filling[Filling > 255] <- 255
-    Filling[Filling < 0] <- 0
+    filling_source[filling_source > 255] <- 255
+    filling_source[filling_source < 0] <- 0
 
     # fill
-    foo <- raster::sampleRegular(Filling, ncell(Filling) * 0.7,
-      cells = TRUE
-    )
-    Filling[foo[, 1]] <- NA
+    ## regular thinning to balance filling_source weight
+    thinning_pattern <- raster::sampleRegular(filling_source,
+                                              ncell(filling_source) * 0.7,
+                                              cells = TRUE)
 
-    Blue <- cover(Blue, Filling)
+    filling_source[thinning_pattern[, 1]] <- NA
+
+    bblue <- cover(bblue, filling_source)
   }
 
-  r <- .fit_trend_surface(Blue, np = np)
+  r <- .fit_trend_surface(bblue, np = np)
   fit <- r$fit
   r <- .filter_values(r$image)
 
   if (fact > 1) r <- resample(r, blue)
 
-  r[is.na(z)] <- NA
+  #r[is.na(z)] <- NA
+  r[!mask] <- NA
 
   list(image = r / 255, fit = fit)
 }
