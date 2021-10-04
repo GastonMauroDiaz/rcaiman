@@ -197,6 +197,25 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
 extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
   r <- extract_feature(r, g, max)
   m <- r > quantile(r[], 0.99, na.rm = TRUE)
+  m[is.na(g)] <- 0
+
+  labeled_m <- EBImage::bwlabel(as.matrix(m))
+  labeled_m <- raster(labeled_m)
+  labeled_m[labeled_m == 0] <- NA
+
+  fun <- function(x) {
+    x <- unique(x)
+    length(x)
+  }
+  area <- extract_feature(g, labeled_m, fun, return_raster = FALSE)
+  area
+  dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE)
+
+  features <- EBImage::computeFeatures.shape(labeled_m)
+  features
+
+  plot(raster(labeled_m))
+  browser()
 
   no_col <- no_row <- r
   no_col[] <- .col(dim(r)[1:2])
