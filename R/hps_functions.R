@@ -202,20 +202,24 @@ extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
   labeled_m <- EBImage::bwlabel(as.matrix(m))
   labeled_m <- raster(labeled_m)
   labeled_m[labeled_m == 0] <- NA
-
+  browser()
   fun <- function(x) {
     x <- unique(x)
     length(x)
   }
-  area <- extract_feature(g, labeled_m, fun, return_raster = FALSE)
-  area
-  dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE)
-
+  area <- extract_feature(g, labeled_m, fun, return_raster = FALSE) %>%
+          normalize(., min(.), max(.))
+  dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
+        normalize(., min(.), max(.))
+  membership_posibility <- area * dn
+  sun <- which.max(membership_posibility)
+  az
   features <- EBImage::computeFeatures.shape(labeled_m)
   features
 
-  plot(raster(labeled_m))
-  browser()
+
+  plot((labeled_m))
+
 
   no_col <- no_row <- r
   no_col[] <- .col(dim(r)[1:2])
