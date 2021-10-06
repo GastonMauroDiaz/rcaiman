@@ -66,9 +66,6 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
                               min_raster_dist = 9,
                               fuzzy_logic = TRUE ) {
 
-  .is_integerish <- function(x) x == round(x)
-  stopifnot(.is_integerish(dist_to_plant))
-
 
   # remove the pixels with NA neighbors because HSP extract with 3x3 kernel
   NA_count <- focal(!bin, matrix(1, 3, 3))
@@ -80,16 +77,19 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
 
   # systematic sampling using a sky grid by taking the maximum from each cell
   if (!is.null(dist_to_plant)) {
+    stopifnot(.is_integerish(dist_to_plant))
+    .this_requires_EBImage()
+    kern <- EBImage::makeBrush(dist_to_plant, "box")
     dist_to_plant_img <- NA_count == 0
-    dist_to_plant_img[NA_count == 0] <- NA
-    dist_to_plant_img <- distance(dist_to_plant_img)
+    dist_to_plant_img <- EBImage::erode(as.matrix(dist_to_plant_img), kern) %>%
+                         setValues(dist_to_plant_img, .)
 
-    ds <- data.frame(col = no_col[dist_to_plant_img > dist_to_plant],
-                     row = no_row[dist_to_plant_img > dist_to_plant],
-                     g = g[dist_to_plant_img > dist_to_plant],
-                     z = z[dist_to_plant_img > dist_to_plant],
-                     a = a[dist_to_plant_img > dist_to_plant],
-                     dn = r[dist_to_plant_img > dist_to_plant])
+    ds <- data.frame(col = no_col[dist_to_plant_img],
+                     row = no_row[dist_to_plant_img],
+                     g = g[dist_to_plant_img],
+                     z = z[dist_to_plant_img],
+                     a = a[dist_to_plant_img],
+                     dn = r[dist_to_plant_img])
 
   } else {
     ds <- data.frame(col = no_col[bin],
@@ -195,6 +195,7 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
 #' @seealso extract_sky_marks
 #' @export
 extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
+  .this_requires_EBImage()
   r <- extract_feature(r, g, max)
   m <- r > quantile(r[], 0.99, na.rm = TRUE)
   m[is.na(g)] <- 0
@@ -202,7 +203,7 @@ extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
   labeled_m <- EBImage::bwlabel(as.matrix(m))
   labeled_m <- raster(labeled_m)
   labeled_m[labeled_m == 0] <- NA
-  browser()
+
   fun <- function(x) {
     x <- unique(x)
     length(x)
@@ -213,13 +214,19 @@ extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
         normalize(., min(.), max(.))
   membership_posibility <- area * dn
   sun <- which.max(membership_posibility)
-  az
-  features <- EBImage::computeFeatures.shape(labeled_m)
-  features
 
+  angle_res <- 360 / round(.get_max(g) / 1000)
+  a <- round(g / 1000) * angle_res
+  azimuth <- extract_feature(a, labeled_m, mean, return_raster = FALSE)
 
-  plot((labeled_m))
+  indices <- as.matrix(dist(azimuth))[sun,] > 90
 
+  rcl <- data.frame(unique(labeled_m), unique(labeled_m))
+  rcl[indices, 2] <- NA
+  m <- reclassify(labeled_m, rcl)
+  m <- !is.na(m)
+  extent(m) <- extent(r)
+  projection(m) <- NA
 
   no_col <- no_row <- r
   no_col[] <- .col(dim(r)[1:2])

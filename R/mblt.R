@@ -3,21 +3,18 @@
 #' Transform background digital number into threshold values.
 #'
 #' Transform background digital number into threshold values by means of the
-#' Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a linear
-#' function with the slope modified by a weighting parameter. This simple
-#' function was developed by studying canopy models, also known as targets,
-#' which are planes with holes made of a rigid and dark material. These models
-#' were backlighted with homogeneous lighting and photographs were acquired with
-#' a Nikon Coolpix 5700 in JPEG format and then gamma back corrected with a
-#' default gamma value equal to 2.2 (see \code{\link{gbc}}). Results clearly
-#' shown that the optimal threshold value was linearly related with the
-#' background digital number. So, encouraging to shift attention from finding
-#' the optimal threshold value to obtain the digital number (DN) of the
-#' background, which is usually the sky. Functions \code{\link{model_sky_dn}}
-#' and \code{\link{fit_trend_surface_to_sky_dn}} address that topic. In other
-#' words, \code{thr_image} function should be used in combination with those
-#' functions. An out-of-the-box solution based on these principles is available
-#' through the \code{\link{mblt}} function.
+#' Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a
+#' linear function with the slope modified by a weighting parameter. This simple
+#' function was found by studying canopy models, also known as targets, which
+#' are planes with holes made of a rigid and dark material. These models were
+#' backlighted with homogeneous lighting, photographed with a Nikon Coolpix 5700
+#' set to acquire in JPEG format, and those images were gamma back corrected
+#' with a default gamma value equal to 2.2 (see \code{\link{gbc}}). Results
+#' clearly shown that the optimal threshold value was linearly related with the
+#' background digital number. Therefore, that shifts the aim from finding the
+#' optimal threshold to obtaining the background DN as if the canopy were not
+#' there. Functions \code{\link{model_sky_dn}} and
+#' \code{\link{fit_trend_surface_to_sky_dn}} address that topic.
 #'
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
 #' calibration of new coefficient should be done in the 0 to 255 domain since
@@ -32,7 +29,8 @@
 #'   coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.
 #' @param type Character vector of length one. Default is "Generic". Currently,
 #'   the only available calibrated values are from
-#'   \insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.
+#'   \insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use
+#'   them.
 #' @param intercept,slope Numeric vector of length one. Default is NULL. These
 #'   arguments allow providing curstomized coefficients. See
 #'   \insertCite{Diaz2018;textual}{rcaiman} for details.
