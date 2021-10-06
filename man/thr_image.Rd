@@ -4,50 +4,46 @@
 \alias{thr_image}
 \title{Threshold image}
 \usage{
-thr_image(dn, w = 0.5, type = "Generic", intercept = NULL, slope = NULL)
+thr_image(dn, intercept, slope)
 }
 \arguments{
 \item{dn}{Numeric vector or \linkS4class{RasterLayer}. Digital number of the
 background. These values should be normalized and, if they are extracted
 from JPEG image, gamma back corrected.}
 
-\item{w}{Numeric vector of length one. Weight affecting the slope
-coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.}
-
-\item{type}{Character vector of length one. Default is "Generic". Currently,
-the only available calibrated values are from
-\insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
-
-\item{intercept, slope}{Numeric vector of length one. Default is NULL. These
-arguments allow providing curstomized coefficients. See
-\insertCite{Diaz2018;textual}{rcaiman} for details.}
+\item{intercept, slope}{Numeric vector of length one. These are linear
+function coefficients. Please, see the Details section of
+\code{\link{thr_image}}.}
 }
 \description{
 Transform background digital number into threshold values.
 }
 \details{
 Transform background digital number into threshold values by means of the
-Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a linear
-function with the slope modified by a weighting parameter. This simple
-function was developed by studying canopy models, also known as targets,
-which are planes with holes made of a rigid and dark material. These models
-were backlighted with homogeneous lighting and photographs were acquired with
-a Nikon Coolpix 5700 in JPEG format and then gamma back corrected with a
-default gamma value equal to 2.2 (see \code{\link{gbc}}). Results clearly
-shown that the optimal threshold value was linearly related with the
-background digital number. So, encouraging to shift attention from finding
-the optimal threshold value to obtain the digital number (DN) of the
-background, which is usually the sky. Functions \code{\link{model_sky_dn}}
-and \code{\link{fit_trend_surface_to_sky_dn}} address that topic. In other
-words, \code{thr_image} function should be used in combination with those
-functions. An out-of-the-box solution based on these principles is available
-through the \code{\link{mblt}} function.
+Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman}, which is a
+linear function with the slope modified by a weighting parameter. This simple
+function was found by studying canopy models, also known as targets, which
+are planes with holes made of a rigid and dark material. These models were
+backlighted with homogeneous lighting, photographed with a Nikon Coolpix 5700
+set to acquire in JPEG format, and those images were gamma back corrected
+with a default gamma value equal to 2.2 (see \code{\link{gbc}}). Results
+clearly shown that the optimal threshold value was linearly related with the
+background digital number. Therefore, that shifts the aim from finding the
+optimal threshold to obtaining the background DN as if the canopy were not
+there. Functions \code{\link{model_sky_dn}} and
+\code{\link{fit_trend_surface_to_sky_dn}} address that topic.
 
 It is worth noting that Equation 1 was developed with 8-bit images, so
 calibration of new coefficient should be done in the 0 to 255 domain since
 that is what \code{\link{thr_image}} expect, although the input \code{dn}
 should be normalized. The latter --that might sound counter intuitive-- was a
 design decision aiming to harmonize the whole package.
+
+To apply the weighting parameter (w) from Equation 1, just provide the
+argument \code{slope} as \code{slope_value * w}.
+
+Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
+which is very simple.
 }
 \examples{
 thr_image(125)

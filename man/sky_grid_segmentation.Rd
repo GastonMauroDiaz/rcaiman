@@ -38,7 +38,7 @@ Intersecting rings with sectors makes a grid in which each segment is a
 portion of the hemisphere. Each pixel of the grid is labeled with an ID that
 codify both ring and sector ID. For example, a grid with a regular interval
 of 1 degree has segment from \code{1001} to \code{360090}. This numbers are
-calculated with: \code{sectorID x 1000 + ringsID}, where \code{sectorID} is
+calculated with: \code{sectorID * 1000 + ringsID}, where \code{sectorID} is
 the ID number of the sector and \code{ringsID} is the ID number of the ring.
 }
 \examples{

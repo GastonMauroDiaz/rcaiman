@@ -6,10 +6,11 @@
 #'
 #' \itemize{ \item \strong{Diaz2018}: method presented in
 #' \insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
-#' selected, the arguments \code{w}, \code{type},and \code{prob} should be
-#' provided. It works extracting the digital numbers from each segment and
-#' passing them to \code{quantile(x, prob)}, which result is in turn passed to
-#' \code{thr_image(dns, w, type)}.
+#' selected, the arguments \code{intercept}, \code{slope},and \code{prob} should
+#' be provided. It works segmentwise extracting the digital numbers (dns) per
+#' segment and passing them to \code{quantile(dns, prob)}, which summary result
+#' (x) is in turn passed to \code{thr_image(x, intercept, slope)}. Finally, this
+#' thr is applied to obtain a binarized image.
 #'
 #' \item \strong{Methods from autothresholdr package}: this function can call
 #' methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
@@ -44,9 +45,13 @@
 #' blue <- gbc(r$Blue)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' rings <- rings_segmentation(z, 10)
-#' bin <- regional_thresholding(blue, rings, "Diaz2018", 0.5, "Generic", 0.9)
-regional_thresholding <- function(r, segmentation, method,
-                                  w = NULL, type = NULL, prob = NULL) {
+#' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
+regional_thresholding <- function(r,
+                                  segmentation,
+                                  method,
+                                  intercept = NULL,
+                                  slope = NULL,
+                                  prob = NULL) {
   stopifnot(class(r) == "RasterLayer")
   stopifnot(class(segmentation) == "RasterLayer")
   stopifnot(class(method) == "character")
@@ -55,20 +60,19 @@ regional_thresholding <- function(r, segmentation, method,
   .check_if_r_was_normalized(r)
 
   if (method == "Diaz2018") {
-    if (any(is.null(w), is.null(type), is.null(prob)))
-      stop("Arguments \"w\", \"type\",and \"prob\" should be provided.")
-
+    if (any(is.null(intercept), is.null(slope), is.null(prob))) {
+      stop("Arguments \"intercept\", \"slope\", and \"prob\" should be provided.")
+    }
   }
 
   fun <- switch(method,
     Diaz2018 = function(dns) {
       dn <- quantile(dns, prob)
-      thr_image(dn, w, type)
+      thr_image(dn, intercept, slope)
     }
   )
 
   if (is.null(fun)) {
-
     if (!requireNamespace("autothresholdr", quietly = TRUE)) {
       stop(paste(
         "Package \"autothresholdr\" needed for this function to work.",

@@ -8,8 +8,8 @@ regional_thresholding(
   r,
   segmentation,
   method,
-  w = NULL,
-  type = NULL,
+  intercept = NULL,
+  slope = NULL,
   prob = NULL
 )
 }
@@ -24,12 +24,13 @@ for fisheye images.}
 \item{method}{Character vector of length one. See details for current
 options.}
 
-\item{w}{Numeric vector of length one. Weight affecting the slope
-coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.}
+\item{intercept}{Numeric vector of length one. These are linear
+function coefficients. Please, see the Details section of
+\code{\link{thr_image}}.}
 
-\item{type}{Character vector of length one. Default is "Generic". Currently,
-the only available calibrated values are from
-\insertCite{Diaz2018;textual}{rcaiman}. Use "Nikon_Coolpix_5700" to use them.}
+\item{slope}{Numeric vector of length one. These are linear
+function coefficients. Please, see the Details section of
+\code{\link{thr_image}}.}
 
 \item{prob}{One-length logical vector. Probability for
 \code{\link[stats]{quantile}} calculation. See reference
@@ -46,10 +47,11 @@ Methods currently implemented are:
 
 \itemize{ \item \strong{Diaz2018}: method presented in
 \insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
-selected, the arguments \code{w}, \code{type},and \code{prob} should be
-provided. It works extracting the digital numbers from each segment and
-passing them to \code{quantile(x, prob)}, which result is in turn passed to
-\code{thr_image(dns, w, type)}.
+selected, the arguments \code{intercept}, \code{slope},and \code{prob} should
+be provided. It works segmentwise extracting the digital numbers (dns) per
+segment and passing them to \code{quantile(dns, prob)}, which summary result
+(x) is in turn passed to \code{thr_image(x, intercept, slope)}. Finally, this
+thr is applied to obtain a binarized image.
 
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
@@ -61,7 +63,7 @@ r <- read_caim()
 blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
-bin <- regional_thresholding(blue, rings, "Diaz2018", 0.5, "Generic", 0.9)
+bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
 }
 \references{
 \insertRef{Diaz2018}{rcaiman}

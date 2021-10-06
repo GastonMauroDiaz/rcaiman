@@ -4,7 +4,7 @@
 \alias{mblt}
 \title{Model-based local thresholding}
 \usage{
-mblt(r, z, a, w = 0.5)
+mblt(r, z, a, intercept = -8, slope = 1, w = 0.5)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -17,8 +17,15 @@ the blue channel extracted from an hemispherical photographs. Please see
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{w}{Numeric vector of length one. Weight affecting the slope
-coefficient. See \insertCite{Diaz2018;textual}{rcaiman}.}
+\item{intercept}{Numeric vector of length one. These are linear
+function coefficients. Please, see the Details section of
+\code{\link{thr_image}}.}
+
+\item{slope}{Numeric vector of length one. These are linear
+function coefficients. Please, see the Details section of
+\code{\link{thr_image}}.}
+
+\item{w}{Numeric vector. Weighting parameter for \code{slope}.}
 }
 \value{
 If \code{w} has length equal to one, \linkS4class{RasterLayer}. Else,
@@ -54,13 +61,10 @@ Equation 1 \code{\link{thr_image}}. Instead, the sDN are used as filling
 source for trend surface fitting \code{\link{fit_trend_surface_to_sky_dn}}.
 
 \item The sDN obtained by trend surface fitting is merged with the sDN
-obtained with Equation 4. To merge them, a weighted average is calculated, in
-which weight are proportional to the zenith angle. Near the zenith the values
+obtained with Equation 4. To merge them, a weighted average is calculated,
+being weights proportional to the zenith angle. Near the zenith, values
 obtained by means of trend surface fitting prevail over the ones obtained
 with Equation 7, and the opposite occur near the horizon.
-
-\item This version use a generic Equation 1 \code{\link{thr_image}} instead
-of a specific one.
 
 }
 }
