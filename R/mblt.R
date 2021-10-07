@@ -145,7 +145,7 @@ mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
                  "Please, make sure they are OK."))
     }
     prob <- prob - 0.01
-    bin <- regional_thresholding(r, seg, "Diaz2018", intercept, slope, prob)
+    bin <- regional_thresholding(r, seg, "Diaz2018", 0, 1, prob)
     sky_m <- model_sky_dn(r, z, a, bin)
   }
   sky_m <- sky_m$image

@@ -4,7 +4,7 @@
 \alias{extract_sun_mark}
 \title{Extract sun mark}
 \usage{
-extract_sun_mark(r, bin, g, path_to_HPS_project, img_name)
+extract_sun_mark(r, bin, g, path_to_HSP_project, img_name)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. Greyscale image hemispherical image.}
@@ -16,7 +16,7 @@ argument.}
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 and pre-processing involved in obtaining the \code{r} argument.}
 
-\item{path_to_HPS_project}{Character vector of length one. Path to the HPS
+\item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder.}
 
 \item{img_name}{Character vector of length one. The name of the file

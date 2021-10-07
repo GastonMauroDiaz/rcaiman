@@ -211,7 +211,7 @@ read_bin <- function(path) {
 #' plot(m - m_from_disk)
 #' }
 write_bin <- function(bin, path) {
-  stopifnot(max(bin[], na.rm = TRUE) == 1)
+  stopifnot(max(bin[], na.rm = TRUE) <= 1)
 
   file_name <- basename(path)
   extension(file_name) <- "tif"

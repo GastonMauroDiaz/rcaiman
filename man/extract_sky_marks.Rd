@@ -7,8 +7,10 @@
 extract_sky_marks(
   r,
   bin,
+  z,
+  a,
   g,
-  path_to_HPS_project,
+  path_to_HSP_project,
   img_name,
   dist_to_plant = 3,
   angular_dist = 5,
@@ -22,11 +24,17 @@ extract_sky_marks(
 \item{bin}{\linkS4class{RasterLayer}. The result of binarizing the \code{r}
 argument.}
 
+\item{z}{\code{\linkS4class{RasterLayer}} built with
+\code{\link{zenith_image}}.}
+
+\item{a}{\code{\linkS4class{RasterLayer}} built with
+\code{\link{azimuth_image}}.}
+
 \item{g}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 and pre-processing involved in obtaining the \code{r} argument.}
 
-\item{path_to_HPS_project}{Character vector of length one. Path to the HPS
+\item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder.}
 
 \item{img_name}{Character vector of length one. The name of the file

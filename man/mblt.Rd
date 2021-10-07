@@ -29,7 +29,8 @@ function coefficients. Please, see the Details section of
 }
 \value{
 If \code{w} has length equal to one, \linkS4class{RasterLayer}. Else,
-  \linkS4class{RasterStack}.
+  \linkS4class{RasterStack}. If \code{w} is \code{NULL}, the above canopy
+  reconstruction is returned.
 }
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)

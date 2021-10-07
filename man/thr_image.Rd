@@ -46,7 +46,7 @@ Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
 which is very simple.
 }
 \examples{
-thr_image(125)
+thr_image(gbc(125), -8, 1)
 }
 \references{
 \insertRef{Diaz2018}{rcaiman}

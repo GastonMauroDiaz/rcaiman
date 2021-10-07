@@ -21,8 +21,9 @@
 #' sky grid \code{g}. Then, if \code{dist_to_plant} is other than \code{NULL},
 #' the distance to the non-pure sky pixels is computed for every pure sky
 #' pixels, and them are filtrated based on \code{dist_to_plant}. This allows the
-#' user to indicate the minimum gap size involved in the calculations. The
-#' following steps allows to decrease the number of points while maintaining a
+#' user to indicate the minimum gap size involved in the calculations.
+#'
+#' Following steps allow to decrease the number of points while maintaining a
 #' good distribution.
 #'
 #' If \code{fuzzy_logic} is set to \code{TRUE}, the parameter
@@ -42,7 +43,8 @@
 #' @param g \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 #'   and pre-processing involved in obtaining the \code{r} argument.
-#' @param path_to_HPS_project Character vector of length one. Path to the HPS
+#' @inheritParams sky_grid_segmentation
+#' @param path_to_HSP_project Character vector of length one. Path to the HSP
 #'   project folder.
 #' @param img_name Character vector of length one. The name of the file
 #'   associated to the \code{r} argument.
@@ -51,16 +53,15 @@
 #' @param min_raster_dist Numeric vector of length one. Distance in pixels.
 #' @param fuzzy_logic Logical vector of length one. Default is \code{TRUE}.
 #'
-#' @references
-#' \insertRef{Lang2010}{rcaiman}
+#' @references \insertRef{Lang2010}{rcaiman}
 #'
-#' \insertRef{Lang2013}{rcaiman}
+#'   \insertRef{Lang2013}{rcaiman}
 #'
 #' @seealso extract_sun_mark
 #'
 #' @return None. A file will be written in the HSP project folder.
 #' @export
-extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
+extract_sky_marks <- function(r, bin, z, a, g, path_to_HSP_project, img_name,
                               dist_to_plant = 3,
                               angular_dist = 5,
                               min_raster_dist = 9,
@@ -177,7 +178,7 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
   ds <- c(no, col.row_coordinates)
   ds <- data.frame(ds)
   extension(img_name) <- ""
-  write.table(ds, file.path(path_to_HPS_project,
+  write.table(ds, file.path(path_to_HSP_project,
                             "manipulate",
                             paste0(img_name, "_points.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
@@ -194,7 +195,7 @@ extract_sky_marks <- function(r, bin, g, path_to_HPS_project, img_name,
 #'
 #' @seealso extract_sky_marks
 #' @export
-extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
+extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
   .this_requires_EBImage()
   r <- extract_feature(r, g, max)
   m <- r > quantile(r[], 0.99, na.rm = TRUE)
@@ -238,7 +239,7 @@ extract_sun_mark <- function(r, bin, g, path_to_HPS_project, img_name) {
   p <- rgeos::gCentroid(p)
   sun <- paste(round(coordinates(p)), collapse = ".")
   extension(img_name) <- ""
-  write.table(sun, file.path(path_to_HPS_project,
+  write.table(sun, file.path(path_to_HSP_project,
                              "manipulate",
                              paste0(img_name, "_sun.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
