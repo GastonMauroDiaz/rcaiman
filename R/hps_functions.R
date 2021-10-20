@@ -1,41 +1,34 @@
 #' Extract sky marks
 #'
-#' Extract sky marks and create a special file to interface with HSP software.
+#' Extract sky marks for CIE sky model fitting
 #'
-#' This function is part of a workflow that connects the \code{\link{mblt}}
-#' algorithm with the HSP software package \insertCite{Lang2013}{rcaiman}. This
-#' workflow aims to fully automatize the single camera linear ratio method
-#' presented by \insertCite{Lang2010;textual}{rcaiman}.
+#' The \code{bin} argument should be any binarized image that masked out pure
+#' canopy (non-gap) pixels and mixed pixels, so to establish a region of
+#' interest dominated by pure sky pixels (a.k.a., gap pixels).
 #'
-#' The \code{bin} argument should be a binarization from the \code{\link{mblt}}
-#' method set with a high \code{w}. The latter is for obtaining pure sky pixels.
-#' Setting \code{w} to maximum is not recommended because high frequency of
-#' omission errors are expected with that setting.
+#' The \code{bin} argument can be obtained with the \code{\link{mblt}} method
+#' set with a high \code{w}. The latter is for obtaining good candidates for the
+#' pure sky pixel class. Setting \code{w} to maximum is not recommended because
+#' that tend to produce high frequency of omission errors.
 #'
-#' The pure sky pixels masked by \code{bin} will be automatically sampled by the
-#' function. The density and distribution of the sampling points is controlled
-#' by the arguments \code{g}, \code{dist_to_plant}, \code{angular_dist},
-#' \code{min_raster_dist}, and \code{fuzzy_logic}.
+#' This function will automatically sample in the sky region delimited by
+#' \code{bin}. The density and distribution of the sampling points is controlled
+#' by the arguments \code{g}, \code{dist_to_plant}, \code{raster_dist}, and
+#' \code{fuzzy_logic}.
 #'
-#' As first step, the maximum pure sky pixel is extracted from every cell of the
-#' sky grid \code{g}. Then, if \code{dist_to_plant} is other than \code{NULL},
-#' the distance to the non-pure sky pixels is computed for every pure sky
-#' pixels, and them are filtrated based on \code{dist_to_plant}. This allows the
-#' user to indicate the minimum gap size involved in the calculations.
+#' As first step, the digital number under the class *Gap* --digital numbers
+#' from \code{r} covered by pixels values equal to one on the \code{bin} layer--
+#' are evaluated to extract its maximum value per cell of the sky grid \code{g}.
+#' But, \code{dist_to_plant} allows users to establish a buffer zone before that
+#' this extraction occur.
 #'
-#' Following steps allow to decrease the number of points while maintaining a
-#' good distribution.
+#' The final step filter these local maximum values.If \code{fuzzy_logic} is set
+#' to \code{TRUE}, the parameter \code{raster_dist} is used to compute how much
+#' the user considered too near in the raster space. Then, starting with a given
+#' point, fuzzy logic is used to filter out the nearest and darkest (lowest
+#' digital number) points. If \code{fuzzy_logic} is set to \code{FALSE},
+#' \code{angular_dist} becomes a distance threshold that ignore digital number.
 #'
-#' If \code{fuzzy_logic} is set to \code{TRUE}, the parameter
-#' \code{angular_dist} is used to compute how much the user considered too close
-#' in the polar space. Then, starting with a given point, fuzzy logic is used to
-#' filter out the darkest and closest points. If \code{fuzzy_logic} is set to
-#' \code{FALSE}, the filter only consider distance and \code{angular_dist}
-#' becomes a threshold.
-#'
-#' The \code{min_raster_dist} argument is a threshold and can be used to
-#' indicate the minimum distance in the raster space that is required between
-#' points.
 #'
 #' @param r \linkS4class{RasterLayer}. Greyscale image hemispherical image.
 #' @param bin \linkS4class{RasterLayer}. The result of binarizing the \code{r}
@@ -44,29 +37,17 @@
 #'   \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 #'   and pre-processing involved in obtaining the \code{r} argument.
 #' @inheritParams sky_grid_segmentation
-#' @param path_to_HSP_project Character vector of length one. Path to the HSP
-#'   project folder.
-#' @param img_name Character vector of length one. The name of the file
-#'   associated to the \code{r} argument.
 #' @param dist_to_plant Numeric vector of length one.
-#' @param angular_dist Numeric vector of length one. Distance in degrees.
-#' @param min_raster_dist Numeric vector of length one. Distance in pixels.
+#' @param raster_dist Numeric vector of length one. Distance in pixels.
 #' @param fuzzy_logic Logical vector of length one. Default is \code{TRUE}.
 #'
-#' @references \insertRef{Lang2010}{rcaiman}
+#' @family hps functions
 #'
-#'   \insertRef{Lang2013}{rcaiman}
-#'
-#' @seealso extract_sun_mark
-#'
-#' @return None. A file will be written in the HSP project folder.
 #' @export
-extract_sky_marks <- function(r, bin, z, a, g, path_to_HSP_project, img_name,
+extract_sky_marks <- function(r, bin, g,
                               dist_to_plant = 3,
-                              angular_dist = 5,
-                              min_raster_dist = 9,
+                              raster_dist = 9,
                               fuzzy_logic = TRUE ) {
-
 
   # remove the pixels with NA neighbors because HSP extract with 3x3 kernel
   NA_count <- focal(!bin, matrix(1, 3, 3))
@@ -88,16 +69,12 @@ extract_sky_marks <- function(r, bin, z, a, g, path_to_HSP_project, img_name,
     ds <- data.frame(col = no_col[dist_to_plant_img],
                      row = no_row[dist_to_plant_img],
                      g = g[dist_to_plant_img],
-                     z = z[dist_to_plant_img],
-                     a = a[dist_to_plant_img],
                      dn = r[dist_to_plant_img])
 
   } else {
     ds <- data.frame(col = no_col[bin],
                      row = no_row[bin],
                      g = g[bin],
-                     z = z[bin],
-                     a = a[bin],
                      dn = r[bin])
   }
 
@@ -156,20 +133,49 @@ extract_sky_marks <- function(r, bin, z, a, g, path_to_HSP_project, img_name,
     ds[indices,]
   }
 
-  if (!is.null(angular_dist)) {
-    stopifnot(angular_dist >= 1)
+  if (!is.null(raster_dist)) {
+    stopifnot(raster_dist >= 1)
     if (fuzzy_logic) {
-      ds <- .filter_fuzzy(ds, c("z", "a"), angular_dist)
+      ds <- .filter_fuzzy(ds, c("col", "row"), raster_dist)
     } else {
-      ds <- .filter(ds, c("z", "a"), angular_dist)
+      ds <- .filter(ds, c("col", "row"), raster_dist)
     }
 
   }
-  if (!is.null(min_raster_dist)) {
-    stopifnot(min_raster_dist >= 1)
-    ds <- .filter(ds, c("col", "row"), min_raster_dist)
-  }
 
+  ds[,-3]
+
+}
+
+#' Write sky marks
+#'
+#' Create a special file to interface with HSP software.
+#'
+#' This function is part of a workflow that connects the mblt algorithm with the
+#' HSP software package \insertCite{Lang2013}{rcaiman}.
+#'
+#' This function was designed to be called after \code{\link{extract_sky_marks}}
+#' in a workflow that connects the mblt algorithm with the HSP software package.
+#' I such a workflow, the \code{\link{extract_sky_marks}} will use an image
+#' pre-processed by the HSP software as its \code{r} argument. The
+#' \code{img_name} argument of \code{write_sky_marks()} should be the name of
+#' the file associated to the aforementioned \code{r} argument.
+#'
+#'
+#' @param x Object from the class data.frame. The result of a calling to
+#'   \code{\link{extract_sky_marks}}.
+#' @param path_to_HSP_project Character vector of length one. Path to the HSP
+#'   project folder.
+#' @param img_name Character vector of length one. See details.
+#'
+#' @family hsp functions
+#'
+#' @references \insertRef{Lang2013}{rcaiman}
+#'
+#' @return None. A file will be written in the HSP project folder.
+#' @export
+#'
+write_sky_marks <- function(x, path_to_HSP_project, img_name) {
   no <- nrow(ds)
 
   col.row_coordinates <- paste(ds$col, ds$row, "3", sep = ".")
@@ -189,14 +195,18 @@ extract_sky_marks <- function(r, bin, z, a, g, path_to_HSP_project, img_name,
 
 #' Extract sun mark
 #'
-#' Extract sun mark and create a special file to interface with HSP software.
+#' Extract the sun mark for CIE sky model fitting
+#'
+#' The \code{bin} argument should be the same than for
+#' \code{\link{write_sky_marks}}
 #'
 #' @inheritParams extract_sky_marks
 #'
-#' @seealso extract_sky_marks
+#' @family hsp functions
 #' @export
 extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
   .this_requires_EBImage()
+
   r <- extract_feature(r, g, max)
   m <- r > quantile(r[], 0.99, na.rm = TRUE)
   m[is.na(g)] <- 0
@@ -237,13 +247,34 @@ extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
   indexes <- chull(ds)
   p <- sp::SpatialPoints(ds[indexes,])
   p <- rgeos::gCentroid(p)
-  sun <- paste(round(coordinates(p)), collapse = ".")
+  col_row <- as.numeric(round(coordinates(p)))
+  attr(col_row, "name") <- "col_row"
+  col_row
+}
+
+
+
+#' Write sun mark
+#'
+#' Create a special file to interface with HSP software.
+#'
+#' Please, see the Details section of this function:
+#' \code{\link{write_sky_marks}}.
+#'
+#' @param x Object from the class data.frame. The result of a calling to
+#'   \code{\link{extract_sky_marks}}.
+#' @inheritParams write_sky_marks
+#'
+#' @family hsp functions
+#'
+#' @return None. A file will be written in the HSP project folder.
+#' @export
+write_sun_mark <- function(x, path_to_HSP_project, img_name) {
+  sun <- paste(x, collapse = ".")
   extension(img_name) <- ""
   write.table(sun, file.path(path_to_HSP_project,
                              "manipulate",
                              paste0(img_name, "_sun.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
               fileEncoding = "UTF-8", eol = "\n")
-
-
 }

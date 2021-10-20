@@ -1,0 +1,16 @@
+sky,a,b,c,d,e,indicatrix_group,general_sky_type,description
+1,4,0.7,0,1,0,1,Overcast,"Steep gradation, azimuthal uniformity"
+2,4,0.7,2,1.5,0.15,2,Overcast,"Steep gradation, slight brighten around sun"
+3,1.1,0.8,0,1,0,1,Overcast,"Gentle gradation, azimuthal uniformity"
+4,1.1,0.8,2,1.5,0.15,2,Overcast,"Gentle gradation, slight brighten around sun"
+5,0,1,0,1,0,1,Overcast,Uniform
+6,0,1,2,1.5,0.15,2,Partly cloudy,"No gradation, slight brighten around sun"
+7,0,1,5,2.5,0.3,3,Partly cloudy,"No gradation, brighter circumsolar region"
+8,0,1,10,3,0.45,4,Partly cloudy,"No gradation, distinct solar corona"
+9,1,0.55,2,1.5,0.15,2,Partly cloudy,Sun position shaded/obscured
+10,1,0.55,5,2.5,0.3,3,Partly cloudy,Brighter circumsolar region
+11,1,0.55,10,3,0.45,4,Clear,"White-blue sky, distinct solar corona"
+12,1,0.32,10,3,0.45,4,Clear,Low turbidity
+13,1,0.32,16,3,0.3,5,Clear,Polluted atmosphere
+14,1,0.15,16,3,0.3,5,Clear,"Cloudless turbid sky, broad sun corona"
+15,1,0.15,24,2.8,0.15,6,Clear,"White-blue turbid sky, wide sun corona"
