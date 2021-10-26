@@ -130,12 +130,15 @@ sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 15)
 #' plot(g == 36009)
+#' g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
+#' plot(g, col = sample(rainbow(length(unique(g)))))
 sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
   stopifnot(class(z) == "RasterLayer")
   stopifnot(class(a) == "RasterLayer")
+  stopifnot(.get_max(z) < 90)
+
   stopifnot(class(sequential) == "logical")
   stopifnot(length(angle_width) == 1)
-
 
   if (!max(angle_width == c(30,  15,    10,   7.5,
                             6,   5,     3.75, 3,

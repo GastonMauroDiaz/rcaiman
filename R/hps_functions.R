@@ -13,22 +13,17 @@
 #'
 #' This function will automatically sample in the sky region delimited by
 #' \code{bin}. The density and distribution of the sampling points is controlled
-#' by the arguments \code{g}, \code{dist_to_plant}, \code{raster_dist}, and
-#' \code{fuzzy_logic}.
+#' by the arguments \code{g}, \code{dist_to_plant}, and \code{min_raster_dist}.
 #'
 #' As first step, the digital number under the class *Gap* --digital numbers
 #' from \code{r} covered by pixels values equal to one on the \code{bin} layer--
 #' are evaluated to extract its maximum value per cell of the sky grid \code{g}.
-#' But, \code{dist_to_plant} allows users to establish a buffer zone before that
-#' this extraction occur.
+#' But, \code{dist_to_plant} allows users to establish a buffer zone which
+#' modify \code{bin}.
 #'
-#' The final step filter these local maximum values.If \code{fuzzy_logic} is set
-#' to \code{TRUE}, the parameter \code{raster_dist} is used to compute how much
-#' the user considered too near in the raster space. Then, starting with a given
-#' point, fuzzy logic is used to filter out the nearest and darkest (lowest
-#' digital number) points. If \code{fuzzy_logic} is set to \code{FALSE},
-#' \code{angular_dist} becomes a distance threshold that ignore digital number.
-#'
+#' The final step filter these local maximum values.\code{min_raster_dist} is a
+#' minimum distance threshold between points that is applied in the raster
+#' space.
 #'
 #' @param r \linkS4class{RasterLayer}. Greyscale image hemispherical image.
 #' @param bin \linkS4class{RasterLayer}. The result of binarizing the \code{r}
@@ -36,18 +31,43 @@
 #' @param g \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 #'   and pre-processing involved in obtaining the \code{r} argument.
-#' @inheritParams sky_grid_segmentation
 #' @param dist_to_plant Numeric vector of length one.
-#' @param raster_dist Numeric vector of length one. Distance in pixels.
-#' @param fuzzy_logic Logical vector of length one. Default is \code{TRUE}.
+#' @param min_raster_dist Numeric vector of length one. Distance in pixels.
 #'
 #' @family hps functions
 #'
 #' @export
+#' @examples
+#' \dontrun{
+#' require(magrittr)
+#' #' my_file <- path.expand("~/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' g <- sky_grid_segmentation(z, a, 10)
+#' blue <- gbc(r$Blue)
+#' bin <- mblt(blue, z, a, w = 0.5)
+#' sky_marks <- extract_sky_marks(blue, bin, g,
+#'                                min_raster_dist = 10)
+#' xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) %>%  xyFromCell(z, .)
+#' plot(blue)
+#' plot(SpatialPoints(xy), add = TRUE, col = 2)
+#' }
 extract_sky_marks <- function(r, bin, g,
                               dist_to_plant = 3,
-                              raster_dist = 9,
-                              fuzzy_logic = TRUE ) {
+                              min_raster_dist = 9) {
+
+  stopifnot(class(r) == "RasterLayer")
+  stopifnot(class(bin) == "RasterLayer")
+  stopifnot(class(g) == "RasterLayer")
+
+  stopifnot(length(dist_to_plant) == 1)
+  stopifnot(length(min_raster_dist) == 1)
 
   # remove the pixels with NA neighbors because HSP extract with 3x3 kernel
   NA_count <- focal(!bin, matrix(1, 3, 3))
@@ -83,39 +103,8 @@ extract_sky_marks <- function(r, bin, g,
 
 
   # filtering
-
-  .filter_fuzzy <- function(ds, col_names, thr) {
-    d <- as.matrix(dist(ds[, col_names]))
-    indices <- c()
-    i <- 0
-    while (i < nrow(d)) {
-      i <- i + 1
-      indices <- c(indices, row.names(d)[i]) #include the point itself (p)
-      x <- names(d[i, d[i,] <= thr])
-      if (!is.null(x)) {
-        dn_feature <- ds[x, "dn"]
-        dn_feature <- normalize(dn_feature, min(dn_feature), max(dn_feature))
-        dist_feature <- d[i,x]
-        dist_feature <- normalize(dist_feature,
-                                  min(dist_feature),
-                                  max(dist_feature))
-        dist_feature <- 1 - dist_feature^2
-        feature <- dn_feature * dist_feature
-
-        tmp <- x[feature > 0.75]
-        if(length(tmp) != 0) x <- tmp
-        # this exclude from future search the darkest points closer to p,
-        # including itself
-        rows2crop <- (1:nrow(d))[match(x, rownames(d))]
-        cols2crop <- (1:ncol(d))[match(x, colnames(d))]
-        d <- d[-rows2crop, -cols2crop]
-      }
-    }
-    ds[indices,]
-  }
-
   .filter <- function(ds, col_names, thr) {
-    d <- as.matrix(dist(ds[, col_names]))
+    d <- as.matrix(stats::dist(ds[, col_names]))
     indices <- c()
     i <- 0
     while (i < nrow(d)) {
@@ -133,18 +122,10 @@ extract_sky_marks <- function(r, bin, g,
     ds[indices,]
   }
 
-  if (!is.null(raster_dist)) {
-    stopifnot(raster_dist >= 1)
-    if (fuzzy_logic) {
-      ds <- .filter_fuzzy(ds, c("col", "row"), raster_dist)
-    } else {
-      ds <- .filter(ds, c("col", "row"), raster_dist)
-    }
-
+  if (!is.null(min_raster_dist)) {
+    ds <- .filter(ds, c("col", "row"), min_raster_dist)
   }
-
-  ds[,-3]
-
+  ds[,c(2, 1)]
 }
 
 #' Write sky marks
@@ -184,7 +165,7 @@ write_sky_marks <- function(x, path_to_HSP_project, img_name) {
   ds <- c(no, col.row_coordinates)
   ds <- data.frame(ds)
   extension(img_name) <- ""
-  write.table(ds, file.path(path_to_HSP_project,
+  utils::write.table(ds, file.path(path_to_HSP_project,
                             "manipulate",
                             paste0(img_name, "_points.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
@@ -195,20 +176,64 @@ write_sky_marks <- function(x, path_to_HSP_project, img_name) {
 
 #' Extract sun mark
 #'
-#' Extract the sun mark for CIE sky model fitting
+#' Extract the sun mark for CIE sky model fitting.
+#'
+#' This function use an object-based image analyze theoretical framework. The
+#' segmentation are given by \code{g}, and \code{b} should be understood as an
+#' extra layer. For every cell of \code{g}, the maximum is calculated from the
+#' pixel values on \code{r} that have a value equal to one on \code{bin}. Then,
+#' the quantile 0.95 is extracted from these maximum values and is used to
+#' filter out cells below that threshold, i.e, only the ones with at least one
+#' extremely bright sky pixel is keep.
+#'
+#' Selected cells are grouped into segments based on adjacency. The degree of
+#' membership to the class _Sun_ is calculated for every segment by using linear
+#' membership functions for the features brightness --digital number from
+#' \code{r}-- and size -- number of cells that constitute the segment. In other
+#' words, the brighteners and lagers segments are the ones that score higher.
+#' The one with the highest score is selected as a sun seed.
+#'
+#' The angular distance from the sun seed to every other segments are computed,
+#' and only the segments not farther than \code{max_angular_dist} are classified
+#' as part of the sun corona. A multi-part segment is created by merging the
+#' sun-corona segments, a convex hull is calculated, and the centroide of its
+#' shape is returned as the sun location in raster coordinates (column and row).
 #'
 #' The \code{bin} argument should be the same than for
-#' \code{\link{write_sky_marks}}
+#' \code{\link{extract_sky_marks}}
 #'
 #' @inheritParams extract_sky_marks
+#' @inheritParams sky_grid_segmentation
+#' @param angular_coord Logical vector of length one. If it is \code{TRUE}, it
+#'   returns the angular coordinates of the solar disk (zenith and azimuth
+#'   angles in degrees). If it is \code{FALSE}, it returns raster coordinates of
+#'   the solar disk (row and column).
+#' @param angular_coord Logical vector of length one. If it is \code{TRUE}, it
+#'   will return zenith and azimuth angles in degrees. Otherwise, row and column
+#'   numbers.
+#' @param max_angular_dist Numeric vector of length one. Angle in degree to
+#'   establish the maximum size of the sun corona. See details.
 #'
 #' @family hsp functions
 #' @export
-extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
+extract_sun_mark <- function(r, bin, z, a, g,
+                             max_angular_dist = 45,
+                             angular_coord = TRUE) {
   .this_requires_EBImage()
 
+  stopifnot(class(r) == "RasterLayer")
+  stopifnot(class(bin) == "RasterLayer")
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(a) == "RasterLayer")
+  stopifnot(.get_max(z) < 90)
+  stopifnot(class(g) == "RasterLayer")
+
+  stopifnot(length(max_angular_dist) == 1)
+  stopifnot(length(angular_coord) == 1)
+
+
   r <- extract_feature(r, g, max)
-  m <- r > quantile(r[], 0.99, na.rm = TRUE)
+  m <- r >= quantile(r[], 0.95, na.rm = TRUE)
   m[is.na(g)] <- 0
 
   labeled_m <- EBImage::bwlabel(as.matrix(m))
@@ -220,17 +245,33 @@ extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
     length(x)
   }
   area <- extract_feature(g, labeled_m, fun, return_raster = FALSE) %>%
-          normalize(., min(.), max(.))
+    normalize(., min(.), max(.))
   dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
-        normalize(., min(.), max(.))
+    normalize(., min(.), max(.))
+  if (any(is.nan(dn))) dn[] <- 1
   membership_posibility <- area * dn
   sun <- which.max(membership_posibility)
 
-  angle_res <- 360 / round(.get_max(g) / 1000)
-  a <- round(g / 1000) * angle_res
-  azimuth <- extract_feature(a, labeled_m, mean, return_raster = FALSE)
+  # angle_res <- 360 / round(.get_max(g) / 1000)
+  # a <- round(g / 1000) * angle_res
+  # z <- ((g / 1000) - trunc(g / 1000)) * 1000 * angle_res
+  azimuth <- extract_feature(a, labeled_m, mean, return_raster = FALSE) %>%
+    degree2radian()
+  zenith <- extract_feature(z, labeled_m, mean, return_raster = FALSE) %>%
+    degree2radian()
+  za <- data.frame(zenith, azimuth)
 
-  indices <- as.matrix(dist(azimuth))[sun,] > 90
+  .calc_angular_distance <- function(z1, a1, z2, a2) {
+    acos(cos(z1) * cos(z2) + sin(z1) * sin(z2) * cos(abs(a2 - a1)))
+  }
+  ids_to_vs <- expand.grid(sun, 1:nrow(za))
+
+  d <- c()
+  for (i in 1:nrow(za)) {
+    d <- c(d, .calc_angular_distance(za[sun, 1], za[sun, 2], za[i, 1], za[i, 2]))
+  }
+
+  indices <- d > degree2radian(max_angular_dist)
 
   rcl <- data.frame(unique(labeled_m), unique(labeled_m))
   rcl[indices, 2] <- NA
@@ -244,12 +285,23 @@ extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
   no_row[] <- .row(dim(r)[1:2])
 
   ds <- cbind(no_col[m], no_row[m])
-  indexes <- chull(ds)
-  p <- sp::SpatialPoints(ds[indexes,])
+  xy <- cellFromRowCol(m, no_row[m], no_col[m]) %>% xyFromCell(m, .)
+  indexes <- grDevices::chull(xy)
+  p <- sp::SpatialPoints(xy[indexes, ])
+
   p <- rgeos::gCentroid(p)
-  col_row <- as.numeric(round(coordinates(p)))
-  attr(col_row, "name") <- "col_row"
-  col_row
+  xy <- as.numeric(round(coordinates(p)))
+  row_col <- c(rowFromY(m, xy[2]), colFromX(m, xy[1]))
+
+  if (angular_coord) {
+    sun_coord <- (c(z[row_col[1], row_col[2]], a[row_col[1], row_col[2]]))
+    attr(sun_coord, "name") <- "zenith_azimuth"
+    return(round(sun_coord))
+  } else {
+    attr(row_col, "name") <- "row_col"
+    return(row_col)
+  }
+
 }
 
 
@@ -262,7 +314,8 @@ extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
 #' \code{\link{write_sky_marks}}.
 #'
 #' @param x Object from the class data.frame. The result of a calling to
-#'   \code{\link{extract_sky_marks}}.
+#'   \code{\link{extract_sky_marks}} with the \code{angular_coord} argument set
+#'   to \code{FALSE}.
 #' @inheritParams write_sky_marks
 #'
 #' @family hsp functions
@@ -270,11 +323,11 @@ extract_sun_mark <- function(r, bin, g, path_to_HSP_project, img_name) {
 #' @return None. A file will be written in the HSP project folder.
 #' @export
 write_sun_mark <- function(x, path_to_HSP_project, img_name) {
-  sun <- paste(x, collapse = ".")
+  sun <- paste(x[c(2,1)], collapse = ".")
   extension(img_name) <- ""
-  write.table(sun, file.path(path_to_HSP_project,
-                             "manipulate",
-                             paste0(img_name, "_sun.conf")),
+  utils::write.table(sun, file.path(path_to_HSP_project,
+                                    "manipulate",
+                                    paste0(img_name, "_sun.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
               fileEncoding = "UTF-8", eol = "\n")
 }

@@ -15,6 +15,6 @@ Test that lens projection function works between the 0-to-1 range.
 }
 \examples{
 test_lens_coef(lens("Nikon_FCE9"))
-test_lens_coef(pi / 2)
+test_lens_coef(2 / pi)
 test_lens_coef(c(1.06065, -0.49054, 0.14044))
 }

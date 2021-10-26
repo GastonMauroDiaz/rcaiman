@@ -4,19 +4,7 @@
 \alias{extract_sky_marks}
 \title{Extract sky marks}
 \usage{
-extract_sky_marks(
-  r,
-  bin,
-  z,
-  a,
-  g,
-  path_to_HSP_project,
-  img_name,
-  dist_to_plant = 3,
-  angular_dist = 5,
-  min_raster_dist = 9,
-  fuzzy_logic = TRUE
-)
+extract_sky_marks(r, bin, g, dist_to_plant = 3, min_raster_dist = 9)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. Greyscale image hemispherical image.}
@@ -24,76 +12,61 @@ extract_sky_marks(
 \item{bin}{\linkS4class{RasterLayer}. The result of binarizing the \code{r}
 argument.}
 
-\item{z}{\code{\linkS4class{RasterLayer}} built with
-\code{\link{zenith_image}}.}
-
-\item{a}{\code{\linkS4class{RasterLayer}} built with
-\code{\link{azimuth_image}}.}
-
 \item{g}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 and pre-processing involved in obtaining the \code{r} argument.}
 
-\item{path_to_HSP_project}{Character vector of length one. Path to the HSP
-project folder.}
-
-\item{img_name}{Character vector of length one. The name of the file
-associated to the \code{r} argument.}
-
 \item{dist_to_plant}{Numeric vector of length one.}
 
-\item{angular_dist}{Numeric vector of length one. Distance in degrees.}
-
 \item{min_raster_dist}{Numeric vector of length one. Distance in pixels.}
-
-\item{fuzzy_logic}{Logical vector of length one. Default is \code{TRUE}.}
-}
-\value{
-None. A file will be written in the HSP project folder.
 }
 \description{
-Extract sky marks and create a special file to interface with HSP software.
+Extract sky marks for CIE sky model fitting
 }
 \details{
-This function is part of a workflow that connects the \code{\link{mblt}}
-algorithm with the HSP software package \insertCite{Lang2013}{rcaiman}. This
-workflow aims to fully automatize the single camera linear ratio method
-presented by \insertCite{Lang2010;textual}{rcaiman}.
+The \code{bin} argument should be any binarized image that masked out pure
+canopy (non-gap) pixels and mixed pixels, so to establish a region of
+interest dominated by pure sky pixels (a.k.a., gap pixels).
 
-The \code{bin} argument should be a binarization from the \code{\link{mblt}}
-method set with a high \code{w}. The latter is for obtaining pure sky pixels.
-Setting \code{w} to maximum is not recommended because high frequency of
-omission errors are expected with that setting.
+The \code{bin} argument can be obtained with the \code{\link{mblt}} method
+set with a high \code{w}. The latter is for obtaining good candidates for the
+pure sky pixel class. Setting \code{w} to maximum is not recommended because
+that tend to produce high frequency of omission errors.
 
-The pure sky pixels masked by \code{bin} will be automatically sampled by the
-function. The density and distribution of the sampling points is controlled
-by the arguments \code{g}, \code{dist_to_plant}, \code{angular_dist},
-\code{min_raster_dist}, and \code{fuzzy_logic}.
+This function will automatically sample in the sky region delimited by
+\code{bin}. The density and distribution of the sampling points is controlled
+by the arguments \code{g}, \code{dist_to_plant}, and \code{min_raster_dist}.
 
-As first step, the maximum pure sky pixel is extracted from every cell of the
-sky grid \code{g}. Then, if \code{dist_to_plant} is other than \code{NULL},
-the distance to the non-pure sky pixels is computed for every pure sky
-pixels, and them are filtrated based on \code{dist_to_plant}. This allows the
-user to indicate the minimum gap size involved in the calculations. The
-following steps allows to decrease the number of points while maintaining a
-good distribution.
+As first step, the digital number under the class *Gap* --digital numbers
+from \code{r} covered by pixels values equal to one on the \code{bin} layer--
+are evaluated to extract its maximum value per cell of the sky grid \code{g}.
+But, \code{dist_to_plant} allows users to establish a buffer zone which
+modify \code{bin}.
 
-If \code{fuzzy_logic} is set to \code{TRUE}, the parameter
-\code{angular_dist} is used to compute how much the user considered too close
-in the polar space. Then, starting with a given point, fuzzy logic is used to
-filter out the darkest and closest points. If \code{fuzzy_logic} is set to
-\code{FALSE}, the filter only consider distance and \code{angular_dist}
-becomes a threshold.
-
-The \code{min_raster_dist} argument is a threshold and can be used to
-indicate the minimum distance in the raster space that is required between
-points.
+The final step filter these local maximum values.\code{min_raster_dist} is a
+minimum distance threshold between points that is applied in the raster
+space.
 }
-\references{
-\insertRef{Lang2010}{rcaiman}
-
-\insertRef{Lang2013}{rcaiman}
+\examples{
+\dontrun{
+require(magrittr)
+#' my_file <- path.expand("~/DSCN5548.JPG")
+download.file("https://osf.io/kp7rx/download", my_file,
+              method = "auto", mode = "wb")
+r <- read_caim(my_file,
+               c(1280, 960) - 745,
+               745 * 2,
+               745 * 2)
+z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+g <- sky_grid_segmentation(z, a, 10)
+blue <- gbc(r$Blue)
+bin <- mblt(blue, z, a, w = 0.5)
+sky_marks <- extract_sky_marks(blue, bin, g,
+                               min_raster_dist = 10)
+xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) \%>\%  xyFromCell(z, .)
+plot(blue)
+plot(SpatialPoints(xy), add = TRUE, col = 2)
 }
-\seealso{
-extract_sun_mark
 }
+\concept{hps functions}

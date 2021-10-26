@@ -64,4 +64,28 @@
   publisher = {Walter de Gruyter {GmbH}},
 }
 
+@Article{Lang2010,
+  author    = {Mait Lang and Andres Kuusk and Matti M{\~{o}}ttus and Miina Rautiainen and Tiit Nilson},
+  journal   = {Agricultural and Forest Meteorology},
+  title     = {Canopy gap fraction estimation from digital hemispherical images using sky radiance models and a linear conversion method},
+  year      = {2010},
+  month     = {jan},
+  number    = {1},
+  pages     = {20--29},
+  volume    = {150},
+  doi       = {10.1016/j.agrformet.2009.08.001},
+  publisher = {Elsevier {BV}},
+}
+
+@Article{Li2016,
+  author    = {Danny H.W. Li and Siwei Lou and Joseph C. Lam and Ronald H.T. Wu},
+  title     = {Determining solar irradiance on inclined planes from classified {CIE} (International Commission on Illumination) standard skies},
+  year      = {2016},
+  month     = {apr},
+  pages     = {462--470},
+  volume    = {101},
+  doi       = {10.1016/j.energy.2016.02.054},
+  publisher = {Elsevier {BV}},
+}
+
 @Comment{jabref-meta: databaseType:bibtex;}

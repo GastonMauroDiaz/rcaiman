@@ -25,8 +25,6 @@ test_that("read_caim() assigns good layer names", {
 })
 
 
-
-
 test_that("a ROI from a photo can be read correctly", {
   skip_on_cran()
   read_19_crop_save_and_return_path <- function() {

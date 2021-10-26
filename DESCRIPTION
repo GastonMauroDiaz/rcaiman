@@ -23,10 +23,11 @@ Imports:
     utils,
     Rdpack,
     spatial,
-    rgeos
+    rgeos,
+    sp
 Suggests: 
     EBImage,
     autothresholdr,
     conicfit,
-    akima
+    bbmle
 RdMacros: Rdpack

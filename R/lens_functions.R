@@ -37,7 +37,7 @@ lens <- function(type = "equiangular", max_fov = FALSE) {
 #'
 #' @examples
 #' test_lens_coef(lens("Nikon_FCE9"))
-#' test_lens_coef(pi / 2)
+#' test_lens_coef(2 / pi)
 #' test_lens_coef(c(1.06065, -0.49054, 0.14044))
 test_lens_coef <- function(lens_coef) {
   testthat::test_that(

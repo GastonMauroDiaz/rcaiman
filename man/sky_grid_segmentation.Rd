@@ -46,6 +46,8 @@ z <- zenith_image(1490, lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 36009)
+g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
+plot(g, col = sample(rainbow(length(unique(g)))))
 }
 \seealso{
 Other basic fisheye segmentation functions: 
