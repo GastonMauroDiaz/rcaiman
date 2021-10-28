@@ -130,28 +130,14 @@ thr_image <- function (dn, intercept, slope) {
 #' bin <- mblt(blue, z, a)
 #' }
 mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
-  .check_if_r_was_normalized(r)
-  seg <- sky_grid_segmentation(z, a, 30)
+  sky_m <- autofit_cone_shaped_model(r, z, a)$image
+  bin <- apply_thr(r, sky_m)
 
-  prob <- 1
-  sky_m <- NA
-  while (length(sky_m) == 1) {
-    if (prob < 0.9) {
-      stop(paste("The function is not working properly.",
-                 "The problem might be related to inputs.",
-                 "Please, make sure they are OK."))
-    }
-    prob <- prob - 0.01
-    bin <- regional_thresholding(r, seg, "Diaz2018", 0, 1, prob)
-    sky_m <- fit_cone_shaped_model(r, z, a, bin)
-  }
-  sky_m <- sky_m$image
-
-  m <- mask_image(z, zlim = c(0,70))
+  m <- mask_image(z)
   sky_s <- fit_trend_surface_to_sky_dn(r, z, m, bin, sky_m)$image
 
-  mask <- (sky_m - sky_s) > 0.5
-  sky_s[mask] <- NA
+  m <- (sky_m - sky_s) > 0.5
+  sky_s[m] <- NA
 
   sky_combo <- sky_s * z / 90 + sky_m * (1 - z / 90)
 
