@@ -16,7 +16,7 @@
 #     thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 #     bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #     blue <- gbc(r$Blue)
-#     sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+#     sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #     aux_m <- mask_image(z, zlim = c(0,20))
 #     sky$image[aux_m] <- NA
 #     m <- mask_image(z, zlim = c(0,70))

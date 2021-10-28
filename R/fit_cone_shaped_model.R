@@ -1,4 +1,4 @@
-#' Model sky digital numbers
+#' Fit cone shaped model
 #'
 #' Produce the digital numbers of the whole sky through statistical modelling.
 #'
@@ -51,8 +51,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- getwd()
-#' my_file <- paste0(path, "/DSCN5548.JPG")
+#' my_file <- path.expand("~/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
 #'                method = "auto", mode = "wb"
 #' )
@@ -66,19 +65,18 @@
 #' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 #' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
-#' sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
-#' path <- tempfile(fileext = ".tif")
-#' write_caim(sky$image * 2^8, path, 8)
+#' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
+#' plot(sky$image)
+#' persp(sky) # yes, it looks like an upside down cone!
 #' }
-model_sky_dn <- function(r, z, a, bin,
-                         prob = 0.95,
-                         filling_source = NULL,
-                         use_azimuth_angle = TRUE,
-                         parallel = TRUE,
-                         free_cores = 0) {
+fit_cone_shaped_model <- function(r, z, a, bin,
+                                 prob = 0.95,
+                                 filling_source = NULL,
+                                 use_azimuth_angle = TRUE,
+                                 parallel = TRUE,
+                                 free_cores = 0) {
 
   .check_if_r_was_normalized(r)
-
 
   if (!is.null(filling_source)) compareRaster(bin, filling_source)
   compareRaster(bin, r)
@@ -185,3 +183,48 @@ model_sky_dn <- function(r, z, a, bin,
     return(NA)
   }
 }
+
+
+
+#' Autofit cone shaped model
+#'
+#' Out-of-the-box version of the \code{\link{fit_cone_shaped function}}
+#'
+#' @inheritParams fit_cone_shaped_model
+#'
+#' @export
+#'
+#' @examples
+#' #' \dontrun{
+#' my_file <- path.expand("~/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' blue <- gbc(r$Blue)
+#' sky <- autofit_cone_shaped_model(blue, z, a)
+#' plot(sky$image)
+#' }
+autofit_cone_shaped_model <- function(r, z, a) {
+  .check_if_r_was_normalized(r)
+  seg <- sky_grid_segmentation(z, a, 30)
+
+  prob <- 1
+  sky_m <- NA
+  while (length(sky_m) == 1) {
+    if (prob < 0.9) {
+      stop(paste("The function is not working properly.",
+                 "The problem might be related to inputs.",
+                 "Please, make sure they are OK."))
+    }
+    prob <- prob - 0.01
+    bin <- regional_thresholding(r, seg, "Diaz2018", 0, 1, prob)
+    sky_m <- fit_cone_shaped_model(r, z, a, bin)
+  }
+  sky_m
+}
+

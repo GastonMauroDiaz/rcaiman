@@ -1,4 +1,4 @@
-test_that("model_sky_dn() works", {
+test_that("fit_cone_shaped_model() works", {
   get_sky_from_DSCN5547 <- function() {
     path <- system.file("external", package = "rcaiman")
     my_file <- paste0(path, "/DSCN5548.JPG")
@@ -16,7 +16,7 @@ test_that("model_sky_dn() works", {
     thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
     bin <- apply_thr(r$Blue, thr[1] * 1.25)
     blue <- gbc(r$Blue)
-    sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+    sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
     path <- tempfile(fileext = ".tif")
     write_caim(sky$image * 2^8, path, 8)
 

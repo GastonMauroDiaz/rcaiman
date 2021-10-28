@@ -12,6 +12,8 @@
 #'
 #' @export
 #'
+#' @seealso gbc
+#'
 #' @examples
 #' normalize(read_caim(), 0, 255)
 normalize <- function(r, mn, mx) {
@@ -29,6 +31,8 @@ normalize <- function(r, mn, mx) {
 #'
 #' @return Normalized \code{\linkS4class{Raster}}.
 #' @export
+#'
+#' @seealso normalize
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'

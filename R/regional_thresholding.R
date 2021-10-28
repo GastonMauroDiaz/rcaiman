@@ -25,7 +25,7 @@
 #' @param method Character vector of length one. See details for current
 #'   options.
 #' @inheritParams thr_image
-#' @inheritParams model_sky_dn
+#' @inheritParams fit_cone_shaped_model
 #'
 #'
 #'

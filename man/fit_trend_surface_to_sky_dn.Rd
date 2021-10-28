@@ -61,7 +61,7 @@ This function is meant to be used after \code{\link{model_sky_dn}}.
 A short explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 the sky DN as a previous step for our method}, after the explanation of the
-\code{\link{model_sky_dn}}.
+\code{\link{fit_cone_shaped_model}}.
 
 The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
@@ -85,11 +85,12 @@ a <- azimuth_image(z)
 thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
-sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 m <- mask_image(z, zlim = c(0, 70))
 sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
   filling_source = sky$image
 )
+plot(sky)
 }
 }
 \references{
@@ -97,8 +98,8 @@ sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
 }
 \seealso{
 Other mblt functions: 
+\code{\link{fit_cone_shaped_model}()},
 \code{\link{mblt}()},
-\code{\link{model_sky_dn}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}

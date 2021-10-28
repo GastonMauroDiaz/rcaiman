@@ -91,7 +91,7 @@ plot(sky)
 \insertRef{Li2016}{rcaiman}
 }
 \seealso{
-Other cie sky model functions:
+Other cie sky model functions: 
 \code{\link{.cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()}
 }

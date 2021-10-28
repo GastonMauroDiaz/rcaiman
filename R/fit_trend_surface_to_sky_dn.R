@@ -36,13 +36,13 @@
 #' A short explanation of this function can be found on
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 #' the sky DN as a previous step for our method}, after the explanation of the
-#' \code{\link{model_sky_dn}}.
+#' \code{\link{fit_cone_shaped_model}}.
 #'
 #' The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
 #' argument allows to control the scale at which the fitting is performed. In
 #' general, a coarse scale lead to best generalization.
 #'
-#' @inheritParams model_sky_dn
+#' @inheritParams fit_cone_shaped_model
 #' @param mask \linkS4class{RasterLayer}. Usually, the result of a call to
 #'   \code{\link{mask_image}}.
 #' @inheritParams raster::aggregate
@@ -75,11 +75,12 @@
 #' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 #' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
-#' sky <- model_sky_dn(blue, z, a, bin, parallel = FALSE)
+#' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #' m <- mask_image(z, zlim = c(0, 70))
 #' sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
 #'   filling_source = sky$image
 #' )
+#' plot(sky)
 #' }
 fit_trend_surface_to_sky_dn <- function(r,
                                         z,

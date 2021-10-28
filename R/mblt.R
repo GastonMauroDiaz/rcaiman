@@ -13,7 +13,7 @@
 #' clearly shown that the optimal threshold value was linearly related with the
 #' background digital number. Therefore, that shifts the aim from finding the
 #' optimal threshold to obtaining the background DN as if the canopy were not
-#' there. Functions \code{\link{model_sky_dn}} and
+#' there. Functions \code{\link{fit_cone_shaped_model}} and
 #' \code{\link{fit_trend_surface_to_sky_dn}} address that topic.
 #'
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
@@ -63,7 +63,6 @@ thr_image <- function (dn, intercept, slope) {
 }
 
 
-
 #' Model-based local thresholding
 #'
 #' Out-of-the-box version of the model-based local thresholding (MBLT)
@@ -72,7 +71,7 @@ thr_image <- function (dn, intercept, slope) {
 #' This function is a hard-coded version of a MBLT pipeline that starts with a
 #' working binarized image and ended with a refined binarized image. The
 #' pipeline combines \code{\link{regional_thresholding}},
-#' \code{\link{model_sky_dn}}, \code{\link{fit_trend_surface_to_sky_dn}}, and
+#' \code{\link{fit_cone_shaped_model}}, \code{\link{fit_trend_surface_to_sky_dn}}, and
 #' \code{\link{thr_image}}. The code can be easily inspected by calling
 #' \code{mblt}. Advanced users could use that code as a template.
 #'
@@ -89,7 +88,7 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' \item The working binarized image is not refined in the second step by using
 #' the sky digital number (sDN) obtained with Equation 4
-#' \code{\link{model_sky_dn}} and the local threshold values calculated with
+#' \code{\link{fit_cone_shaped_model}} and the local threshold values calculated with
 #' Equation 1 \code{\link{thr_image}}. Instead, the sDN are used as filling
 #' source for trend surface fitting \code{\link{fit_trend_surface_to_sky_dn}}.
 #'
@@ -102,7 +101,7 @@ thr_image <- function (dn, intercept, slope) {
 #' }
 #'
 #'
-#' @inheritParams model_sky_dn
+#' @inheritParams fit_cone_shaped_model
 #' @inheritParams thr_image
 #' @param w Numeric vector. Weighting parameter for \code{slope}.
 #'
@@ -144,7 +143,7 @@ mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
     }
     prob <- prob - 0.01
     bin <- regional_thresholding(r, seg, "Diaz2018", 0, 1, prob)
-    sky_m <- model_sky_dn(r, z, a, bin)
+    sky_m <- fit_cone_shaped_model(r, z, a, bin)
   }
   sky_m <- sky_m$image
 

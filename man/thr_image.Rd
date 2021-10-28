@@ -30,7 +30,7 @@ with a default gamma value equal to 2.2 (see \code{\link{gbc}}). Results
 clearly shown that the optimal threshold value was linearly related with the
 background digital number. Therefore, that shifts the aim from finding the
 optimal threshold to obtaining the background DN as if the canopy were not
-there. Functions \code{\link{model_sky_dn}} and
+there. Functions \code{\link{fit_cone_shaped_model}} and
 \code{\link{fit_trend_surface_to_sky_dn}} address that topic.
 
 It is worth noting that Equation 1 was developed with 8-bit images, so
@@ -56,8 +56,8 @@ thr_image(gbc(125), -8, 1)
   and \code{\link{regional_thresholding}}.
 
 Other mblt functions: 
+\code{\link{fit_cone_shaped_model}()},
 \code{\link{fit_trend_surface_to_sky_dn}()},
-\code{\link{mblt}()},
-\code{\link{model_sky_dn}()}
+\code{\link{mblt}()}
 }
 \concept{mblt functions}

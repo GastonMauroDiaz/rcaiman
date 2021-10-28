@@ -32,6 +32,7 @@ relative_radius_image <- function (diameter)
 #'
 #' @noRd
 calc_relative_radius <- function(angle, lens_coef) {
+  test_lens_coef(lens_coef)
 
   angle <- degree2radian(angle)
 
@@ -64,8 +65,11 @@ calc_relative_radius <- function(angle, lens_coef) {
 #' @return \code{\linkS4class{RasterLayer}}.
 #' @export
 #'
+#' @seealso azimuth_image
+#'
 #' @examples
-#' zenith_image(1490, lens("Nikon_FCE9"))
+#' z <- zenith_image(1490, lens("Nikon_FCE9"))
+#' plot(z)
 zenith_image <- function (diameter, lens_coef)
 {
   # Assign zenith angle by inverting relative radius(R)
@@ -93,9 +97,12 @@ zenith_image <- function (diameter, lens_coef)
 #' @return \code{\linkS4class{RasterLayer}}.
 #' @export
 #'
+#' @seealso zenith_image
+#'
 #' @examples
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
 #' azimuth_image(z)
+#' plot(z)
 azimuth_image <- function (z)
 {
   stopifnot(class(z) == "RasterLayer")

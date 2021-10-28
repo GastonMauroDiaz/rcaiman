@@ -40,7 +40,7 @@ algorithm.
 This function is a hard-coded version of a MBLT pipeline that starts with a
 working binarized image and ended with a refined binarized image. The
 pipeline combines \code{\link{regional_thresholding}},
-\code{\link{model_sky_dn}}, \code{\link{fit_trend_surface_to_sky_dn}}, and
+\code{\link{fit_cone_shaped_model}}, \code{\link{fit_trend_surface_to_sky_dn}}, and
 \code{\link{thr_image}}. The code can be easily inspected by calling
 \code{mblt}. Advanced users could use that code as a template.
 
@@ -57,7 +57,7 @@ instead of a global one.
 
 \item The working binarized image is not refined in the second step by using
 the sky digital number (sDN) obtained with Equation 4
-\code{\link{model_sky_dn}} and the local threshold values calculated with
+\code{\link{fit_cone_shaped_model}} and the local threshold values calculated with
 Equation 1 \code{\link{thr_image}}. Instead, the sDN are used as filling
 source for trend surface fitting \code{\link{fit_trend_surface_to_sky_dn}}.
 
@@ -71,8 +71,7 @@ with Equation 7, and the opposite occur near the horizon.
 }
 \examples{
 \dontrun{
-path <- getwd()
-my_file <- paste0(path, "/DSCN5548.JPG")
+my_file <- path.expand("~/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
               method = "auto", mode = "wb")
 r <- read_caim(my_file,
@@ -90,8 +89,8 @@ bin <- mblt(blue, z, a)
 }
 \seealso{
 Other mblt functions: 
+\code{\link{fit_cone_shaped_model}()},
 \code{\link{fit_trend_surface_to_sky_dn}()},
-\code{\link{model_sky_dn}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}
