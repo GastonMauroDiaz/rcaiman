@@ -118,8 +118,7 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' @examples
 #' \dontrun{
-#' path <- getwd()
-#' my_file <- paste0(path, "/DSCN5548.JPG")
+#' my_file <- path.expand("~/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
 #'               method = "auto", mode = "wb")
 #' r <- read_caim(my_file,
@@ -134,7 +133,6 @@ thr_image <- function (dn, intercept, slope) {
 mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
   .check_if_r_was_normalized(r)
   seg <- sky_grid_segmentation(z, a, 30)
-  m <- mask_image(z, zlim = c(0,70))
 
   prob <- 1
   sky_m <- NA
@@ -150,6 +148,7 @@ mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
   }
   sky_m <- sky_m$image
 
+  m <- mask_image(z, zlim = c(0,70))
   sky_s <- fit_trend_surface_to_sky_dn(r, z, m, bin, sky_m)$image
 
   mask <- (sky_m - sky_s) > 0.5
@@ -159,17 +158,16 @@ mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
 
   sky <- cover(sky_combo, sky_m)
 
-  fun <- function(w) {
-    apply_thr(r, thr_image(sky,intercept, slope * w))
-  }
-
   if (is.null(w)) {
-    return(sky_s)
+    return(sky)
   } else {
     if (length(w) == 1) {
       bin <- fun(w)
     } else {
-      bin <- Map(fun, w)
+      .bin_fun <- function(w) {
+        apply_thr(r, thr_image(sky,intercept, slope * w))
+      }
+      bin <- Map(.bin_fun, w)
       bin <- stack(bin)
       names(bin) <- paste0("w", w)
     }
