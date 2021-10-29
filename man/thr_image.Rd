@@ -56,8 +56,9 @@ thr_image(gbc(125), -8, 1)
   and \code{\link{regional_thresholding}}.
 
 Other mblt functions: 
+\code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
 \code{\link{fit_trend_surface_to_sky_dn}()},
-\code{\link{mblt}()}
+\code{\link{ootb_mblt}()}
 }
 \concept{mblt functions}

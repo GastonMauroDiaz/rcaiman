@@ -63,17 +63,18 @@ thr_image <- function (dn, intercept, slope) {
 }
 
 
-#' Model-based local thresholding
+#' Out-of-the-box Model-based local thresholding
 #'
 #' Out-of-the-box version of the model-based local thresholding (MBLT)
 #' algorithm.
 #'
 #' This function is a hard-coded version of a MBLT pipeline that starts with a
 #' working binarized image and ended with a refined binarized image. The
-#' pipeline combines \code{\link{regional_thresholding}},
-#' \code{\link{fit_cone_shaped_model}}, \code{\link{fit_trend_surface_to_sky_dn}}, and
-#' \code{\link{thr_image}}. The code can be easily inspected by calling
-#' \code{mblt}. Advanced users could use that code as a template.
+#' pipeline combines \code{\link{find_sky_dns}},
+#' \code{\link{fit_cone_shaped_model}},
+#' \code{\link{fit_trend_surface_to_sky_dn}}, and \code{\link{thr_image}}. The
+#' code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
+#' Advanced users could use that code as a template.
 #'
 #' The MBLT algorithm was first presented in
 #' \insertCite{Diaz2018;textual}{rcaiman}. This version differs from that in the
@@ -81,34 +82,29 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' \itemize{
 #'
+#' \item $intercept$ is set to 0, $slope$ to 1, and $w$ to 0.5
+#'
 #' \item This version implements a regional threholding approach as first step
-#' instead of a global one.
+#' instead of a global one. Please refer to \code{\link{find_sky_dns}}. The
+#' minimum number of samples (sky dns) required is equals to the 30 % of the
+#' population, considering that it is made of 5 $/times$ 5 sky grid cells.
 #'
-#' \item It does not use asynchronous acquisition under the open sky.
-#'
-#' \item The working binarized image is not refined in the second step by using
-#' the sky digital number (sDN) obtained with Equation 4
-#' \code{\link{fit_cone_shaped_model}} and the local threshold values calculated with
-#' Equation 1 \code{\link{thr_image}}. Instead, the sDN are used as filling
-#' source for trend surface fitting \code{\link{fit_trend_surface_to_sky_dn}}.
+#' \item It does not use asynchronous acquisition under the open sky. So, the
+#' conic shaped model (\code{\link{fit_cone_shaped_model}}) run without a
+#' filling source, but the result of it is used as filling source for trend
+#' surface fitting (\code{\link{fit_trend_surface_to_sky_dn}}).
 #'
 #' \item The sDN obtained by trend surface fitting is merged with the sDN
-#' obtained with Equation 4. To merge them, a weighted average is calculated,
-#' being weights proportional to the zenith angle. Near the zenith, values
-#' obtained by means of trend surface fitting prevail over the ones obtained
-#' with Equation 7, and the opposite occur near the horizon.
+#' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
+#' average is calculated, being weights calculated as $zenith angle / 90$ (Near
+#' the zenith, values obtained by means of trend surface fitting prevail over
+#' the ones obtained with the cone shaped model, and the opposite occur near the
+#' horizon).
 #'
 #' }
 #'
 #'
 #' @inheritParams fit_cone_shaped_model
-#' @inheritParams thr_image
-#' @param w Numeric vector. Weighting parameter for \code{slope}.
-#'
-#'
-#' @return If \code{w} has length equal to one, \linkS4class{RasterLayer}. Else,
-#'   \linkS4class{RasterStack}. If \code{w} is \code{NULL}, the above canopy
-#'   reconstruction is returned.
 #'
 #' @export
 #' @family mblt functions
@@ -127,37 +123,27 @@ thr_image <- function (dn, intercept, slope) {
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- mblt(blue, z, a)
+#'
 #' }
-mblt <- function(r, z, a, intercept = -8, slope = 1, w = 0.5) {
-  sky_m <- autofit_cone_shaped_model(r, z, a)$image
-  bin <- apply_thr(r, sky_m)
+ootb_mblt <- function(r, z, a) {
+  bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
+
+  sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
+  bin <- thr_image(sky_m, 0, 0.5) %>% apply_thr(r, .)
 
   m <- mask_image(z)
-  sky_s <- fit_trend_surface_to_sky_dn(r, z, m, bin, sky_m)$image
+  sky_s <- fit_trend_surface_to_sky_dn(r, m, bin, sky_m)$image
 
   m <- (sky_m - sky_s) > 0.5
   sky_s[m] <- NA
 
   sky_combo <- sky_s * z / 90 + sky_m * (1 - z / 90)
-
   sky <- cover(sky_combo, sky_m)
 
-  if (is.null(w)) {
-    return(sky)
-  } else {
-    if (length(w) == 1) {
-      bin <- fun(w)
-    } else {
-      .bin_fun <- function(w) {
-        apply_thr(r, thr_image(sky,intercept, slope * w))
-      }
-      bin <- Map(.bin_fun, w)
-      bin <- stack(bin)
-      names(bin) <- paste0("w", w)
-    }
-    return(bin)
-  }
+  bin <- apply_thr(r, thr_image(sky, 0, 0.5))
+  r <- stack(bin, sky)
+  names(r) <- c("bin", "sky_image")
+  r
 }
 
 

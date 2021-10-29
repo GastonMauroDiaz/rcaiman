@@ -6,8 +6,7 @@
 \usage{
 fit_trend_surface_to_sky_dn(
   r,
-  z,
-  mask,
+  m,
   bin,
   filling_source = NULL,
   prob = 0.95,
@@ -20,10 +19,7 @@ fit_trend_surface_to_sky_dn(
 the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
-\code{\link{zenith_image}}.}
-
-\item{mask}{\linkS4class{RasterLayer}. Usually, the result of a call to
+\item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
 \code{\link{mask_image}}.}
 
 \item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
@@ -56,7 +52,7 @@ A list with an object of class \linkS4class{RasterLayer} and of class
 Fit a trend surface using spatial::surf.ls as workhorse function.
 }
 \details{
-This function is meant to be used after \code{\link{model_sky_dn}}.
+This function is meant to be used after \code{\link{fit_cone_shaped_model}}.
 
 A short explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
@@ -65,7 +61,11 @@ the sky DN as a previous step for our method}, after the explanation of the
 
 The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
-general, a coarse scale lead to best generalization.
+general, a coarse scale lead to best generalization. The function used for
+aggregation is \code{\link[stats]{quantile}}, to which the argument
+\code{prob} is passed. Essentially, the aggregation step works as the one
+from \code{\link{fit_cone_shaped_model}}, but it is made on the raster space
+rather than on the hemispherical space.
 }
 \examples{
 \dontrun{
@@ -86,11 +86,11 @@ thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
 sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
-m <- mask_image(z, zlim = c(0, 70))
-sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
+m <- mask_image(z, zlim = c(0, 80))
+sky <- fit_trend_surface_to_sky_dn(blue, m, bin,
   filling_source = sky$image
 )
-plot(sky)
+plot(sky$image)
 }
 }
 \references{
@@ -98,8 +98,9 @@ plot(sky)
 }
 \seealso{
 Other mblt functions: 
+\code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
-\code{\link{mblt}()},
+\code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}

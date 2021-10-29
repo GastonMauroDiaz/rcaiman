@@ -22,11 +22,11 @@ None. A file will be written in the HSP project folder.
 Create a special file to interface with HSP software.
 }
 \details{
-This function is part of a workflow that connects the mblt algorithm with the
+This function is part of a workflow that connects the MBLT algorithm with the
 HSP software package \insertCite{Lang2013}{rcaiman}.
 
 This function was designed to be called after \code{\link{extract_sky_marks}}
-in a workflow that connects the mblt algorithm with the HSP software package.
+in a workflow that connects the MBLT algorithm with the HSP software package.
 I such a workflow, the \code{\link{extract_sky_marks}} will use an image
 pre-processed by the HSP software as its \code{r} argument. The
 \code{img_name} argument of \code{write_sky_marks()} should be the name of

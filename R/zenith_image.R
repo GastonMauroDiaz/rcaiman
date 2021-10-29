@@ -32,7 +32,6 @@ relative_radius_image <- function (diameter)
 #'
 #' @noRd
 calc_relative_radius <- function(angle, lens_coef) {
-  test_lens_coef(lens_coef)
 
   angle <- degree2radian(angle)
 

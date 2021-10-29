@@ -6,10 +6,10 @@
 #' canopy (non-gap) pixels and mixed pixels, so to establish a region of
 #' interest dominated by pure sky pixels (a.k.a., gap pixels).
 #'
-#' The \code{bin} argument can be obtained with the \code{\link{mblt}} method
-#' set with a high \code{w}. The latter is for obtaining good candidates for the
-#' pure sky pixel class. Setting \code{w} to maximum is not recommended because
-#' that tend to produce high frequency of omission errors.
+#' The \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}
+#' method set with a high \code{w}. The latter is for obtaining good candidates
+#' for the pure sky pixel class. Setting \code{w} to maximum is not recommended
+#' because that tend to produce high frequency of omission errors.
 #'
 #' This function will automatically sample in the sky region delimited by
 #' \code{bin}. The density and distribution of the sampling points is controlled
@@ -51,7 +51,7 @@
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- mblt(blue, z, a, w = 0.5)
+#' bin <- ootb_mblt(blue, z, a, w = 0.5)
 #' sky_marks <- extract_sky_marks(blue, bin, g,
 #'                                min_raster_dist = 10)
 #' xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) %>%  xyFromCell(z, .)
@@ -132,11 +132,11 @@ extract_sky_marks <- function(r, bin, g,
 #'
 #' Create a special file to interface with HSP software.
 #'
-#' This function is part of a workflow that connects the mblt algorithm with the
+#' This function is part of a workflow that connects the MBLT algorithm with the
 #' HSP software package \insertCite{Lang2013}{rcaiman}.
 #'
 #' This function was designed to be called after \code{\link{extract_sky_marks}}
-#' in a workflow that connects the mblt algorithm with the HSP software package.
+#' in a workflow that connects the MBLT algorithm with the HSP software package.
 #' I such a workflow, the \code{\link{extract_sky_marks}} will use an image
 #' pre-processed by the HSP software as its \code{r} argument. The
 #' \code{img_name} argument of \code{write_sky_marks()} should be the name of

@@ -26,3 +26,6 @@ gbc(r)
 \references{
 \insertRef{Diaz2018}{rcaiman}
 }
+\seealso{
+normalize
+}

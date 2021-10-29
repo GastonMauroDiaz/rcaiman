@@ -19,4 +19,8 @@ Built a single layer image with azimuth angles values.
 \examples{
 z <- zenith_image(1490, lens("Nikon_FCE9"))
 azimuth_image(z)
+plot(z)
+}
+\seealso{
+zenith_image
 }

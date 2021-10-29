@@ -97,8 +97,9 @@ persp(sky) # yes, it looks like an upside down cone!
 }
 \seealso{
 Other mblt functions: 
+\code{\link{find_sky_dns}()},
 \code{\link{fit_trend_surface_to_sky_dn}()},
-\code{\link{mblt}()},
+\code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}

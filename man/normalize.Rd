@@ -22,3 +22,6 @@ than \code{0}.
 \examples{
 normalize(read_caim(), 0, 255)
 }
+\seealso{
+gbc
+}

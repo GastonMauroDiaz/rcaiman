@@ -19,5 +19,9 @@ of the lens projection function.}
 Built a single layer image with zenith angles values.
 }
 \examples{
-zenith_image(1490, lens("Nikon_FCE9"))
+z <- zenith_image(1490, lens("Nikon_FCE9"))
+plot(z)
+}
+\seealso{
+azimuth_image
 }

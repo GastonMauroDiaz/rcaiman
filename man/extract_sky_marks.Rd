@@ -28,10 +28,10 @@ The \code{bin} argument should be any binarized image that masked out pure
 canopy (non-gap) pixels and mixed pixels, so to establish a region of
 interest dominated by pure sky pixels (a.k.a., gap pixels).
 
-The \code{bin} argument can be obtained with the \code{\link{mblt}} method
-set with a high \code{w}. The latter is for obtaining good candidates for the
-pure sky pixel class. Setting \code{w} to maximum is not recommended because
-that tend to produce high frequency of omission errors.
+The \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}
+method set with a high \code{w}. The latter is for obtaining good candidates
+for the pure sky pixel class. Setting \code{w} to maximum is not recommended
+because that tend to produce high frequency of omission errors.
 
 This function will automatically sample in the sky region delimited by
 \code{bin}. The density and distribution of the sampling points is controlled
@@ -61,7 +61,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- mblt(blue, z, a, w = 0.5)
+bin <- ootb_mblt(blue, z, a, w = 0.5)
 sky_marks <- extract_sky_marks(blue, bin, g,
                                min_raster_dist = 10)
 xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) \%>\%  xyFromCell(z, .)

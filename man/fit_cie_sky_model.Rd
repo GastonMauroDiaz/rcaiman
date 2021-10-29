@@ -60,7 +60,7 @@ the initial parameters were drawn \insertCite{Li2016}{rcaiman}.
 \dontrun{
 my_file <- path.expand("~/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
-             method = "auto", mode = "wb")
+              method = "auto", mode = "wb")
 r <- read_caim(my_file,
                c(1280, 960) - 745,
                745 * 2,
@@ -69,21 +69,22 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- mblt(blue, z, a, w = 0.5)
+bin <- ootb_mblt(blue, z, a)$bin
 sky_marks <- extract_sky_marks(blue, bin, g,
+                               dist_to_plant = 3,
                                min_raster_dist = 10)
 sun_coord <- extract_sun_mark(blue, bin, z, a, g)
 
 sun_coords <- data.frame(z = c(sun_coord[1], seq(100, 150, 5) ),
-a = sun_coord[2])
-models <- Map(function(i) fit_cie_sky_model(r$Blue, z, a, sky_marks,
+                         a = sun_coord[2])
+models <- Map(function(i) fit_cie_sky_model(blue, z, a, sky_marks,
                                             as.numeric(sun_coords[i,]),
                                             general_sky_type = "Clear"),
               1:nrow(sun_coords))
 rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) \%>\% unlist()
 model <- models[[which.min(rmse)]]
 sky <- cie_sky_model_raster(z, a, model$sun_coord, model$fit@coef[-6])*
-       model$zenith_dn
+  model$zenith_dn
 plot(sky)
 }
 }

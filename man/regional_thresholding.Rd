@@ -49,9 +49,9 @@ Methods currently implemented are:
 \insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
 selected, the arguments \code{intercept}, \code{slope},and \code{prob} should
 be provided. It works segmentwise extracting the digital numbers (dns) per
-segment and passing them to \code{quantile(dns, prob)}, which summary result
-(x) is in turn passed to \code{thr_image(x, intercept, slope)}. Finally, this
-thr is applied to obtain a binarized image.
+segment and passing them to \code{quantile(dns, prob)}, which aggregated
+result (x) is in turn passed to \code{thr_image(x, intercept, slope)}.
+Finally, this thr is applied to obtain a binarized image.
 
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}

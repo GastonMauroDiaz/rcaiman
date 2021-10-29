@@ -85,21 +85,15 @@ fit_cone_shaped_model <- function(r, z, a, bin,
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
-  blue <- r * 255
+  blue <- r
   rm(r)
   blue[!bin] <- NA
   rm(bin)
 
+  if (!is.null(filling_source)) blue <- cover(blue, filling_source)
+
   g <- sky_grid_segmentation(z, a, 5)
-  if (!is.null(filling_source)) {
-    grilled_blue <- extract_feature(blue, g, fun, return_raster = TRUE)
-    .findBias <- function(x, y) {
-      m <- mask_image(z, zlim = c(30, 60))
-      mean(x[m], na.rm = TRUE) - mean(y[m], na.rm = TRUE)
-    }
-    bias <- .findBias(filling_source, grilled_blue)
-    blue <- cover(blue, filling_source - bias)
-  }
+  # objects starting with UPPERCASE are vectors instead of images
   Blue <- extract_feature(blue, g, fun, return_raster = FALSE)
   rm(g)
 
@@ -107,7 +101,7 @@ fit_cone_shaped_model <- function(r, z, a, bin,
   Azimuth <- trunc(as.numeric(names(Blue)) / 1000) * 5 - 5 / 2
 
   # Filter out saturated
-  index <- Blue < 250
+  index <- Blue < 1
   Blue <- Blue[index]
   Zenith <- Zenith[index]
   Azimuth <- Azimuth[index]
@@ -178,7 +172,7 @@ fit_cone_shaped_model <- function(r, z, a, bin,
     }
 
     z[] <- unlist(out)
-    return(list(image = z / 255, model = model))
+    return(list(image = z, model = model))
   } else {
     return(NA)
   }
@@ -186,45 +180,77 @@ fit_cone_shaped_model <- function(r, z, a, bin,
 
 
 
-#' Autofit cone shaped model
+#' Find sky DNs
 #'
-#' Out-of-the-box version of the \code{\link{fit_cone_shaped function}}
+#' Find sky digital numbers automatically
+#'
+#' This function assume that (1) there is at least one pure sky pixel at the
+#' level of cells of 30 $/times$ 30 degrees, and (2) sky pixels have a digital
+#' number (DN) greater than canopy pixels have.
+#'
+#' For each cell, it compute a quantile value and use it as a threshold to
+#' select the pure sky pixels of the cell, which produce binarized image as a
+#' result in a regional binarization fashion
+#' (\code{\link{regional_thresholding}}). This process start with a quantile
+#' probability of 0.99. After producing the binarized image, this function use a
+#' search grid with cells of 5 $/times$ 5 degrees to count how many cells on the
+#' binarired image have at least one sky pixel. If the count does not reach
+#' argument \code{no_of_samples}, it goes back to the binarization step but
+#' decreasing the probability by 0.01 points.
 #'
 #' @inheritParams fit_cone_shaped_model
+#' @param no_of_samples Numeric vector of length one. Minimum number of samples
+#'   required.
+#'
+#' @family mblt functions
 #'
 #' @export
 #'
 #' @examples
-#' #' \dontrun{
+#' #'
+#' \dontrun{
 #' my_file <- path.expand("~/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
-#'               method = "auto", mode = "wb")
-#' r <- read_caim(my_file,
-#'                c(1280, 960) - 745,
-#'                745 * 2,
-#'                745 * 2)
+#'   method = "auto", mode = "wb"
+#' )
+#' r <- read_caim(
+#'   my_file,
+#'   c(1280, 960) - 745,
+#'   745 * 2,
+#'   745 * 2
+#' )
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' sky <- autofit_cone_shaped_model(blue, z, a)
-#' plot(sky$image)
+#' bin <- find_sky_dns(blue, z, a)
+#' plot(bin)
 #' }
-autofit_cone_shaped_model <- function(r, z, a) {
+find_sky_dns <- function(r, z, a, no_of_samples = 30) {
+  stopifnot(class(r) == "RasterLayer")
   .check_if_r_was_normalized(r)
-  seg <- sky_grid_segmentation(z, a, 30)
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(a) == "RasterLayer")
+  stopifnot(.get_max(z) < 90)
+
+  g30 <- sky_grid_segmentation(z, a, 30)
+  g5 <- sky_grid_segmentation(z, a, 5)
 
   prob <- 1
-  sky_m <- NA
-  while (length(sky_m) == 1) {
+  count <- 0
+  while (count <= no_of_samples) {
     if (prob < 0.9) {
-      stop(paste("The function is not working properly.",
-                 "The problem might be related to inputs.",
-                 "Please, make sure they are OK."))
+      stop(paste(
+        "The function is not working properly.",
+        "The problem might be related to inputs.",
+        "Please, make sure they are OK."
+      ))
     }
     prob <- prob - 0.01
-    bin <- regional_thresholding(r, seg, "Diaz2018", 0, 1, prob)
-    sky_m <- fit_cone_shaped_model(r, z, a, bin)
+    bin <- regional_thresholding(r, g30, "Diaz2018", 0, 1, prob)
+    max_per_cell <- extract_feature(bin, g5, max, return_raster = FALSE)
+    count <- sum(max_per_cell)
   }
-  sky_m
+  bin[is.na(g30)] <- NA
+  bin
 }
 

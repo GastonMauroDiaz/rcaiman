@@ -1,4 +1,3 @@
-
 #' Rings segmentation
 #'
 #' Segmenting an hemispherical view by slicing the zenith angle from \code{0}
