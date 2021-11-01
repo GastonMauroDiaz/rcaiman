@@ -17,6 +17,12 @@ the blue channel extracted from an hemispherical photographs. Please see
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
 }
+\value{
+\link{RasterStack} with the binarized image (layer named "bin") and
+  the reconstructed skies. The layer named "sky_m" is the cone shaped model,
+  "sky_s" is the trend surface, and "sky" is the combination of both, and
+  actually used to obtain "bin".
+}
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)
 algorithm.
@@ -44,13 +50,13 @@ minimum number of samples (sky dns) required is equals to the 30 % of the
 population, considering that it is made of 5 $/times$ 5 sky grid cells.
 
 \item It does not use asynchronous acquisition under the open sky. So, the
-conic shaped model (\code{\link{fit_cone_shaped_model}}) run without a
+cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
 filling source, but the result of it is used as filling source for trend
 surface fitting (\code{\link{fit_trend_surface_to_sky_dn}}).
 
 \item The sDN obtained by trend surface fitting is merged with the sDN
 obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-average is calculated, being weights calculated as $zenith angle / 90$ (Near
+average is calculated, being weights calculated as $/theta^2 / 90^2$ (Near
 the zenith, values obtained by means of trend surface fitting prevail over
 the ones obtained with the cone shaped model, and the opposite occur near the
 horizon).
@@ -69,7 +75,8 @@ r <- read_caim(my_file,
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-
+bin <- ootb_mblt(blue, z, a)$bin
+plot(bin)
 }
 }
 \references{

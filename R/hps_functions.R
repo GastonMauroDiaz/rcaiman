@@ -231,7 +231,6 @@ extract_sun_mark <- function(r, bin, z, a, g,
   stopifnot(length(max_angular_dist) == 1)
   stopifnot(length(angular_coord) == 1)
 
-
   r <- extract_feature(r, g, max)
   m <- r >= quantile(r[], 0.95, na.rm = TRUE)
   m[is.na(g)] <- 0
@@ -249,6 +248,7 @@ extract_sun_mark <- function(r, bin, z, a, g,
   dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
     normalize(., min(.), max(.))
   if (any(is.nan(dn))) dn[] <- 1
+  if (any(is.nan(area))) area[] <- 1
   membership_posibility <- area * dn
   sun <- which.max(membership_posibility)
 
@@ -261,9 +261,6 @@ extract_sun_mark <- function(r, bin, z, a, g,
     degree2radian()
   za <- data.frame(zenith, azimuth)
 
-  .calc_angular_distance <- function(z1, a1, z2, a2) {
-    acos(cos(z1) * cos(z2) + sin(z1) * sin(z2) * cos(abs(a2 - a1)))
-  }
   ids_to_vs <- expand.grid(sun, 1:nrow(za))
 
   d <- c()

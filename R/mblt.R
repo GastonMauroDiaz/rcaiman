@@ -90,13 +90,13 @@ thr_image <- function (dn, intercept, slope) {
 #' population, considering that it is made of 5 $/times$ 5 sky grid cells.
 #'
 #' \item It does not use asynchronous acquisition under the open sky. So, the
-#' conic shaped model (\code{\link{fit_cone_shaped_model}}) run without a
+#' cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
 #' filling source, but the result of it is used as filling source for trend
 #' surface fitting (\code{\link{fit_trend_surface_to_sky_dn}}).
 #'
 #' \item The sDN obtained by trend surface fitting is merged with the sDN
 #' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-#' average is calculated, being weights calculated as $zenith angle / 90$ (Near
+#' average is calculated, being weights calculated as $/theta^2 / 90^2$ (Near
 #' the zenith, values obtained by means of trend surface fitting prevail over
 #' the ones obtained with the cone shaped model, and the opposite occur near the
 #' horizon).
@@ -108,6 +108,11 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' @export
 #' @family mblt functions
+#'
+#' @return \link{RasterStack} with the binarized image (layer named "bin") and
+#'   the reconstructed skies. The layer named "sky_m" is the cone shaped model,
+#'   "sky_s" is the trend surface, and "sky" is the combination of both, and
+#'   actually used to obtain "bin".
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'
@@ -123,26 +128,23 @@ thr_image <- function (dn, intercept, slope) {
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#'
+#' bin <- ootb_mblt(blue, z, a)$bin
+#' plot(bin)
 #' }
 ootb_mblt <- function(r, z, a) {
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
 
   sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
-  bin <- thr_image(sky_m, 0, 0.5) %>% apply_thr(r, .)
+  bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
 
   m <- mask_image(z)
   sky_s <- fit_trend_surface_to_sky_dn(r, m, bin, sky_m)$image
-
-  m <- (sky_m - sky_s) > 0.5
-  sky_s[m] <- NA
-
-  sky_combo <- sky_s * z / 90 + sky_m * (1 - z / 90)
-  sky <- cover(sky_combo, sky_m)
-
+  w <- z^2 / 90^2
+  sky <- sky_s * (1 - w) + sky_m *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))
-  r <- stack(bin, sky)
-  names(r) <- c("bin", "sky_image")
+
+  r <- stack(bin, sky_m, sky_s, sky)
+  names(r) <- c("bin", "sky_m", "sky_s", "sky")
   r
 }
 

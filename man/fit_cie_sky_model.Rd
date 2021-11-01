@@ -83,7 +83,7 @@ models <- Map(function(i) fit_cie_sky_model(blue, z, a, sky_marks,
               1:nrow(sun_coords))
 rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) \%>\% unlist()
 model <- models[[which.min(rmse)]]
-sky <- cie_sky_model_raster(z, a, model$sun_coord, model$fit@coef[-6])*
+sky <- cie_sky_model_raster(z, a, model$sun_coord, model$fit@coef[-6]) *
   model$zenith_dn
 plot(sky)
 }
@@ -93,7 +93,6 @@ plot(sky)
 }
 \seealso{
 Other cie sky model functions: 
-\code{\link{.cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()}
 }
 \concept{cie sky model functions}

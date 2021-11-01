@@ -10,14 +10,13 @@
 #' @param Zs Numeric vector of length one. Zenith angle of the sun.
 #' @param .a,.b,.c,.d,.e Numeric vector of length one. Sky model parameter.
 #'
-#' @family  cie sky model functions
+#' @noRd
 #' @references http://dx.doi.org/10.1016/j.energy.2016.02.054
 #'
 #' @return Numeric vector of length equal to AzP length.
 .cie_sky_model <- function(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e) {
   # calculate angular distance between sky point and Sun
-  delta_Az <- abs(AzP - AzS)
-  Chi <- acos(cos(Zs) * cos(Zp) + sin(Zs) * sin(Zp) * cos(delta_Az))
+  Chi <- .calc_angular_distance(Zp, AzP, Zs, AzS)
 
   # Gradation function
   Phi_Z <- 1 + .a * exp(.b / cos(Zp))

@@ -24,3 +24,8 @@ degree2radian <- function(x) x * pi / 180
          call. = FALSE)
   }
 }
+
+.calc_angular_distance <- function(z1, a1, z2, a2) {
+  #https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
+  acos(pmax(pmin(cos(z1) * cos(z2) + sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
+}
