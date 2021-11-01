@@ -14,7 +14,7 @@
 #' background digital number. Therefore, that shifts the aim from finding the
 #' optimal threshold to obtaining the background DN as if the canopy were not
 #' there. Functions \code{\link{fit_cone_shaped_model}} and
-#' \code{\link{fit_trend_surface_to_sky_dn}} address that topic.
+#' \code{\link{fit_trend_surface}} address that topic.
 #'
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
 #' calibration of new coefficient should be done in the 0 to 255 domain since
@@ -63,7 +63,7 @@ thr_image <- function (dn, intercept, slope) {
 }
 
 
-#' Out-of-the-box Model-based local thresholding
+#' Out-of-the-box model-based local thresholding
 #'
 #' Out-of-the-box version of the model-based local thresholding (MBLT)
 #' algorithm.
@@ -72,7 +72,7 @@ thr_image <- function (dn, intercept, slope) {
 #' working binarized image and ended with a refined binarized image. The
 #' pipeline combines \code{\link{find_sky_dns}},
 #' \code{\link{fit_cone_shaped_model}},
-#' \code{\link{fit_trend_surface_to_sky_dn}}, and \code{\link{thr_image}}. The
+#' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
 #' code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
 #' Advanced users could use that code as a template.
 #'
@@ -92,7 +92,7 @@ thr_image <- function (dn, intercept, slope) {
 #' \item It does not use asynchronous acquisition under the open sky. So, the
 #' cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
 #' filling source, but the result of it is used as filling source for trend
-#' surface fitting (\code{\link{fit_trend_surface_to_sky_dn}}).
+#' surface fitting (\code{\link{fit_trend_surface}}).
 #'
 #' \item The sDN obtained by trend surface fitting is merged with the sDN
 #' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
@@ -132,13 +132,15 @@ thr_image <- function (dn, intercept, slope) {
 #' plot(bin)
 #' }
 ootb_mblt <- function(r, z, a) {
+  .check_if_r_z_and_a_are_ok(r, z, a)
+
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
 
   sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
   bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
 
   m <- mask_image(z)
-  sky_s <- fit_trend_surface_to_sky_dn(r, m, bin, sky_m)$image
+  sky_s <- fit_trend_surface(r, m, bin, sky_m)$image
   w <- z^2 / 90^2
   sky <- sky_s * (1 - w) + sky_m *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))
@@ -149,7 +151,55 @@ ootb_mblt <- function(r, z, a) {
 }
 
 
+#' Out-of-the-box model-based local thresholding with CIE sky model included
+#'
+#' The same as \code{\link{mblt}}
+#'
+#' This function is a hard-coded version of a MBLT pipeline that starts with a
+#' working binarized image and ended with a refined binarized image. The
+#' pipeline combines \code{\link{find_sky_dns}},
+#' \code{\link{fit_cone_shaped_model}},
+#' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
+#' code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
+#' Advanced users could use that code as a template.
+#'
+#' @param r
+#' @param z
+#' @param a
+#' @param w
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ootb_cie_mblt <- function(r, z, a, w) {
+  .check_if_r_z_and_a_are_ok(r, z, a)
+
+  bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
+
+  sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
+  bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
+
+  g <- sky_grid_segmentation(z, a, 30)
+  sky_marks <- extract_sky_marks(r, bin, g,
+                                 dist_to_plant = 3,
+                                 min_raster_dist = 3)
+  sun_coord <- extract_sun_mark(r, bin, z, a, g)
+
+  sky_cie <- suppressWarnings(choose_st_cie_sky_model(r, z, a,
+                                                      sky_marks,
+                                                      sun_coord))
+  sky_cie <- sky_cie$st_sky * sky_cie$zenith_dn
+  bin <- apply_thr(r, thr_image(sky_cie, 0, 0.5))
 
 
+  m <- mask_image(z)
+  sky_s <- fit_trend_surface(r, m, bin, sky_cie)$image
+  w <- z^2 / 90^2
+  sky <- sky_s * (1 - w) + sky_cie *  w
+  bin <- apply_thr(r, thr_image(sky, 0, 0.5))
 
-
+  r <- stack(bin, sky_m, sky_cie, sky_s, sky)
+  names(r) <- c("bin", "sky_m", "sky_cie", "sky_s", "sky")
+  r
+}

@@ -32,7 +32,7 @@ This function is a hard-coded version of a MBLT pipeline that starts with a
 working binarized image and ended with a refined binarized image. The
 pipeline combines \code{\link{find_sky_dns}},
 \code{\link{fit_cone_shaped_model}},
-\code{\link{fit_trend_surface_to_sky_dn}}, and \code{\link{thr_image}}. The
+\code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
 code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
 Advanced users could use that code as a template.
 
@@ -52,7 +52,7 @@ population, considering that it is made of 5 $/times$ 5 sky grid cells.
 \item It does not use asynchronous acquisition under the open sky. So, the
 cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
 filling source, but the result of it is used as filling source for trend
-surface fitting (\code{\link{fit_trend_surface_to_sky_dn}}).
+surface fitting (\code{\link{fit_trend_surface}}).
 
 \item The sDN obtained by trend surface fitting is merged with the sDN
 obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
@@ -86,7 +86,7 @@ plot(bin)
 Other mblt functions: 
 \code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
-\code{\link{fit_trend_surface_to_sky_dn}()},
+\code{\link{fit_trend_surface}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}

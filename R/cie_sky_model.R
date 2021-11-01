@@ -98,8 +98,8 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   \insertCite{Li2016;textual}{rcaiman}.
 #' @param general_sky_type Character vector of length one. "Overcast", "Clear",
 #'   or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.
-#' @param use_kernel Logical vector of length one. If true, a 3 by 3 kernel will
-#'   be used to extract the sky digital number from \code{r}.
+#' @param use_window Logical vector of length one. If \code{TRUE}, a 3 by 3
+#'   window will be used to extract the sky digital number from \code{r}.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertRef{Li2016}{rcaiman}
@@ -141,7 +141,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
                               st_sky_no = NULL,
                               general_sky_type = NULL ,
-                              use_kernel = FALSE,
+                              use_window = TRUE,
                               method = "BFGS") {
   if (!requireNamespace("bbmle", quietly = TRUE)) {
     stop(paste("Package \"bbmle\" needed for this function to work.",
@@ -151,10 +151,8 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   }
 
   stopifnot(ncol(sky_marks) == 2)
-  stopifnot(class(r) == "RasterLayer")
-  stopifnot(class(z) == "RasterLayer")
-  stopifnot(class(a) == "RasterLayer")
-  stopifnot(.get_max(z) < 90)
+  stopifnot(length(sun_coord) == 2)
+  .check_if_r_z_and_a_are_ok(r, z, a)
 
   sun_a_z <- degree2radian(sun_coord[c(2,1)])
   AzS <- sun_a_z[1]
@@ -164,7 +162,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   sky_marks$a <- a[cells]
   sky_marks$z <- z[cells]
 
-  if (use_kernel) {
+  if (use_window) {
     xy <-  xyFromCell(r, cells)
     sky_marks$dn <-  extract(r, xy, buffer = 1.5, fun = "mean")
   } else {
@@ -252,3 +250,89 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   }
 }
 
+
+#' Title
+#'
+#' @param r
+#' @param z
+#' @param a
+#' @param sky_marks
+#' @param sun_coord
+#' @param st_sky_no
+#' @param general_sky_type
+#' @param use_window
+#' @param method
+#'
+#' @return
+#' @export
+#'
+#' @examples
+choose_st_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
+                              general_sky_type = NULL ,
+                              use_window = TRUE) {
+  stopifnot(ncol(sky_marks) == 2)
+  stopifnot(length(sun_coord) == 2)
+  .check_if_r_z_and_a_are_ok(r, z, a)
+
+  cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
+  sky_marks$a <- a[cells]
+  sky_marks$z <- z[cells]
+
+  if (use_window) {
+    xy <-  xyFromCell(r, cells)
+    sky_marks$dn <-  extract(r, xy, buffer = 1.5, fun = "mean")
+  } else {
+    sky_marks$dn <-  r[cells]
+  }
+
+  z_thr <- 2
+  zenith_dn <- c()
+  while (length(zenith_dn) < 20) {
+    zenith_dn <- sky_marks$dn[sky_marks$z < z_thr]
+    z_thr <- z_thr + 2
+  }
+  if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from pure ",
+                                       "sky pixels from zenith angle up to ",
+                                       z_thr, "."))
+  zenith_dn <- mean(zenith_dn)
+  attr(zenith_dn, "max_zenith_angle") <- z_thr
+  sky_marks$dn <- sky_marks$dn / zenith_dn
+
+  path <- system.file("external", package = "rcaiman")
+  skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+
+  calc_rmse <- function(x) sqrt(mean(x^2))
+  calc_r2 <- function(pred, obs){
+    model <- lm(pred ~ obs)
+    summary(model)$adj.r.squared
+  }
+
+  fun <- function(i) {
+    st_sky <- cie_sky_model_raster(z, a, sun_coord, as.numeric(skies[i,1:5]))
+
+    if (use_window) {
+      xy <-  xyFromCell(st_sky, cells)
+      pred <-  extract(st_sky, xy, buffer = 1.5, fun = "mean")
+    } else {
+      pred <-  st_sky[cells]
+    }
+
+    error <- pred - sky_marks$dn
+    rmse <- calc_rmse(error)
+    r2 <- calc_r2(pred, sky_marks$dn)
+    return(list(st_sky = st_sky, rmse = rmse, r2 = r2, zenith_dn = zenith_dn,
+                sun_coord = sun_coord,
+                sky_type = paste(skies[i,"general_sky_type"],
+                                 skies[i,"description"])))
+
+  }
+
+  if (!is.null(general_sky_type)) {
+    indices <- skies$general_sky_type == general_sky_type
+    skies <- skies[indices,]
+  }
+
+  st_skies <- Map(fun, 1:nrow(skies))
+  rmse <- Map(function(i) st_skies[[i]][2], 1:length(st_skies)) %>% unlist()
+  st_skies[[which.min(rmse)]]
+}

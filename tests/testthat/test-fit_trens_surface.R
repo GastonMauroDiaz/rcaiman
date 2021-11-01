@@ -1,4 +1,4 @@
-# test_that("fit_trend_surface_to_sky_dn() works", {
+# test_that("fit_trend_surface() works", {
 #   get_sky_from_DSCN5547 <- function() {
 #     path <- system.file("external", package = "rcaiman")
 #     my_file <- paste0(path, "/DSCN5548.JPG")
@@ -20,8 +20,8 @@
 #     aux_m <- mask_image(z, zlim = c(0,20))
 #     sky$image[aux_m] <- NA
 #     m <- mask_image(z, zlim = c(0,70))
-#     sky <- fit_trend_surface_to_sky_dn(blue, z, m, bin,
-#                                        filling_source = sky$image)
+#     sky <- fit_trend_surface(blue, z, m, bin,
+#                              filling_source = sky$image)
 #     path <- tempfile(fileext = ".tif")
 #     write_caim(sky$image * 2^8, path, 8)
 #

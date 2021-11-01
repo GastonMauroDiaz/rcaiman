@@ -220,14 +220,10 @@ extract_sun_mark <- function(r, bin, z, a, g,
                              max_angular_dist = 45,
                              angular_coord = TRUE) {
   .this_requires_EBImage()
+  .check_if_r_z_and_a_are_ok(r, z, a)
 
-  stopifnot(class(r) == "RasterLayer")
   stopifnot(class(bin) == "RasterLayer")
-  stopifnot(class(z) == "RasterLayer")
-  stopifnot(class(a) == "RasterLayer")
-  stopifnot(.get_max(z) < 90)
   stopifnot(class(g) == "RasterLayer")
-
   stopifnot(length(max_angular_dist) == 1)
   stopifnot(length(angular_coord) == 1)
 

@@ -77,18 +77,18 @@
 #' blue <- gbc(r$Blue)
 #' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #' m <- mask_image(z, zlim = c(0, 80))
-#' sky <- fit_trend_surface_to_sky_dn(blue, m, bin,
+#' sky <- fit_trend_surface(blue, m, bin,
 #'   filling_source = sky$image
 #' )
 #' plot(sky$image)
 #' }
-fit_trend_surface_to_sky_dn <- function(r,
-                                        m,
-                                        bin,
-                                        filling_source = NULL,
-                                        prob = 0.95,
-                                        fact = 5,
-                                        np = 6) {
+fit_trend_surface <- function(r,
+                              m,
+                              bin,
+                              filling_source = NULL,
+                              prob = 0.95,
+                              fact = 5,
+                              np = 6) {
   stopifnot(class(r) == "RasterLayer")
   .check_if_r_was_normalized(r)
   compareRaster(bin, r)

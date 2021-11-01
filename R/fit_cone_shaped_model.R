@@ -75,9 +75,7 @@ fit_cone_shaped_model <- function(r, z, a, bin,
                                  use_azimuth_angle = TRUE,
                                  parallel = TRUE,
                                  free_cores = 0) {
-
-  .check_if_r_was_normalized(r)
-
+  .check_if_r_z_and_a_are_ok(r, z, a)
   if (!is.null(filling_source)) compareRaster(bin, filling_source)
   compareRaster(bin, r)
   compareRaster(z, r)
@@ -226,11 +224,7 @@ fit_cone_shaped_model <- function(r, z, a, bin,
 #' plot(bin)
 #' }
 find_sky_dns <- function(r, z, a, no_of_samples = 30) {
-  stopifnot(class(r) == "RasterLayer")
-  .check_if_r_was_normalized(r)
-  stopifnot(class(z) == "RasterLayer")
-  stopifnot(class(a) == "RasterLayer")
-  stopifnot(.get_max(z) < 90)
+  .check_if_r_z_and_a_are_ok(r, z, a)
 
   g30 <- sky_grid_segmentation(z, a, 30)
   g5 <- sky_grid_segmentation(z, a, 5)

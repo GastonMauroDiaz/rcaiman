@@ -31,7 +31,7 @@ clearly shown that the optimal threshold value was linearly related with the
 background digital number. Therefore, that shifts the aim from finding the
 optimal threshold to obtaining the background DN as if the canopy were not
 there. Functions \code{\link{fit_cone_shaped_model}} and
-\code{\link{fit_trend_surface_to_sky_dn}} address that topic.
+\code{\link{fit_trend_surface}} address that topic.
 
 It is worth noting that Equation 1 was developed with 8-bit images, so
 calibration of new coefficient should be done in the 0 to 255 domain since
@@ -58,7 +58,7 @@ thr_image(gbc(125), -8, 1)
 Other mblt functions: 
 \code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
-\code{\link{fit_trend_surface_to_sky_dn}()},
+\code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()}
 }
 \concept{mblt functions}
