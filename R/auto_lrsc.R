@@ -39,13 +39,7 @@
        mblt = mblt)
 }
 
-#' Title
-#'
-#' @param r
-#' @param z
-#' @param a
-#' @param general_sky_type
-#'
+
 auto_lrsc <- function(r, z, a, general_sky_type = NULL) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 

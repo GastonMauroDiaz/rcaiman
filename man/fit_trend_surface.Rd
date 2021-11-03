@@ -100,6 +100,7 @@ plot(sky$image)
 Other mblt functions: 
 \code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
+\code{\link{ootb_cie_mblt}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }

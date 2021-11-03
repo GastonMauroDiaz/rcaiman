@@ -60,7 +60,7 @@
 #' }
 extract_sky_marks <- function(r, bin, g,
                               dist_to_plant = 3,
-                              min_raster_dist = 9) {
+                              min_raster_dist = 3) {
 
   stopifnot(class(r) == "RasterLayer")
   stopifnot(class(bin) == "RasterLayer")

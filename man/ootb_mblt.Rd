@@ -2,7 +2,7 @@
 % Please edit documentation in R/mblt.R
 \name{ootb_mblt}
 \alias{ootb_mblt}
-\title{Out-of-the-box Model-based local thresholding}
+\title{Out-of-the-box model-based local thresholding}
 \usage{
 ootb_mblt(r, z, a)
 }
@@ -18,9 +18,9 @@ the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{azimuth_image}}.}
 }
 \value{
-\link{RasterStack} with the binarized image (layer named "bin") and
-  the reconstructed skies. The layer named "sky_m" is the cone shaped model,
-  "sky_s" is the trend surface, and "sky" is the combination of both, and
+Object of class list with the binarized image (named "bin") and the
+  reconstructed skies named as follow: "sky_cs" is the cone shaped model,
+  "sky_s" is the trend surface, and "sky" is the combination of both and
   actually used to obtain "bin".
 }
 \description{
@@ -31,10 +31,10 @@ algorithm.
 This function is a hard-coded version of a MBLT pipeline that starts with a
 working binarized image and ended with a refined binarized image. The
 pipeline combines \code{\link{find_sky_dns}},
-\code{\link{fit_cone_shaped_model}},
-\code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
-code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
-Advanced users could use that code as a template.
+\code{\link{fit_cone_shaped_model}}, \code{\link{fit_trend_surface}}, and
+\code{\link{thr_image}}. The code can be easily inspected by calling
+\code{ootb_mblt} --no parenthesis. Advanced users could use that code as a
+template.
 
 The MBLT algorithm was first presented in
 \insertCite{Diaz2018;textual}{rcaiman}. This version differs from that in the
@@ -50,9 +50,9 @@ minimum number of samples (sky dns) required is equals to the 30 % of the
 population, considering that it is made of 5 $/times$ 5 sky grid cells.
 
 \item It does not use asynchronous acquisition under the open sky. So, the
-cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
-filling source, but the result of it is used as filling source for trend
-surface fitting (\code{\link{fit_trend_surface}}).
+cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
+source, but the result of it is used as filling source for trend surface
+fitting (\code{\link{fit_trend_surface}}).
 
 \item The sDN obtained by trend surface fitting is merged with the sDN
 obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
@@ -87,6 +87,7 @@ Other mblt functions:
 \code{\link{find_sky_dns}()},
 \code{\link{fit_cone_shaped_model}()},
 \code{\link{fit_trend_surface}()},
+\code{\link{ootb_cie_mblt}()},
 \code{\link{thr_image}()}
 }
 \concept{mblt functions}

@@ -35,6 +35,8 @@ plot(cie_sky_model_raster(z, a, sun_coord, sky_coef))
 }
 \seealso{
 Other cie sky model functions: 
+\code{\link{autofit_cie_sky_model}()},
+\code{\link{choose_std_cie_sky_model}()},
 \code{\link{fit_cie_sky_model}()}
 }
 \concept{cie sky model functions}

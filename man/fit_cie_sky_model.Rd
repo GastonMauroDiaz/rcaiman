@@ -10,9 +10,9 @@ fit_cie_sky_model(
   a,
   sky_marks,
   sun_coord,
-  st_sky_no = NULL,
+  std_sky_no = NULL,
   general_sky_type = NULL,
-  use_kernel = FALSE,
+  use_window = TRUE,
   method = "BFGS"
 )
 }
@@ -33,14 +33,14 @@ the blue channel extracted from an hemispherical photographs. Please see
 \item{sun_coord}{Numeric vector of length 2. Zenith and azimuth angles in
 degrees, corresponding to the location of the solar disk center.}
 
-\item{st_sky_no}{Numeric vector. Standard sky number from Table 1 from
+\item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
 \insertCite{Li2016;textual}{rcaiman}.}
 
 \item{general_sky_type}{Character vector of length one. "Overcast", "Clear",
 or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.}
 
-\item{use_kernel}{Logical vector of length one. If true, a 3 by 3 kernel will
-be used to extract the sky digital number from \code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a 3 by 3
+window will be used to extract the sky digital number from \code{r}.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
@@ -49,7 +49,7 @@ Fit CIE sky model using data from real hemispherical photographs.
 }
 \details{
 This function use maximum likelihood to estimate the parameters of the CIE
-sky model that fit best to data sampled from a real photo. It will try to
+sky model that fit best to data sampled from a real image. It will try to
 estimate the parameters  The result include the output produced by
 \code{\link[bbmle]{mle2}}, the root mean square error, the adjusted r
 squared, the digital number at the zenith, the sun coordinates (zenith and
@@ -93,6 +93,8 @@ plot(sky)
 }
 \seealso{
 Other cie sky model functions: 
+\code{\link{autofit_cie_sky_model}()},
+\code{\link{choose_std_cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()}
 }
 \concept{cie sky model functions}

@@ -4,7 +4,7 @@
 \alias{extract_sky_marks}
 \title{Extract sky marks}
 \usage{
-extract_sky_marks(r, bin, g, dist_to_plant = 3, min_raster_dist = 9)
+extract_sky_marks(r, bin, g, dist_to_plant = 3, min_raster_dist = 3)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. Greyscale image hemispherical image.}

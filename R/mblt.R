@@ -71,10 +71,10 @@ thr_image <- function (dn, intercept, slope) {
 #' This function is a hard-coded version of a MBLT pipeline that starts with a
 #' working binarized image and ended with a refined binarized image. The
 #' pipeline combines \code{\link{find_sky_dns}},
-#' \code{\link{fit_cone_shaped_model}},
-#' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
-#' code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
-#' Advanced users could use that code as a template.
+#' \code{\link{fit_cone_shaped_model}}, \code{\link{fit_trend_surface}}, and
+#' \code{\link{thr_image}}. The code can be easily inspected by calling
+#' \code{ootb_mblt} --no parenthesis. Advanced users could use that code as a
+#' template.
 #'
 #' The MBLT algorithm was first presented in
 #' \insertCite{Diaz2018;textual}{rcaiman}. This version differs from that in the
@@ -90,9 +90,9 @@ thr_image <- function (dn, intercept, slope) {
 #' population, considering that it is made of 5 $/times$ 5 sky grid cells.
 #'
 #' \item It does not use asynchronous acquisition under the open sky. So, the
-#' cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a
-#' filling source, but the result of it is used as filling source for trend
-#' surface fitting (\code{\link{fit_trend_surface}}).
+#' cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
+#' source, but the result of it is used as filling source for trend surface
+#' fitting (\code{\link{fit_trend_surface}}).
 #'
 #' \item The sDN obtained by trend surface fitting is merged with the sDN
 #' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
@@ -109,9 +109,9 @@ thr_image <- function (dn, intercept, slope) {
 #' @export
 #' @family mblt functions
 #'
-#' @return \link{RasterStack} with the binarized image (layer named "bin") and
-#'   the reconstructed skies. The layer named "sky_m" is the cone shaped model,
-#'   "sky_s" is the trend surface, and "sky" is the combination of both, and
+#' @return Object of class list with the binarized image (named "bin") and the
+#'   reconstructed skies named as follow: "sky_cs" is the cone shaped model,
+#'   "sky_s" is the trend surface, and "sky" is the combination of both and
 #'   actually used to obtain "bin".
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
@@ -136,43 +136,67 @@ ootb_mblt <- function(r, z, a) {
 
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
 
-  sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
-  bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
+  sky_cs <- fit_cone_shaped_model(r, z, a, bin)$image
+  bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5))
 
   m <- mask_image(z)
-  sky_s <- fit_trend_surface(r, m, bin, sky_m)$image
+  sky_s <- fit_trend_surface(r, m, bin, sky_cs)$image
   w <- z^2 / 90^2
-  sky <- sky_s * (1 - w) + sky_m *  w
+  sky <- sky_s * (1 - w) + sky_cs *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))
 
-  r <- stack(bin, sky_m, sky_s, sky)
-  names(r) <- c("bin", "sky_m", "sky_s", "sky")
-  r
+  list(bin = bin, sky_cs = sky_cs, sky_s = sky_s, sky = sky)
 }
 
 
 #' Out-of-the-box model-based local thresholding with CIE sky model included
 #'
-#' The same as \code{\link{mblt}}
+#' The same as \code{\link{ootb_mblt}}, it is a hard-coded version of a MBLT
+#' pipeline. The code can be easily inspected by calling \code{ootb_cie_mblt}
+#' --no parenthesis--, so that advanced users could use the code as a template.
 #'
-#' This function is a hard-coded version of a MBLT pipeline that starts with a
-#' working binarized image and ended with a refined binarized image. The
-#' pipeline combines \code{\link{find_sky_dns}},
-#' \code{\link{fit_cone_shaped_model}},
-#' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The
-#' code can be easily inspected by calling \code{ootb_mblt} --no parenthesis.
-#' Advanced users could use that code as a template.
+#' The pipeline combines \code{\link{find_sky_dns}},
+#' \code{\link{fit_cone_shaped_model}}, \code{\link{choose_std_cie_sky_model}},
+#' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The conceptual
+#' design is the same that for \code{\link{ootb_mblt}}, but the working
+#' binarized image produced by \code{\link{fit_cone_shaped_model}} is refined by
+#' \code{\link{choose_std_cie_sky_model}}, and the standard CIE sky model is the
+#' filling source for \code{\link{fit_trend_surface}}, instead of the cone
+#' shaped model.
 #'
-#' @param r
-#' @param z
-#' @param a
-#' @param w
+#' Also, the sky actually used to obtain the binarized image is from the
+#' combination of the standard CIE sky model and the trend surface, instead of
+#' the cone shaped model and the trend surface.
 #'
-#' @return
+#' @inheritParams fit_cone_shaped_model
+#'
 #' @export
+#' @family mblt functions
+#'
+#' @return Object of class list with the binarized image (named "bin") and the
+#'   reconstructed skies named as follow: "sky_cs" is the cone shaped model,
+#'   "std_cie_sky" is the output from \code{\link{choose_std_cie_sky_model}},
+#'   "sky_s" is the trend surface, and "sky" is the actually used to obtain
+#'   "bin" (please see Details).
+#'
+#' @references \insertRef{Diaz2018}{rcaiman}
 #'
 #' @examples
-ootb_cie_mblt <- function(r, z, a, w) {
+#' \dontrun{
+#' my_file <- path.expand("~/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' blue <- gbc(r$Blue)
+#' bin <- ootb_cie_mblt(blue, z, a)$bin
+#' plot(bin)
+#' }
+ootb_cie_mblt <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
@@ -180,18 +204,9 @@ ootb_cie_mblt <- function(r, z, a, w) {
   sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
   bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
 
-  g <- sky_grid_segmentation(z, a, 30)
-  sky_marks <- extract_sky_marks(r, bin, g,
-                                 dist_to_plant = 3,
-                                 min_raster_dist = 3)
-  sun_coord <- extract_sun_mark(r, bin, z, a, g)
-
-  sky_cie <- suppressWarnings(choose_st_cie_sky_model(r, z, a,
-                                                      sky_marks,
-                                                      sun_coord))
-  sky_cie <- sky_cie$st_sky * sky_cie$zenith_dn
+  std_cie_sky <- choose_std_cie_sky_model(r, z, a, bin)
+  sky_cie <- std_cie_sky$relative_luminance * std_cie_sky$zenith_dn
   bin <- apply_thr(r, thr_image(sky_cie, 0, 0.5))
-
 
   m <- mask_image(z)
   sky_s <- fit_trend_surface(r, m, bin, sky_cie)$image
@@ -199,7 +214,9 @@ ootb_cie_mblt <- function(r, z, a, w) {
   sky <- sky_s * (1 - w) + sky_cie *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))
 
-  r <- stack(bin, sky_m, sky_cie, sky_s, sky)
-  names(r) <- c("bin", "sky_m", "sky_cie", "sky_s", "sky")
-  r
+  list(bin = bin,
+       sky_m = sky_m,
+       std_cie_sky = std_cie_sky,
+       sky_s = sky_s,
+       sky = sky)
 }

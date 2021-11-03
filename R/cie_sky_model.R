@@ -83,7 +83,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Fit CIE sky model using data from real hemispherical photographs.
 #'
 #' This function use maximum likelihood to estimate the parameters of the CIE
-#' sky model that fit best to data sampled from a real photo. It will try to
+#' sky model that fit best to data sampled from a real image. It will try to
 #' estimate the parameters  The result include the output produced by
 #' \code{\link[bbmle]{mle2}}, the root mean square error, the adjusted r
 #' squared, the digital number at the zenith, the sun coordinates (zenith and
@@ -94,7 +94,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @param sky_marks data.frame. The result of a call to
 #'   \code{\link{extract_sky_marks}}.
 #' @inheritParams cie_sky_model_raster
-#' @param st_sky_no Numeric vector. Standard sky number from Table 1 from
+#' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman}.
 #' @param general_sky_type Character vector of length one. "Overcast", "Clear",
 #'   or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.
@@ -139,7 +139,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' plot(sky)
 #' }
 fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
-                              st_sky_no = NULL,
+                              std_sky_no = NULL,
                               general_sky_type = NULL ,
                               use_window = TRUE,
                               method = "BFGS") {
@@ -224,17 +224,20 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
       error <- pred - sky_marks$dn
       rmse <- calc_rmse(error)
       r2 <- calc_r2(pred, sky_marks$dn)
-      return(list(fit = fit, rmse = rmse, r2 = r2, zenith_dn = zenith_dn,
+      return(list(fit = fit,
+                  rmse = rmse,
+                  r2 = r2,
+                  zenith_dn = zenith_dn,
                   sun_coord = round(radian2degree(c(Zs, AzS))),
-                  sky_type = paste(skies[i,"general_sky_type"],
+                  sky_type = paste0(skies[i,"general_sky_type"], ", ",
                                    skies[i,"description"])))
     }
   }
 
-  if (!is.null(st_sky_no)) {
-    skies <- skies[st_sky_no,]
+  if (!is.null(std_sky_no)) {
+    skies <- skies[std_sky_no,]
   }
-  if (!is.null(general_sky_type) & is.null(st_sky_no)) {
+  if (!is.null(general_sky_type) & is.null(std_sky_no)) {
     indices <- skies$general_sky_type == general_sky_type
     skies <- skies[indices,]
   }
@@ -251,39 +254,56 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
 }
 
 
-#' Title
+#' Choose a standard CIE sky model
 #'
-#' @param r
-#' @param z
-#' @param a
-#' @param sky_marks
-#' @param sun_coord
-#' @param st_sky_no
-#' @param general_sky_type
-#' @param use_window
-#' @param method
+#' Choose one from the 15th standard CIE sky models based on sky DN values.
 #'
-#' @return
+#' This function assume the same than \code{\link{find_sky_dns}}, so please
+#' refer to that function help, first paragraph under Details headline.
+#'
+#' To kwow more about the CIE sky models, please refer to
+#' \insertCite{Li2016;textual}{rcaiman}.
+#'
+#'
+#' @inheritParams fit_cie_sky_model
+#' @inheritParams extract_sky_marks
+#'
+#' @references \insertRef{Li2016}{rcaiman}
+#'
+#' @family  cie sky model functions
+#'
+#'
 #' @export
 #'
 #' @examples
-choose_st_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
-                              general_sky_type = NULL ,
-                              use_window = TRUE) {
-  stopifnot(ncol(sky_marks) == 2)
-  stopifnot(length(sun_coord) == 2)
+#' \dontrun{
+#' my_file <- path.expand("~/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' blue <- gbc(r$Blue)
+#' sky <- choose_std_cie_sky_model(blue, z, a)$relative_luminance
+#' plot(sky)
+#' }
+choose_std_cie_sky_model <- function(r, z, a, bin) {
   .check_if_r_z_and_a_are_ok(r, z, a)
+  compareRaster(r, bin)
+
+  g <- sky_grid_segmentation(z, a, 30)
+  sky_marks <- extract_sky_marks(r, bin, g)
+  sun_coord <- extract_sun_mark(r, bin, z, a, g)
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
-  sky_marks$a <- a[cells]
+  #sky_marks$a <- a[cells]
   sky_marks$z <- z[cells]
 
-  if (use_window) {
-    xy <-  xyFromCell(r, cells)
-    sky_marks$dn <-  extract(r, xy, buffer = 1.5, fun = "mean")
-  } else {
-    sky_marks$dn <-  r[cells]
-  }
+  xy <-  xyFromCell(r, cells)
+  sky_marks$dn <-  extract(r, xy, buffer = 1.5, fun = "mean")
 
   z_thr <- 2
   zenith_dn <- c()
@@ -291,9 +311,7 @@ choose_st_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
     zenith_dn <- sky_marks$dn[sky_marks$z < z_thr]
     z_thr <- z_thr + 2
   }
-  if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from pure ",
-                                       "sky pixels from zenith angle up to ",
-                                       z_thr, "."))
+
   zenith_dn <- mean(zenith_dn)
   attr(zenith_dn, "max_zenith_angle") <- z_thr
   sky_marks$dn <- sky_marks$dn / zenith_dn
@@ -304,35 +322,139 @@ choose_st_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   calc_rmse <- function(x) sqrt(mean(x^2))
   calc_r2 <- function(pred, obs){
     model <- lm(pred ~ obs)
-    summary(model)$adj.r.squared
+    suppressWarnings(summary(model)$adj.r.squared)
   }
 
   fun <- function(i) {
-    st_sky <- cie_sky_model_raster(z, a, sun_coord, as.numeric(skies[i,1:5]))
+    std_sky <- cie_sky_model_raster(z, a, sun_coord, as.numeric(skies[i,1:5]))
 
-    if (use_window) {
-      xy <-  xyFromCell(st_sky, cells)
-      pred <-  extract(st_sky, xy, buffer = 1.5, fun = "mean")
-    } else {
-      pred <-  st_sky[cells]
-    }
+    xy <-  xyFromCell(std_sky, cells)
+    pred <-  extract(std_sky, xy, buffer = 1.5, fun = "mean")
 
     error <- pred - sky_marks$dn
     rmse <- calc_rmse(error)
     r2 <- calc_r2(pred, sky_marks$dn)
-    return(list(st_sky = st_sky, rmse = rmse, r2 = r2, zenith_dn = zenith_dn,
+    return(list(relative_luminance = std_sky,
+                zenith_dn = zenith_dn,
+                rmse = rmse,
+                r2 = r2,
                 sun_coord = sun_coord,
-                sky_type = paste(skies[i,"general_sky_type"],
-                                 skies[i,"description"])))
+                std_sky_no = i,
+                general_sky_type = skies[i,"general_sky_type"])
+           )
 
   }
 
-  if (!is.null(general_sky_type)) {
-    indices <- skies$general_sky_type == general_sky_type
-    skies <- skies[indices,]
-  }
-
-  st_skies <- Map(fun, 1:nrow(skies))
-  rmse <- Map(function(i) st_skies[[i]][2], 1:length(st_skies)) %>% unlist()
-  st_skies[[which.min(rmse)]]
+  std_skies <- Map(fun, 1:nrow(skies))
+  rmse <- Map(function(i) std_skies[[i]][2], 1:length(std_skies)) %>% unlist()
+  std_skies[[which.min(rmse)]]
 }
+
+
+
+#' Autofit CIE sky model
+#'
+#' Autofit CIE sky model using data from real hemispherical photographs.
+#'
+#' By using \code{\link{ootb_cie_mblt}}, it obtains a binarized image. Then use
+#' it to extract the sky marks and sun coordinates required by
+#' \code{\link{fit_CIE_sky_model}} (a sky grid of 10 degrees
+#' --\code{sky_grid_segmentation(z, a, 10)}-- and the default parameters of
+#' \code{\link{extract_sun_marks}} and \code{\link{extract_sun_mark}} are used).
+#'
+#' However, the binarized image is not used as is, the \code{w} parameter (see
+#' this concept on the \code{\link{thr_image}} documentation) is estimated based
+#' on the sky border length calculated from the binarized image obtained with
+#' \code{w} equal to \code{0.5} (by means of a Laplacian filter). The ratio of
+#' the numer of pixels on the border to the total number of pixels is added to
+#' \code{0.5}, but values above \code{0.9} are not allowed.
+#'
+#' The argument \code{general_sky_type} of \code{\link{fit_CIE_sky_model}} is
+#' obtained with \code{\link{choose_std_cie_sky_model}}.
+#'
+#' If the general sky type is "Clear", since \code{\link{extract_sun_mark}} is
+#' incapable of providing the sun position below the horizon, the sun below the
+#' horizon (91 degrees) to the end of the astronomical twilight is explorer with
+#' 3 degrees resolution, and the best model is returned.
+#'
+#' Since each general sky type has several standard CIE sky models, each of
+#' those are tested and the best model is returned.
+#'
+#' The best model is the one with low root mean square error.
+#'
+#' @inheritParams fit_cie_sky_model
+#'
+#' @family  cie sky model functions
+#'
+#' @export
+#'
+#' @examples
+#' #' \dontrun{
+#' my_file <- path.expand("~/DSCN5548.JPG")
+#' download.file("https://osf.io/kp7rx/download", my_file,
+#'               method = "auto", mode = "wb")
+#' r <- read_caim(my_file,
+#'                c(1280, 960) - 745,
+#'                745 * 2,
+#'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' blue <- gbc(r$Blue)
+#' fit <- autofit_cie_sky_model(blue, z, a)
+#' plot(fit$cie_sky)
+#' }
+autofit_cie_sky_model <- function(r, z, a) {
+  .check_if_r_z_and_a_are_ok(r, z, a)
+
+  mblt <- ootb_cie_mblt(r, z, a)
+  general_sky_type <- mblt$std_cie_sky$general_sky_type
+
+  # estimate w
+  sky_border <- focal(mblt$bin, matrix(c(0, 1, 0,
+                                         1,-4, 1,
+                                         0, 1, 0), nrow = 3))
+  no_of_px_on_circle <- sum(!is.na(z)[])
+  no_of_px_on_sky_border <- sum((sky_border != 0)[], na.rm = TRUE)
+  w <- 0.5 + no_of_px_on_sky_border / no_of_px_on_circle
+  if (w > 0.9) w <- 0.9
+
+  bin <- r / mblt$sky > w
+
+  g <- sky_grid_segmentation(z, a, 10)
+  sky_marks <- extract_sky_marks(r, bin, g)
+  sun_coord <- extract_sun_mark(r, mblt$bin, z, a, g)
+
+  if (general_sky_type == "Clear") {
+    sun_coords <- data.frame(z = c(sun_coord[1], seq(91, 118, 3)), # 118 astro
+                             a = sun_coord[2])
+    models <- Map(function(i) {fit_cie_sky_model(r, z, a, sky_marks,
+                               as.numeric(sun_coords[i, ]),
+                               general_sky_type = general_sky_type,
+                               use_window = TRUE)},
+                  1:nrow(sun_coords))
+    rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) %>% unlist()
+    model <- models[[which.min(rmse)]]
+  } else {
+    model <- fit_cie_sky_model(r, z, a, sky_marks,
+                               sun_coord,
+                               general_sky_type = general_sky_type,
+                               use_window = TRUE)
+  }
+
+  if (is.na(model$r2)) {
+    sky <- mblt$std_cie_sky$relative_luminance * mblt$std_cie_sky$zenith_dn
+    r2 <- mblt$std_cie_sky$r2
+    warning("Convergence fail. A standard CIE sky model is returned")
+  } else {
+    cie_sky <- cie_sky_model_raster(z, a,
+                                    model$sun_coord,
+                                    model$fit@coef[-6]) * model$zenith_dn
+    r2 <- model$r2
+  }
+
+  list(cie_sky = cie_sky,
+       cie_model = model,
+       r2 = r2,
+       mblt = mblt)
+}
+
