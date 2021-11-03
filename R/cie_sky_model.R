@@ -120,13 +120,13 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a)$bin
-#' sky_marks <- extract_sky_marks(blue, bin, g,
-#'                                dist_to_plant = 3,
-#'                                min_raster_dist = 10)
+#' bin <- ootb_cie_mblt(blue, z, a)$bin
+#' sky_marks <- extract_sky_marks(blue, bin, g)
 #' sun_coord <- extract_sun_mark(blue, bin, z, a, g)
 #'
-#' sun_coords <- data.frame(z = c(sun_coord[1], seq(100, 150, 5) ),
+#' # since extract_sun_mark does not "see" below the horizon, this script
+#' # explore til the end of civic twilight
+#' sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 96, 1) ),
 #'                          a = sun_coord[2])
 #' models <- Map(function(i) fit_cie_sky_model(blue, z, a, sky_marks,
 #'                                             as.numeric(sun_coords[i,]),
@@ -406,55 +406,73 @@ choose_std_cie_sky_model <- function(r, z, a, bin) {
 autofit_cie_sky_model <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
+  .estimate_w <- function(bin) {
+    sky_border <- focal(bin, matrix(c(0, 1, 0,
+                                      1,-4, 1,
+                                      0, 1, 0), nrow = 3))
+    no_of_px_on_circle <- sum(!is.na(bin)[])
+    no_of_px_on_sky_border <- sum((sky_border != 0)[], na.rm = TRUE)
+    w <- 0.5 + no_of_px_on_sky_border / no_of_px_on_circle
+    if (w > 0.9) w <- 0.9
+    w
+  }
+
+  .autofit <- function(r, z, a,
+                       sky_marks,
+                       sun_coord,
+                       general_sky_type) {
+    if (general_sky_type == "Clear") {
+      sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 112, 2)),
+                               a = sun_coord[2])
+      models <- Map(function(i) {
+                      fit_cie_sky_model(r, z, a, sky_marks,
+                                        as.numeric(sun_coords[i, ]),
+                                        general_sky_type = general_sky_type,
+                                        use_window = TRUE)
+                    },
+                    1:nrow(sun_coords))
+      rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) %>% unlist()
+      model <- models[[which.min(rmse)]]
+    } else {
+      model <- fit_cie_sky_model(r, z, a, sky_marks,
+                                 sun_coord,
+                                 general_sky_type = general_sky_type,
+                                 use_window = TRUE)
+    }
+    model
+  }
+
   mblt <- ootb_cie_mblt(r, z, a)
-  general_sky_type <- mblt$std_cie_sky$general_sky_type
-
-  # estimate w
-  sky_border <- focal(mblt$bin, matrix(c(0, 1, 0,
-                                         1,-4, 1,
-                                         0, 1, 0), nrow = 3))
-  no_of_px_on_circle <- sum(!is.na(z)[])
-  no_of_px_on_sky_border <- sum((sky_border != 0)[], na.rm = TRUE)
-  w <- 0.5 + no_of_px_on_sky_border / no_of_px_on_circle
-  if (w > 0.9) w <- 0.9
-
+  w <- .estimate_w(mblt$bin)
   bin <- r / mblt$sky > w
-
   g <- sky_grid_segmentation(z, a, 10)
   sky_marks <- extract_sky_marks(r, bin, g)
   sun_coord <- extract_sun_mark(r, mblt$bin, z, a, g)
 
-  if (general_sky_type == "Clear") {
-    sun_coords <- data.frame(z = c(sun_coord[1], seq(91, 118, 3)), # 118 astro
-                             a = sun_coord[2])
-    models <- Map(function(i) {fit_cie_sky_model(r, z, a, sky_marks,
-                               as.numeric(sun_coords[i, ]),
-                               general_sky_type = general_sky_type,
-                               use_window = TRUE)},
-                  1:nrow(sun_coords))
-    rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) %>% unlist()
-    model <- models[[which.min(rmse)]]
-  } else {
-    model <- fit_cie_sky_model(r, z, a, sky_marks,
-                               sun_coord,
-                               general_sky_type = general_sky_type,
-                               use_window = TRUE)
+  l <- list()
+  l$overcast <- .autofit(r, z, a, sky_marks, sun_coord, "Overcast")
+  l$partly <- .autofit(r, z, a, sky_marks, sun_coord, "Partly cloudy")
+  l$clear <- .autofit(r, z, a, sky_marks, sun_coord, "Clear")
+
+  .fun <- function(x) sum(x[x > 1 | x < 0]^2)
+  error <- c(.fun(l$overcast$lr), .fun(l$partly$lr), .fun(l$clear$lr))
+  model <- l[[which.min(error)]]
+
+  if (!is.na(model$r2)) {
+    mblt$relative_luminance <- cie_sky_model_raster(z, a,
+                                           model$sun_coord,
+                                           model$fit@coef[-6]) * model$zenith_dn
   }
 
-  if (is.na(model$r2)) {
-    sky <- mblt$std_cie_sky$relative_luminance * mblt$std_cie_sky$zenith_dn
-    r2 <- mblt$std_cie_sky$r2
-    warning("Convergence fail. A standard CIE sky model is returned")
-  } else {
-    cie_sky <- cie_sky_model_raster(z, a,
-                                    model$sun_coord,
-                                    model$fit@coef[-6]) * model$zenith_dn
-    r2 <- model$r2
-  }
+  model$mblt <- mblt
+  model$w <- w
+  model$sky_marks <- sky_marks
 
-  list(cie_sky = cie_sky,
-       cie_model = model,
-       r2 = r2,
-       mblt = mblt)
+  no_cells <- index <- round(z) == model$sun_coord[1] &
+                                                round(a) == model$sun_coord[2]
+  no_cells[] <- 1:ncell(index)
+  sun_mark <- rowColFromCell(index, no_cells[index][1])
+  model$sun_mark <- sun_mark
+  model
 }
 
