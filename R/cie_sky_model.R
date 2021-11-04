@@ -197,7 +197,9 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   calc_rmse <- function(x) sqrt(mean(x^2))
   calc_r2 <- function(pred, obs){
     model <- lm(pred ~ obs)
-    summary(model)$adj.r.squared
+    r2 <- suppressWarnings(summary(model)$adj.r.squared)
+    if (is.nan(r2)) browser()
+    r2
   }
 
   fun <- function(i) {
@@ -225,6 +227,8 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
       rmse <- calc_rmse(error)
       r2 <- calc_r2(pred, sky_marks$dn)
       return(list(fit = fit,
+                  pred = pred,
+                  obs = sky_marks$dn,
                   rmse = rmse,
                   r2 = r2,
                   zenith_dn = zenith_dn,
@@ -243,9 +247,10 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   }
 
   fit <- suppressWarnings(Map(fun, 1:nrow(skies)))
-  rmse <- Map(function(i) fit[[i]][2], 1:length(fit)) %>% unlist()
+  rmse <- Map(function(i) fit[[i]][4], 1:length(fit)) %>% unlist()
   if (all(is.na(rmse))) {
-    return(list(fit = NA, rmse = NA, r2 = NA, zenith_dn = zenith_dn,
+    return(list(fit = NA, pred = NA, obs = NA, rmse = NA,
+                r2 = NA, zenith_dn = zenith_dn,
                 sun_coord = round(radian2degree(c(Zs, AzS))),
                 sky_type = NA))
   } else {
@@ -425,19 +430,23 @@ autofit_cie_sky_model <- function(r, z, a) {
       sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 112, 2)),
                                a = sun_coord[2])
       models <- Map(function(i) {
-                      fit_cie_sky_model(r, z, a, sky_marks,
-                                        as.numeric(sun_coords[i, ]),
-                                        general_sky_type = general_sky_type,
-                                        use_window = TRUE)
+                      suppressWarnings(
+                        fit_cie_sky_model(r, z, a, sky_marks,
+                                          as.numeric(sun_coords[i, ]),
+                                          general_sky_type = general_sky_type,
+                                          use_window = TRUE)
+                      )
                     },
                     1:nrow(sun_coords))
       rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) %>% unlist()
       model <- models[[which.min(rmse)]]
     } else {
-      model <- fit_cie_sky_model(r, z, a, sky_marks,
-                                 sun_coord,
-                                 general_sky_type = general_sky_type,
-                                 use_window = TRUE)
+      model <- suppressWarnings(
+                fit_cie_sky_model(r, z, a, sky_marks,
+                                  sun_coord,
+                                  general_sky_type = general_sky_type,
+                                  use_window = TRUE)
+               )
     }
     model
   }
@@ -449,17 +458,19 @@ autofit_cie_sky_model <- function(r, z, a) {
   sky_marks <- extract_sky_marks(r, bin, g)
   sun_coord <- extract_sun_mark(r, mblt$bin, z, a, g)
 
-  l <- list()
-  l$overcast <- .autofit(r, z, a, sky_marks, sun_coord, "Overcast")
-  l$partly <- .autofit(r, z, a, sky_marks, sun_coord, "Partly cloudy")
-  l$clear <- .autofit(r, z, a, sky_marks, sun_coord, "Clear")
+  # l <- list()
+  # l$overcast <- .autofit(r, z, a, sky_marks, sun_coord, "Overcast")
+  # l$partly <- .autofit(r, z, a, sky_marks, sun_coord, "Partly cloudy")
+  # l$clear <- .autofit(r, z, a, sky_marks, sun_coord, "Clear")
+  #
+  # .fun <- function(x) sum(x[x > 1 | x < 0]^2)
+  # error <- c(.fun(l$overcast$lr), .fun(l$partly$lr), .fun(l$clear$lr))
+  # model <- l[[which.min(error)]]
 
-  .fun <- function(x) sum(x[x > 1 | x < 0]^2)
-  error <- c(.fun(l$overcast$lr), .fun(l$partly$lr), .fun(l$clear$lr))
-  model <- l[[which.min(error)]]
+  model <- .autofit(r, z, a, sky_marks, sun_coord, mblt$general_sky_type)
 
   if (!is.na(model$r2)) {
-    mblt$relative_luminance <- cie_sky_model_raster(z, a,
+    model$relative_luminance <- cie_sky_model_raster(z, a,
                                            model$sun_coord,
                                            model$fit@coef[-6]) * model$zenith_dn
   }
