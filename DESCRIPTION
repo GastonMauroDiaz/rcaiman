@@ -29,5 +29,6 @@ Suggests:
     EBImage,
     autothresholdr,
     conicfit,
-    bbmle
+    bbmle,
+    lidR
 RdMacros: Rdpack

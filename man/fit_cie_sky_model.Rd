@@ -69,13 +69,13 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a)$bin
-sky_marks <- extract_sky_marks(blue, bin, g,
-                               dist_to_plant = 3,
-                               min_raster_dist = 10)
+bin <- ootb_cie_mblt(blue, z, a)$bin
+sky_marks <- extract_sky_marks(blue, bin, g)
 sun_coord <- extract_sun_mark(blue, bin, z, a, g)
 
-sun_coords <- data.frame(z = c(sun_coord[1], seq(100, 150, 5) ),
+# since extract_sun_mark does not "see" below the horizon, this script
+# explore til the end of civic twilight
+sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 96, 1) ),
                          a = sun_coord[2])
 models <- Map(function(i) fit_cie_sky_model(blue, z, a, sky_marks,
                                             as.numeric(sun_coords[i,]),

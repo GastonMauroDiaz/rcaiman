@@ -208,8 +208,12 @@ ootb_cie_mblt <- function(r, z, a) {
   sky_cie <- std_cie_sky$relative_luminance * std_cie_sky$zenith_dn
   bin <- apply_thr(r, thr_image(sky_cie, 0, 0.5))
 
+  flat <- residu <- sky_cie - r
+  flat[] <- 0
   m <- mask_image(z)
-  sky_s <- fit_trend_surface(r, m, bin, sky_cie)$image
+  residu_s <- suppressWarnings(fit_trend_surface(residu, m, bin, flat))
+  sky_s <- sky_cie - residu_s$image
+
   w <- z^2 / 90^2
   sky <- sky_s * (1 - w) + sky_cie *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))

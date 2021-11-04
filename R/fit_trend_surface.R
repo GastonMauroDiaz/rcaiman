@@ -110,14 +110,9 @@ fit_trend_surface <- function(r,
   }
 
   surf <- .fit_trend_surface(blue, np = np)
-  fit <- surf$fit
 
-  surf <- surf$image
-  surf[surf < 0] <- NA
-  surf[surf > 1] <- NA
+  if (fact > 1) surf$image <- resample(surf$image, r)
+  surf$image[!m] <- NA
 
-  if (fact > 1) surf <- resample(surf, r)
-  surf[!m] <- NA
-
-  list(image = surf , fit = fit)
+  surf
 }

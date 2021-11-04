@@ -194,15 +194,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
 
-  calc_rmse <- function(x) sqrt(mean(x^2))
-  calc_r2 <- function(pred, obs){
-    model <- lm(pred ~ obs)
-    r2 <- suppressWarnings(summary(model)$adj.r.squared)
-    if (is.nan(r2)) browser()
-    r2
-  }
-
-  fun <- function(i) {
+  .fun <- function(i) {
     fit <- NA
     try(
       fit <- bbmle::mle2(flog, list(.a = as.numeric(skies[i,1]),
@@ -223,14 +215,11 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
                              .c = as.numeric(skies[i,3]),
                              .d = as.numeric(skies[i,4]),
                              .e = as.numeric(skies[i,5]))
-      error <- pred - sky_marks$dn
-      rmse <- calc_rmse(error)
-      r2 <- calc_r2(pred, sky_marks$dn)
+      rmse <- .calc_rmse(pred - sky_marks$dn)
       return(list(fit = fit,
                   pred = pred,
                   obs = sky_marks$dn,
                   rmse = rmse,
-                  r2 = r2,
                   zenith_dn = zenith_dn,
                   sun_coord = round(radian2degree(c(Zs, AzS))),
                   sky_type = paste0(skies[i,"general_sky_type"], ", ",
@@ -246,11 +235,11 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
     skies <- skies[indices,]
   }
 
-  fit <- suppressWarnings(Map(fun, 1:nrow(skies)))
+  fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
   rmse <- Map(function(i) fit[[i]][4], 1:length(fit)) %>% unlist()
   if (all(is.na(rmse))) {
     return(list(fit = NA, pred = NA, obs = NA, rmse = NA,
-                r2 = NA, zenith_dn = zenith_dn,
+                zenith_dn = zenith_dn,
                 sun_coord = round(radian2degree(c(Zs, AzS))),
                 sky_type = NA))
   } else {
@@ -304,7 +293,6 @@ choose_std_cie_sky_model <- function(r, z, a, bin) {
   sun_coord <- extract_sun_mark(r, bin, z, a, g)
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
-  #sky_marks$a <- a[cells]
   sky_marks$z <- z[cells]
 
   xy <-  xyFromCell(r, cells)
@@ -324,25 +312,17 @@ choose_std_cie_sky_model <- function(r, z, a, bin) {
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
 
-  calc_rmse <- function(x) sqrt(mean(x^2))
-  calc_r2 <- function(pred, obs){
-    model <- lm(pred ~ obs)
-    suppressWarnings(summary(model)$adj.r.squared)
-  }
-
-  fun <- function(i) {
+  .fun <- function(i) {
     std_sky <- cie_sky_model_raster(z, a, sun_coord, as.numeric(skies[i,1:5]))
 
     xy <-  xyFromCell(std_sky, cells)
     pred <-  extract(std_sky, xy, buffer = 1.5, fun = "mean")
 
     error <- pred - sky_marks$dn
-    rmse <- calc_rmse(error)
-    r2 <- calc_r2(pred, sky_marks$dn)
+    rmse <- .calc_rmse(error)
     return(list(relative_luminance = std_sky,
                 zenith_dn = zenith_dn,
                 rmse = rmse,
-                r2 = r2,
                 sun_coord = sun_coord,
                 std_sky_no = i,
                 general_sky_type = skies[i,"general_sky_type"])
@@ -350,7 +330,7 @@ choose_std_cie_sky_model <- function(r, z, a, bin) {
 
   }
 
-  std_skies <- Map(fun, 1:nrow(skies))
+  std_skies <- Map(.fun, 1:nrow(skies))
   rmse <- Map(function(i) std_skies[[i]][2], 1:length(std_skies)) %>% unlist()
   std_skies[[which.min(rmse)]]
 }
@@ -406,26 +386,12 @@ choose_std_cie_sky_model <- function(r, z, a, bin) {
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' fit <- autofit_cie_sky_model(blue, z, a)
-#' plot(fit$cie_sky)
+#' plot(fit$relative_luminance * fit$zenith_dn)
 #' }
 autofit_cie_sky_model <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
-  .estimate_w <- function(bin) {
-    sky_border <- focal(bin, matrix(c(0, 1, 0,
-                                      1,-4, 1,
-                                      0, 1, 0), nrow = 3))
-    no_of_px_on_circle <- sum(!is.na(bin)[])
-    no_of_px_on_sky_border <- sum((sky_border != 0)[], na.rm = TRUE)
-    w <- 0.5 + no_of_px_on_sky_border / no_of_px_on_circle
-    if (w > 0.9) w <- 0.9
-    w
-  }
-
-  .autofit <- function(r, z, a,
-                       sky_marks,
-                       sun_coord,
-                       general_sky_type) {
+  .autofit <- function(general_sky_type) {
     if (general_sky_type == "Clear") {
       sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 112, 2)),
                                a = sun_coord[2])
@@ -434,7 +400,7 @@ autofit_cie_sky_model <- function(r, z, a) {
                         fit_cie_sky_model(r, z, a, sky_marks,
                                           as.numeric(sun_coords[i, ]),
                                           general_sky_type = general_sky_type,
-                                          use_window = TRUE)
+                                          use_window = use_window)
                       )
                     },
                     1:nrow(sun_coords))
@@ -445,42 +411,46 @@ autofit_cie_sky_model <- function(r, z, a) {
                 fit_cie_sky_model(r, z, a, sky_marks,
                                   sun_coord,
                                   general_sky_type = general_sky_type,
-                                  use_window = TRUE)
+                                  use_window = use_window)
                )
     }
+
+    if (class(model$fit) == "mle2") {
+      model$relative_luminance <- cie_sky_model_raster(z, a,
+                                                       model$sun_coord,
+                                                       model$fit@coef[-6])
+    } else {
+        model$relative_luminance <- z
+        model$relative_luminance[] <- -666
+      }
     model
   }
 
   mblt <- ootb_cie_mblt(r, z, a)
-  w <- .estimate_w(mblt$bin)
-  bin <- r / mblt$sky > w
   g <- sky_grid_segmentation(z, a, 10)
-  sky_marks <- extract_sky_marks(r, bin, g)
+  sky_marks <- extract_sky_marks(r, mblt$bin, g)
   sun_coord <- extract_sun_mark(r, mblt$bin, z, a, g)
 
-  # l <- list()
-  # l$overcast <- .autofit(r, z, a, sky_marks, sun_coord, "Overcast")
-  # l$partly <- .autofit(r, z, a, sky_marks, sun_coord, "Partly cloudy")
-  # l$clear <- .autofit(r, z, a, sky_marks, sun_coord, "Clear")
-  #
-  # .fun <- function(x) sum(x[x > 1 | x < 0]^2)
-  # error <- c(.fun(l$overcast$lr), .fun(l$partly$lr), .fun(l$clear$lr))
-  # model <- l[[which.min(error)]]
-
-  model <- .autofit(r, z, a, sky_marks, sun_coord, mblt$general_sky_type)
-
-  if (!is.na(model$r2)) {
-    model$relative_luminance <- cie_sky_model_raster(z, a,
-                                           model$sun_coord,
-                                           model$fit@coef[-6]) * model$zenith_dn
+  use_window <- TRUE
+  gs <- c("Overcast", "Partly cloudy", "Clear")
+  l <- Map(.autofit, gs)
+  .fun <- function(x) {
+    x <- r / (x$relative_luminance * x$zenith_dn)
+    sum(x[x > 1 | x < 0]^2)
   }
+  error <- Map(.fun, l)
+  model <- l[[which.min(error)]]
 
   model$mblt <- mblt
-  model$w <- w
   model$sky_marks <- sky_marks
-
-  no_cells <- index <- round(z) == model$sun_coord[1] &
-                                                round(a) == model$sun_coord[2]
+  sun_coord <- model$sun_coord
+  if (sun_coord[1] > 90) {
+    sun_coord[1] <- 89
+    warning(paste("\"sun_mark\" was forced inside the circle.",
+                  "Now is on the horizon intead of below it.",
+                  "\"sun_coord\" remains unchanged."))
+  }
+  no_cells <- index <- round(z) == sun_coord[1] & round(a) == sun_coord[2]
   no_cells[] <- 1:ncell(index)
   sun_mark <- rowColFromCell(index, no_cells[index][1])
   model$sun_mark <- sun_mark

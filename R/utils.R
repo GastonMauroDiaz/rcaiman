@@ -40,4 +40,42 @@ degree2radian <- function(x) x * pi / 180
   acos(pmax(pmin(cos(z1) * cos(z2) + sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
 }
 
+.calc_rmse <- function(x) sqrt(mean(x^2))
+
+# .estimate_w <- function(bin) {
+#   sky_border <- focal(bin, matrix(c(0, 1, 0,
+#                                     1,-4, 1,
+#                                     0, 1, 0), nrow = 3))
+#   no_of_px_on_circle <- sum(!is.na(bin)[])
+#   no_of_px_on_sky_border <- sum((sky_border != 0)[], na.rm = TRUE)
+#   w <- 0.5 + no_of_px_on_sky_border / no_of_px_on_circle
+#   if (w > 0.9) w <- 0.9
+#   w
+# }
+
+.decode_label <- function(label) {
+  sector_ID <- trunc(label / 1000)
+  rings_ID <- label - sector_ID * 1000
+  data.frame(sector_ID, rings_ID)
+}
+
+.make_fake_las <- function(X, Y, Z){
+  data_template_names <- c("X", "Y", "Z", "gpstime","Intensity", "ReturnNumber", "NumberOfReturns",
+                           "ScanDirectionFlag", "EdgeOfFlightline",  "Classification",
+                           "Synthetic_flag", "Keypoint_flag", "Withheld_flag", "ScanAngleRank", "UserData",
+                           "PointSourceID",  "R",  "G",  "B")
+  data_template <- matrix(ncol = length(data_template_names), nrow = length(X))
+  data_template <- data.frame(data_template)
+  names(data_template) <- data_template_names
+  data_template[] <- 0
+
+  fake_las <- new("LAS")
+  fake_las@data <- as(data_template, "data.table")
+  fake_las@data$X <- X
+  fake_las@data$Y <- Y
+  fake_las@data$Z <- Z
+  fake_las
+}
+
+
 
