@@ -35,6 +35,10 @@ build_sky <- function(r, z, a, k = 50, p = 1, rmax = 200) {
 
   flat <- residu <- sky_cie - r
   flat[] <- 0
+  browser()
+  g <- sky_grid_segmentation(z, a, 0.5)
+  pano <- fisheye_to_pano(residu, g, fun = max)
+  left_clip <- clip(pano, 0, )
   residu <- focal(residu, matrix(1, ncol = 3, nrow = 3), fun = max)
   m <- mask_image(z)
   residu_s <- suppressWarnings(fit_trend_surface(residu, m, bin, flat,
