@@ -140,7 +140,7 @@ ootb_mblt <- function(r, z, a) {
   bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5))
 
   m <- mask_image(z)
-  sky_s <- fit_trend_surface(r, m, bin, sky_cs)$image
+  sky_s <- fit_trend_surface(r, bin, m, sky_cs)$image
   w <- z^2 / 90^2
   sky <- sky_s * (1 - w) + sky_cs *  w
   bin <- apply_thr(r, thr_image(sky, 0, 0.5))
@@ -211,7 +211,7 @@ ootb_cie_mblt <- function(r, z, a) {
   flat <- residu <- sky_cie - r
   flat[] <- 0
   m <- mask_image(z)
-  residu_s <- suppressWarnings(fit_trend_surface(residu, m, bin, flat))
+  residu_s <- fit_trend_surface(residu, bin, m, flat)
   sky_s <- sky_cie - residu_s$image
 
   w <- z^2 / 90^2

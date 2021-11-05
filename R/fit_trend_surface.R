@@ -77,24 +77,23 @@
 #' blue <- gbc(r$Blue)
 #' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #' m <- mask_image(z, zlim = c(0, 80))
-#' sky <- fit_trend_surface(blue, m, bin,
+#' sky <- fit_trend_surface(blue, bin, m,
 #'   filling_source = sky$image
 #' )
 #' plot(sky$image)
 #' }
 fit_trend_surface <- function(r,
-                              m,
                               bin,
+                              m = NULL,
                               filling_source = NULL,
                               prob = 0.95,
                               fact = 5,
                               np = 6) {
   stopifnot(class(r) == "RasterLayer")
-  .check_if_r_was_normalized(r)
   compareRaster(bin, r)
   compareRaster(bin, m)
 
-  r[!m] <- NA
+  if (!is.null(m)) r[!m] <- NA
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
@@ -112,7 +111,7 @@ fit_trend_surface <- function(r,
   surf <- .fit_trend_surface(blue, np = np)
 
   if (fact > 1) surf$image <- resample(surf$image, r)
-  surf$image[!m] <- NA
+  if (!is.null(m)) surf$image[!m] <- NA
 
   surf
 }

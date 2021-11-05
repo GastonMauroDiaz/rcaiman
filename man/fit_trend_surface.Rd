@@ -6,8 +6,8 @@
 \usage{
 fit_trend_surface(
   r,
-  m,
   bin,
+  m = NULL,
   filling_source = NULL,
   prob = 0.95,
   fact = 5,
@@ -19,12 +19,12 @@ fit_trend_surface(
 the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
-\code{\link{mask_image}}.}
-
 \item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
 be a preliminary binarization of \code{x}. If the function returns
 \code{NA}, the quality of this input should be revised.}
+
+\item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
+\code{\link{mask_image}}.}
 
 \item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
 Above-canopy photograph. This image should contain pixels with sky DN
@@ -87,7 +87,7 @@ bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
 sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 m <- mask_image(z, zlim = c(0, 80))
-sky <- fit_trend_surface(blue, m, bin,
+sky <- fit_trend_surface(blue, bin, m,
   filling_source = sky$image
 )
 plot(sky$image)

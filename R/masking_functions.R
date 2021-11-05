@@ -1,4 +1,3 @@
-
 #' Mask image
 #'
 #' Given angle restrictions, produce an image for masking fisheye photos.
@@ -9,9 +8,6 @@
 #'   angle range with inclusive limits.
 #' @param alim Numeric vector of length two. Angles in degrees. Set the azimuth
 #'   angle range with inclusive limits.
-#' @param previous_mask \linkS4class{RasterLayer}. Typically, a mask extracted
-#'   from an expanded non-circular hemispherical photograph (see
-#'   \code{\link{expand_noncircular}}).
 #'
 #' @return \linkS4class{RasterLayer}
 #' @export
@@ -26,16 +22,20 @@
 #' m <- mask_image(z, a, c(20, 70), c(90, 180))
 #' plot(m)
 #'
-#' m <- mask_image(z, zlim = c(20, 70))
-#' plot(m)
+#' m1 <- mask_image(z, a, alim = c(90, 180))
+#' plot(m1)
+#'
+#' m2 <- mask_image(z, zlim = c(20, 70))
+#' plot(m2)
+#'
+#' plot(m1 & m2)
 #'
 #' m <- mask_image(z)
 #' plot(m)
 mask_image <- function(z,
                        a = NULL,
                        zlim = NULL,
-                       alim = NULL,
-                       previous_mask = NULL) {
+                       alim = NULL) {
   no_data_area <- is.na(z)
 
   if (all(is.null(zlim), is.null(alim))) {
@@ -76,36 +76,7 @@ mask_image <- function(z,
   }
   # fix inclusion of the area outside the circle if zmin is 0
   m[no_data_area] <- 0
-
-  if (!is.null(previous_mask)) m <- m * previous_mask
-
   m
-
-}
-
-
-
-#' Add mask images
-#'
-#' @param r \linkS4class{RasterLayer}. Mask image, see \code{\link{mask_image}}.
-#' @param ... additional mask images.
-#'
-#' @return \linkS4class{RasterLayer}
-#' @export
-#'
-#' @family masking functions
-#' @seealso write_bin
-#'
-#' @examples
-#' z <- zenith_image(1000, lens())
-#' a <- azimuth_image(z)
-#' m1 <- mask_image(z, zlim = c(20,70))
-#' m2 <- mask_image(z, a, alim = c(180,350))
-#' m <- add_mask_images(m1, m2)
-add_mask_images <- function (r, ...) {
-  r <- stack(r, ...) %>% calc(., sum)
-  r[r != 0] <- 1
-  r
 }
 
 

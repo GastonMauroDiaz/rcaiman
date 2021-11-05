@@ -4,7 +4,7 @@
 \alias{mask_image}
 \title{Mask image}
 \usage{
-mask_image(z, a = NULL, zlim = NULL, alim = NULL, previous_mask = NULL)
+mask_image(z, a = NULL, zlim = NULL, alim = NULL)
 }
 \arguments{
 \item{z}{\code{\linkS4class{RasterLayer}} built with
@@ -18,10 +18,6 @@ angle range with inclusive limits.}
 
 \item{alim}{Numeric vector of length two. Angles in degrees. Set the azimuth
 angle range with inclusive limits.}
-
-\item{previous_mask}{\linkS4class{RasterLayer}. Typically, a mask extracted
-from an expanded non-circular hemispherical photograph (see
-\code{\link{expand_noncircular}}).}
 }
 \value{
 \linkS4class{RasterLayer}
@@ -36,16 +32,18 @@ a <- azimuth_image(z)
 m <- mask_image(z, a, c(20, 70), c(90, 180))
 plot(m)
 
-m <- mask_image(z, zlim = c(20, 70))
-plot(m)
+m1 <- mask_image(z, a, alim = c(90, 180))
+plot(m1)
+
+m2 <- mask_image(z, zlim = c(20, 70))
+plot(m2)
+
+plot(m1 & m2)
 
 m <- mask_image(z)
 plot(m)
 }
 \seealso{
 \code{\link{write_bin}}
-
-Other masking functions: 
-\code{\link{add_mask_images}()}
 }
 \concept{masking functions}

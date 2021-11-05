@@ -1,14 +1,8 @@
-#' Fisheye to pano
-#'
-#' @param r
-#' @param g
-#' @param fun
- #' @noRd
 setGeneric("fisheye_to_pano",
            function(r, z, a, fun = mean)
              standardGeneric("fisheye_to_pano"))
 
-#' @rdname fisheye_to_pano
+# @rdname fisheye_to_pano
 setMethod("fisheye_to_pano",
           signature(r = "RasterStackBrick"),
           function (r, z, a, fun)
@@ -21,7 +15,7 @@ setMethod("fisheye_to_pano",
           }
 )
 
-#' @rdname fisheye_to_pano
+# @rdname fisheye_to_pano
 setMethod("fisheye_to_pano",
           signature(r = "RasterLayer"),
           function (r, z, a, fun)

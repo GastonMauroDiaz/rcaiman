@@ -60,7 +60,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 fit <- autofit_cie_sky_model(blue, z, a)
-plot(fit$cie_sky)
+plot(fit$relative_luminance * fit$zenith_dn)
 }
 }
 \seealso{
