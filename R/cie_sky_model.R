@@ -83,12 +83,12 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Fit CIE sky model using data from real hemispherical photographs.
 #'
 #' This function use maximum likelihood to estimate the parameters of the CIE
-#' sky model that fit best to data sampled from a real image. It will try to
-#' estimate the parameters  The result include the output produced by
-#' \code{\link[bbmle]{mle2}}, the root mean square error, the adjusted r
-#' squared, the digital number at the zenith, the sun coordinates (zenith and
-#' azimuth angle in degrees), and the description of the standard sky from which
-#' the initial parameters were drawn \insertCite{Li2016}{rcaiman}.
+#' sky model that fit best to data sampled from a real image. The result include
+#' the output produced by \code{\link[bbmle]{mle2}}, the root mean square error,
+#' the adjusted r squared, the digital number at the zenith, the sun coordinates
+#' (zenith and azimuth angle in degrees), and the description of the standard
+#' sky from which the initial parameters were drawn
+#' \insertCite{Li2016}{rcaiman}.
 #'
 #' @inheritParams ootb_mblt
 #' @param sky_marks data.frame. The result of a call to
@@ -142,6 +142,8 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               use_window = TRUE,
+                              twilight = TRUE,
+                              rmse = FALSE,
                               method = "BFGS") {
   if (!requireNamespace("bbmle", quietly = TRUE)) {
     stop(paste("Package \"bbmle\" needed for this function to work.",
@@ -153,10 +155,6 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   stopifnot(ncol(sky_marks) == 2)
   stopifnot(length(sun_coord) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
-
-  sun_a_z <- degree2radian(sun_coord[c(2,1)])
-  AzS <- sun_a_z[1]
-  Zs <- sun_a_z[2]
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
   sky_marks$a <- a[cells]
@@ -185,16 +183,19 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   attr(zenith_dn, "max_zenith_angle") <- z_thr
   sky_marks$dn <- sky_marks$dn / zenith_dn
 
-  flog <- function(.a, .b, .c, .d, .e, S) {
-    media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
-    - sum(stats::dnorm(sky_marks$dn, mean = media, sd = exp(S)))
-  }
-
-
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
 
   .fun <- function(i) {
+    sun_a_z <- degree2radian(rev(sun_coord))
+    AzS <- sun_a_z[1]
+    Zs <- sun_a_z[2]
+
+    flog <- function(.a, .b, .c, .d, .e, S) {
+      media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      - sum(stats::dnorm(sky_marks$dn, mean = media, sd = exp(S)))
+    }
+
     fit <- NA
     try(
       fit <- bbmle::mle2(flog, list(.a = as.numeric(skies[i,1]),
@@ -206,8 +207,16 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
       silent = TRUE
     )
 
-    if (any(fit@details$convergence, is.na(fit))) {
-      return(NA)
+    if (any(try(fit@details$convergence, silent = TRUE), is.na(fit))) {
+      # return(NA)
+      return(list(mle2_output = NA,
+                  coef = NA,
+                  pred = NA,
+                  obs = NA,
+                  relative_luminance = NA,
+                  zenith_dn = zenith_dn,
+                  sun_coord = sun_coord,
+                  sky_type = NA))
     } else {
       pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
                              .a = as.numeric(skies[i,1]),
@@ -215,13 +224,14 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
                              .c = as.numeric(skies[i,3]),
                              .d = as.numeric(skies[i,4]),
                              .e = as.numeric(skies[i,5]))
-      rmse <- .calc_rmse(pred - sky_marks$dn)
-      return(list(fit = fit,
+      relative_luminance <- cie_sky_model_raster(z, a, sun_coord, fit@coef[-6])
+      return(list(mle2_output = fit,
+                  coef = fit@coef[-6],
                   pred = pred,
                   obs = sky_marks$dn,
-                  rmse = rmse,
+                  relative_luminance = relative_luminance,
                   zenith_dn = zenith_dn,
-                  sun_coord = round(radian2degree(c(Zs, AzS))),
+                  sun_coord = sun_coord,
                   sky_type = paste0(skies[i,"general_sky_type"], ", ",
                                    skies[i,"description"])))
     }
@@ -236,14 +246,37 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   }
 
   fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
-  rmse <- Map(function(i) fit[[i]][4], 1:length(fit)) %>% unlist()
-  if (all(is.na(rmse))) {
-    return(list(fit = NA, pred = NA, obs = NA, rmse = NA,
-                zenith_dn = zenith_dn,
-                sun_coord = round(radian2degree(c(Zs, AzS))),
-                sky_type = NA))
+
+  if (twilight) {
+    indices <- match(11:15, as.numeric(rownames(skies)))
+    indices <- indices[!is.na(indices)]
+    if (length(indices) != 0) {
+      skies <- skies[indices,]
+      civic_twilight <-  c(seq(90, 96, 1))
+      for (i in seq_along(civic_twilight)) {
+      sun_coord <-  c(civic_twilight[i], sun_coord[2])
+      fit <- c(fit, suppressWarnings(Map(.fun, 1:nrow(skies))))
+     }
+    }
+  }
+
+  .calc_squared_ratio <- function(x) {
+    ratio <- r / (x$relative_luminance * x$zenith_dn)
+    sum(ratio[]^2, na.rm = TRUE)
+  }
+
+  if (!rmse) {
+    error <- Map(.calc_squared_ratio, fit) %>% unlist()
+    error[error == 0] <- NA
   } else {
-    return(fit[[which.min(rmse)]])
+    error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
+  }
+
+  if (all(is.na(error))) {
+    return(NA)
+
+  } else {
+    return(fit[[which.min(error)]])
   }
 }
 
