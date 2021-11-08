@@ -4,7 +4,7 @@
 \alias{build_sky}
 \title{Build a sky image}
 \usage{
-build_sky(r, z, a, k = 50, p = 1, rmax = 200)
+build_sky(r, z, a, complicado = FALSE)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -16,12 +16,6 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
-
-\item{k}{integer. Number of k-nearest neighbours. Default 10.}
-
-\item{p}{numeric. Power for inverse-distance weighting. Default 2.}
-
-\item{rmax}{numeric. Maximum radius where to search for knn. Default 50.}
 }
 \value{
 

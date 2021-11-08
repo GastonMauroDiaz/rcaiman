@@ -4,7 +4,15 @@
 \alias{choose_std_cie_sky_model}
 \title{Choose a standard CIE sky model}
 \usage{
-choose_std_cie_sky_model(r, z, a, bin)
+choose_std_cie_sky_model(
+  r,
+  z,
+  a,
+  bin,
+  use_window = TRUE,
+  twilight = TRUE,
+  rmse = FALSE
+)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -19,15 +27,39 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{bin}{\linkS4class{RasterLayer}. The result of binarizing the \code{r}
 argument.}
+
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a 3 by 3
+window will be used to extract the sky digital number from \code{r}.}
+
+\item{twilight}{Logical vector of length one. If it is \code{TRUE} and the
+initial standard parameters belong to the "Clear" general sky type, sun
+zenith angles from 90 to 96 degrees will be tested (civic twilight). This
+is necessary since \code{\link{extract_sun_marks}} would mistakenly
+recognize the gravity center of what can be seen of the solar corona as the
+solar disk.}
+
+\item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
+for selecting the best sky model is to choose the one with lest root mean
+square error calculated from the sample (sky marks). Otherwise, the
+criteria is to evaluate the whole hemisphere by calculating the ratio of
+\code{r} to the sky model, then square it, and selecting the sky model that
+produce the least value.}
 }
 \description{
 Choose one from the 15th standard CIE sky models based on sky DN values.
 }
 \details{
-This function assume the same than \code{\link{find_sky_dns}}, so please
-refer to that function help, first paragraph under Details headline.
+The extraction of sky marks and sun coordinates is automatically done by the
+function assuming the same that it is assumed for \code{\link{find_sky_dns}},
+so please refer to that function help page, Details headline, first
+paragraph.
 
-To kwow more about the CIE sky models, please refer to
+Since a sky grid of 30 degrees is used, the maximum number of sky marks is
+36, and the sun location is coarse. So, although it is not enough to estimate
+model coefficients with \code{\link{fit_cie_sky_model}}, it can be used to
+choose the closest standard sky.
+
+To know more about the standard CIE sky models, please refer to
 \insertCite{Li2016;textual}{rcaiman}.
 }
 \examples{
@@ -51,7 +83,6 @@ plot(sky)
 }
 \seealso{
 Other cie sky model functions: 
-\code{\link{autofit_cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()},
 \code{\link{fit_cie_sky_model}()}
 }

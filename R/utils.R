@@ -42,6 +42,11 @@ degree2radian <- function(x) x * pi / 180
 
 .calc_rmse <- function(x) sqrt(mean(x^2))
 
+.calc_r2 <- function(x, y) {
+  model <- lm(y ~ x)
+  summary(model)$r.squared
+}
+
 # .estimate_w <- function(bin) {
 #   sky_border <- focal(bin, matrix(c(0, 1, 0,
 #                                     1,-4, 1,

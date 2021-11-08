@@ -91,7 +91,7 @@ fit_trend_surface <- function(r,
                               np = 6) {
   stopifnot(class(r) == "RasterLayer")
   compareRaster(bin, r)
-  compareRaster(bin, m)
+  if (!is.null(m)) compareRaster(bin, m)
 
   if (!is.null(m)) r[!m] <- NA
 

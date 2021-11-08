@@ -13,6 +13,8 @@ fit_cie_sky_model(
   std_sky_no = NULL,
   general_sky_type = NULL,
   use_window = TRUE,
+  twilight = TRUE,
+  rmse = FALSE,
   method = "BFGS"
 )
 }
@@ -42,19 +44,35 @@ or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.}
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a 3 by 3
 window will be used to extract the sky digital number from \code{r}.}
 
+\item{twilight}{Logical vector of length one. If it is \code{TRUE} and the
+initial standard parameters belong to the "Clear" general sky type, sun
+zenith angles from 90 to 96 degrees will be tested (civic twilight). This
+is necessary since \code{\link{extract_sun_marks}} would mistakenly
+recognize the gravity center of what can be seen of the solar corona as the
+solar disk.}
+
+\item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
+for selecting the best sky model is to choose the one with lest root mean
+square error calculated from the sample (sky marks). Otherwise, the
+criteria is to evaluate the whole hemisphere by calculating the ratio of
+\code{r} to the sky model, then square it, and selecting the sky model that
+produce the least value.}
+
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \description{
 Fit CIE sky model using data from real hemispherical photographs.
 }
 \details{
-This function use maximum likelihood to estimate the parameters of the CIE
-sky model that fit best to data sampled from a real image. It will try to
-estimate the parameters  The result include the output produced by
-\code{\link[bbmle]{mle2}}, the root mean square error, the adjusted r
-squared, the digital number at the zenith, the sun coordinates (zenith and
-azimuth angle in degrees), and the description of the standard sky from which
-the initial parameters were drawn \insertCite{Li2016}{rcaiman}.
+This function use maximum likelihood to estimate the coefficients of the CIE
+sky model that fit best to data sampled from a real image. The result include
+the output produced by \code{\link[bbmle]{mle2}}, the 5 model coefficients,
+observed and predicted values, the sun coordinates (zenith and azimuth angle
+in degrees), the relative luminance calculated for every pixel using the
+estimated coefficients and corresponding sun coordinate, the digital number
+at the zenith, and the description of the standard sky from which the initial
+coefficients were drawn. See \insertCite{Li2016;textual}{rcaiman} to known
+more about these coefficients
 }
 \examples{
 \dontrun{
@@ -73,19 +91,8 @@ bin <- ootb_cie_mblt(blue, z, a)$bin
 sky_marks <- extract_sky_marks(blue, bin, g)
 sun_coord <- extract_sun_mark(blue, bin, z, a, g)
 
-# since extract_sun_mark does not "see" below the horizon, this script
-# explore til the end of civic twilight
-sun_coords <- data.frame(z = c(sun_coord[1], seq(90, 96, 1) ),
-                         a = sun_coord[2])
-models <- Map(function(i) fit_cie_sky_model(blue, z, a, sky_marks,
-                                            as.numeric(sun_coords[i,]),
-                                            general_sky_type = "Clear"),
-              1:nrow(sun_coords))
-rmse <- Map(function(i) models[[i]]$rmse, seq_along(models)) \%>\% unlist()
-model <- models[[which.min(rmse)]]
-sky <- cie_sky_model_raster(z, a, model$sun_coord, model$fit@coef[-6]) *
-  model$zenith_dn
-plot(sky)
+model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_coord)
+plot(model$relative_luminance)
 }
 }
 \references{
@@ -93,7 +100,6 @@ plot(sky)
 }
 \seealso{
 Other cie sky model functions: 
-\code{\link{autofit_cie_sky_model}()},
 \code{\link{choose_std_cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()}
 }

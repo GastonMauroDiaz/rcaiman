@@ -139,7 +139,7 @@ ootb_mblt <- function(r, z, a) {
   sky_cs <- fit_cone_shaped_model(r, z, a, bin)$image
   bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5))
 
-  m <- mask_image(z)
+  m <- !is.na(z)
   sky_s <- fit_trend_surface(r, bin, m, sky_cs)$image
   w <- z^2 / 90^2
   sky <- sky_s * (1 - w) + sky_cs *  w
@@ -201,25 +201,26 @@ ootb_cie_mblt <- function(r, z, a) {
 
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
 
-  sky_m <- fit_cone_shaped_model(r, z, a, bin)$image
-  bin <- apply_thr(r, thr_image(sky_m, 0, 0.5))
+  sky_cs <- fit_cone_shaped_model(r, z, a, bin)$image
+  bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5))
 
   std_cie_sky <- choose_std_cie_sky_model(r, z, a, bin)
   sky_cie <- std_cie_sky$relative_luminance * std_cie_sky$zenith_dn
-  bin <- apply_thr(r, thr_image(sky_cie, 0, 0.5))
+  r2 <- .calc_r2(std_cie_sky$obs, std_cie_sky$pred)
+  sky_combo <- sky_cs *  (1 - r2) + sky_cie * r2
+  suppressWarnings(bin <- apply_thr(r, thr_image(sky_combo, 0, 0.5)))
 
-  flat <- residu <- sky_cie - r
+  flat <- r
   flat[] <- 0
-  m <- mask_image(z)
-  residu_s <- fit_trend_surface(residu, bin, m, flat)
-  sky_s <- sky_cie - residu_s$image
-
+  residu <- r - sky_combo
+  residu_s <- fit_trend_surface(residu, bin, filling_source =  flat)
+  sky_s <- sky_combo + residu_s$image
   w <- z^2 / 90^2
-  sky <- sky_s * (1 - w) + sky_cie *  w
-  bin <- apply_thr(r, thr_image(sky, 0, 0.5))
+  sky <- sky_s * (1 - w) + sky_combo *  w
+  suppressWarnings(bin <- apply_thr(r, thr_image(sky, 0, 0.5)))
 
   list(bin = bin,
-       sky_m = sky_m,
+       sky_cs = sky_cs,
        std_cie_sky = std_cie_sky,
        sky_s = sky_s,
        sky = sky)
