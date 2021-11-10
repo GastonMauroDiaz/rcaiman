@@ -9,7 +9,7 @@ fit_cie_sky_model(
   z,
   a,
   sky_marks,
-  sun_coord,
+  sun_mark,
   std_sky_no = NULL,
   general_sky_type = NULL,
   use_window = TRUE,
@@ -31,9 +31,6 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{sky_marks}{data.frame. The result of a call to
 \code{\link{extract_sky_marks}}.}
-
-\item{sun_coord}{Numeric vector of length 2. Zenith and azimuth angles in
-degrees, corresponding to the location of the solar disk center.}
 
 \item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
 \insertCite{Li2016;textual}{rcaiman}.}
@@ -100,7 +97,6 @@ plot(model$relative_luminance)
 }
 \seealso{
 Other cie sky model functions: 
-\code{\link{choose_std_cie_sky_model}()},
 \code{\link{cie_sky_model_raster}()}
 }
 \concept{cie sky model functions}

@@ -286,15 +286,8 @@ extract_sun_mark <- function(r, bin, z, a, g,
   xy <- as.numeric(round(coordinates(p)))
   row_col <- c(rowFromY(m, xy[2]), colFromX(m, xy[1]))
 
-  if (angular_coord) {
-    sun_coord <- (c(z[row_col[1], row_col[2]], a[row_col[1], row_col[2]]))
-    attr(sun_coord, "name") <- "zenith_azimuth"
-    return(round(sun_coord))
-  } else {
-    attr(row_col, "name") <- "row_col"
-    return(row_col)
-  }
-
+  sun_coord <- (c(z[row_col[1], row_col[2]], a[row_col[1], row_col[2]]))
+  list(row_col = row_col, zenith_azimuth = round(sun_coord))
 }
 
 

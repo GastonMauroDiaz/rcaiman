@@ -62,7 +62,6 @@ plot(bin)
 Other mblt functions: 
 \code{\link{fit_cone_shaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{ootb_cie_mblt}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }

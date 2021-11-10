@@ -142,7 +142,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_coord)
 #' plot(model$relative_luminance)
 #' }
-fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
+fit_cie_sky_model <- function(r, z, a, sky_marks, sun_mark,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               use_window = TRUE,
@@ -157,7 +157,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   }
 
   stopifnot(ncol(sky_marks) == 2)
-  stopifnot(length(sun_coord) == 2)
+  stopifnot(length(sun_mark$zenith_azimuth) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
@@ -180,11 +180,9 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
     zenith_dn <- sky_marks$dn[sky_marks$z < z_thr]
     z_thr <- z_thr + 2
   }
-
   if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from pure ",
                                        "sky pixels from zenith angle up to ",
                                        z_thr, "."))
-
   zenith_dn <- mean(zenith_dn)
   attr(zenith_dn, "max_zenith_angle") <- z_thr
   sky_marks$dn <- sky_marks$dn / zenith_dn
@@ -193,7 +191,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
 
   .fun <- function(i) {
-    sun_a_z <- degree2radian(rev(sun_coord))
+    sun_a_z <- degree2radian(rev(sun_mark$zenith_azimuth))
     AzS <- sun_a_z[1]
     Zs <- sun_a_z[2]
 
@@ -216,11 +214,11 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
     if (any(try(fit@details$convergence, silent = TRUE), is.na(fit))) {
       return(list(mle2_output = NA,
                   coef = NA,
-                  pred = NA,
                   obs = NA,
-                  sun_coord = sun_coord,
+                  pred = NA,
                   relative_luminance = NA,
                   zenith_dn = zenith_dn,
+                  sun_mark = sun_mark,
                   sky_type = NA))
     } else {
       pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
@@ -229,16 +227,18 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
                              .c = as.numeric(skies[i,3]),
                              .d = as.numeric(skies[i,4]),
                              .e = as.numeric(skies[i,5]))
-      relative_luminance <- cie_sky_model_raster(z, a, sun_coord, fit@coef[-6])
+      relative_luminance <- cie_sky_model_raster(z, a,
+                                                 sun_mark$zenith_azimuth,
+                                                 fit@coef[-6])
       return(list(mle2_output = fit,
                   coef = fit@coef[-6],
-                  pred = pred,
                   obs = sky_marks$dn,
-                  sun_coord = sun_coord,
+                  pred = pred,
                   relative_luminance = relative_luminance,
                   zenith_dn = zenith_dn,
+                  sun_mark = sun_mark,
                   sky_type = paste0(skies[i,"general_sky_type"], ", ",
-                                   skies[i,"description"])))
+                                    skies[i,"description"])))
     }
   }
 
@@ -250,7 +250,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
     skies <- skies[indices,]
   }
 
-  models <- suppressWarnings(Map(.fun, 1:nrow(skies)))
+  fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
   if (twilight) {
     indices <- match(11:15, as.numeric(rownames(skies)))
@@ -259,161 +259,66 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_coord,
       skies <- skies[indices,]
       civic_twilight <-  c(seq(90, 96, 1))
       for (i in seq_along(civic_twilight)) {
-      sun_coord <-  c(civic_twilight[i], sun_coord[2])
-      models <- c(models, suppressWarnings(Map(.fun, 1:nrow(skies))))
-     }
-    }
-  }
-
-  .calc_ratio_squared <- function(x) {
-    ratio <- r / (x$relative_luminance * x$zenith_dn)
-    sum(ratio[]^2, na.rm = TRUE)
-  }
-
-  if (!rmse) {
-    error <- Map(.calc_ratio_squared, models) %>% unlist()
-    error[error == 0] <- NA
-  } else {
-    error <- Map(function(x) .calc_rmse(x$pred - x$obs), models) %>% unlist()
-  }
-
-  if (all(is.na(error))) {
-    return(models[[1]])
-  } else {
-    model <- models[[which.min(error)]]
-    if (sun_coord[1] > 90) {
-      warning("\"sun_coord\" was set below the horizon.")
-    }
-    return(model)
-  }
-}
-
-
-#' Choose a standard CIE sky model
-#'
-#' Choose one from the 15th standard CIE sky models based on sky DN values.
-#'
-#' The extraction of sky marks and sun coordinates is automatically done by the
-#' function assuming the same that it is assumed for \code{\link{find_sky_dns}},
-#' so please refer to that function help page, Details headline, first
-#' paragraph.
-#'
-#' Since a sky grid of 30 degrees is used, the maximum number of sky marks is
-#' 36, and the sun location is coarse. So, although it is not enough to estimate
-#' model coefficients with \code{\link{fit_cie_sky_model}}, it can be used to
-#' choose the closest standard sky.
-#'
-#' To know more about the standard CIE sky models, please refer to
-#' \insertCite{Li2016;textual}{rcaiman}.
-#'
-#'
-#' @inheritParams fit_cie_sky_model
-#' @inheritParams extract_sky_marks
-#'
-#' @references \insertRef{Li2016}{rcaiman}
-#'
-#' @family  cie sky model functions
-#'
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' my_file <- path.expand("~/DSCN5548.JPG")
-#' download.file("https://osf.io/kp7rx/download", my_file,
-#'               method = "auto", mode = "wb")
-#' r <- read_caim(my_file,
-#'                c(1280, 960) - 745,
-#'                745 * 2,
-#'                745 * 2)
-#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
-#' a <- azimuth_image(z)
-#' blue <- gbc(r$Blue)
-#' sky <- choose_std_cie_sky_model(blue, z, a)$relative_luminance
-#' plot(sky)
-#' }
-choose_std_cie_sky_model <- function(r, z, a, bin,
-                                     use_window = TRUE,
-                                     twilight = TRUE,
-                                     rmse = FALSE) {
-  .check_if_r_z_and_a_are_ok(r, z, a)
-  compareRaster(r, bin)
-
-  g <- sky_grid_segmentation(z, a, 30)
-  sky_marks <- extract_sky_marks(r, bin, g)
-  sun_coord <- extract_sun_mark(r, bin, z, a, g)
-
-  cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
-  sky_marks$z <- z[cells]
-
-  if (use_window) {
-    xy <-  xyFromCell(r, cells)
-    sky_marks$dn <-  extract(r, xy, buffer = 1.5, fun = "mean")
-  } else {
-    sky_marks$dn <-  r[cells]
-  }
-
-  z_thr <- 2
-  zenith_dn <- c()
-  while (length(zenith_dn) < 20) {
-    zenith_dn <- sky_marks$dn[sky_marks$z < z_thr]
-    z_thr <- z_thr + 2
-  }
-
-  zenith_dn <- mean(zenith_dn)
-  attr(zenith_dn, "max_zenith_angle") <- z_thr
-  sky_marks$dn <- sky_marks$dn / zenith_dn
-
-  path <- system.file("external", package = "rcaiman")
-  skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
-
-  .fun <- function(i) {
-    std_sky <- cie_sky_model_raster(z, a, sun_coord, as.numeric(skies[i,1:5]))
-
-    if (use_window) {
-      pred <-  extract(std_sky, xy, buffer = 1.5, fun = "mean")
-    } else {
-      pred <-  std_sky[cells]
-    }
-
-    return(list(std_sky_no = i,
-                sun_coord = sun_coord,
-                pred = pred,
-                obs = sky_marks$dn,
-                relative_luminance = std_sky,
-                zenith_dn = zenith_dn,
-                general_sky_type = skies[i,"general_sky_type"])
-           )
-
-  }
-
-  models <- Map(.fun, 1:nrow(skies))
-
-  if (twilight) {
-    indices <- match(11:15, as.numeric(rownames(skies)))
-    indices <- indices[!is.na(indices)]
-    if (length(indices) != 0) {
-      skies <- skies[indices,]
-      civic_twilight <-  c(seq(90, 96, 1))
-      for (i in seq_along(civic_twilight)) {
-        sun_coord <-  c(civic_twilight[i], sun_coord[2])
-        models <- c(models, suppressWarnings(Map(.fun, 1:nrow(skies))))
+        sun_mark$zenith_azimuth <-  c(civic_twilight[i],
+                                      sun_mark$zenith_azimuth[2])
+        fit <- c(fit, suppressWarnings(Map(.fun, 1:nrow(skies))))
       }
     }
   }
 
+  total_area <- sum(!is.na(z)[], na.rm = TRUE)
   .calc_ratio_squared <- function(x) {
-    ratio <- r / (x$relative_luminance * x$zenith_dn)
-    sum(ratio[]^2, na.rm = TRUE)
+    if (length(x$coef) != 5) {
+      return(NA)
+    } else {
+      sky <- x$relative_luminance * x$zenith_dn
+      sun <- sky[x$sun_mark$row_col[1], x$sun_mark$row_col[2]]
+      if (x$sun_mark$zenith_azimuth[1] < 90 &
+          sun > quantile(sky[], 0.9, na.rm = TRUE)
+          ) {
+        m <- sky < 0 | sky > 1
+        area_outside_expected_values <- sum(m[], na.rm = TRUE)
+        ratio <- r / sky
+        w <- area_outside_expected_values / total_area
+        return(sum(ratio[]^2, na.rm = TRUE) * w)
+      } else {
+        if (x$sun_mark$zenith_azimuth[1] >= 90) {
+          m <- sky < 0 | sky > 1
+          area_outside_expected_values <- sum(m[], na.rm = TRUE)
+          ratio <- r / sky
+          w <- area_outside_expected_values / total_area
+          return(sum(ratio[]^2, na.rm = TRUE) * w)
+        } else {
+          return(NA)
+        }
+      }
+    }
   }
 
   if (!rmse) {
-    error <- Map(.calc_ratio_squared, models) %>% unlist()
-    error[error == 0] <- NA
+    error <- Map(.calc_ratio_squared, fit) %>% unlist()
   } else {
-    error <- Map(function(x) .calc_rmse(x$pred - x$obs), models) %>% unlist()
+    error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
   }
 
-  models[[which.min(error)]]
+  # error1 <- Map(.calc_ratio_squared, fit) %>% unlist()
+  # error1 <- normalize(error1, min(error1, na.rm = TRUE),
+  #                     max(error1, na.rm = TRUE))
+  # error2 <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
+  # error2 <- normalize(error2, min(error2, na.rm = TRUE),
+  #                     max(error2, na.rm = TRUE))
+  # error <- error1 * error2
+
+  if (all(is.na(error))) {
+    return(fit[[1]])
+  } else {
+    model <- fit[[which.min(error)]]
+    if (model$sun_mark$zenith_azimuth[1] >= 90) {
+        warning(paste("Sun zenith angle was overwriten so \"row_col\"",
+                      "and \"zenith_azimuth\" does not match as in the",
+                      "original \"sun_mark\" argument."))
+      }
+    return(model)
+  }
 }
 
