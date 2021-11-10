@@ -1,3 +1,32 @@
+#' Mask hemisphere
+#'
+#' Given a zenith or azimuth image and angle restrictions, it produces a mask.
+#'
+#' @param r \linkS4class{RasterLayer}. The result of a call to
+#'   \code{\link{zenith_image}} or \code{\link{azimuth_image}}
+#' @param from,to angle in degrees, inclusive limits.
+#'
+#' @export
+#'
+#' @examples
+#' z <- zenith_image(1000, lens())
+#' a <- azimuth_image(z)
+#' m1 <- mask_hemisphere(z, 20, 70)
+#' plot(m1)
+#' m2 <- mask_hemisphere(a, 330,360)
+#' plot(m2)
+#' plot(m1 & m2)
+#' plot(m1 | m2)
+#'
+#' # if you want 15 degress at each side of 0
+#' m1 <- mask_hemisphere(a, 0, 15)
+#' m2 <- mask_hemisphere(a, 345, 360)
+#' plot(m1 | m2)
+#'
+#' # better use this
+#' plot(!is.na(z))
+#' # instead of this
+#' plot(mask_hemisphere(z, 0, 90))
 mask_hemisphere <- function(r, from, to) {
   stopifnot(class(r) == "RasterLayer")
   stopifnot(class(from) == "numeric")
@@ -18,7 +47,8 @@ mask_hemisphere <- function(r, from, to) {
 #'
 #' @param r \linkS4class{Raster}. The image. Values should be normalized, see
 #'   \code{\link{normalize}}.
-#' @param m \linkS4class{RasterLayer}. The mask, see \code{\link{mask_image}}.
+#' @param m \linkS4class{RasterLayer}. The mask, see
+#'   \code{\link{mask_hemisphere}}.
 #' @param RGB Numeric vector of length three. RGB color code. Red is the default
 #'   color.
 #'
@@ -29,7 +59,7 @@ mask_hemisphere <- function(r, from, to) {
 #'  r <- read_caim()
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)
-#'  m <- mask_image(z, a, c(20, 70), c(90, 180))
+#'  m <- mask_hemisphere(z, 20, 70) & mask_hemisphere(a, 90, 180)
 #'
 #'  masked_caim <-  masking(normalize(r, 0, 255), m)
 #'  plotRGB(masked_caim * 255)
@@ -84,7 +114,7 @@ setMethod("masking",
 #' @examples
 #' \dontrun{
 #' z <- zenith_image(1000, lens())
-#' m <- mask_image(z)
+#' m <- !is.na(z)
 #' write_bin(m, "mask")
 #' m_from_disk <- read_bin("mask.tif")
 #' plot(m - m_from_disk)
@@ -110,7 +140,7 @@ read_bin <- function(path) {
 #' @examples
 #' \dontrun{
 #' z <- zenith_image(1000, lens())
-#' m <- mask_image(z)
+#' m <- !is.na(z)
 #' write_bin(m, "mask")
 #' m_from_disk <- read_bin("mask.tif")
 #' plot(m - m_from_disk)

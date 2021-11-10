@@ -45,7 +45,7 @@
 #' @inheritParams stats::quantile
 #' @inheritParams fit_cone_shaped_model
 #' @param m \linkS4class{RasterLayer}. A mask. Usually, the result of a call to
-#'   \code{\link{mask_image}}.
+#'   \code{\link{mask_hemisphere}}.
 #' @inheritParams raster::aggregate
 #' @inheritParams spatial::surf.ls
 #'
@@ -76,7 +76,7 @@
 #' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
 #' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
-#' m <- mask_image(z, zlim = c(0, 80))
+#' m <- mask_hemisphere(z, 0, 80)
 #' sky <- fit_trend_surface(blue, bin, m,
 #'   filling_source = sky$image
 #' )
