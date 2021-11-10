@@ -9,7 +9,8 @@ mask_hemisphere <- function(r, from, to) {
   r[is.na(r)] <- 0
   r[r >= from & r <= to] <- NA
   r <- is.na(r)
-  r & m
+  r[m] <- 0
+  r
 }
 
 

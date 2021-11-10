@@ -1,10 +1,35 @@
-#' Build a sky image
+#' Interpolate DNs
 #'
-#' Build an above canopy image from a single below canopy image.
+#' Interpolate digital numbers using lidR::knnidw as workhorse function.
+#'
+#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+#' interpolation requires a linear relation between DNs and the amount of light
+#' reaching the sensor. The photographs should be taken in RAW format to avoid
+#' gamma correction \insertCite{Lang2010}{rcaiman}. As a compromise solution,
+#' \code{\link{gbc}} can be used.
+#'
+#' The vignetting effect also hindered linear relation between DNs and the
+#' amount of light reaching the sensor. Please refer to
+#' \insertCite{Lang2010;textual}{rcaiman} for more details about the vignetting
+#' effect.
+#'
+#' The use of \code{p = 1} solve the linear dilemma from the theoretical point
+#' of view since no averaging is taking place in the calculations.
+#'
+#' This function assume an hemispherical image as input. The interpolation takes
+#' place after a cylindrical reprojection is performed. Thirty-degree portions
+#' of the reprojected image are taken from the margin and duplicated to ensure
+#' hemispherical continuity. The reprojected image has resolution of one degree.
+#' Thus, \code{rmax} is in degrees.
 #'
 #' @inheritParams ootb_mblt
-#' @return
+#' @inheritParams fit_cie_sky_model
+#' @inheritParams lidR::knnidw
+#'
+#' @references \insertRef{Lang2010}{rcaiman}
+#'
 #' @export
+#'
 #' @examples
 #' \dontrun{
 #' my_file <- path.expand("~/DSCN5548.JPG")
@@ -17,10 +42,16 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' sky <- build_sky(blue, z, a)
-#' plot(sky$sky)
+#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' sky_marks <- extract_sky_marks(blue, bin, g)
+#' sky <- interpolate_dns(blue, z, a, sky_marks, lens("Nikon_FCE9"))
+#' plot(sky)
 #' }
-interpolate_dns <- function(r, z, a, sky_marks, lens_coef, use_window = TRUE) {
+interpolate_dns <- function(r, z, a, sky_marks, lens_coef,
+                            k = 3,
+                            p = 2,
+                            rmax = 20,
+                            use_window = TRUE) {
   if (!requireNamespace("lidR", quietly = TRUE)) {
     stop(paste("Package \"lidR\" needed for this function to work.",
                "Please install it."
@@ -60,11 +91,10 @@ interpolate_dns <- function(r, z, a, sky_marks, lens_coef, use_window = TRUE) {
   .res <- (ncell(temp) / ncell(r)) * 10
   suppressWarnings(
     suppressMessages(ir <- lidR::grid_terrain(
-                                            las, res = .res,
-                                            # algorithm = lidR::tin()
-                                            algorithm = lidR::knnidw(k = 10,
-                                                                     p = 1,
-                                                                     rmax = 20)
+                                           las, res = .res,
+                                           algorithm = lidR::knnidw(k = k,
+                                                                    p = p,
+                                                                    rmax = rmax)
                                             )
                    ))
   ir <- crop(ir, extent(0,360,0,90))

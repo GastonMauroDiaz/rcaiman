@@ -91,7 +91,20 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' estimated coefficients and corresponding sun coordinate, the digital number
 #' at the zenith, and the description of the standard sky from which the initial
 #' coefficients were drawn. See \insertCite{Li2016;textual}{rcaiman} to known
-#' more about these coefficients
+#' more about these coefficients.
+#'
+#' This function assume an hemispherical image as input. It is based on
+#' \insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
+#' obtained with data showing a linear relation between digital numbers and the
+#' amount of light reaching the sensor. However, the CIE sky model is indeed the
+#' adjoin of two mathematical models, one controlling the gradation between the
+#' zenith and the horizon (two parameters), and the other controlling the
+#' gradation originated at the solar disk (three parameters). This make the CIE
+#' model capable of cope with any non-linearity.
+#'
+#' Ultimately, if the goal is to calculate the ratio of canopy DN to sky DN, if
+#' the latter is accurately constructed, any non-linearity will be canceled.
+#' Please, see \code{\link{interpolate_dns}} for further considerations.
 #'
 #' @inheritParams ootb_mblt
 #' @param sky_marks data.frame. The result of a call to
@@ -135,11 +148,10 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_cie_mblt(blue, z, a)$bin
+#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
 #' sky_marks <- extract_sky_marks(blue, bin, g)
-#' sun_coord <- extract_sun_mark(blue, bin, z, a, g)
-#'
-#' model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_coord)
+#' sun_mark <- extract_sun_mark(blue, bin, z, a, g)
+#' model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_mark)
 #' plot(model$relative_luminance)
 #' }
 fit_cie_sky_model <- function(r, z, a, sky_marks, sun_mark,

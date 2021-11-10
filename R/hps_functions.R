@@ -3,13 +3,9 @@
 #' Extract sky marks for CIE sky model fitting
 #'
 #' The \code{bin} argument should be any binarized image that masked out pure
-#' canopy (non-gap) pixels and mixed pixels, so to establish a region of
-#' interest dominated by pure sky pixels (a.k.a., gap pixels).
-#'
-#' The \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}
-#' method set with a high \code{w}. The latter is for obtaining good candidates
-#' for the pure sky pixel class. Setting \code{w} to maximum is not recommended
-#' because that tend to produce high frequency of omission errors.
+#' canopy (non-gap) pixels and most of the mixed pixels, so to establish a
+#' region of interest dominated by pure sky pixels (a.k.a., gap pixels). The
+#' \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}.
 #'
 #' This function will automatically sample in the sky region delimited by
 #' \code{bin}. The density and distribution of the sampling points is controlled
@@ -138,9 +134,16 @@ extract_sky_marks <- function(r, bin, g,
 #' This function was designed to be called after \code{\link{extract_sky_marks}}
 #' in a workflow that connects the MBLT algorithm with the HSP software package.
 #' I such a workflow, the \code{\link{extract_sky_marks}} will use an image
-#' pre-processed by the HSP software as its \code{r} argument. The
-#' \code{img_name} argument of \code{write_sky_marks()} should be the name of
-#' the file associated to the aforementioned \code{r} argument.
+#' pre-processed by the HSP software as its \code{r} argument. Those images are
+#' stored as PGM files by HSP in the subfolder "manipulate" of the project
+#' folder (which will be in turn a subfolder of "project*s*" folder). Those PGM
+#' files can be read with \code{\link[raster]{raster}}. For instance: \code{r <-
+#' raster("C:/Users/johndoe/Documents/HSP/Projects/my_project/manipulate/img_001.pgm")}.
+#' Then, they will be ready to use as input after running \code{normalize(r,
+#' min(r[]),  max(r[]))}.
+#'
+#' The \code{img_name} argument of \code{write_sky_marks()} should be the name
+#' of the file associated to the aforementioned \code{r} argument.
 #'
 #'
 #' @param x Object from the class data.frame. The result of a calling to
@@ -200,32 +203,28 @@ write_sky_marks <- function(x, path_to_HSP_project, img_name) {
 #' shape is returned as the sun location in raster coordinates (column and row).
 #'
 #' The \code{bin} argument should be the same than for
-#' \code{\link{extract_sky_marks}}
+#' \code{\link{extract_sky_marks}}.
 #'
 #' @inheritParams extract_sky_marks
 #' @inheritParams sky_grid_segmentation
-#' @param angular_coord Logical vector of length one. If it is \code{TRUE}, it
-#'   returns the angular coordinates of the solar disk (zenith and azimuth
-#'   angles in degrees). If it is \code{FALSE}, it returns raster coordinates of
-#'   the solar disk (row and column).
-#' @param angular_coord Logical vector of length one. If it is \code{TRUE}, it
-#'   will return zenith and azimuth angles in degrees. Otherwise, row and column
-#'   numbers.
 #' @param max_angular_dist Numeric vector of length one. Angle in degree to
-#'   establish the maximum size of the sun corona. See details.
+#'   establish the maximum size of the sun corona. See details. The former is
+#'   raster coordinates of the solar disk (row and column), and the other is
+#'   angular coordinates (zenith and azimuth angles in degrees).
+#'
+#' @return Object of class list with two elements names "row_col" and
+#'   "zenith_azimuth", both are numeric vectors of lenght two.
 #'
 #' @family hsp functions
 #' @export
 extract_sun_mark <- function(r, bin, z, a, g,
-                             max_angular_dist = 45,
-                             angular_coord = TRUE) {
+                             max_angular_dist = 45) {
   .this_requires_EBImage()
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   stopifnot(class(bin) == "RasterLayer")
   stopifnot(class(g) == "RasterLayer")
   stopifnot(length(max_angular_dist) == 1)
-  stopifnot(length(angular_coord) == 1)
 
   r <- extract_feature(r, g, max)
   m <- r >= quantile(r[], 0.95, na.rm = TRUE)
@@ -299,9 +298,10 @@ extract_sun_mark <- function(r, bin, z, a, g,
 #' Please, see the Details section of this function:
 #' \code{\link{write_sky_marks}}.
 #'
-#' @param x Object from the class data.frame. The result of a calling to
-#'   \code{\link{extract_sky_marks}} with the \code{angular_coord} argument set
-#'   to \code{FALSE}.
+#' @param x Numeric vector of lenght two. Raster coordinates of the solar disk
+#'   that can be obtained by calling to \code{\link{extract_sun_marks}}. *TIP*:
+#'   if the output of \code{extrac_sun_mark()} is \code{x}, then you should
+#'   provide to \code{write_sun_mark()} this: \code{x$row_col}.
 #' @inheritParams write_sky_marks
 #'
 #' @family hsp functions
