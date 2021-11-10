@@ -16,7 +16,8 @@ masking(r, m, RGB = c(1, 0, 0))
 \item{r}{\linkS4class{Raster}. The image. Values should be normalized, see
 \code{\link{normalize}}.}
 
-\item{m}{\linkS4class{RasterLayer}. The mask, see \code{\link{mask_image}}.}
+\item{m}{\linkS4class{RasterLayer}. The mask, see
+\code{\link{mask_hemisphere}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
@@ -31,7 +32,7 @@ Image masking
  r <- read_caim()
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
- m <- mask_image(z, a, c(20, 70), c(90, 180))
+ m <- mask_hemisphere(z, 20, 70) & mask_hemisphere(a, 90, 180)
 
  masked_caim <-  masking(normalize(r, 0, 255), m)
  plotRGB(masked_caim * 255)

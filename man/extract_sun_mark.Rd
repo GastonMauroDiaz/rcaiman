@@ -4,7 +4,7 @@
 \alias{extract_sun_mark}
 \title{Extract sun mark}
 \usage{
-extract_sun_mark(r, bin, z, a, g, max_angular_dist = 45, angular_coord = TRUE)
+extract_sun_mark(r, bin, z, a, g, max_angular_dist = 45)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. Greyscale image hemispherical image.}
@@ -23,11 +23,13 @@ argument.}
 and pre-processing involved in obtaining the \code{r} argument.}
 
 \item{max_angular_dist}{Numeric vector of length one. Angle in degree to
-establish the maximum size of the sun corona. See details.}
-
-\item{angular_coord}{Logical vector of length one. If it is \code{TRUE}, it
-will return zenith and azimuth angles in degrees. Otherwise, row and column
-numbers.}
+establish the maximum size of the sun corona. See details. The former is
+raster coordinates of the solar disk (row and column), and the other is
+angular coordinates (zenith and azimuth angles in degrees).}
+}
+\value{
+Object of class list with two elements names "row_col" and
+  "zenith_azimuth", both are numeric vectors of lenght two.
 }
 \description{
 Extract the sun mark for CIE sky model fitting.
@@ -55,7 +57,7 @@ sun-corona segments, a convex hull is calculated, and the centroide of its
 shape is returned as the sun location in raster coordinates (column and row).
 
 The \code{bin} argument should be the same than for
-\code{\link{extract_sky_marks}}
+\code{\link{extract_sky_marks}}.
 }
 \seealso{
 Other hsp functions: 

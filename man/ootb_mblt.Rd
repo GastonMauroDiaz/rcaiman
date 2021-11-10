@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a)
+ootb_mblt(r, z, a, is_horizon_visible = FALSE)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -16,12 +16,17 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
+
+\item{is_horizon_visible}{Logical vector of length one. In mountainous
+regions the horizon is not visible even outside the forest. In dense
+forest, the horizon is hide even in non-mountainous regions. In those
+situations, pixels from near the horizon are unreliable as sky pixels. When
+this argument is \code{FALSE}, pixels from above 70 degrees of zenith angle
+are considered unreliable as pure sky pixels.}
 }
 \value{
 Object of class list with the binarized image (named "bin") and the
-  reconstructed skies named as follow: "sky_cs" is the cone shaped model,
-  "sky_s" is the trend surface, and "sky" is the combination of both and
-  actually used to obtain "bin".
+  reconstructed sky (named "sky").
 }
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)
@@ -42,12 +47,12 @@ following main aspects:
 
 \itemize{
 
-\item $intercept$ is set to 0, $slope$ to 1, and $w$ to 0.5
+\item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 
 \item This version implements a regional threholding approach as first step
 instead of a global one. Please refer to \code{\link{find_sky_dns}}. The
-minimum number of samples (sky dns) required is equals to the 30 % of the
-population, considering that it is made of 5 $/times$ 5 sky grid cells.
+minimum number of samples (sky DNs) required is equals to the 30 % of the
+population, considering that it is made of  \eqn{5 \times 5} sky grid cells.
 
 \item It does not use asynchronous acquisition under the open sky. So, the
 cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
@@ -56,12 +61,21 @@ fitting (\code{\link{fit_trend_surface}}).
 
 \item The sDN obtained by trend surface fitting is merged with the sDN
 obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-average is calculated, being weights calculated as $/theta^2 / 90^2$ (Near
-the zenith, values obtained by means of trend surface fitting prevail over
-the ones obtained with the cone shaped model, and the opposite occur near the
-horizon).
+average is calculated, being weights calculated as \eqn{\theta^2 / 90^2}
+(Near the zenith, values obtained by means of trend surface fitting prevail
+over the ones obtained with the cone shaped model, and the opposite occur
+near the horizon).
 
 }
+
+This function search for black objects again a light background. When regular
+canopy hemispherical image are provided as input, the algorithm will find
+dark canopy elements against a bright sky almost everywhere in the picture.
+If an hemispherical photograph taken under the open sky is provided, this
+algorithm would be still searching black objects against a light background,
+so the darker portions of the sky will be taken as objects, i.e., canopy.
+This kind of error could be find in photographs of open forests for the same
+reason.
 }
 \examples{
 \dontrun{
@@ -75,7 +89,7 @@ r <- read_caim(my_file,
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a)$bin
+bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
 plot(bin)
 }
 }

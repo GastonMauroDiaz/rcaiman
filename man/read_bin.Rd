@@ -15,7 +15,7 @@ Wrapper functions for \code{\link[raster]{raster}}.
 \examples{
 \dontrun{
 z <- zenith_image(1000, lens())
-m <- mask_image(z)
+m <- !is.na(z)
 write_bin(m, "mask")
 m_from_disk <- read_bin("mask.tif")
 plot(m - m_from_disk)

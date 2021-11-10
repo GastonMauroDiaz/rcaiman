@@ -28,9 +28,16 @@ HSP software package \insertCite{Lang2013}{rcaiman}.
 This function was designed to be called after \code{\link{extract_sky_marks}}
 in a workflow that connects the MBLT algorithm with the HSP software package.
 I such a workflow, the \code{\link{extract_sky_marks}} will use an image
-pre-processed by the HSP software as its \code{r} argument. The
-\code{img_name} argument of \code{write_sky_marks()} should be the name of
-the file associated to the aforementioned \code{r} argument.
+pre-processed by the HSP software as its \code{r} argument. Those images are
+stored as PGM files by HSP in the subfolder "manipulate" of the project
+folder (which will be in turn a subfolder of "project*s*" folder). Those PGM
+files can be read with \code{\link[raster]{raster}}. For instance: \code{r <-
+raster("C:/Users/johndoe/Documents/HSP/Projects/my_project/manipulate/img_001.pgm")}.
+Then, they will be ready to use as input after running \code{normalize(r,
+min(r[]),  max(r[]))}.
+
+The \code{img_name} argument of \code{write_sky_marks()} should be the name
+of the file associated to the aforementioned \code{r} argument.
 }
 \references{
 \insertRef{Lang2013}{rcaiman}

@@ -24,11 +24,11 @@ Imports:
     Rdpack,
     spatial,
     rgeos,
-    sp
+    sp,
+    lidR
 Suggests: 
     EBImage,
     autothresholdr,
     conicfit,
-    bbmle,
-    lidR
+    bbmle
 RdMacros: Rdpack

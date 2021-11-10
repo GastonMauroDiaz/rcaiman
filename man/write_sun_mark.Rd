@@ -7,9 +7,10 @@
 write_sun_mark(x, path_to_HSP_project, img_name)
 }
 \arguments{
-\item{x}{Object from the class data.frame. The result of a calling to
-\code{\link{extract_sky_marks}} with the \code{angular_coord} argument set
-to \code{FALSE}.}
+\item{x}{Numeric vector of lenght two. Raster coordinates of the solar disk
+that can be obtained by calling to \code{\link{extract_sun_mark}}. *TIP*:
+if the output of \code{extrac_sun_mark()} is \code{x}, then you should
+provide to \code{write_sun_mark()} this: \code{x$row_col}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder.}

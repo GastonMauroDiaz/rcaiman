@@ -23,6 +23,7 @@
 #' Thus, \code{rmax} is in degrees.
 #'
 #' @inheritParams ootb_mblt
+#' @inheritParams zenith_image
 #' @inheritParams fit_cie_sky_model
 #' @inheritParams lidR::knnidw
 #'
@@ -52,12 +53,19 @@ interpolate_dns <- function(r, z, a, sky_marks, lens_coef,
                             p = 2,
                             rmax = 20,
                             use_window = TRUE) {
-  if (!requireNamespace("lidR", quietly = TRUE)) {
-    stop(paste("Package \"lidR\" needed for this function to work.",
-               "Please install it."
-    ),
-    call. = FALSE)
-  }
+  # if (!requireNamespace("lidR", quietly = TRUE)) {
+  #   stop(paste("Package \"lidR\" needed for this function to work.",
+  #              "Please install it."
+  #   ),
+  #   call. = FALSE)
+  # }
+  .check_if_r_z_and_a_are_ok(r, z, a)
+  stopifnot(length(k) == 1)
+  stopifnot(length(p) == 1)
+  stopifnot(length(rmax) == 1)
+  stopifnot(length(use_window) == 1)
+  stopifnot(class(lens_coef) == "numeric")
+  stopifnot(ncol(sky_marks) == 2)
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
   sky_marks$a <- a[cells]
@@ -104,7 +112,7 @@ interpolate_dns <- function(r, z, a, sky_marks, lens_coef,
                     r = rr * 90 * pi/180,
                     z = ir[])
   cart <- pracma::pol2cart(as.matrix(pol))
-  p <- SpatialPointsDataFrame(cart[,1:2], data.frame(cart[,3]))
+  p <- sp::SpatialPointsDataFrame(cart[,1:2], data.frame(cart[,3]))
   e <- extent(z)
   temp <- raster(z)
   res(temp) <- 10

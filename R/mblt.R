@@ -82,12 +82,12 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' \itemize{
 #'
-#' \item $intercept$ is set to 0, $slope$ to 1, and $w$ to 0.5
+#' \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 #'
 #' \item This version implements a regional threholding approach as first step
 #' instead of a global one. Please refer to \code{\link{find_sky_dns}}. The
 #' minimum number of samples (sky DNs) required is equals to the 30 % of the
-#' population, considering that it is made of 5 $\times$ 5 sky grid cells.
+#' population, considering that it is made of  \eqn{5 \times 5} sky grid cells.
 #'
 #' \item It does not use asynchronous acquisition under the open sky. So, the
 #' cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
@@ -96,10 +96,10 @@ thr_image <- function (dn, intercept, slope) {
 #'
 #' \item The sDN obtained by trend surface fitting is merged with the sDN
 #' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-#' average is calculated, being weights calculated as $\theta^2 / 90^2$ (Near
-#' the zenith, values obtained by means of trend surface fitting prevail over
-#' the ones obtained with the cone shaped model, and the opposite occur near the
-#' horizon).
+#' average is calculated, being weights calculated as \eqn{\theta^2 / 90^2}
+#' (Near the zenith, values obtained by means of trend surface fitting prevail
+#' over the ones obtained with the cone shaped model, and the opposite occur
+#' near the horizon).
 #'
 #' }
 #'

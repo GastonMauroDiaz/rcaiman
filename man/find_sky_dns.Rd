@@ -4,7 +4,7 @@
 \alias{find_sky_dns}
 \title{Find sky DNs}
 \usage{
-find_sky_dns(r, z, a, no_of_samples = 30)
+find_sky_dns(r, z, a, no_of_samples = 30, is_horizon_visible = FALSE)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -19,6 +19,13 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{no_of_samples}{Numeric vector of length one. Minimum number of samples
 required.}
+
+\item{is_horizon_visible}{Logical vector of length one. In mountainous
+regions the horizon is not visible even outside the forest. In dense
+forest, the horizon is hide even in non-mountainous regions. In those
+situations, pixels from near the horizon are unreliable as sky pixels. When
+this argument is \code{FALSE}, pixels from above 70 degrees of zenith angle
+are considered unreliable as pure sky pixels.}
 }
 \description{
 Find sky digital numbers automatically
@@ -39,7 +46,6 @@ argument \code{no_of_samples}, it goes back to the binarization step but
 decreasing the probability by 0.01 points.
 }
 \examples{
-#'
 \dontrun{
 my_file <- path.expand("~/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,

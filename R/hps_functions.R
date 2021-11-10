@@ -299,7 +299,7 @@ extract_sun_mark <- function(r, bin, z, a, g,
 #' \code{\link{write_sky_marks}}.
 #'
 #' @param x Numeric vector of lenght two. Raster coordinates of the solar disk
-#'   that can be obtained by calling to \code{\link{extract_sun_marks}}. *TIP*:
+#'   that can be obtained by calling to \code{\link{extract_sun_mark}}. *TIP*:
 #'   if the output of \code{extrac_sun_mark()} is \code{x}, then you should
 #'   provide to \code{write_sun_mark()} this: \code{x$row_col}.
 #' @inheritParams write_sky_marks

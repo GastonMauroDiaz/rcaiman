@@ -25,13 +25,9 @@ Extract sky marks for CIE sky model fitting
 }
 \details{
 The \code{bin} argument should be any binarized image that masked out pure
-canopy (non-gap) pixels and mixed pixels, so to establish a region of
-interest dominated by pure sky pixels (a.k.a., gap pixels).
-
-The \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}
-method set with a high \code{w}. The latter is for obtaining good candidates
-for the pure sky pixel class. Setting \code{w} to maximum is not recommended
-because that tend to produce high frequency of omission errors.
+canopy (non-gap) pixels and most of the mixed pixels, so to establish a
+region of interest dominated by pure sky pixels (a.k.a., gap pixels). The
+\code{bin} argument can be obtained with the \code{\link{ootb_mblt}}.
 
 This function will automatically sample in the sky region delimited by
 \code{bin}. The density and distribution of the sampling points is controlled

@@ -107,8 +107,10 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Please, see \code{\link{interpolate_dns}} for further considerations.
 #'
 #' @inheritParams ootb_mblt
-#' @param sky_marks data.frame. The result of a call to
+#' @param sky_marks An object of class data.frame. The result of a call to
 #'   \code{\link{extract_sky_marks}}.
+#' @param sun_mark An object of class list. The result of a call to
+#'   \code{\link{extract_sun_mark}}.
 #' @inheritParams cie_sky_model_raster
 #' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman}.
@@ -119,7 +121,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @param twilight Logical vector of length one. If it is \code{TRUE} and the
 #'   initial standard parameters belong to the "Clear" general sky type, sun
 #'   zenith angles from 90 to 96 degrees will be tested (civic twilight). This
-#'   is necessary since \code{\link{extract_sun_marks}} would mistakenly
+#'   is necessary since \code{\link{extract_sun_mark}} would mistakenly
 #'   recognize the gravity center of what can be seen of the solar corona as the
 #'   solar disk.
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
