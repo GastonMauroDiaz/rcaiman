@@ -78,10 +78,10 @@ ootb_sky_reconstruction <- function(r, lens_coef,
   g <- sky_grid_segmentation(z, a, 10)
   bin <- ootb_mblt(r, z, a, is_horizon_visible)$bin
   if (is_horizon_visible) {
-    m <- mask_hemisphere(z,85, 90)
+    m <- mask_hs(z,85, 90)
     bin[m] <- 0
   } else {
-    m <- mask_hemisphere(z, 70, 90)
+    m <- mask_hs(z, 70, 90)
     bin[m] <- 0
   }
   sky_marks <- extract_sky_marks(r, bin, g,

@@ -17,9 +17,9 @@ test_that("fit_trend_surface() works", {
     bin <- apply_thr(r$Blue, thr[1] * 1.25)
     blue <- gbc(r$Blue)
     sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
-    aux_m <- mask_hemisphere(z, 0, 20)
+    aux_m <- mask_hs(z, 0, 20)
     sky$image[aux_m] <- NA
-    m <- mask_hemisphere(z, 0,70)
+    m <- mask_hs(z, 0,70)
     sky <- fit_trend_surface(blue, bin, m,
                              filling_source = sky$image)
     path <- tempfile(fileext = ".tif")

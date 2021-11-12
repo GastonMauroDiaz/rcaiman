@@ -236,9 +236,9 @@ find_sky_dns <- function(r, z, a, no_of_samples = 30,
   g5 <- sky_grid_segmentation(z, a, 5)
 
   if (is_horizon_visible) {
-    m <- mask_hemisphere(z, 85, 90)
+    m <- mask_hs(z, 85, 90)
   } else {
-    m <- mask_hemisphere(z, 70, 90)
+    m <- mask_hs(z, 70, 90)
   }
 
   prob <- 1

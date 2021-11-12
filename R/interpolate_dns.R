@@ -1,8 +1,14 @@
 #' Interpolate DNs
 #'
-#' Interpolate digital numbers using lidR::knnidw as workhorse function.
+#' Interpolate digital numbers from hemispherical photographs
 #'
-#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+#' This function assume an hemispherical image as input. The interpolation takes
+#' place after a cylindrical reprojection is performed. Thirty-degree portions
+#' of the reprojected image are taken from the margin and duplicated to ensure
+#' hemispherical continuity. The reprojected image has resolution of one degree.
+#' Thus, \code{rmax} is in degree
+#'
+#' It is is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 #' interpolation requires a linear relation between DNs and the amount of light
 #' reaching the sensor. The photographs should be taken in RAW format to avoid
 #' gamma correction \insertCite{Lang2010}{rcaiman}. As a compromise solution,
@@ -13,14 +19,12 @@
 #' \insertCite{Lang2010;textual}{rcaiman} for more details about the vignetting
 #' effect.
 #'
-#' The use of \code{p = 1} solve the linear dilemma from the theoretical point
+#' The use of \code{k = 1} solve the linear dilemma from the theoretical point
 #' of view since no averaging is taking place in the calculations.
 #'
-#' This function assume an hemispherical image as input. The interpolation takes
-#' place after a cylindrical reprojection is performed. Thirty-degree portions
-#' of the reprojected image are taken from the margin and duplicated to ensure
-#' hemispherical continuity. The reprojected image has resolution of one degree.
-#' Thus, \code{rmax} is in degrees.
+#' Default parameters are the used by \insertCite{Lang2010;textual}{rcaiman}.
+#'
+#' This function use \code{\link[lidR]{knnidw} as workhorse function.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams zenith_image
