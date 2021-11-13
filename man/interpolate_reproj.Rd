@@ -47,12 +47,12 @@ window will be used to extract the sky digital number from \code{r}.}
 Interpolate values from hemispherical photographs by reprojecting.
 }
 \details{
-This function is a version of \code{\link{interpolate_as_is}} in which the
-interpolation takes place after a cylindrical reprojection. To ensure
-hemispherical continuity, portions of the reprojected image (30 degrees wide)
-are taken from the margin, duplicated, translated, and mirrored as the task
-requires. The reprojected image has resolution of one degree. Thus,
-\code{rmax} is in degrees.
+This function assume an hemispherical image as input. It is a version of
+\code{\link{interpolate_as_is}} in which the interpolation takes place after
+a cylindrical reprojection. To ensure hemispherical continuity, portions of
+the reprojected image (30 degrees wide) are taken from the margin,
+duplicated, translated, and mirrored as the task requires. The reprojected
+image has resolution of one degree. Thus, \code{rmax} is in degrees.
 }
 \examples{
 \dontrun{
@@ -67,6 +67,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+g <- sky_grid_segmentation(z, a, 10)
 sky_marks <- extract_sky_marks(blue, bin, g)
 sky <- interpolate_reproj(blue, z, a, lens("Nikon_FCE9"), sky_marks)
 plot(sky)

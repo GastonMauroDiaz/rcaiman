@@ -10,7 +10,8 @@ write_sun_mark(x, path_to_HSP_project, img_name)
 \item{x}{Numeric vector of lenght two. Raster coordinates of the solar disk
 that can be obtained by calling to \code{\link{extract_sun_mark}}. *TIP*:
 if the output of \code{extrac_sun_mark()} is \code{x}, then you should
-provide to \code{write_sun_mark()} this: \code{x$row_col}.}
+provide to \code{write_sun_mark()} this: \code{x$row_col}. See also
+\code{\link{row_col_from_zenith_azimuth}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder.}

@@ -28,12 +28,11 @@ window will be used to extract the sky digital number from \code{r}.}
 Interpolate values from hemispherical photographs as is.
 }
 \details{
-This function assume an hemispherical image as input. It is is based on
-\insertCite{Lang2010;textual}{rcaiman}. In theory, interpolation requires a
-linear relation between DNs and the amount of light reaching the sensor. To
-that end, photographs should be taken in RAW format to avoid gamma correction
-\insertCite{Lang2010}{rcaiman}. As a compromise solution, \code{\link{gbc}}
-can be used.
+This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+interpolation requires a linear relation between DNs and the amount of light
+reaching the sensor. To that end, photographs should be taken in RAW format
+to avoid gamma correction \insertCite{Lang2010}{rcaiman}. As a compromise
+solution, \code{\link{gbc}} can be used.
 
 The vignetting effect also hindered linear relation between DNs and the
 amount of light reaching the sensor. Please refer to
@@ -63,8 +62,9 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+g <- sky_grid_segmentation(z, a, 10)
 sky_marks <- extract_sky_marks(blue, bin, g)
-sky <- interpolate_reproj(blue, sky_marks)
+sky <- interpolate_as_is(blue, sky_marks)
 plot(sky)
 }
 }

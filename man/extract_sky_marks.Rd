@@ -46,7 +46,7 @@ space.
 \examples{
 \dontrun{
 require(magrittr)
-#' my_file <- path.expand("~/DSCN5548.JPG")
+my_file <- path.expand("~/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
               method = "auto", mode = "wb")
 r <- read_caim(my_file,
@@ -57,12 +57,16 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, w = 0.5)
+bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
 sky_marks <- extract_sky_marks(blue, bin, g,
                                min_raster_dist = 10)
 xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) \%>\%  xyFromCell(z, .)
 plot(blue)
 plot(SpatialPoints(xy), add = TRUE, col = 2)
 }
+}
+\seealso{
+Other hps functions: 
+\code{\link{row_col_from_zenith_azimuth}()}
 }
 \concept{hps functions}

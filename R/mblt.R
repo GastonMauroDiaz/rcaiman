@@ -150,7 +150,7 @@ ootb_mblt <- function(r, z, a, is_horizon_visible = FALSE) {
                                   use_azimuth_angle = TRUE,
                                   parallel = TRUE,
                                   free_cores = 0)$image
-  bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5))
+  suppressWarnings(bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5)))
 
   sky_s <- fit_trend_surface(r, bin,
                              m = NULL,
@@ -160,7 +160,7 @@ ootb_mblt <- function(r, z, a, is_horizon_visible = FALSE) {
                              np = 6)$image
   w <- z^2 / 90^2
   sky <- sky_s * (1 - w) + sky_cs *  w
-  bin <- apply_thr(r, thr_image(sky, 0, 0.5))
+  suppressWarnings(bin <- apply_thr(r, thr_image(sky, 0, 0.5)))
 
   list(bin = bin, sky = sky)
 }

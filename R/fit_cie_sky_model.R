@@ -315,14 +315,6 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_mark,
     error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
   }
 
-  # error1 <- Map(.calc_ratio_squared, fit) %>% unlist()
-  # error1 <- normalize(error1, min(error1, na.rm = TRUE),
-  #                     max(error1, na.rm = TRUE))
-  # error2 <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
-  # error2 <- normalize(error2, min(error2, na.rm = TRUE),
-  #                     max(error2, na.rm = TRUE))
-  # error <- error1 * error2
-
   if (all(is.na(error))) {
     return(fit[[1]])
   } else {
@@ -330,7 +322,9 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_mark,
     if (model$sun_mark$zenith_azimuth[1] >= 90) {
         warning(paste("Sun zenith angle was overwriten so \"row_col\"",
                       "and \"zenith_azimuth\" does not match as in the",
-                      "original \"sun_mark\" argument."))
+                      "original \"sun_mark\" argument.",
+                      "If you need to recalculate the \"sun_mark\",",
+                      "check the row_col_from_zenith_azimuth() function."))
       }
     return(model)
   }

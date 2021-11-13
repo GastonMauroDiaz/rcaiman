@@ -36,7 +36,7 @@
 #' @examples
 #' \dontrun{
 #' require(magrittr)
-#' #' my_file <- path.expand("~/DSCN5548.JPG")
+#' my_file <- path.expand("~/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
 #'               method = "auto", mode = "wb")
 #' r <- read_caim(my_file,
@@ -47,7 +47,7 @@
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, w = 0.5)
+#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
 #' sky_marks <- extract_sky_marks(blue, bin, g,
 #'                                min_raster_dist = 10)
 #' xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) %>%  xyFromCell(z, .)
@@ -301,7 +301,8 @@ extract_sun_mark <- function(r, bin, z, a, g,
 #' @param x Numeric vector of lenght two. Raster coordinates of the solar disk
 #'   that can be obtained by calling to \code{\link{extract_sun_mark}}. *TIP*:
 #'   if the output of \code{extrac_sun_mark()} is \code{x}, then you should
-#'   provide to \code{write_sun_mark()} this: \code{x$row_col}.
+#'   provide to \code{write_sun_mark()} this: \code{x$row_col}. See also
+#'   \code{\link{row_col_from_zenith_azimuth}}.
 #' @inheritParams write_sky_marks
 #'
 #' @family hsp functions
@@ -316,4 +317,40 @@ write_sun_mark <- function(x, path_to_HSP_project, img_name) {
                                     paste0(img_name, "_sun.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
               fileEncoding = "UTF-8", eol = "\n")
+}
+
+
+#' Row and col numbers from zenith and azimuth angles
+#'
+#' @inheritParams ootb_mblt
+#' @param za Numeric vector of length two. Zenith and azimuth angles in degrees.
+#'
+#' @export
+#'
+#' @family hps functions
+#'
+#' @examples
+#' z <- zenith_image(1000, lens_coef = lens())
+#' row_col <- row_col_from_zenith_azimuth(z, c(45, 270), lens())
+#' # the opposite calculation does not require a function
+#' a <- azimuth_image(z)
+#' z[row_col[1], row_col[2]]
+#' a[row_col[1], row_col[2]]
+row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
+  stopifnot(class(r) == "RasterLayer")
+  stopifnot(ncol(r) == nrow(r))
+  stopifnot(is.numeric(lens_coef))
+  stopifnot(is.numeric(za))
+  stopifnot(length(za) == 2)
+  az <- rev(za)
+  rr <- calc_relative_radius(az[2], lens_coef)
+  pol <- data.frame(theta = az[1] * pi/180 + pi/2,
+                    r = rr * 90 * pi/180,
+                    z = 0)
+  cart <- pracma::pol2cart(as.matrix(pol))
+  p <- sp::SpatialPoints(matrix(cart[1:2], ncol = 2))
+  e <- extent(r)
+  extent(r) <- extent(-pi/2,pi/2,-pi/2,pi/2)
+  ir <- rasterize(p, r)
+  cellsFromExtent(r, extent(p)) %>% rowColFromCell(r, .) %>% as.numeric()
 }

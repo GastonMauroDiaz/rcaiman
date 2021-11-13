@@ -2,12 +2,11 @@
 #'
 #' Interpolate values from hemispherical photographs as is.
 #'
-#' This function assume an hemispherical image as input. It is is based on
-#' \insertCite{Lang2010;textual}{rcaiman}. In theory, interpolation requires a
-#' linear relation between DNs and the amount of light reaching the sensor. To
-#' that end, photographs should be taken in RAW format to avoid gamma correction
-#' \insertCite{Lang2010}{rcaiman}. As a compromise solution, \code{\link{gbc}}
-#' can be used.
+#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+#' interpolation requires a linear relation between DNs and the amount of light
+#' reaching the sensor. To that end, photographs should be taken in RAW format
+#' to avoid gamma correction \insertCite{Lang2010}{rcaiman}. As a compromise
+#' solution, \code{\link{gbc}} can be used.
 #'
 #' The vignetting effect also hindered linear relation between DNs and the
 #' amount of light reaching the sensor. Please refer to
@@ -83,6 +82,7 @@ interpolate_as_is <- function(r, sky_marks,
   las <- .make_fake_las(xy[, 1], xy[, 2], sky_marks$dn)
   las@data$Classification <- 2
   ir <- lidR::grid_terrain(las, res = 1,
+                           full_raster = TRUE,
                            algorithm = lidR::knnidw(k = k,
                                                     p = p,
                                                     rmax = rmax)
@@ -96,12 +96,12 @@ interpolate_as_is <- function(r, sky_marks,
 #'
 #' Interpolate values from hemispherical photographs by reprojecting.
 #'
-#' This function is a version of \code{\link{interpolate_as_is}} in which the
-#' interpolation takes place after a cylindrical reprojection. To ensure
-#' hemispherical continuity, portions of the reprojected image (30 degrees wide)
-#' are taken from the margin, duplicated, translated, and mirrored as the task
-#' requires. The reprojected image has resolution of one degree. Thus,
-#' \code{rmax} is in degrees.
+#' This function assume an hemispherical image as input. It is a version of
+#' \code{\link{interpolate_as_is}} in which the interpolation takes place after
+#' a cylindrical reprojection. To ensure hemispherical continuity, portions of
+#' the reprojected image (30 degrees wide) are taken from the margin,
+#' duplicated, translated, and mirrored as the task requires. The reprojected
+#' image has resolution of one degree. Thus, \code{rmax} is in degrees.
 #'
 #'
 #' @inheritParams ootb_mblt
@@ -137,6 +137,7 @@ interpolate_reproj <- function(r, z, a, lens_coef, sky_marks,
                             rmax = 20,
                             use_window = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
+  stopifnot(ncol(r) == nrow(r))
 
   stopifnot(length(k) == 1)
   stopifnot(length(p) == 1)
@@ -149,7 +150,6 @@ interpolate_reproj <- function(r, z, a, lens_coef, sky_marks,
   stopifnot(ncol(sky_marks) == 2)
 
   stopifnot(is.numeric(lens_coef))
-
 
   cells <- cellFromRowCol(a, sky_marks$row, sky_marks$col)
   sky_marks$a <- a[cells]
@@ -179,6 +179,7 @@ interpolate_reproj <- function(r, z, a, lens_coef, sky_marks,
   suppressWarnings(
     suppressMessages(ir <- lidR::grid_terrain(
                                            las, res = .res,
+                                           full_raster = TRUE,
                                            algorithm = lidR::knnidw(k = k,
                                                                     p = p,
                                                                     rmax = rmax)
