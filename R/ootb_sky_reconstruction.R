@@ -97,7 +97,7 @@ ootb_sky_reconstruction <- function(r, lens_coef,
                              method = "BFGS")
   sky_cie <- model$relative_luminance * model$zenith_dn
   residu <- sky_cie - r
-  residu_i <- interpolate_dns(residu, z, a, sky_marks, lens_coef,
+  residu_i <- interpolate_dns(residu, z, a, lens_coef, sky_marks,
                               k = 3,
                               p = 2,
                               rmax = 20,

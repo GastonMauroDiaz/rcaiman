@@ -27,7 +27,7 @@
 #' plot(!is.na(z))
 #' # instead of this
 #' plot(mask_hs(z, 0, 90))
-mask_hemisphere <- function(r, from, to) {
+mask_hs <- function(r, from, to) {
   stopifnot(class(r) == "RasterLayer")
   stopifnot(class(from) == "numeric")
   stopifnot(class(to) == "numeric")

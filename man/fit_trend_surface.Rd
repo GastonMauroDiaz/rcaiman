@@ -24,7 +24,7 @@ be a preliminary binarization of \code{x}. If the function returns
 \code{NA}, the quality of this input should be revised.}
 
 \item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
-\code{\link{mask_hemisphere}}.}
+\code{\link{mask_hs}}.}
 
 \item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
 Above-canopy photograph. This image should contain pixels with sky DN
@@ -86,7 +86,7 @@ thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
 bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
 sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
-m <- mask_hemisphere(z, 0, 80)
+m <- mask_hs(z, 0, 80)
 sky <- fit_trend_surface(blue, bin, m,
   filling_source = sky$image
 )
