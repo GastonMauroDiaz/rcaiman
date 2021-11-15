@@ -37,7 +37,7 @@
 #' @export
 #'
 #' @examples
-#' #' \dontrun{
+#' \dontrun{
 #' my_file <- path.expand("~/DSCN5548.JPG")
 #' download.file("https://osf.io/kp7rx/download", my_file,
 #'               method = "auto", mode = "wb")
@@ -48,7 +48,7 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' bin <- ootb_mblt(blue, z, a)$bin
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_marks <- extract_sky_marks(blue, bin, g)
 #' sky <- interpolate_as_is(blue, sky_marks)
@@ -69,7 +69,7 @@ interpolate_as_is <- function(r, sky_marks,
   stopifnot(is.numeric(k))
   stopifnot(is.numeric(p))
   stopifnot(is.numeric(rmax))
-  stopifnot(ncol(sky_marks) == 2)
+  stopifnot(is.data.frame(sky_marks))
 
   cells <- cellFromRowCol(r, sky_marks$row, sky_marks$col)
   if (use_window) {
@@ -79,14 +79,18 @@ interpolate_as_is <- function(r, sky_marks,
     sky_marks$dn <-  r[cells]
   }
 
-  las <- .make_fake_las(xy[, 1], xy[, 2], sky_marks$dn)
+  las <- .make_fake_las(
+    c(xy[, 1]     , 0 - rmax, 0 - rmax       , xmax(r) + rmax, xmax(r) + rmax),
+    c(xy[, 2]     , 0 - rmax, ymax(r) + rmax , ymax(r) + rmax, 0 - rmax),
+    c(sky_marks$dn, 0       , 0              ,              0, 0)
+  )
   las@data$Classification <- 2
   ir <- lidR::grid_terrain(las, res = 1,
                            full_raster = TRUE,
                            algorithm = lidR::knnidw(k = k,
                                                     p = p,
                                                     rmax = rmax)
-  )
+                           )
   resample(ir, r)
 }
 
@@ -125,7 +129,7 @@ interpolate_as_is <- function(r, sky_marks,
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' bin <- ootb_mblt(blue, z, a)$bin
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_marks <- extract_sky_marks(blue, bin, g)
 #' sky <- interpolate_reproj(blue, z, a, lens("Nikon_FCE9"), sky_marks)
@@ -147,7 +151,7 @@ interpolate_reproj <- function(r, z, a, lens_coef, sky_marks,
   stopifnot(is.numeric(k))
   stopifnot(is.numeric(p))
   stopifnot(is.numeric(rmax))
-  stopifnot(ncol(sky_marks) == 2)
+  stopifnot(is.data.frame(sky_marks))
 
   stopifnot(is.numeric(lens_coef))
 
@@ -160,8 +164,6 @@ interpolate_reproj <- function(r, z, a, lens_coef, sky_marks,
   } else {
     sky_marks$dn <-  r[cells]
   }
-
-
 
   m1 <- sky_marks$a > 0 & sky_marks$a < 30
   m2 <- sky_marks$a > 330 & sky_marks$a < 360

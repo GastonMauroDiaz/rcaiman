@@ -199,12 +199,6 @@ fit_cone_shaped_model <- function(r, z, a, bin,
 #' @inheritParams fit_cone_shaped_model
 #' @param no_of_samples Numeric vector of length one. Minimum number of samples
 #'   required.
-#' @param is_horizon_visible Logical vector of length one. In mountainous
-#'   regions the horizon is not visible even outside the forest. In dense
-#'   forest, the horizon is hide even in non-mountainous regions. In those
-#'   situations, pixels from near the horizon are unreliable as sky pixels. When
-#'   this argument is \code{FALSE}, pixels from above 70 degrees of zenith angle
-#'   are considered unreliable as pure sky pixels.
 #'
 #' @family mblt functions
 #'
@@ -228,18 +222,13 @@ fit_cone_shaped_model <- function(r, z, a, bin,
 #' bin <- find_sky_dns(blue, z, a)
 #' plot(bin)
 #' }
-find_sky_dns <- function(r, z, a, no_of_samples = 30,
-                         is_horizon_visible = FALSE) {
+find_sky_dns <- function(r, z, a, no_of_samples = 30) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   g30 <- sky_grid_segmentation(z, a, 30)
   g5 <- sky_grid_segmentation(z, a, 5)
 
-  if (is_horizon_visible) {
-    m <- mask_hs(z, 85, 90)
-  } else {
-    m <- mask_hs(z, 70, 90)
-  }
+  m <- mask_hs(z, 80, 90)
 
   prob <- 1
   count <- 0

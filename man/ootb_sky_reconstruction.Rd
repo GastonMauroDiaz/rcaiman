@@ -4,7 +4,7 @@
 \alias{ootb_sky_reconstruction}
 \title{Out-of-the-box sky reconstruction}
 \usage{
-ootb_sky_reconstruction(r, lens_coef, is_horizon_visible = FALSE)
+ootb_sky_reconstruction(r, lens_coef)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -13,13 +13,6 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients
 of the lens projection function.}
-
-\item{is_horizon_visible}{Logical vector of length one. In mountainous
-regions the horizon is not visible even outside the forest. In dense
-forest, the horizon is hide even in non-mountainous regions. In those
-situations, pixels from near the horizon are unreliable as sky pixels. When
-this argument is \code{FALSE}, pixels from above 70 degrees of zenith angle
-are considered unreliable as pure sky pixels.}
 }
 \description{
 Build an above canopy image from a single below canopy image.
@@ -65,8 +58,7 @@ r <- read_caim(my_file,
                745 * 2,
                745 * 2)
 blue <- gbc(r$Blue)
-sky <- ootb_sky_reconstruction(blue, lens("Nikon_FCE9"),
-                               is_horizon_visible = FALSE)
+sky <- ootb_sky_reconstruction(blue, lens("Nikon_FCE9"))
 plot(sky)
 ratio <- blue / sky
 plot(ratio)

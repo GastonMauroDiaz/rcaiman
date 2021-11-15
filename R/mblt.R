@@ -94,13 +94,6 @@ thr_image <- function (dn, intercept, slope) {
 #' source, but the result of it is used as filling source for trend surface
 #' fitting (\code{\link{fit_trend_surface}}).
 #'
-#' \item The sDN obtained by trend surface fitting is merged with the sDN
-#' obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-#' average is calculated, being weights calculated as \eqn{\theta^2 / 90^2}
-#' (Near the zenith, values obtained by means of trend surface fitting prevail
-#' over the ones obtained with the cone shaped model, and the opposite occur
-#' near the horizon).
-#'
 #' }
 #'
 #' This function search for black objects again a light background. When regular
@@ -113,13 +106,12 @@ thr_image <- function (dn, intercept, slope) {
 #' reason.
 #'
 #' @inheritParams fit_cone_shaped_model
-#' @inheritParams find_sky_dns
 #'
 #' @export
 #' @family mblt functions
 #'
 #' @return Object of class list with the binarized image (named "bin") and the
-#'   reconstructed sky (named "sky").
+#'   reconstructed skies (named "sky_cs" and "sky_s").
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'
@@ -135,14 +127,13 @@ thr_image <- function (dn, intercept, slope) {
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' bin <- ootb_mblt(blue, z, a)$bin
 #' plot(bin)
 #' }
-ootb_mblt <- function(r, z, a, is_horizon_visible = FALSE) {
+ootb_mblt <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
-  bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3),
-                      is_horizon_visible)
+  bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
 
   sky_cs <- fit_cone_shaped_model(r, z, a, bin,
                                   prob = 0.95,
@@ -158,11 +149,9 @@ ootb_mblt <- function(r, z, a, is_horizon_visible = FALSE) {
                              prob = 0.95,
                              fact = 5,
                              np = 6)$image
-  w <- z^2 / 90^2
-  sky <- sky_s * (1 - w) + sky_cs *  w
-  suppressWarnings(bin <- apply_thr(r, thr_image(sky, 0, 0.5)))
+  suppressWarnings(bin <- apply_thr(r, thr_image(sky_s, 0, 0.5)))
 
-  list(bin = bin, sky = sky)
+  list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }
 
 

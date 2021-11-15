@@ -27,8 +27,9 @@
 #' @param g \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 #'   and pre-processing involved in obtaining the \code{r} argument.
-#' @param dist_to_plant Numeric vector of length one.
-#' @param min_raster_dist Numeric vector of length one. Distance in pixels.
+#' @param dist_to_plant Numeric vector of length one or \code{NULL}.
+#' @param min_raster_dist Numeric vector of length one or \code{NULL}. Distance
+#'   in pixels.
 #'
 #' @family hps functions
 #'
@@ -47,7 +48,7 @@
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' bin <- ootb_mblt(blue, z, a)$bin
 #' sky_marks <- extract_sky_marks(blue, bin, g,
 #'                                min_raster_dist = 10)
 #' xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) %>%  xyFromCell(z, .)
@@ -62,8 +63,8 @@ extract_sky_marks <- function(r, bin, g,
   stopifnot(class(bin) == "RasterLayer")
   stopifnot(class(g) == "RasterLayer")
 
-  stopifnot(length(dist_to_plant) == 1)
-  stopifnot(length(min_raster_dist) == 1)
+  if (!is.null(dist_to_plant)) stopifnot(length(dist_to_plant) == 1)
+  if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
   # remove the pixels with NA neighbors because HSP extract with 3x3 kernel
   NA_count <- focal(!bin, matrix(1, 3, 3))
@@ -247,9 +248,6 @@ extract_sun_mark <- function(r, bin, z, a, g,
   membership_posibility <- area * dn
   sun <- which.max(membership_posibility)
 
-  # angle_res <- 360 / round(.get_max(g) / 1000)
-  # a <- round(g / 1000) * angle_res
-  # z <- ((g / 1000) - trunc(g / 1000)) * 1000 * angle_res
   azimuth <- extract_feature(a, labeled_m, mean, return_raster = FALSE) %>%
     degree2radian()
   zenith <- extract_feature(z, labeled_m, mean, return_raster = FALSE) %>%
@@ -295,7 +293,7 @@ extract_sun_mark <- function(r, bin, z, a, g,
 #'
 #' Create a special file to interface with HSP software.
 #'
-#' Please, see the Details section of this function:
+#' Refer to the Details section of this function:
 #' \code{\link{write_sky_marks}}.
 #'
 #' @param x Numeric vector of lenght two. Raster coordinates of the solar disk
@@ -304,6 +302,7 @@ extract_sun_mark <- function(r, bin, z, a, g,
 #'   provide to \code{write_sun_mark()} this: \code{x$row_col}. See also
 #'   \code{\link{row_col_from_zenith_azimuth}}.
 #' @inheritParams write_sky_marks
+#'
 #'
 #' @family hsp functions
 #'
@@ -332,10 +331,6 @@ write_sun_mark <- function(x, path_to_HSP_project, img_name) {
 #' @examples
 #' z <- zenith_image(1000, lens_coef = lens())
 #' row_col <- row_col_from_zenith_azimuth(z, c(45, 270), lens())
-#' # the opposite calculation does not require a function
-#' a <- azimuth_image(z)
-#' z[row_col[1], row_col[2]]
-#' a[row_col[1], row_col[2]]
 row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
   stopifnot(class(r) == "RasterLayer")
   stopifnot(ncol(r) == nrow(r))
@@ -353,4 +348,121 @@ row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
   extent(r) <- extent(-pi/2,pi/2,-pi/2,pi/2)
   ir <- rasterize(p, r)
   cellsFromExtent(r, extent(p)) %>% rowColFromCell(r, .) %>% as.numeric()
+}
+
+
+#' Zenith and azimuth angles from row and col numbers
+#'
+#' @inheritParams ootb_mblt
+#' @param row_col Numeric vector of length two. Row and col numbers.
+#'
+#' @export
+#'
+#' @family hps functions
+#' @examples
+#' z <- zenith_image(1000, lens_coef = lens())
+#' zenith_azimuth_from_row_col(z, c(501, 751), lens())
+zenith_azimuth_from_row_col <- function(r, row_col, lens_coef) {
+  stopifnot(class(r) == "RasterLayer")
+  stopifnot(ncol(r) == nrow(r))
+  stopifnot(is.numeric(lens_coef))
+  stopifnot(is.numeric(row_col))
+  stopifnot(length(row_col) == 2)
+
+  #get azimuth
+  e <- extent(r)
+  extent(r) <- extent(-pi/2,pi/2,-pi/2,pi/2)
+  xy <- cellFromRowCol(r, row_col[1], row_col[2]) %>% xyFromCell(r, .)
+  tr <- pracma::cart2pol(as.numeric(xy))
+  azimuth <- tr[1] - pi/2 * 180/pi
+  if (azimuth < 0) azimuth <- 360 + azimuth
+  #get relative radius
+  rr <- tr[2] * 180/pi / 90
+  #invert
+  zs <- seq(0,150, 0.1)
+  rrs <- calc_relative_radius(zs, lens_coef)
+  z_from_rr <- suppressWarnings(splinefun(rrs, zs))
+  zenith <- z_from_rr(rr)
+  c(zenith, azimuth)
+}
+
+
+#' Read manual input
+#'
+#' Read manual input stored in an HSP project.
+#'
+#' Refer to the Details section of this function:
+#' \code{\link{write_sky_marks}}.
+#'
+#' @inheritParams write_sky_marks
+#' @family hps functions
+#' @export
+read_manual_input <- function(path_to_HSP_project, img_name) {
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "settings", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  settings <- scan(file, "character")
+  settings <- settings[c(9, 11:13)]
+  settings <- data.frame(
+    name = Map(function(x) x[1], strsplit(settings, "=")) %>% unlist(),
+    value = Map(function(x) x[2], strsplit(settings, "=")) %>% unlist()
+  )
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "sun", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sun <- scan(file, "character")
+  sun <- strsplit(sun, "\\.") %>% unlist() %>% as.numeric()
+  sun_mark <- list()
+  sun_mark$row_col <- rev(sun)
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "points", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sky_marks <- scan(file, "character", skip = 1)
+  sky_marks <- strsplit(sky_marks, "\\.") %>%
+    unlist() %>%
+    as.numeric() %>%
+    matrix(., ncol = 3, byrow = TRUE) %>%
+    as.data.frame(.)
+  names(sky_marks) <- c("col", "row", "type" )
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "statistics", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  content <- scan(file, "character", skip = 1, sep = "\n")
+  zenith_dn <- content[grep( "Zenith", content)]
+  zenith_dn <- strsplit(zenith_dn, "=")[[1]][2] %>%
+    sub(",", ".", .) %>% as.numeric()
+
+  list(weight = settings[1,2] %>% as.numeric(),
+       max_points = settings[2,2] %>% as.numeric(),
+       angle = settings[3,2] %>% as.numeric(),
+       point_radius = settings[4,2] %>% as.numeric(),
+       sun_mark = sun_mark,
+       sky_marks = sky_marks,
+       zenith_dn = zenith_dn)
+}
+
+#' Read optimized sky coefficients
+#'
+#' Read optimized CIE sky coefficients stored in an HSP project.
+#'
+#' Refer to the Details section of this function:
+#' \code{\link{write_sky_marks}}.
+#'
+#' @inheritParams write_sky_marks
+#' @family hps functions
+#' @seealso cie_sky_model_raster
+#' @export
+read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "opt-parameters", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sky_coef <- scan(file, "character", skip = 1)
+  sky_coef <- data.frame(
+    name = Map(function(x) x[1], strsplit(sky_coef, "=")) %>% unlist(),
+    value = Map(function(x) x[2], strsplit(sky_coef, "=")) %>% unlist()
+  )
+  sky_coef[c(2, 1, 5, 4, 3), 2] %>% sub(",", ".", .) %>% as.numeric()
 }

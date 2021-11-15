@@ -66,7 +66,7 @@ r <- read_caim(my_file,
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+bin <- ootb_mblt(blue, z, a)$bin
 g <- sky_grid_segmentation(z, a, 10)
 sky_marks <- extract_sky_marks(blue, bin, g)
 sky <- interpolate_reproj(blue, z, a, lens("Nikon_FCE9"), sky_marks)

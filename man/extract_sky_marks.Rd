@@ -57,7 +57,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+bin <- ootb_mblt(blue, z, a)$bin
 sky_marks <- extract_sky_marks(blue, bin, g,
                                min_raster_dist = 10)
 xy <- cellFromRowCol(z, sky_marks$row, sky_marks$col) \%>\%  xyFromCell(z, .)
@@ -67,6 +67,9 @@ plot(SpatialPoints(xy), add = TRUE, col = 2)
 }
 \seealso{
 Other hps functions: 
-\code{\link{row_col_from_zenith_azimuth}()}
+\code{\link{read_manual_input}()},
+\code{\link{read_opt_sky_coef}()},
+\code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{zenith_azimuth_from_row_col}()}
 }
 \concept{hps functions}

@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a, is_horizon_visible = FALSE)
+ootb_mblt(r, z, a)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -16,13 +16,6 @@ the blue channel extracted from an hemispherical photographs. Please see
 
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
-
-\item{is_horizon_visible}{Logical vector of length one. In mountainous
-regions the horizon is not visible even outside the forest. In dense
-forest, the horizon is hide even in non-mountainous regions. In those
-situations, pixels from near the horizon are unreliable as sky pixels. When
-this argument is \code{FALSE}, pixels from above 70 degrees of zenith angle
-are considered unreliable as pure sky pixels.}
 }
 \value{
 Object of class list with the binarized image (named "bin") and the
@@ -89,7 +82,7 @@ r <- read_caim(my_file,
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+bin <- ootb_mblt(blue, z, a)$bin
 plot(bin)
 }
 }

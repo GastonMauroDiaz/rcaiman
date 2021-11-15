@@ -50,7 +50,7 @@ be taken into account to properly set this parameter.
 This function use \code{\link[lidR]{knnidw}} as workhorse function.
 }
 \examples{
-#' \dontrun{
+\dontrun{
 my_file <- path.expand("~/DSCN5548.JPG")
 download.file("https://osf.io/kp7rx/download", my_file,
               method = "auto", mode = "wb")
@@ -61,7 +61,7 @@ r <- read_caim(my_file,
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+bin <- ootb_mblt(blue, z, a)$bin
 g <- sky_grid_segmentation(z, a, 10)
 sky_marks <- extract_sky_marks(blue, bin, g)
 sky <- interpolate_as_is(blue, sky_marks)

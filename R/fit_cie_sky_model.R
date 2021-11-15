@@ -150,7 +150,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+#' bin <- ootb_mblt(blue, z, a)$bin
 #' sky_marks <- extract_sky_marks(blue, bin, g)
 #' sun_mark <- extract_sun_mark(blue, bin, z, a, g)
 #' model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_mark)
@@ -170,7 +170,7 @@ fit_cie_sky_model <- function(r, z, a, sky_marks, sun_mark,
     call. = FALSE)
   }
 
-  stopifnot(ncol(sky_marks) == 2)
+  stopifnot(is.data.frame(sky_marks))
   stopifnot(length(sun_mark$zenith_azimuth) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
 

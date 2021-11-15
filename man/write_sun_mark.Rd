@@ -25,7 +25,7 @@ None. A file will be written in the HSP project folder.
 Create a special file to interface with HSP software.
 }
 \details{
-Please, see the Details section of this function:
+Refer to the Details section of this function:
 \code{\link{write_sky_marks}}.
 }
 \seealso{

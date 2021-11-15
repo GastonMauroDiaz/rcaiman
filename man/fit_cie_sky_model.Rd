@@ -100,7 +100,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, is_horizon_visible = TRUE)$bin
+bin <- ootb_mblt(blue, z, a)$bin
 sky_marks <- extract_sky_marks(blue, bin, g)
 sun_mark <- extract_sun_mark(blue, bin, z, a, g)
 model <- fit_cie_sky_model(blue, z, a, sky_marks, sun_mark)
