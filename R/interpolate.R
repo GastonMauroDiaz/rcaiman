@@ -1,6 +1,9 @@
-#' Interpolate as is
+#' Interpolate digital numbers
 #'
-#' Interpolate values from hemispherical photographs as is.
+#' Interpolate values from hemispherical photographs.
+#'
+#' This function use \code{\link[lidR]{knnidw}} as workhorse function, so
+#' arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
 #'
 #' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 #' interpolation requires a linear relation between DNs and the amount of light
@@ -19,18 +22,11 @@
 #' Default parameters are the used by \insertCite{Lang2010;textual}{rcaiman}.
 #' The argument \code{rmax} should account for between 15 to 20 degrees, but is
 #' expressed in pixels units. So, image resolution and lens projections should
-#' be taken into account to properly set this parameter.
-#'
-#' This function use \code{\link[lidR]{knnidw}} as workhorse function.
+#' be taken into account to properly set this argument.
 #'
 #'
 #' @inheritParams fit_cie_sky_model
-#' @param k Integer vector of length one. Number of k-nearest neighbors.
-#' @param p Numeric vector of length one. Power for inverse-distance weighting.
-#' @param rmax Numeric vector of length one. Maximum radius where to search for
-#'   knn.
-#'
-#' @seealso interpolate_reproj
+#' @inheritParams lidR::knnidw
 #'
 #' @references \insertRef{Lang2010}{rcaiman}
 #'
@@ -51,14 +47,14 @@
 #' bin <- ootb_mblt(blue, z, a)$bin
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_marks <- extract_sky_marks(blue, bin, g)
-#' sky <- interpolate_as_is(blue, sky_marks)
+#' sky <- interpolate_dns(blue, sky_marks)
 #' plot(sky)
 #' }
-interpolate_as_is <- function(r, sky_marks,
-                              k = 3,
-                              p = 2,
-                              rmax = 200,
-                              use_window = TRUE) {
+interpolate_dns <- function(r, sky_marks,
+                            k = 3,
+                            p = 2,
+                            rmax = 200,
+                            use_window = TRUE) {
   .check_if_r_was_normalized(r)
 
   stopifnot(length(k) == 1)
@@ -101,7 +97,7 @@ interpolate_as_is <- function(r, sky_marks,
 #' Interpolate values from hemispherical photographs by reprojecting.
 #'
 #' This function assume an hemispherical image as input. It is a version of
-#' \code{\link{interpolate_as_is}} in which the interpolation takes place after
+#' \code{\link{interpolate_dns}} in which the interpolation takes place after
 #' a cylindrical reprojection. To ensure hemispherical continuity, portions of
 #' the reprojected image (30 degrees wide) are taken from the margin,
 #' duplicated, translated, and mirrored as the task requires. The reprojected
@@ -111,11 +107,11 @@ interpolate_as_is <- function(r, sky_marks,
 #' @inheritParams ootb_mblt
 #' @inheritParams zenith_image
 #' @inheritParams fit_cie_sky_model
-#' @inheritParams interpolate_as_is
+#' @inheritParams interpolate_dns
 #'
 #' @references \insertRef{Lang2010}{rcaiman}
 #'
-#' @export
+#' @noRd
 #'
 #' @examples
 #' \dontrun{

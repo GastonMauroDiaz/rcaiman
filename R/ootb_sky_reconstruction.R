@@ -56,29 +56,21 @@
 #'                c(1280, 960) - 745,
 #'                745 * 2,
 #'                745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' sky <- ootb_sky_reconstruction(blue, lens("Nikon_FCE9"))
+#' sky <- ootb_sky_reconstruction(blue, z, a)
 #' plot(sky)
 #' ratio <- blue / sky
 #' plot(ratio)
 #' hist(ratio)
-#' plot(ratio > 1.3)
-#' ratio[ratio > 1.3] <- 1.3
-#' plot(ratio)
 #' }
-ootb_sky_reconstruction <- function(r, lens_coef) {
-  stopifnot(ncol(r) == nrow(r))
-  .check_if_r_was_normalized(r)
-  z <- zenith_image(ncol(r), lens_coef)
-  if (.get_max(z) > 90) stop(paste("Please check your \"lens_coef\" input",
-                                   "with \"test_lens_coef()\"."))
-  a <- azimuth_image(z)
-  g <- sky_grid_segmentation(z, a, 10)
+ootb_sky_reconstruction <- function(r, z, a) {
+  .check_if_r_z_and_a_are_ok(r, z, a)
+
   bin <- ootb_mblt(r, z, a)$bin
-
-  m <- mask_hs(z, 80, 90)
-  bin[m] <- 0
-
+  bin[mask_hs(z, 80, 90)] <- 0
+  g <- sky_grid_segmentation(z, a, 10)
   sky_marks <- extract_sky_marks(r, bin, g,
                                  dist_to_plant = 3,
                                  min_raster_dist = 3)
@@ -92,11 +84,11 @@ ootb_sky_reconstruction <- function(r, lens_coef) {
                              method = "BFGS")
   sky_cie <- model$relative_luminance * model$zenith_dn
   residu <- sky_cie - r
-  residu_i <- interpolate_reproj(residu, z, a, model$coef, sky_marks,
-                                 k = 3,
-                                 p = 2,
-                                 rmax = 20,
-                                 use_window = TRUE)
+  residu_i <- interpolate_dns(residu, sky_marks,
+                              k = 3,
+                              p = 2,
+                              rmax = ncol(r) / 7,
+                              use_window = TRUE)
   sky <- sky_cie - residu_i
   cover(sky, sky_cie)
 }

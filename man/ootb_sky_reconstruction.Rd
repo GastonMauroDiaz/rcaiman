@@ -4,15 +4,18 @@
 \alias{ootb_sky_reconstruction}
 \title{Out-of-the-box sky reconstruction}
 \usage{
-ootb_sky_reconstruction(r, lens_coef)
+ootb_sky_reconstruction(r, z, a)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{lens_coef}{Numeric vector. Polynomial coefficients
-of the lens projection function.}
+\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\code{\link{zenith_image}}.}
+
+\item{a}{\linkS4class{RasterLayer}. The result of a call to
+\code{\link{azimuth_image}}.}
 }
 \description{
 Build an above canopy image from a single below canopy image.
@@ -57,15 +60,14 @@ r <- read_caim(my_file,
                c(1280, 960) - 745,
                745 * 2,
                745 * 2)
+z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-sky <- ootb_sky_reconstruction(blue, lens("Nikon_FCE9"))
+sky <- ootb_sky_reconstruction(blue, z, a)
 plot(sky)
 ratio <- blue / sky
 plot(ratio)
 hist(ratio)
-plot(ratio > 1.3)
-ratio[ratio > 1.3] <- 1.3
-plot(ratio)
 }
 }
 \references{

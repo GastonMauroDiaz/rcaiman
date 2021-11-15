@@ -19,7 +19,7 @@ the blue channel extracted from an hemispherical photographs. Please see
 }
 \value{
 Object of class list with the binarized image (named "bin") and the
-  reconstructed sky (named "sky").
+  reconstructed skies (named "sky_cs" and "sky_s").
 }
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)
@@ -51,13 +51,6 @@ population, considering that it is made of  \eqn{5 \times 5} sky grid cells.
 cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
-
-\item The sDN obtained by trend surface fitting is merged with the sDN
-obtained with \code{\link{fit_cone_shaped_model}}. To merge them, a weighted
-average is calculated, being weights calculated as \eqn{\theta^2 / 90^2}
-(Near the zenith, values obtained by means of trend surface fitting prevail
-over the ones obtained with the cone shaped model, and the opposite occur
-near the horizon).
 
 }
 

@@ -16,9 +16,10 @@ argument.}
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 and pre-processing involved in obtaining the \code{r} argument.}
 
-\item{dist_to_plant}{Numeric vector of length one.}
+\item{dist_to_plant}{Numeric vector of length one or \code{NULL}.}
 
-\item{min_raster_dist}{Numeric vector of length one. Distance in pixels.}
+\item{min_raster_dist}{Numeric vector of length one or \code{NULL}. Distance
+in pixels.}
 }
 \description{
 Extract sky marks for CIE sky model fitting
