@@ -150,6 +150,7 @@ ootb_mblt <- function(r, z, a) {
                              fact = 5,
                              np = 6)$image
   suppressWarnings(bin <- apply_thr(r, thr_image(sky_s, 0, 0.5)))
+  bin[sky_s < 15/255] <- 0
 
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }

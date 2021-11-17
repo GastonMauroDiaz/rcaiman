@@ -13,15 +13,16 @@
 #' parameter indicates the pixels coordinates of the upper left corner of the
 #' region of interest (ROI). Those coordinates should be in the raster
 #' coordinates system, which works like a spreadsheet, i.e, when you go down
-#' through the vertical axis, the "row" number increase. The \code{width}, and
+#' through the vertical axis, the "row" number increase (*IMPORTANT: column and
+#' row must be provided instead of row and column*). The \code{width}, and
 #' \code{height} parameters indicate the size of the boxy ROI. I recommend using
 #' \href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this parameters, but any
 #' image editor can be used, such as GIMP and Adobe Photoshop.
 #'
 #'
-#' @param path_to_file Character vector of length one. Path to a
-#'   JPEG or TIFF file. The function will return a data
-#'   example (see details) if no arguments are provided.
+#' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
+#'   file. The function will return a data example (see details) if no arguments
+#'   are provided.
 #' @param upper_left An integer vector of length two (see details).
 #' @param width,height An integer vector of length one (see details).
 #'

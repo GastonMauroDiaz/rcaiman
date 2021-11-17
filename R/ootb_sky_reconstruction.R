@@ -8,7 +8,7 @@
 #' \code{ootb_sky_reconstruction} --no parenthesis. Advanced users could use
 #' that code as a template.
 #'
-#' This pipeline integrate these two studies:
+#' This pipeline is based on these two studies:
 #' \insertCite{Lang2010;textual}{rcaiman} and
 #' \insertCite{Diaz2018;textual}{rcaiman}.
 #'
@@ -16,13 +16,11 @@
 #' \insertCite{Diaz2018;textual}{rcaiman} was adapted can be read here
 #' \code{\link{ootb_mblt}}.
 #'
-#' The main difference between the original method by
+#' The main differences between the original method by
 #' \insertCite{Lang2010;textual}{rcaiman} and the one implemented here are: (1)
-#' it is fully automatic, (2) the interpolation is done in the raster space of a
-#' cylindrical projection instead of the raster space of an hemispherical
-#' equiangular projection, (3) the residuals of the CIE sky model
+#' it is fully automatic, (2) the residuals of the CIE sky model
 #' ($residuals=model-data$) are interpolated instead of the sky digital numbers
-#' (the data), and (4) the final sky reconstruction is obtained by subtracting
+#' (the data), and (3) the final sky reconstruction is obtained by subtracting
 #' the interpolated residuals to the CIE sky model instead of by calculating a
 #' weighted average parameterized by the user.
 #'
@@ -89,6 +87,49 @@ ootb_sky_reconstruction <- function(r, z, a) {
                               p = 2,
                               rmax = ncol(r) / 7,
                               use_window = TRUE)
+
+  .sand_residu_i <- function(r, sky_cie, residu_i) {
+    sky <- sky_cie - residu_i
+    sky <- cover(sky, sky_cie)
+    ratio <- r / sky
+    current <- max(ratio[], na.rm = TRUE)
+    rot <- 0 # rate of change
+    no_loops <- 0
+    while (current > 1.5 & rot <= 0 & no_loops < 30) {
+      previous <- max(ratio[], na.rm = TRUE)
+      no_loops <- no_loops + 1
+      res_range <- range(residu_i[], na.rm = TRUE)
+      if (rot == 0) index <- which.max(abs(res_range))
+      residu_i[residu_i == res_range[index]] <- res_range[index] * 0.9
+      sky <- sky_cie - residu_i
+      sky <- cover(sky, sky_cie)
+      ratio <- r / sky
+      current <- max(ratio[], na.rm = TRUE)
+      rot <- (current / previous) - 1
+    }
+    residu_i
+  }
+  delta <- abs(residu_i - .sand_residu_i(r, sky_cie, residu_i))
+  delta_range <- range(delta[], na.rm = TRUE)
+  if (sd(delta_range) != 0) {
+    delta_mask <- delta > mean(delta_range)
+    indices <- delta_mask[cellFromRowCol(r, sky_marks$row, sky_marks$col)]
+    sky_marks <- sky_marks[!indices, ]
+    model <- fit_cie_sky_model(r, z, a, sky_marks, sun_mark,
+                               std_sky_no = NULL,
+                               general_sky_type = NULL ,
+                               use_window = TRUE,
+                               twilight = TRUE,
+                               rmse = FALSE,
+                               method = "BFGS")
+    sky_cie <- model$relative_luminance * model$zenith_dn
+    residu <- sky_cie - r
+    residu_i <- interpolate_dns(residu, sky_marks,
+                                k = 3,
+                                p = 2,
+                                rmax = ncol(r) / 7,
+                                use_window = TRUE)
+  }
   sky <- sky_cie - residu_i
   cover(sky, sky_cie)
 }

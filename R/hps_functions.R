@@ -66,7 +66,7 @@ extract_sky_marks <- function(r, bin, g,
   if (!is.null(dist_to_plant)) stopifnot(length(dist_to_plant) == 1)
   if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
-  # remove the pixels with NA neighbors because HSP extract with 3x3 kernel
+  # remove the pixels with NA neighbors because HSP extract with 3x3 window
   NA_count <- focal(!bin, matrix(1, 3, 3))
 
   no_col <- no_row <- bin

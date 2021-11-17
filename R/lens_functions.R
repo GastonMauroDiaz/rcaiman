@@ -3,7 +3,7 @@
 #' Database of lens projection functions and field of views.
 #'
 #' TODO: include the character needed to retrieve the lens
-#' type and the reference
+#' type and the reference. Explain that angle is in radian.
 #'
 #' @param type Character vector of length one. The name of the lens, see details.
 #' @param max_fov Logical. Use TRUE to return the maximum FOV in degrees.
@@ -54,6 +54,8 @@ test_lens_coef <- function(lens_coef) {
 #' Calibrate lens
 #'
 #' Calibrate a fisheye lens.
+#'
+#' TODO: describe how to obtain the csv
 #'
 #' @param path_to_csv Character vector of length one. Path to a CSV file created
 #'   with ImageJ.
