@@ -16,7 +16,7 @@ Database of lens projection functions and field of views.
 }
 \details{
 TODO: include the character needed to retrieve the lens
-type and the reference
+type and the reference. Explain that angle is in radian.
 }
 \examples{
 lens("equiangular")

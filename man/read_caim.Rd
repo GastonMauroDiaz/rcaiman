@@ -13,9 +13,9 @@ read_caim(path_to_file, upper_left = NULL, width = NULL, height = NULL)
 \S4method{read_caim}{missing}(path_to_file)
 }
 \arguments{
-\item{path_to_file}{Character vector of length one. Path to a
-JPEG or TIFF file. The function will return a data
-example (see details) if no arguments are provided.}
+\item{path_to_file}{Character vector of length one. Path to a JPEG or TIFF
+file. The function will return a data example (see details) if no arguments
+are provided.}
 
 \item{upper_left}{An integer vector of length two (see details).}
 
@@ -38,7 +38,8 @@ RGB-TIFF are expected as input. To read a region of the file use
 parameter indicates the pixels coordinates of the upper left corner of the
 region of interest (ROI). Those coordinates should be in the raster
 coordinates system, which works like a spreadsheet, i.e, when you go down
-through the vertical axis, the "row" number increase. The \code{width}, and
+through the vertical axis, the "row" number increase (*IMPORTANT: column and
+row must be provided instead of row and column*). The \code{width}, and
 \code{height} parameters indicate the size of the boxy ROI. I recommend using
 \href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this parameters, but any
 image editor can be used, such as GIMP and Adobe Photoshop.

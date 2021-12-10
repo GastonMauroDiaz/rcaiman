@@ -43,7 +43,7 @@ To apply the weighting parameter (w) from Equation 1, just provide the
 argument \code{slope} as \code{slope_value * w}.
 
 Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
-which is very simple.
+which is very simple to follow.
 }
 \examples{
 thr_image(gbc(125), -8, 1)

@@ -1,4 +1,3 @@
-
 #' Expand non-circular
 #'
 #' Expand a non-circular hemispherical photograph.
@@ -9,9 +8,21 @@
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
 #'   zenith. See \code{\link{calc_zenith_raster_coordinates}}.
 #'
-#' @return caim \linkS4class{RasterBrick}
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#'    my_file <- path.expand("~/DSC_2881.JPG")
+#'    download.file("https://osf.io/x8urg/download", my_file,
+#'                method = "auto", mode = "wb"
+#'    )
+#'
+#'    r <- read_caim(file.path(path, "DSC_2881.JPG"))
+#'    diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+#'    zenith_colrow <- c(1503, 998)
+#'    z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
+#'    r <- expand_noncircular(r, z, zenith_colrow)
+#' }
 expand_noncircular <-  function (caim, z, zenith_colrow) {
   stopifnot(class(z) == "RasterLayer")
   stopifnot(class(zenith_colrow) == "numeric")

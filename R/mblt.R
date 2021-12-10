@@ -26,7 +26,7 @@
 #' argument \code{slope} as \code{slope_value * w}.
 #'
 #' Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
-#' which is very simple.
+#' which is very simple to follow.
 #'
 #' @param dn Numeric vector or \linkS4class{RasterLayer}. Digital number of the
 #'   background. These values should be normalized and, if they are extracted
@@ -150,7 +150,13 @@ ootb_mblt <- function(r, z, a) {
                              fact = 5,
                              np = 6)$image
   suppressWarnings(bin <- apply_thr(r, thr_image(sky_s, 0, 0.5)))
-  bin[sky_s < 15/255] <- 0
+  dns_8bit <- 1:15
+  min_z <- Map(function(x) {
+    m <- sky_s < x/255
+    min(z[m], na.rm = TRUE)
+  }, dns_8bit) %>% unlist()
+  dns_8bit <- dns_8bit[min_z > 75]
+  bin[sky_s < dns_8bit[length(dns_8bit)]/255] <- 0
 
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }

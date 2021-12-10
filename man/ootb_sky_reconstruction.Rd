@@ -27,7 +27,7 @@ functions: \code{\link{ootb_mblt}}, \code{\link{fit_cie_sky_model}}, and
 \code{ootb_sky_reconstruction} --no parenthesis. Advanced users could use
 that code as a template.
 
-This pipeline integrate these two studies:
+This pipeline is based on these two studies:
 \insertCite{Lang2010;textual}{rcaiman} and
 \insertCite{Diaz2018;textual}{rcaiman}.
 
@@ -35,13 +35,11 @@ Details about how the original method by
 \insertCite{Diaz2018;textual}{rcaiman} was adapted can be read here
 \code{\link{ootb_mblt}}.
 
-The main difference between the original method by
+The main differences between the original method by
 \insertCite{Lang2010;textual}{rcaiman} and the one implemented here are: (1)
-it is fully automatic, (2) the interpolation is done in the raster space of a
-cylindrical projection instead of the raster space of an hemispherical
-equiangular projection, (3) the residuals of the CIE sky model
+it is fully automatic, (2) the residuals of the CIE sky model
 ($residuals=model-data$) are interpolated instead of the sky digital numbers
-(the data), and (4) the final sky reconstruction is obtained by subtracting
+(the data), and (3) the final sky reconstruction is obtained by subtracting
 the interpolated residuals to the CIE sky model instead of by calculating a
 weighted average parameterized by the user.
 

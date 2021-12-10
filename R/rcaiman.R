@@ -18,6 +18,7 @@ NULL
 #' @import raster
 #' @importFrom magrittr %>%
 #' @importFrom stats lm poly coefficients median IQR
+#' @importFrom colorspace sRGB
 #' @importClassesFrom lidR LAS
 NULL
 

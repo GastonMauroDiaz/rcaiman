@@ -18,6 +18,9 @@ named list.
 \description{
 Calibrate a fisheye lens.
 }
+\details{
+TODO: describe how to obtain the csv
+}
 \examples{
 path <- system.file("external/Results_calibration.csv", package = "rcaiman")
 calibration <- calibrate_lens(path)

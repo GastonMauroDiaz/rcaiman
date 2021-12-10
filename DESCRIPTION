@@ -25,7 +25,8 @@ Imports:
     spatial,
     rgeos,
     sp,
-    lidR
+    lidR,
+    colorspace
 Suggests: 
     EBImage,
     autothresholdr,
