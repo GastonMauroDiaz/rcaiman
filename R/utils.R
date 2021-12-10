@@ -10,9 +10,9 @@ degree2radian <- function(x) x * pi / 180
 
 .is_integerish <- function(x) x == round(x)
 
-.check_if_r_was_normalized <- function(r) {
+.check_if_r_was_normalized <- function(r, name = "r") {
   if (max(r[], na.rm = TRUE) > 1)
-    warning("Please check if \"r\" was correctly normalized")
+    warning(paste("Please check if \"", name, "\" was correctly normalized."))
 }
 
 .check_if_r_z_and_a_are_ok <- function(r, z, a) {
@@ -81,6 +81,15 @@ degree2radian <- function(x) x * pi / 180
   fake_las@data$Z <- Z
   fake_las
 }
+
+.is_class_from_colorspace <- function(x) {
+  error_msn <- paste("\"target_color\" must be a subclass of the",
+                     "virtual class named \"color\" from",
+                     "\"colorspace\" package")
+  if (!isS4(x)) stop(error_msn)
+  if (attr(class(x), "package") != "colorspace") stop(error_msn)
+}
+
 
 .makeF8single <- function(a, ...) { # single layer output
 

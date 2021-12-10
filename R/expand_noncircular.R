@@ -17,11 +17,12 @@
 #'                method = "auto", mode = "wb"
 #'    )
 #'
-#'    r <- read_caim(file.path(path, "DSC_2881.JPG"))
+#'    r <- read_caim(my_file)
 #'    diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
 #'    zenith_colrow <- c(1503, 998)
 #'    z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
 #'    r <- expand_noncircular(r, z, zenith_colrow)
+#'    plot(r)
 #' }
 expand_noncircular <-  function (caim, z, zenith_colrow) {
   stopifnot(class(z) == "RasterLayer")

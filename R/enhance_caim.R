@@ -11,65 +11,100 @@
   c(target_a, target_b, sigma)
 }
 
-#' Compute the membership value to a color
+#' Compute the membership to a color
 #'
 #' Compute the degree of membership to a color with two Gaussian membership
 #' functions and axis \emph{A} and \emph{B} from the \emph{CIE L*a*b*} color
 #' space. The lightness information is not considered in the calculations.
 #'
-#' @param r \linkS4class{RasterStackBrick}.
+#' @inheritParams expand_noncircular
 #' @param target_color \linkS4class{color}.
 #' @param sigma Numeric vector of length one. Use \code{NULL} (default) to order
 #'   to estimate it automatically as the euclidean distance between
 #'   \code{target_color} and grey in the \emph{CIE L*a*b*} color space.
 #'
+#'
+#' @return It returns an object from the class \linkS4class{RasterBrick} or
+#'   \linkS4class{RasterStack} --this will depend on the input. First layer is
+#'   the membership to the target color. Second layer is the membership to grey.
+#'   Both membership are calculated with same \code{sigma}.
+#'
 #' @export
 #'
 #' @examples
-membership_to_color <- function(r, target_color, sigma = NULL) {
-  .check_if_r_was_normalized(r)
-  stopifnot(names(r) == c("Red", "Green", "Blue"))
-  color <- colorspace::sRGB(values(r))
-  error_msn <- paste("\"target_color\" must be a subclass of the",
-                     "virtual class named \"color\" from",
-                     "\"colorspace\" package")
-  .is_class_from_colorspace <- function(x) {
-    if (!isS4(x)) stop(error_msn)
-    if (attr(class(x), "package") != "colorspace") stop(error_msn)
-  }
-  .is_class_from_colorspace(color)
+#' \dontrun{
+#' my_file <- path.expand("~/DSC_2881.JPG")
+#' download.file("https://osf.io/x8urg/download", my_file,
+#'               method = "auto", mode = "wb"
+#' )
+#'
+#' caim <- read_caim(my_file)
+#' caim <- normalize(caim, 0, 255)
+#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+#' mem <- membership_to_color(caim, target_color)
+#' plot(mem)
+#' }
+membership_to_color <- function(caim, target_color, sigma = NULL) {
   .is_class_from_colorspace(target_color)
-  if (class(x) != "LAB") x <- as(x, "LAB")
+  .check_if_r_was_normalized(caim, "caim")
+  stopifnot(names(caim) == c("Red", "Green", "Blue"))
+  color <- colorspace::sRGB(values(caim))
+  if (class(color) != "LAB") color <- as(color, "LAB")
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
-  x <- colorspace::coords(x)
-  m <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], p[3]) / max_z
-  r$Blue <- unname(m)
-  r <- r$Blue
-  names(r) <- "Membership to the target color"
+  x <- colorspace::coords(color)
+  mem_to_color <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], p[3]) / max_z
+
+  target_color <- sRGB(matrix(c(0, 0, 0), ncol = 3))
+  sigma <- p[3]
+  p <- .get_gaussian_2d_parameters(target_color, sigma)
+  max_z <- .gaussian2d(p[1], p[2], p[1], p[2], sigma)
+  mem_to_grey <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], sigma) / max_z
+
+  r <- raster::subset(caim, 1:2)
+  r$Red <- mem_to_color
+  r$Green <- mem_to_grey
+  names(r) <- c("membership_to_target_color", "membership_to_grey")
   r
 }
 
-#' Compute a weighted membership value to lightness
+#' local fuzzy thresholding
 #'
 #' This function uses a threshold value as the location parameter of a logistic
-#' membership function whose scale parameter depends on a variable. This
-#' dependence can be explained as follows: if the variable is equal to \code{1},
-#' then the membership function is as a threshold function because the scale
-#' parameter is \code{0}; lowering the variable increases the scale parameter,
-#' thus blurring the threshold because it decreases the steepness of the curve.
+#' membership function whose scale parameter depends on a variable, here named
+#' \code{mem}. This dependence can be explained as follows: if the variable is
+#' equal to \code{1}, then the membership function is as a threshold function
+#' because the scale parameter is \code{0}; lowering the variable increases the
+#' scale parameter, thus blurring the threshold because it decreases the
+#' steepness of the curve. Since the variable is defined pixel by pixel, this
+#' should be considered as a local fuzzy thresholding method.
 #'
-#' @param lightness Numeric vector. The lightness value.
-#' @param m Numeric vector lying between \code{0} and \code{1}, same length as
-#'   \code{lightness}. It is the scale parameter of the logistic membership
-#'   function.
+#' @param lightness \linkS4class{RasterLayer}. A normalized greyscale image, the
+#'   lightness value. Values should range between zero and one --please see
+#'   \code{\link{normalize}}.
+#' @param mem \linkS4class{RasterLayer}. It is the scale parameter of the
+#'   logistic membership function. Typically it is obtained with
+#'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
 #'   membership function.
-#' @param fuzziness Numeric vector of length one.
-#'
-#' @noRd
-fuzzy_lightness <- function (lightness, m, thr, fuzziness) {
-  stats::plogis(lightness, thr, fuzziness * (1 - m))
+#' @param fuzziness Numeric vector of length one. This number is a constant that
+#'   scale \code{mem}.
+#' @examples
+#' \dontrun{
+#' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
+#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' caim <- normalize(caim, 0, 255)
+#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+#' mem <- membership_to_color(caim, target_color)
+#' mem_thr <- local_fuzzy_thresholding(mean(caim), mem$membership_to_grey, 0.5, 0.5)
+#' }
+local_fuzzy_thresholding <- function (lightness, mem, thr, fuzziness) {
+  .check_if_r_was_normalized(lightness, "lightness")
+  mem <- overlay(lightness, mem, fun = function(lightness, mem) {
+                stats::plogis(lightness, thr, fuzziness * (1 - mem))
+              })
+  names(mem) <- "membership_to_threshold"
+  mem
 }
 
 
@@ -86,18 +121,21 @@ fuzzy_lightness <- function (lightness, m, thr, fuzziness) {
 #' description is not sky. These linguistic rules were translated to math
 #' language by means of fuzzy logic.
 #'
-#' @param r
-#' @param m
-#' @param w_red
-#' @param w_blue
-#' @param sky_blue
-#' @param thr
-#' @param fuzziness
+#' @inheritParams expand_noncircular
+#' @inheritParams fit_trend_surface
+#' @param w_red,w_blue  Numeric vector of length one. Weight of red and blue
+#'   channel, respectively. A single layer image is calculated as a weighted
+#'   average to be used as lightness information.
+#' @param sky_blue \linkS4class{color}. Is the \code{target_color} argument to
+#'   be passed to \code{\link{membership_to_color}}.
+#' @inheritParams
 #'
-#' @details This is a pixel-wise methodology that evaluates if pixels are sky
-#'   blue colored. High score means high membership to \code{sky_blue}. When a
-#'   pixel is achromatic, then it uses pixel brightness. The algorithm
-#'   internally uses \code{\link{membership_to_color}} and
+#' @details This is a pixel-wise methodology that evaluates the possibility for
+#'   a pixel to be member of the class Gap. High score could mean either high
+#'   membership to \code{sky_blue} or, in the case of achromatic pixels, a high
+#'   membership to \code{thr}.
+#'
+#'   The algorithm internally uses \code{\link{membership_to_color}} and
 #'   \code{\link{fuzzy_lightness}}. The argument \code{sky_blue} is the
 #'   \code{target_color} of the former function, which output is the argument
 #'   \code{m} of the latter function. To evaluate the brightness of an
@@ -110,29 +148,30 @@ fuzzy_lightness <- function (lightness, m, thr, fuzziness) {
 #'   \code{thr}. To compute \code{fuzziness}, the algorithm takes the maximum
 #'   and the minimum values of the Relative Brightness and calculate its mean.
 #'
-#' @return
 #' @export
 #'
 #' @examples
-enhance_caim <- function(r,
+#' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
+#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' caim <- normalize(caim, 0, 255)
+#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' m <- !is.na(z)
+#' ecaim <- enhance_caim(caim, m)
+#' plot(ecaim)
+enhance_caim <- function(caim,
                          m,
                          w_red = 0.25,
                          w_blue = 0.75,
                          sky_blue = sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3)),
                          thr = NULL,
                          fuzziness = NULL) {
-  .check_if_r_was_normalized(r)
-  if (!compareRaster(r, m, stopiffalse = FALSE)) {
+  .check_if_r_was_normalized(caim, "caim")
+  if (!compareRaster(caim, m, stopiffalse = FALSE)) {
     stop("\"x\" should match pixel by pixel whit \"m\".")
   }
 
-  m_sky_blue <- membership_to_color(colorspace::sRGB(as.matrix(r)), sky_blue)
-
-  .relative_brightness <- function(x, w_red, w_blue) {
-
-  }
-
-  re_br <- r$Red * w_red + r$Blue * w_blue
+  mem_sky_blue <- membership_to_color(caim, sky_blue)
+  re_br <- caim$Red * w_red + caim$Blue * w_blue
 
   if (is.null(thr)) {
     if (!requireNamespace("autothresholdr", quietly = TRUE)) {
@@ -150,12 +189,13 @@ enhance_caim <- function(r,
     fuzziness <- (max(re_br[m]) - min(re_br[m])) / 2
   }
 
-  m_light <- fuzzy_lightness(values(re_br), m_sky_blue, thr, fuzziness)
-  membership <- m_sky_blue * m_light
-  r$Blue[] <- membership
-  r <- r$Blue
-  names(r) <- "Enhanced canopy image"
-  r
+  mem_sky_blue
+  # mem_thr <- local_fuzzy_thresholding(re_br, mem_sky_blue$membership_to_grey, thr, fuzziness)
+  mem_thr <- local_fuzzy_thresholding(re_br, mem_sky_blue$membership_to_target_color, thr, fuzziness)
+  mem_thr[is.na(mem_thr)] <- 0
+  mem <- mem_sky_blue$membership_to_target_color * mem_thr
+  names(mem) <- "Enhanced canopy image"
+  mem
 }
 
 
