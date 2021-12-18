@@ -16,9 +16,21 @@ expand_noncircular(caim, z, zenith_colrow)
 \item{zenith_colrow}{Numeric vector of length two. Raster coordinates of the
 zenith. See \code{\link{calc_zenith_raster_coordinates}}.}
 }
-\value{
-caim \linkS4class{RasterBrick}
-}
 \description{
 Expand a non-circular hemispherical photograph.
+}
+\examples{
+\dontrun{
+   my_file <- path.expand("~/DSC_2881.JPG")
+   download.file("https://osf.io/x8urg/download", my_file,
+               method = "auto", mode = "wb"
+   )
+
+   r <- read_caim(my_file)
+   diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+   zenith_colrow <- c(1503, 998)
+   z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
+   r <- expand_noncircular(r, z, zenith_colrow)
+   plot(r)
+}
 }

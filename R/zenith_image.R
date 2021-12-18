@@ -49,7 +49,7 @@ calc_relative_radius <- function(angle, lens_coef) {
   } else {
     relative_radius <- apply(ma, 2, sum)
   }
-  round(unname(relative_radius), 2)
+  unname(relative_radius)
 }
 
 #' Zenith image

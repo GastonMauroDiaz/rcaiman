@@ -20,7 +20,7 @@ degree2radian <- function(x) x * pi / 180
   .check_if_r_was_normalized(r)
   stopifnot(class(z) == "RasterLayer")
   stopifnot(class(a) == "RasterLayer")
-  stopifnot(.get_max(z) < 90)
+  stopifnot(.get_max(z) <= 90)
   compareRaster(r, z)
   compareRaster(z, a)
 }

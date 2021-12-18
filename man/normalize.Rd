@@ -4,7 +4,7 @@
 \alias{normalize}
 \title{Normalize data}
 \usage{
-normalize(r, mn, mx)
+normalize(r, mn = NULL, mx = NULL)
 }
 \arguments{
 \item{r}{\code{\linkS4class{Raster}} or numeric vector.}

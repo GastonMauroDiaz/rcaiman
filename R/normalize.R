@@ -1,4 +1,3 @@
-
 #' Normalize data
 #'
 #' Normalize data lying between \code{mn} and \code{mx} in the range \code{0} to
@@ -16,7 +15,9 @@
 #'
 #' @examples
 #' normalize(read_caim(), 0, 255)
-normalize <- function(r, mn, mx) {
+normalize <- function(r, mn = NULL, mx = NULL) {
+  if (is.null(mn)) mn <- .get_min(r)
+  if (is.null(mx)) mx <- .get_max(r)
   stopifnot(length(mn) == 1)
   stopifnot(length(mx) == 1)
   (r - mn) / (mx - mn)
