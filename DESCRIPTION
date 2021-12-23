@@ -1,15 +1,17 @@
 Package: rcaiman
 Type: Package
 Title: An R Package for CAnopy IMage ANalysis
-Version: 0.0.0.9000
+Version: 0.0.1
+Date: 2022-01-03
 Authors@R: 
-    person("Gaston Mauro", "Diaz", , "gastonmaurodiaz@gmail.com", 
+    person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))
-Author: Gaston Mauro Diaz 
-Maintainer: Gaston Mauro Diaz <gastonmaurodiaz@gmail.com>
-Description: The package's main strength is to classify hemispherical 
+Description: Its main strength is to classify hemispherical 
     photographs of the plant canopy with algorithms specially developed for 
-    such a task and well documented in scientific articles.
+    such a task and well documented in 
+    Díaz and Lencinas (2015) <doi:10.1109/lgrs.2015.2425931> and 
+    Díaz and Lencinas (2018) <doi:10.1139/cjfr-2018-0006>. It supports 
+    non-circular hemispherical photography.
 License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8
