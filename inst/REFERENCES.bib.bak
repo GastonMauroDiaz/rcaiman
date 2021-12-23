@@ -79,12 +79,52 @@
 
 @Article{Li2016,
   author    = {Danny H.W. Li and Siwei Lou and Joseph C. Lam and Ronald H.T. Wu},
+  journal   = {Energy},
   title     = {Determining solar irradiance on inclined planes from classified {CIE} (International Commission on Illumination) standard skies},
   year      = {2016},
   month     = {apr},
   pages     = {462--470},
   volume    = {101},
   doi       = {10.1016/j.energy.2016.02.054},
+  publisher = {Elsevier {BV}},
+}
+
+@Article{Pekin2009,
+  author    = {Burak Pekin and Craig Macfarlane},
+  title     = {Measurement of crown cover and leaf area index using digital cover photography and its application to remote sensing},
+  journal   = {Remote Sensing},
+  year      = {2009},
+  volume    = {1},
+  number    = {4},
+  pages     = {1298--1320},
+  month     = {dec},
+  doi       = {10.3390/rs1041298},
+  publisher = {{MDPI} {AG}},
+}
+
+@Article{Schneider2009,
+  author    = {D. Schneider and E. Schwalbe and H.-G. Maas},
+  title     = {Validation of geometric models for fisheye lenses},
+  journal   = {{ISPRS} Journal of Photogrammetry and Remote Sensing},
+  year      = {2009},
+  volume    = {64},
+  number    = {3},
+  pages     = {259--266},
+  month     = {may},
+  doi       = {10.1016/j.isprsjprs.2009.01.001},
+  publisher = {Elsevier {BV}},
+}
+
+@Article{Clark1988,
+  author    = {Clark, J. A. and Follin, G. M.},
+  title     = {A simple equal area calibration for fisheye photography},
+  journal   = {Agricultural and Forest Meteorology},
+  year      = {1988},
+  volume    = {44},
+  number    = {1},
+  pages     = {19--25},
+  month     = {nov},
+  doi       = {10.1016/0168-1923(88)90030-5},
   publisher = {Elsevier {BV}},
 }
 

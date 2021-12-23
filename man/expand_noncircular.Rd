@@ -34,3 +34,15 @@ Expand a non-circular hemispherical photograph.
    plot(r)
 }
 }
+\seealso{
+Other Lens functions: 
+\code{\link{azimuth_image}()},
+\code{\link{calc_diameter}()},
+\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calibrate_lens}()},
+\code{\link{lens}()},
+\code{\link{reproject_to_equidistant}()},
+\code{\link{test_lens_coef}()},
+\code{\link{zenith_image}()}
+}
+\concept{Lens functions}

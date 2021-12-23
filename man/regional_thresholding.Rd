@@ -18,7 +18,7 @@ regional_thresholding(
 \code{\link{normalize}} and \code{\link{gbc}}}
 
 \item{segmentation}{\linkS4class{RasterLayer}. The result of segmenting
-\code{r}. Probably, code{\link{rings_segmentation}} will be the most used
+\code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
 for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current
@@ -32,7 +32,7 @@ function coefficients. Please, see the Details section of
 function coefficients. Please, see the Details section of
 \code{\link{thr_image}}.}
 
-\item{prob}{One-length logical vector. Probability for
+\item{prob}{Logical vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 }
@@ -46,17 +46,17 @@ Regional thresholding of greyscale images
 Methods currently implemented are:
 
 \itemize{ \item \strong{Diaz2018}: method presented in
-\insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
-selected, the arguments \code{intercept}, \code{slope},and \code{prob} should
-be provided. It works segmentwise extracting the digital numbers (dns) per
-segment and passing them to \code{quantile(dns, prob)}, which aggregated
+\insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
+selected, the arguments \code{intercept}, \code{slope}, and \code{prob}
+should be provided. It works segmentwise extracting the digital numbers (dns)
+per segment and passing them to \code{quantile(dns, prob)}, which aggregated
 result (x) is in turn passed to \code{thr_image(x, intercept, slope)}.
-Finally, this thr is applied to obtain a binarized image.
+Finally, this threshold image is applied to obtain a binarized image.
 
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-to use the algorithm by \insertCite{isodata}{rcaiman}, which is the one
-recommended by \insertCite{Jonckheere2005}{rcaiman}. }
+to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
+recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
 }
 \examples{
 r <- read_caim()
@@ -68,10 +68,22 @@ bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
 \references{
 \insertRef{Diaz2018}{rcaiman}
 
-  \insertCite{Jonckheere2005}{rcaiman}
+  \insertRef{Jonckheere2005}{rcaiman}
 
-  \insertCite{isodata}{rcaiman}
+  \insertRef{isodata}{rcaiman}
 }
 \seealso{
 \code{\link{thr_image}}
+
+Other Tools functions: 
+\code{\link{apply_thr}()},
+\code{\link{extract_feature}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{normalize}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
+\concept{Tools functions}

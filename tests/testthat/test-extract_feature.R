@@ -8,7 +8,7 @@ test_that("extract_features() works", {
   expect_type(features, "double")
   local_edition(3)
   expect_equal(unname(features[1]) %>% round(., 2),
-               round(207.1624, 2))
+               round(204.2134, 2))
   features <- extract_feature(r$Blue, g, fun = max, return_raster = FALSE)
   expect_type(features, "double")
   expect_equal(unname(features[1]) %>% round(., 2), 238)

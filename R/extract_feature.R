@@ -17,17 +17,21 @@
 #' @param segmentation \linkS4class{RasterLayer}. The segmentation of \code{r}.
 #' @param fun \code{function} that takes a vector as input and returns a
 #'   one-length numeric or logical vector as output (e.g. mean).
-#' @param return_raster One-length logical vector.
+#' @param return_raster Logical vector of length one.
+#'
+#' @family Tools functions
 #'
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' r <- read_caim()
 #' z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' extract_feature(r$Blue, g, return_raster = FALSE)
 #' plot(extract_feature(r$Blue, g, return_raster = FALSE))
+#' }
 extract_feature <- function(r, segmentation, fun = mean, return_raster = TRUE) {
 
   stopifnot(class(r) == "RasterLayer")

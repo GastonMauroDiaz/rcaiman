@@ -23,5 +23,17 @@ than \code{0}.
 normalize(read_caim(), 0, 255)
 }
 \seealso{
-gbc
+\code{\link{gbc}}
+
+Other Tools functions: 
+\code{\link{apply_thr}()},
+\code{\link{extract_feature}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{regional_thresholding}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
+\concept{Tools functions}

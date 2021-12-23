@@ -4,14 +4,7 @@
 \alias{enhance_caim}
 \title{Enhance canopy image}
 \usage{
-enhance_caim(
-  caim,
-  m,
-  w_red = 0.5,
-  sky_blue = sRGB(matrix(c(0, 0, 1), ncol = 3)),
-  thr = NULL,
-  fuzziness = NULL
-)
+enhance_caim(caim, m, w_red = 0.5, sky_blue = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{RasterBrick}. The return of a call to
@@ -23,46 +16,36 @@ enhance_caim(
 \item{w_red}{Numeric vector of length one. Weight of the red channel. A
 single layer image is calculated as a weighted average of the blue and red
 channels. This layer is used as lightness information. The weight of the
-blue is the complement of the \code{w_red}.}
+blue is the complement of \code{w_red}.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
-be passed to \code{\link{membership_to_color}}.}
-
-\item{thr}{Numeric vector of length one. Location parameter of the logistic
-membership function. Use \code{NULL} (default) to order to estimate it
-automatically with the function \code{\link{autoThr}}, method
-\code{"IsoData"}.}
-
-\item{fuzziness}{Numeric vector of length one. This number is a constant that
-scale \code{mem}. Use \code{NULL} (default) to order to estimate it
-automatically as the midpoint between the maximum and minimum values of
-\code{lightness}.}
+be passed to \code{\link{membership_to_color}}. By default is pure Blue.}
 }
 \description{
-This function uses the color perceptual attributes to enhance the contrast
-between the sky and plants through fuzzy classification. Color has three
-different perceptual attributes: hue, lightness, and chroma. The algorithm
-was developed using the following premise: the color of the sky is different
-from the color of plants. It performs the next classification rules, here
-expressed in natural language: clear sky is blue and clouds decrease its
-chroma; if clouds are highly dense, then the sky is achromatic, and, in such
-cases, it can be light or dark; everything that does not match this
-description is not sky. These linguistic rules were translated to math
-language by means of fuzzy logic.
+This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses
+the color perceptual attributes to enhance the contrast between the sky and
+plants through fuzzy classification. Color has three different perceptual
+attributes: hue, lightness, and chroma. The algorithm was developed using the
+following premise: the color of the sky is different from the color of
+plants. It performs the next classification rules, here expressed in natural
+language: clear sky is blue and clouds decrease its chroma; if clouds are
+highly dense, then the sky is achromatic, and, in such cases, it can be light
+or dark; everything that does not match this description is not sky. These
+linguistic rules were translated to math language by means of fuzzy logic.
 }
 \details{
 This is a pixel-wise methodology that evaluates the possibility for
   a pixel to be member of the class Gap. High score could mean either high
   membership to \code{sky_blue} or, in the case of achromatic pixels, a high
   membership to \code{thr}. The algorithm internally uses
-  \code{\link{membership_to_color}} and \code{\link{fuzzy_lightness}}. The
-  argument \code{sky_blue} is the \code{target_color} of the former function,
-  which output is the argument \code{mem} of the latter function.
+  \code{\link{membership_to_color}} and
+  \code{\link{local_fuzzy_thresholding}}. The argument \code{sky_blue} is the
+  \code{target_color} of the former function, which output is the argument
+  \code{mem} of the latter function.
 }
 \examples{
 \dontrun{
-path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 m <- !is.na(z)
@@ -70,3 +53,12 @@ ecaim <- enhance_caim(caim, m)
 plot(ecaim)
 }
 }
+\references{
+\insertRef{Diaz2015}{rcaiman}
+}
+\seealso{
+Other Fuzzy logic functions: 
+\code{\link{local_fuzzy_thresholding}()},
+\code{\link{membership_to_color}()}
+}
+\concept{Fuzzy logic functions}

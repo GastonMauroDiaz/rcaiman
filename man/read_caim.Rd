@@ -38,11 +38,12 @@ RGB-TIFF are expected as input. To read a region of the file use
 parameter indicates the pixels coordinates of the upper left corner of the
 region of interest (ROI). Those coordinates should be in the raster
 coordinates system, which works like a spreadsheet, i.e, when you go down
-through the vertical axis, the "row" number increase (*IMPORTANT: column and
-row must be provided instead of row and column*). The \code{width}, and
-\code{height} parameters indicate the size of the boxy ROI. I recommend using
-\href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this parameters, but any
-image editor can be used, such as GIMP and Adobe Photoshop.
+through the vertical axis, the "row" number increase (\strong{IMPORTANT:
+column and row must be provided instead of row and column}). The
+\code{width}, and \code{height} parameters indicate the size of the boxy ROI.
+I recommend using \href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this
+parameters, but any image editor can be used, such as GIMP and Adobe
+Photoshop.
 }
 \section{Functions}{
 \itemize{
@@ -56,6 +57,7 @@ included in the file name.
 \examples{
 # This is the example image
 r <- read_caim()
+plotRGB(r)
 
 # This is also the example
 path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
@@ -69,5 +71,17 @@ r <- read_caim(path,
                height = diameter_px)
 }
 \seealso{
-write_caim
+\code{\link{write_caim}}
+
+Other Tools functions: 
+\code{\link{apply_thr}()},
+\code{\link{extract_feature}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{normalize}()},
+\code{\link{read_bin}()},
+\code{\link{regional_thresholding}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
+\concept{Tools functions}

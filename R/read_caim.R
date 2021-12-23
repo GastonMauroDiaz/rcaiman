@@ -13,11 +13,12 @@
 #' parameter indicates the pixels coordinates of the upper left corner of the
 #' region of interest (ROI). Those coordinates should be in the raster
 #' coordinates system, which works like a spreadsheet, i.e, when you go down
-#' through the vertical axis, the "row" number increase (*IMPORTANT: column and
-#' row must be provided instead of row and column*). The \code{width}, and
-#' \code{height} parameters indicate the size of the boxy ROI. I recommend using
-#' \href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this parameters, but any
-#' image editor can be used, such as GIMP and Adobe Photoshop.
+#' through the vertical axis, the "row" number increase (\strong{IMPORTANT:
+#' column and row must be provided instead of row and column}). The
+#' \code{width}, and \code{height} parameters indicate the size of the boxy ROI.
+#' I recommend using \href{https://imagej.nih.gov/ij/}{ImageJ} to obtain this
+#' parameters, but any image editor can be used, such as GIMP and Adobe
+#' Photoshop.
 #'
 #'
 #' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
@@ -28,12 +29,14 @@
 #'
 #' @return \code{\linkS4class{RasterBrick}}.
 #' @export
+#' @family Tools functions
 #'
-#' @seealso write_caim
+#' @seealso \code{\link{write_caim}}
 #'
 #' @examples
 #' # This is the example image
 #' r <- read_caim()
+#' plotRGB(r)
 #'
 #' # This is also the example
 #' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
@@ -115,53 +118,4 @@ setMethod(
     read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
   }
 )
-
-
-#' Write canopy image
-#'
-#' Wrapper function for \code{\link[raster]{writeRaster}}.
-#'
-#' @param caim \linkS4class{Raster}.
-#' @param path Character vector of length one. Path for writing the image.
-#' @param bit_depth Numeric vector of length one.
-#'
-#' @export
-#'
-#' @seealso write_bin
-#'
-#' @examples
-#' \dontrun{
-#' require(magrittr)
-#' caim <- read_caim() %>% normalize(., 0, 255)
-#' write_caim(caim * 2^8, "test_8bit", 8)
-#' write_caim(caim * 2^16, "test_16bit", 16)
-#' }
-write_caim <- function(caim, path, bit_depth) {
-
-  if (!any(bit_depth == 16, bit_depth == 8)) {
-    stop("bit_depth should be 8 or 16.")
-  }
-
-  projection(caim) <- NA
-  extent(caim) <- extent(0, ncol(caim), 0, nrow(caim))
-
-  file_name <- basename(path)
-  extension(file_name) <- "tif"
-
-  if (bit_depth == 8) {
-    suppressWarnings(
-      writeRaster(caim, file.path(dirname(path), file_name),
-                format = "GTiff", datatype = "INT1U", overwrite = TRUE)
-    )
-  } else {
-    suppressWarnings(
-      writeRaster(caim, file.path(dirname(path), file_name),
-                  format = "GTiff", datatype = "INT2U", overwrite = TRUE)
-    )
-  }
-}
-
-
-
-
 

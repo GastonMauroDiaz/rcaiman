@@ -18,7 +18,7 @@ fit_cone_shaped_model(
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photographs. Please see
+the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{RasterLayer}. The result of a call to
@@ -28,38 +28,38 @@ the blue channel extracted from an hemispherical photographs. Please see
 \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
-be a preliminary binarization of \code{x}. If the function returns
+be a preliminary binarization of \code{r}. If the function returns
 \code{NA}, the quality of this input should be revised.}
 
-\item{prob}{One-length logical vector. Probability for
+\item{prob}{Logical vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 
 \item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
 Above-canopy photograph. This image should contain pixels with sky DN
 values and \code{NA} in all the other pixels. A photograph taken
-immediately after or before taking \code{x} under the open sky with the
+immediately after or before taking \code{r} under the open sky with the
 same equipment and configuration is a very good option. The ideal option is
 one taken at the same time and place but above the canopy. The orientation
-relative to north must be the same than \code{x}.}
+relative to north must be the same than \code{r}.}
 
-\item{use_azimuth_angle}{One-length logical vector. If \code{TRUE}, Equation
-4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN = a + b
-\cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
+\item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE},
+Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
+a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
 cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
 \eqn{e} are coefficients, \eqn{\theta} is zenith angle, and \eqn{\phi} is
 azimuth angle. If \code{FALSE}, a simplified version based on
 \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
 \theta + c  \cdot \theta^2}.}
 
-\item{parallel}{One-length logical vector. Allows parallel processing.}
+\item{parallel}{Logical vector of length one. Allows parallel processing.}
 
-\item{free_cores}{One-length numeric vector. This number is subtracted to the
-number of cores detected by \code{\link[parallel]{detectCores}}.}
+\item{free_cores}{Numeric vector of length one. This number is subtracted to
+the number of cores detected by \code{\link[parallel]{detectCores}}.}
 }
 \value{
-A list with an object of class \linkS4class{RasterLayer} and of
-  class "lm" (see \code{\link[stats]{lm}}).
+A list with an object of class \linkS4class{RasterLayer} and of class
+  \code{lm} (see \code{\link[stats]{lm}}).
 }
 \description{
 Produce the digital numbers of the whole sky through statistical modelling.
@@ -71,35 +71,27 @@ the sky DN as a previous step for our method}.
 }
 \examples{
 \dontrun{
-my_file <- path.expand("~/DSCN5548.JPG")
-download.file("https://osf.io/kp7rx/download", my_file,
-               method = "auto", mode = "wb"
-)
-
-r <- read_caim(my_file,
-               c(1280, 960) - 745,
-               745 * 2,
-               745 * 2)
+path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
-bin <- apply_thr(r$Blue, thr[1] * 1.25)
 blue <- gbc(r$Blue)
+bin <- find_sky_dns(blue, z, a)
 sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 plot(sky$image)
-persp(sky) # yes, it looks like an upside down cone!
+persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 }
 }
 \references{
 \insertRef{Diaz2018}{rcaiman}
 
-\insertRef{Wagner2001}{rcaiman}
+  \insertRef{Wagner2001}{rcaiman}
 }
 \seealso{
-Other mblt functions: 
+Other MBLT functions: 
 \code{\link{find_sky_dns}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }
-\concept{mblt functions}
+\concept{MBLT functions}

@@ -5,40 +5,40 @@
 #' Methods currently implemented are:
 #'
 #' \itemize{ \item \strong{Diaz2018}: method presented in
-#' \insertCite{Diaz2018}{rcaiman} applied regionally. If this method is
-#' selected, the arguments \code{intercept}, \code{slope},and \code{prob} should
-#' be provided. It works segmentwise extracting the digital numbers (dns) per
-#' segment and passing them to \code{quantile(dns, prob)}, which aggregated
+#' \insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
+#' selected, the arguments \code{intercept}, \code{slope}, and \code{prob}
+#' should be provided. It works segmentwise extracting the digital numbers (dns)
+#' per segment and passing them to \code{quantile(dns, prob)}, which aggregated
 #' result (x) is in turn passed to \code{thr_image(x, intercept, slope)}.
-#' Finally, this thr is applied to obtain a binarized image.
+#' Finally, this threshold image is applied to obtain a binarized image.
 #'
 #' \item \strong{Methods from autothresholdr package}: this function can call
 #' methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-#' to use the algorithm by \insertCite{isodata}{rcaiman}, which is the one
-#' recommended by \insertCite{Jonckheere2005}{rcaiman}. }
+#' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
+#' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
 #'
 #' @param r \linkS4class{RasterLayer}. Normalized greyscale image. See
 #'   \code{\link{normalize}} and \code{\link{gbc}}
 #' @param segmentation \linkS4class{RasterLayer}. The result of segmenting
-#'   \code{r}. Probably, code{\link{rings_segmentation}} will be the most used
+#'   \code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
 #'   for fisheye images.
 #' @param method Character vector of length one. See details for current
 #'   options.
 #' @inheritParams thr_image
 #' @inheritParams fit_cone_shaped_model
 #'
-#'
-#'
 #' @return \linkS4class{RasterLayer}.
+#'
 #' @export
+#' @family Tools functions
 #'
 #' @seealso \code{\link{thr_image}}
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'
-#'   \insertCite{Jonckheere2005}{rcaiman}
+#'   \insertRef{Jonckheere2005}{rcaiman}
 #'
-#'   \insertCite{isodata}{rcaiman}
+#'   \insertRef{isodata}{rcaiman}
 #'
 #' @examples
 #' r <- read_caim()
@@ -93,6 +93,6 @@ regional_thresholding <- function(r,
     thr <- fun(r[indices])
     bin[indices] <<- r[indices] > thr
   }
-  Map(.binarize_per_ring, unique(segmentation))
+  Map(.binarize_per_ring, raster::unique(segmentation))
   bin
 }

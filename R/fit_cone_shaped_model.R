@@ -7,67 +7,58 @@
 #' the sky DN as a previous step for our method}.
 #'
 #' @param r \linkS4class{RasterLayer}. A normalized greyscale image. Typically,
-#'   the blue channel extracted from an hemispherical photographs. Please see
+#'   the blue channel extracted from an hemispherical photograph. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.
 #' @param z \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{zenith_image}}.
 #' @param a \linkS4class{RasterLayer}. The result of a call to
 #'   \code{\link{azimuth_image}}.
 #' @param bin \linkS4class{RasterLayer}. A working binarized image. This should
-#'   be a preliminary binarization of \code{x}. If the function returns
+#'   be a preliminary binarization of \code{r}. If the function returns
 #'   \code{NA}, the quality of this input should be revised.
 #' @param filling_source \linkS4class{RasterLayer}. Default is \code{NULL}.
 #'   Above-canopy photograph. This image should contain pixels with sky DN
 #'   values and \code{NA} in all the other pixels. A photograph taken
-#'   immediately after or before taking \code{x} under the open sky with the
+#'   immediately after or before taking \code{r} under the open sky with the
 #'   same equipment and configuration is a very good option. The ideal option is
 #'   one taken at the same time and place but above the canopy. The orientation
-#'   relative to north must be the same than \code{x}.
-#' @param prob One-length logical vector. Probability for
+#'   relative to north must be the same than \code{r}.
+#' @param prob Logical vector of length one. Probability for
 #'   \code{\link[stats]{quantile}} calculation. See reference
 #'   \insertCite{Diaz2018;textual}{rcaiman}.
-#' @param use_azimuth_angle One-length logical vector. If \code{TRUE}, Equation
-#'   4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN = a + b
-#'   \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
+#' @param use_azimuth_angle Logical vector of length one. If \code{TRUE},
+#'   Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
+#'   a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
 #'   cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
 #'   \eqn{e} are coefficients, \eqn{\theta} is zenith angle, and \eqn{\phi} is
 #'   azimuth angle. If \code{FALSE}, a simplified version based on
 #'   \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
 #'   \theta + c  \cdot \theta^2}.
-#' @param parallel One-length logical vector. Allows parallel processing.
-#' @param free_cores One-length numeric vector. This number is subtracted to the
-#'   number of cores detected by \code{\link[parallel]{detectCores}}.
+#' @param parallel Logical vector of length one. Allows parallel processing.
+#' @param free_cores Numeric vector of length one. This number is subtracted to
+#'   the number of cores detected by \code{\link[parallel]{detectCores}}.
 #'
-#' @return A list with an object of class \linkS4class{RasterLayer} and of
-#'   class "lm" (see \code{\link[stats]{lm}}).
+#' @return A list with an object of class \linkS4class{RasterLayer} and of class
+#'   \code{lm} (see \code{\link[stats]{lm}}).
 #' @export
 #'
-#' @family mblt functions
+#' @family MBLT functions
 #'
-#' @references
-#' \insertRef{Diaz2018}{rcaiman}
+#' @references \insertRef{Diaz2018}{rcaiman}
 #'
-#' \insertRef{Wagner2001}{rcaiman}
+#'   \insertRef{Wagner2001}{rcaiman}
 #'
 #' @examples
 #' \dontrun{
-#' my_file <- path.expand("~/DSCN5548.JPG")
-#' download.file("https://osf.io/kp7rx/download", my_file,
-#'                method = "auto", mode = "wb"
-#' )
-#'
-#' r <- read_caim(my_file,
-#'                c(1280, 960) - 745,
-#'                745 * 2,
-#'                745 * 2)
+#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
-#' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
+#' bin <- find_sky_dns(blue, z, a)
 #' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #' plot(sky$image)
-#' persp(sky) # yes, it looks like an upside down cone!
+#' persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
 fit_cone_shaped_model <- function(r, z, a, bin,
                                  prob = 0.95,
@@ -175,78 +166,3 @@ fit_cone_shaped_model <- function(r, z, a, bin,
     return(NA)
   }
 }
-
-
-
-#' Find sky DNs
-#'
-#' Find sky digital numbers automatically
-#'
-#' This function assume that (1) there is at least one pure sky pixel at the
-#' level of cells of 30 $/times$ 30 degrees, and (2) sky pixels have a digital
-#' number (DN) greater than canopy pixels have.
-#'
-#' For each cell, it compute a quantile value and use it as a threshold to
-#' select the pure sky pixels of the cell, which produce binarized image as a
-#' result in a regional binarization fashion
-#' (\code{\link{regional_thresholding}}). This process start with a quantile
-#' probability of 0.99. After producing the binarized image, this function use a
-#' search grid with cells of 5 $/times$ 5 degrees to count how many cells on the
-#' binarired image have at least one sky pixel. If the count does not reach
-#' argument \code{no_of_samples}, it goes back to the binarization step but
-#' decreasing the probability by 0.01 points.
-#'
-#' @inheritParams fit_cone_shaped_model
-#' @param no_of_samples Numeric vector of length one. Minimum number of samples
-#'   required.
-#'
-#' @family mblt functions
-#'
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' my_file <- path.expand("~/DSCN5548.JPG")
-#' download.file("https://osf.io/kp7rx/download", my_file,
-#'   method = "auto", mode = "wb"
-#' )
-#' r <- read_caim(
-#'   my_file,
-#'   c(1280, 960) - 745,
-#'   745 * 2,
-#'   745 * 2
-#' )
-#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
-#' a <- azimuth_image(z)
-#' blue <- gbc(r$Blue)
-#' bin <- find_sky_dns(blue, z, a)
-#' plot(bin)
-#' }
-find_sky_dns <- function(r, z, a, no_of_samples = 30) {
-  .check_if_r_z_and_a_are_ok(r, z, a)
-
-  g30 <- sky_grid_segmentation(z, a, 30)
-  g5 <- sky_grid_segmentation(z, a, 5)
-
-  m <- mask_hs(z, 80, 90)
-
-  prob <- 1
-  count <- 0
-  while (count <= no_of_samples) {
-    if (prob < 0.9) {
-      stop(paste(
-        "The function is not working properly.",
-        "The problem might be related to inputs.",
-        "Please, make sure they are OK."
-      ))
-    }
-    prob <- prob - 0.01
-    bin <- regional_thresholding(r, g30, "Diaz2018", 0, 1, prob)
-    bin[m] <- 0
-    max_per_cell <- extract_feature(bin, g5, max, return_raster = FALSE)
-    count <- sum(max_per_cell)
-  }
-  bin[is.na(g30)] <- NA
-  bin
-}
-

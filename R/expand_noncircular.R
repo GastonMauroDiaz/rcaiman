@@ -8,6 +8,8 @@
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
 #'   zenith. See \code{\link{calc_zenith_raster_coordinates}}.
 #'
+#' @family Lens functions
+#'
 #' @export
 #'
 #' @examples

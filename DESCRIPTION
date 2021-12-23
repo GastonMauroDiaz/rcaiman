@@ -1,13 +1,17 @@
 Package: rcaiman
 Type: Package
-Title: rcaiman: An R package for CAnopy IMage ANalysis
+Title: An R Package for CAnopy IMage ANalysis
 Version: 0.0.0.9000
+Authors@R: 
+    person("Gaston Mauro", "Diaz", , "gastonmaurodiaz@gmail.com", 
+           role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))
 Author: Gaston Mauro Diaz 
 Maintainer: Gaston Mauro Diaz <gastonmaurodiaz@gmail.com>
-Description: The 'rcaiman' provide algorithms specially developed to classify 
-    photographs of the plant canopy. It particularly cover hemispherical 
-    photography and restricted view photography.
-License: GPL (>= 3)
+Description: The package's main strength is to classify hemispherical 
+    photographs of the plant canopy with algorithms specially developed for 
+    such a task and well documented in scientific articles.
+License: GPL-3
+BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.2
@@ -25,11 +29,8 @@ Imports:
     spatial,
     rgeos,
     sp,
-    lidR,
     colorspace
 Suggests: 
-    EBImage,
     autothresholdr,
-    conicfit,
-    bbmle
+    conicfit
 RdMacros: Rdpack

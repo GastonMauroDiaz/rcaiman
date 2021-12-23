@@ -50,36 +50,24 @@
 #' @inheritParams spatial::surf.ls
 #'
 #' @return A list with an object of class \linkS4class{RasterLayer} and of class
-#'   "trls" (see \code{\link[spatial]{surf.ls}}).
+#'   \code{trls} (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
-#' @family mblt functions
+#' @family MBLT functions
 #'
 #' @references \insertRef{Diaz2018}{rcaiman}
 #'
 #' @examples
 #' \dontrun{
-#' path <- getwd()
-#' my_file <- paste0(path, "/DSCN5548.JPG")
-#' download.file("https://osf.io/kp7rx/download", my_file,
-#'   method = "auto", mode = "wb"
-#' )
-#' r <- read_caim(
-#'   my_file,
-#'   c(1280, 960) - 745,
-#'   745 * 2,
-#'   745 * 2
-#' )
+#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' thr <- autothresholdr::auto_thresh(r$Blue[], "IsoData")
-#' bin <- apply_thr(r$Blue, thr[1] * 1.25)
 #' blue <- gbc(r$Blue)
+#' bin <- find_sky_dns(blue, z, a)
 #' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
 #' m <- mask_hs(z, 0, 80)
-#' sky <- fit_trend_surface(blue, bin, m,
-#'   filling_source = sky$image
-#' )
+#' sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
 #' plot(sky$image)
 #' }
 fit_trend_surface <- function(r,

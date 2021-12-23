@@ -7,10 +7,10 @@
 apply_thr(r, thr)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}.}
+\item{r}{\linkS4class{RasterLayer}}
 
 \item{thr}{Numeric vector of length one or \linkS4class{RasterLayer}.
-Threshold value or values.}
+Threshold.}
 }
 \value{
 \linkS4class{RasterLayer} with values \code{0} and \code{1}.
@@ -19,27 +19,36 @@ Threshold value or values.}
 Global or local thresholding of images.
 }
 \details{
-It is a wrapper function around this operator from the 'raster' package:
-\code{>}.
-
-If a single threshold value is provided as \code{thr} argument, it is applied
-to every pixel of the raster object \code{r}.
-
-If a \linkS4class{RasterLayer} is provided as \code{thr}, then the operation
-is performed pixel by pixel, so it allows local threholding. In other words,
-each pixel can have a personalized threshold.
+It is a wrapper function around the operator \code{>} from the ‘raster’
+package. If a single threshold value is provided as \code{thr} argument, it
+is applied to every pixel of the raster object \code{r}. If instead a
+\linkS4class{RasterLayer} is provided, then a particular threshold
+is applied to each particular pixel.
 }
 \examples{
 r <- read_caim()
 apply_thr(r$Blue, 120)
 \dontrun{
-# This function is very useful in combination with the 'autothresholdr'
+# This function is useful in combination with the ‘autothresholdr’
 package. For examples:
 require(autothresholdr)
 thr <- auto_thresh(r$Blue[], "IsoData")[1]
-apply_thr(r$Blue, thr)
+bin <- apply_thr(r$Blue, thr)
+plot(bin)
 }
 }
 \seealso{
 \code{\link{regional_thresholding}}.
+
+Other Tools functions: 
+\code{\link{extract_feature}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{normalize}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{regional_thresholding}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
+\concept{Tools functions}

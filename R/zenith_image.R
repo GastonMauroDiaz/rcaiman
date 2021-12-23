@@ -33,7 +33,7 @@ relative_radius_image <- function (diameter)
 #' @noRd
 calc_relative_radius <- function(angle, lens_coef) {
 
-  angle <- degree2radian(angle)
+  angle <- .degree2radian(angle)
 
   temp <- cbind(lens_coef, seq(1, length(lens_coef)))
   for (i in 1:length(lens_coef)) {
@@ -64,7 +64,7 @@ calc_relative_radius <- function(angle, lens_coef) {
 #' @return \code{\linkS4class{RasterLayer}}.
 #' @export
 #'
-#' @seealso azimuth_image
+#' @family Lens functions
 #'
 #' @examples
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
@@ -82,41 +82,4 @@ zenith_image <- function (diameter, lens_coef)
   rcl <- matrix(c(c(0, R[-length(R)]), R, angle), ncol = 3)
 
   reclassify(x, rcl)
-}
-
-
-#' Azimuth image
-#'
-#' Built a single layer image with azimuth angles values.
-#'
-#' @param z \code{\linkS4class{RasterLayer}} built with
-#'   \code{\link{zenith_image}}.
-#'
-#'
-#' @return \code{\linkS4class{RasterLayer}}.
-#' @export
-#'
-#' @seealso zenith_image
-#'
-#' @examples
-#' z <- zenith_image(1490, lens("Nikon_FCE9"))
-#' azimuth_image(z)
-#' plot(z)
-azimuth_image <- function (z)
-{
-  stopifnot(class(z) == "RasterLayer")
-  mask <- is.na(z)
-
-  xy <- xyFromCell(z, seq(length = ncell(z)))
-  v <- values(z)
-  sph <- pracma::cart2sph(
-    matrix(c(xy[, 1] - ncol(z) / 2, xy[, 2] - ncol(z) / 2, values(z)), ncol = 3)
-  )
-
-  values(z) <- sph[, 1] * 180 / pi
-  values(z) <- values(abs(t(z) - 180)) # to orient North up and West left
-
-  z[mask] <- NA
-
-  z
 }

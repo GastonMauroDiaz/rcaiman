@@ -14,7 +14,7 @@ extract_feature(r, segmentation, fun = mean, return_raster = TRUE)
 \item{fun}{\code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 
-\item{return_raster}{One-length logical vector.}
+\item{return_raster}{Logical vector of length one.}
 }
 \description{
 Extract features from raster images.
@@ -31,6 +31,7 @@ extracted feature value will be obtained by processing all pixels that belong
 to a segment with the provided function.
 }
 \examples{
+\dontrun{
 r <- read_caim()
 z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -38,3 +39,17 @@ g <- sky_grid_segmentation(z, a, 10)
 extract_feature(r$Blue, g, return_raster = FALSE)
 plot(extract_feature(r$Blue, g, return_raster = FALSE))
 }
+}
+\seealso{
+Other Tools functions: 
+\code{\link{apply_thr}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{normalize}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{regional_thresholding}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
+}
+\concept{Tools functions}
