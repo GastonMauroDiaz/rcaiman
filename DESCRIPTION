@@ -22,7 +22,6 @@ Depends:
 Imports: 
     methods,
     testthat,
-    rgdal,
     pracma,
     stats,
     magrittr,
