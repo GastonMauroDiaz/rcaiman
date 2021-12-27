@@ -13,6 +13,7 @@
 #' @seealso \code{\link{mask_hs}}
 #'
 #' @examples
+#' \dontrun{
 #'  r <- read_caim()
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)
@@ -20,7 +21,7 @@
 #'
 #'  masked_caim <-  masking(normalize(r, 0, 255), m)
 #'  plotRGB(masked_caim * 255)
-#' \dontrun{
+#'
 #'  masked_bin <- masking(apply_thr(r$Blue, 125), m)
 #'  plotRGB(masked_bin * 255)
 #'  }

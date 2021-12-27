@@ -1,7 +1,7 @@
 Package: rcaiman
 Type: Package
 Title: An R Package for CAnopy IMage ANalysis
-Version: 0.0.1
+Version: 0.1.0
 Date: 2022-01-03
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
@@ -28,9 +28,9 @@ Imports:
     utils,
     Rdpack,
     spatial,
-    rgeos,
     sp,
-    colorspace
+    colorspace, 
+    rgdal
 Suggests: 
     autothresholdr,
     conicfit

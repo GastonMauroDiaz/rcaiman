@@ -43,7 +43,6 @@
 #' @examples # Nikon D50 and Fisheye Nikkor 10.5 mm lens
 #' calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
 calc_diameter <- function(lens_coef, radius_px, angle) {
-
   stopifnot(length(radius_px) == length(angle))
 
   Rfor90 <- calc_relative_radius(90, lens_coef)

@@ -48,9 +48,11 @@ the perimeter of the circle depicted in a circular hemispherical photograph
 is not necessarily the horizon.
 }
 \examples{
+\dontrun{
 path <- system.file("external/points_over_perimeter.csv",
                     package = "rcaiman")
 calc_zenith_raster_coordinates(path)
+}
 }
 \references{
 \insertAllCited{}

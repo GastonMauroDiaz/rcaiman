@@ -43,9 +43,11 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' path <- system.file("external/points_over_perimeter.csv",
 #'                     package = "rcaiman")
 #' calc_zenith_raster_coordinates(path)
+#' }
 calc_zenith_raster_coordinates <- function(path_to_csv) {
 
   if (!requireNamespace("conicfit", quietly = TRUE)) {

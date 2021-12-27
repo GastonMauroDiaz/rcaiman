@@ -29,12 +29,14 @@ functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
 color space. The lightness dimension is not considered in the calculations.
 }
 \examples{
+\dontrun{
 caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 target_color <- colorspace::sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
 mem <- membership_to_color(caim, target_color)
 plot(mem)
+}
 }
 \references{
 \insertAllCited{}
