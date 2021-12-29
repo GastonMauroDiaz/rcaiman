@@ -66,6 +66,9 @@ aggregation is \code{\link[stats]{quantile}}, to which the argument
 \code{prob} is passed. Essentially, the aggregation step works as the one
 from \code{\link{fit_cone_shaped_model}}, but it is made on the raster space
 rather than on the hemispherical space.
+
+If you use this function in your research, please cite
+\insertCite{Diaz2018}{rcaiman}.
 }
 \examples{
 \dontrun{

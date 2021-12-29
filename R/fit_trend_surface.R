@@ -42,6 +42,9 @@
 #' from \code{\link{fit_cone_shaped_model}}, but it is made on the raster space
 #' rather than on the hemispherical space.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2018}{rcaiman}.
+#'
 #' @inheritParams stats::quantile
 #' @inheritParams fit_cone_shaped_model
 #' @param m \linkS4class{RasterLayer}. A mask. Usually, the result of a call to

@@ -6,6 +6,9 @@
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 #' the sky DN as a previous step for our method}.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2018}{rcaiman}.
+#'
 #' @param r \linkS4class{RasterLayer}. A normalized greyscale image. Typically,
 #'   the blue channel extracted from an hemispherical photograph. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.

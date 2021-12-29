@@ -18,10 +18,13 @@
 #' functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
 #' color space. The lightness dimension is not considered in the calculations.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2015}{rcaiman}.
+#'
 #' @inheritParams expand_noncircular
 #' @param target_color \linkS4class{color}.
-#' @param sigma Numeric vector of length one. Use \code{NULL} (default)
-#'   to estimate it automatically as the euclidean distance between
+#' @param sigma Numeric vector of length one. Use \code{NULL} (default) to
+#'   estimate it automatically as the euclidean distance between
 #'   \code{target_color} and grey in the \emph{CIE L*a*b*} color space.
 #'
 #'

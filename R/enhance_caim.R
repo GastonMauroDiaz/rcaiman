@@ -3,13 +3,16 @@
 #' This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses
 #' the color perceptual attributes to enhance the contrast between the sky and
 #' plants through fuzzy classification. Color has three different perceptual
-#' attributes: hue, lightness, and chroma. The algorithm was developed
-#' following this premise: the color of the sky is different from the color of
-#' plants. It performs the next classification rules, here expressed in natural
-#' language: clear sky is blue and clouds decrease its chroma; if clouds are
-#' highly dense, then the sky is achromatic, and, in such cases, it can be light
-#' or dark; everything that does not match this description is not sky. These
-#' linguistic rules were translated to math language by means of fuzzy logic.
+#' attributes: hue, lightness, and chroma. The algorithm was developed following
+#' this premise: the color of the sky is different from the color of plants. It
+#' performs the next classification rules, here expressed in natural language:
+#' clear sky is blue and clouds decrease its chroma; if clouds are highly dense,
+#' then the sky is achromatic, and, in such cases, it can be light or dark;
+#' everything that does not match this description is not sky. These linguistic
+#' rules were translated to math language by means of fuzzy logic.
+#'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2015}{rcaiman}.
 #'
 #' @inheritParams expand_noncircular
 #' @inheritParams local_fuzzy_thresholding

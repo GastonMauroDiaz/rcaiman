@@ -12,8 +12,8 @@ membership_to_color(caim, target_color, sigma = NULL)
 
 \item{target_color}{\linkS4class{color}.}
 
-\item{sigma}{Numeric vector of length one. Use \code{NULL} (default)
-to estimate it automatically as the euclidean distance between
+\item{sigma}{Numeric vector of length one. Use \code{NULL} (default) to
+estimate it automatically as the euclidean distance between
 \code{target_color} and grey in the \emph{CIE L*a*b*} color space.}
 }
 \value{
@@ -27,6 +27,10 @@ This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It
 Computes the degree of membership to a color with two Gaussian membership
 functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
 color space. The lightness dimension is not considered in the calculations.
+}
+\details{
+If you use this function in your research, please cite
+\insertCite{Diaz2015}{rcaiman}.
 }
 \examples{
 \dontrun{

@@ -40,6 +40,9 @@ the curve. Since the variable is defined pixel by pixel, this should be
 considered as a \strong{local} fuzzy thresholding method.
 }
 \details{
+If you use this function in your research, please cite
+\insertCite{Diaz2015}{rcaiman}.
+
 Argument \code{m} can be used to affect the estimation of \code{thr}
   and \code{fuzziness}.
 }

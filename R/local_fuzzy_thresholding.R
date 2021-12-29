@@ -10,6 +10,9 @@
 #' the curve. Since the variable is defined pixel by pixel, this should be
 #' considered as a \strong{local} fuzzy thresholding method.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2015}{rcaiman}.
+#'
 #'
 #' @param lightness \linkS4class{RasterLayer}. A normalized greyscale image, the
 #'   lightness value. Values should range between zero and one --please see

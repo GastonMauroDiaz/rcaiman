@@ -42,6 +42,9 @@
 #' classes ‘Gap’ and ‘No-gap’. This kind of error could be find in photographs
 #' of open forests for the same reason.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Diaz2018}{rcaiman}.
+#'
 #' @inheritParams fit_cone_shaped_model
 #'
 #' @export

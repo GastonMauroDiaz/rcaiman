@@ -68,6 +68,9 @@ Generate the digital numbers of the whole sky through statistical modelling.
 An explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 the sky DN as a previous step for our method}.
+
+If you use this function in your research, please cite
+\insertCite{Diaz2018}{rcaiman}.
 }
 \examples{
 \dontrun{
