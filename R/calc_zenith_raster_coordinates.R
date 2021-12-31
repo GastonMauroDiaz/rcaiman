@@ -19,7 +19,8 @@
 #' \insertCite{Pekin2009;textual}{rcaiman}, among others. Briefly, it consists
 #' in drilling a small hole in the cap of the fisheye lens (it must be away from
 #' the center of the cap), and taking about ten photographs without removing the
-#' cap. The cap must be rotated about 30º before taking each photograph.
+#' cap. The cap must be rotated about 30º before taking each photograph. The
+#' method implemented here do not support multiple holes.
 #'
 #' The
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
@@ -49,33 +50,16 @@
 #' calc_zenith_raster_coordinates(path)
 #' }
 calc_zenith_raster_coordinates <- function(path_to_csv) {
-
   if (!requireNamespace("conicfit", quietly = TRUE)) {
     stop(paste("Package \"conicfit\" needed for this function to work.",
                "Please install it."),
          call. = FALSE)
   }
-
   requireNamespace("conicfit", quietly = TRUE)
-
   x <- utils::read.csv(path_to_csv)[, -(1:5)]
-
-  # each tracked hole have two columns
-  stopifnot(ncol(x) / 2 == round(ncol(x) / 2))
-
-  n_holes <- ncol(x) / 2
-
-  index <- seq(1, ncol(x), 2)
-
-  circle <- list()
-  for (i in 1:n_holes) {
-    circle[[i]] <- x[, c(index[i], index[i] + 1)] %>%
-      .[!is.na(.[, 1]), ] %>%
-      as.matrix() %>%
+  circle[[i]] <- as.matrix(x) %>%
       conicfit::CircleFitByKasa() %>%
       .[-3]
-  }
-
   zenith_coordinates <- matrix(circle, ncol = 2, byrow = TRUE)
   colnames(zenith_coordinates) <- c("col", "row")
   zenith_coordinates
