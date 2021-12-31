@@ -57,7 +57,7 @@ calc_zenith_raster_coordinates <- function(path_to_csv) {
   }
   requireNamespace("conicfit", quietly = TRUE)
   x <- utils::read.csv(path_to_csv)[, -(1:5)]
-  circle[[i]] <- as.matrix(x) %>%
+  circle <- as.matrix(x) %>%
       conicfit::CircleFitByKasa() %>%
       .[-3]
   zenith_coordinates <- matrix(circle, ncol = 2, byrow = TRUE)
