@@ -32,7 +32,8 @@ determining the zenith coordinates. This technique was used by
 \insertCite{Pekin2009;textual}{rcaiman}, among others. Briefly, it consists
 in drilling a small hole in the cap of the fisheye lens (it must be away from
 the center of the cap), and taking about ten photographs without removing the
-cap. The cap must be rotated about 30º before taking each photograph.
+cap. The cap must be rotated about 30º before taking each photograph. The
+method implemented here do not support multiple holes.
 
 The
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
