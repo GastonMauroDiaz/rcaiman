@@ -31,29 +31,16 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   stopifnot(class(zenith_colrow) == "numeric")
   stopifnot(length(zenith_colrow) == 2)
 
-  zenith_xy <- zenith_colrow
-  zenith_xy[2] <- nrow(caim) - zenith_colrow[2]
-
-  # locate the center of caim over the center of z
-  center <- ncol(z) / 2
-  xmn <- center - (ncol(caim) / 2)
-  xmx <- center + (ncol(caim) / 2)
-  ymn <- center - (nrow(caim) / 2)
-  ymx <- center + (nrow(caim) / 2)
+  delta_x <- zenith_colrow[1] - ncol(caim)/2
+  delta_y <- zenith_colrow[2] - nrow(caim)/2
+  center <- ncol(z)/2
+  xmn <- center - (ncol(caim)/2) + delta_x
+  xmx <- center + (ncol(caim)/2) + delta_x
+  ymn <- center - (nrow(caim)/2) + delta_y
+  ymx <- center + (nrow(caim)/2) + delta_y
   e <- extent(xmn, xmx, ymn, ymx)
   extent(caim) <- e
-
-  # shift the center of caim according with zenith_xy
-  delta_x <- zenith_xy[1] - ncol(caim) / 2
-  delta_y <- zenith_xy[2] - nrow(caim) / 2
-  xmn <- xmin(caim) + delta_x
-  xmx <- xmax(caim) + delta_x
-  ymn <- ymin(caim) + delta_y
-  ymx <- ymax(caim) + delta_y
-  extent(caim) <- extent(xmn, xmx, ymn, ymx)
-
   r <- extend(caim, z, value = NA)
   extent(r) <- extent(0, ncol(r), 0, nrow(r))
   r
-
 }

@@ -49,7 +49,7 @@ For obtaining the lens projection of a new lens, refer to
 }
 \examples{
 # Nikon D50 and Fisheye Nikkor 10.5 mm lens
-calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+calc_diameter(lens("Nikkor_10.5_mm"), 1202, 54)
 }
 \seealso{
 Other Lens functions: 
