@@ -31,16 +31,21 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   stopifnot(class(zenith_colrow) == "numeric")
   stopifnot(length(zenith_colrow) == 2)
 
-  delta_x <- zenith_colrow[1] - ncol(caim)/2
-  delta_y <- zenith_colrow[2] - nrow(caim)/2
-  center <- ncol(z)/2
-  xmn <- center - (ncol(caim)/2) + delta_x
-  xmx <- center + (ncol(caim)/2) + delta_x
-  ymn <- center - (nrow(caim)/2) + delta_y
-  ymx <- center + (nrow(caim)/2) + delta_y
+  zenith_xy <- c(zenith_colrow[1], nrow(caim) - zenith_colrow[2])
+  delta_x <-  (ncol(caim) / 2) - zenith_xy[1]
+  delta_y <-  (nrow(caim) / 2) - zenith_xy[2]
+  center <- ncol(z) / 2
+  xmn <- center - (ncol(caim) / 2) - delta_x
+  xmx <- center + (ncol(caim) / 2) - delta_x
+  ymn <- center - (nrow(caim) / 2) + delta_y
+  ymx <- center + (nrow(caim) / 2) + delta_y
   e <- extent(xmn, xmx, ymn, ymx)
   extent(caim) <- e
+
+  ze <- extent(z) * 1.5
   r <- extend(caim, z, value = NA)
+  extent(r) <- alignExtent(extent(r), z)
+  r <- crop(r, z)
   extent(r) <- extent(0, ncol(r), 0, nrow(r))
   r
 }

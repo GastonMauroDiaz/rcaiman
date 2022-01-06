@@ -25,7 +25,6 @@ Imports:
     testthat,
     pracma,
     stats,
-    magrittr,
     utils,
     Rdpack,
     spatial,
