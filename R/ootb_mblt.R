@@ -92,6 +92,6 @@ ootb_mblt <- function(r, z, a) {
   }, dns_8bit) %>% unlist()
   dns_8bit <- dns_8bit[min_z > 75]
   bin[sky_s < dns_8bit[length(dns_8bit)]/255] <- 0
-
+  bin[is.na(z)] <- 0
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }

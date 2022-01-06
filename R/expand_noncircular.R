@@ -35,8 +35,13 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   delta_x <-  (ncol(caim) / 2) - zenith_xy[1]
   delta_y <-  (nrow(caim) / 2) - zenith_xy[2]
   center <- ncol(z) / 2
-  xmn <- center - (ncol(caim) / 2) - delta_x
-  xmx <- center + (ncol(caim) / 2) - delta_x
+  if (ncol(caim) > nrow(caim)) {
+    xmn <- center - (ncol(caim)/2) - delta_x
+    xmx <- center + (ncol(caim)/2) - delta_x
+  } else {
+    xmn <- center - (ncol(caim)/2) + delta_x
+    xmx <- center + (ncol(caim)/2) + delta_x
+  }
   ymn <- center - (nrow(caim) / 2) + delta_y
   ymx <- center + (nrow(caim) / 2) + delta_y
   e <- extent(xmn, xmx, ymn, ymx)

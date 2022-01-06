@@ -38,6 +38,6 @@ lens <- function(type = "equidistant", max_fov = FALSE) {
     Nikon_FCE9 = list(c(0.6427, 0.0346, -0.024491), 190)[[index]],
     Nikkor_10.5_mm = list(c(0.71553, 0.01146, -0.03928), 165)[[index]],
     Soligor_fisheye = list(c(0.6427, 0.0346, -0.024491), 180)[[index]],
-    Olloclip = list(c(0.7, 0.241, -0.179), 180)[[index]]
+    Olloclip = list(c(0.7836131, 0.1511661, -0.1558095), 170)[[index]]
   )
 }
