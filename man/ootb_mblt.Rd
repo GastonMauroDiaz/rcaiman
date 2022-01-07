@@ -52,6 +52,10 @@ cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
+\item If the cone shaped model predicts values below zero, those values are
+set to zero and values toward the horizon are forced to gradually become the
+median sky DN calculated from the DNs finded by \code{\link{find_sky_dns}}.
+
 }
 
 This function searches for black objects against a light background. When

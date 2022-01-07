@@ -4,7 +4,7 @@
 \alias{enhance_caim}
 \title{Enhance canopy image}
 \usage{
-enhance_caim(caim, m, w_red = 0.5, sky_blue = NULL)
+enhance_caim(caim, m, w_red = 0.25, sky_blue = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{RasterBrick}. The return of a call to

@@ -47,7 +47,7 @@
 #' }
 enhance_caim <- function(caim,
                          m,
-                         w_red = 0.5,
+                         w_red = 0.25,
                          sky_blue = NULL) {
   .check_if_r_was_normalized(caim, "caim")
   if (!compareRaster(caim, m, stopiffalse = FALSE)) {
@@ -55,7 +55,7 @@ enhance_caim <- function(caim,
   }
 
   if (is.null(sky_blue)) {
-      sky_blue <- colorspace::sRGB(matrix(c(0, 0, 1), ncol = 3))
+      sky_blue <- colorspace::sRGB(matrix(c(0.2, 0.3, 0.5), ncol = 3))
     }
   mem_sky_blue <- membership_to_color(caim, sky_blue)
   re_br <- caim$Red * w_red + caim$Blue * (1 - w_red)

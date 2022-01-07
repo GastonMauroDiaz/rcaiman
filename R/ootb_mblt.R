@@ -29,6 +29,10 @@
 #' source, but the result of it is used as filling source for trend surface
 #' fitting (\code{\link{fit_trend_surface}}).
 #'
+#' \item If the cone shaped model predicts values below zero, those values are
+#' set to zero and values toward the horizon are forced to gradually become the
+#' median sky DN calculated from the DNs finded by \code{\link{find_sky_dns}}.
+#'
 #' }
 #'
 #' This function searches for black objects against a light background. When
@@ -69,15 +73,19 @@ ootb_mblt <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
-
   sky_cs <- fit_cone_shaped_model(r, z, a, bin,
                                   prob = 0.95,
                                   filling_source = NULL,
                                   use_azimuth_angle = TRUE,
                                   parallel = TRUE,
                                   free_cores = 0)$image
+  if (min(sky_cs[], na.rm = TRUE) < 0) {
+    sky_cs[sky_cs < 0] <- 0
+    x <- quantile(r[bin], 0.5)
+    w <- z / 90
+    sky_cs <- x * w + sky_cs * (1 - w)
+  }
   suppressWarnings(bin <- apply_thr(r, thr_image(sky_cs, 0, 0.5)))
-
   sky_s <- fit_trend_surface(r, bin,
                              m = NULL,
                              filling_source = sky_cs,
@@ -85,13 +93,7 @@ ootb_mblt <- function(r, z, a) {
                              fact = 5,
                              np = 6)$image
   suppressWarnings(bin <- apply_thr(r, thr_image(sky_s, 0, 0.5)))
-  dns_8bit <- 1:15
-  min_z <- Map(function(x) {
-    m <- sky_s < x / 255
-    suppressWarnings(min(z[m], na.rm = TRUE))
-  }, dns_8bit) %>% unlist()
-  dns_8bit <- dns_8bit[min_z > 75]
-  bin[sky_s < dns_8bit[length(dns_8bit)]/255] <- 0
+
   bin[is.na(z)] <- 0
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }
