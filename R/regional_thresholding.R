@@ -25,7 +25,7 @@
 #' @param method Character vector of length one. See details for current
 #'   options.
 #' @inheritParams thr_image
-#' @inheritParams fit_cone_shaped_model
+#' @inheritParams fit_coneshaped_model
 #'
 #' @return \linkS4class{RasterLayer}.
 #'
@@ -79,7 +79,11 @@ regional_thresholding <- function(r,
     }
 
     fun <- function(dns) {
-      autothresholdr::auto_thresh(round(dns * 255), method)[1] / 255
+      autothresholdr::auto_thresh(round(dns * 255),
+                                  method,
+                                  ignore_black = TRUE,
+                                  ignore_white = TRUE,
+                                  ignore_na = TRUE)[1] / 255
     }
   }
 

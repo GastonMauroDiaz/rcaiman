@@ -52,19 +52,19 @@ A list with an object of class \linkS4class{RasterLayer} and of class
 Fit a trend surface using spatial::surf.ls as workhorse function.
 }
 \details{
-This function is meant to be used after \code{\link{fit_cone_shaped_model}}.
+This function is meant to be used after \code{\link{fit_coneshaped_model}}.
 
 A short explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 the sky DN as a previous step for our method}, after the explanation of the
-\code{\link{fit_cone_shaped_model}}.
+\code{\link{fit_coneshaped_model}}.
 
 The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
 general, a coarse scale lead to best generalization. The function used for
 aggregation is \code{\link[stats]{quantile}}, to which the argument
 \code{prob} is passed. Essentially, the aggregation step works as the one
-from \code{\link{fit_cone_shaped_model}}, but it is made on the raster space
+from \code{\link{fit_coneshaped_model}}, but it is made on the raster space
 rather than on the hemispherical space.
 
 If you use this function in your research, please cite
@@ -78,7 +78,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- find_sky_dns(blue, z, a)
-sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
+sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
 m <- mask_hs(z, 0, 80)
 sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
 plot(sky$image)
@@ -90,7 +90,7 @@ plot(sky$image)
 \seealso{
 Other MBLT functions: 
 \code{\link{find_sky_dns}()},
-\code{\link{fit_cone_shaped_model}()},
+\code{\link{fit_coneshaped_model}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}
 }

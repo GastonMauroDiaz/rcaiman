@@ -19,12 +19,12 @@ logistic membership function. Typically it is obtained with
 \code{\link{membership_to_color}}.}
 
 \item{thr}{Numeric vector of length one. Location parameter of the logistic
-membership function. Use \code{NULL} (default) to order to estimate it
+membership function. Use \code{NULL} (default) to estimate it
 automatically with the function \code{\link[autothresholdr]{auto_thresh}},
 method \code{"IsoData"}.}
 
 \item{fuzziness}{Numeric vector of length one. This number is a constant that
-scale \code{mem}. Use \code{NULL} (default) to order to estimate it
+scale \code{mem}. Use \code{NULL} (default) to estimate it
 automatically as the midpoint between the maximum and minimum values of
 \code{lightness}.}
 }

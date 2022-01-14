@@ -4,7 +4,7 @@
 \alias{enhance_caim}
 \title{Enhance canopy image}
 \usage{
-enhance_caim(caim, m, w_red = 0.25, sky_blue = NULL)
+enhance_caim(caim, m, sky_blue, w_red = 0.25)
 }
 \arguments{
 \item{caim}{\linkS4class{RasterBrick}. The return of a call to
@@ -13,13 +13,13 @@ enhance_caim(caim, m, w_red = 0.25, sky_blue = NULL)
 \item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
 \code{\link{mask_hs}}.}
 
+\item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
+be passed to \code{\link{membership_to_color}}.}
+
 \item{w_red}{Numeric vector of length one. Weight of the red channel. A
 single layer image is calculated as a weighted average of the blue and red
 channels. This layer is used as lightness information. The weight of the
 blue is the complement of \code{w_red}.}
-
-\item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
-be passed to \code{\link{membership_to_color}}. By default is pure Blue.}
 }
 \description{
 This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses
@@ -40,7 +40,7 @@ If you use this function in your research, please cite
 This is a pixel-wise methodology that evaluates the possibility for
   a pixel to be member of the class Gap. High score could mean either high
   membership to \code{sky_blue} or, in the case of achromatic pixels, a high
-  membership to \code{thr}. The algorithm internally uses
+  membership to values above \code{thr}. The algorithm internally uses
   \code{\link{membership_to_color}} and
   \code{\link{local_fuzzy_thresholding}}. The argument \code{sky_blue} is the
   \code{target_color} of the former function, which output is the argument
@@ -52,7 +52,8 @@ caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 m <- !is.na(z)
-ecaim <- enhance_caim(caim, m)
+sky_blue <- colorspace::sRGB(matrix(c(0.2, 0.3, 0.5), ncol = 3)
+ecaim <- enhance_caim(caim, m, sky_blue)
 plot(ecaim)
 }
 }

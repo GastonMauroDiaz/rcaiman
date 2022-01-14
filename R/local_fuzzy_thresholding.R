@@ -22,11 +22,11 @@
 #'   logistic membership function. Typically it is obtained with
 #'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
-#'   membership function. Use \code{NULL} (default) to order to estimate it
+#'   membership function. Use \code{NULL} (default) to estimate it
 #'   automatically with the function \code{\link[autothresholdr]{auto_thresh}},
 #'   method \code{"IsoData"}.
 #' @param fuzziness Numeric vector of length one. This number is a constant that
-#'   scale \code{mem}. Use \code{NULL} (default) to order to estimate it
+#'   scale \code{mem}. Use \code{NULL} (default) to estimate it
 #'   automatically as the midpoint between the maximum and minimum values of
 #'   \code{lightness}.
 #'
@@ -77,6 +77,6 @@ local_fuzzy_thresholding <- function (lightness,
   mem <- overlay(lightness, mem, fun = function(lightness, mem) {
     suppressWarnings(stats::plogis(lightness, thr, fuzziness * (1 - mem)))
   })
-  names(mem) <- "membership_to_threshold"
+  names(mem) <- "membership_to_values_above_the_threshold"
   mem
 }

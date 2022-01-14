@@ -1,4 +1,4 @@
-#' Fit cone shaped model
+#' Fit cone-shaped model
 #'
 #' Generate the digital numbers of the whole sky through statistical modelling.
 #'
@@ -57,11 +57,11 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' bin <- find_sky_dns(blue, z, a)
-#' sky <- fit_cone_shaped_model(blue, z, a, bin, parallel = FALSE)
+#' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
 #' plot(sky$image)
 #' persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
-fit_cone_shaped_model <- function(r, z, a, bin,
+fit_coneshaped_model <- function(r, z, a, bin,
                                  prob = 0.95,
                                  filling_source = NULL,
                                  use_azimuth_angle = TRUE,

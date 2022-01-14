@@ -21,12 +21,12 @@
 #'   channels. This layer is used as lightness information. The weight of the
 #'   blue is the complement of \code{w_red}.
 #' @param sky_blue \linkS4class{color}. Is the \code{target_color} argument to
-#'   be passed to \code{\link{membership_to_color}}. By default is pure Blue.
+#'   be passed to \code{\link{membership_to_color}}.
 #'
 #' @details This is a pixel-wise methodology that evaluates the possibility for
 #'   a pixel to be member of the class Gap. High score could mean either high
 #'   membership to \code{sky_blue} or, in the case of achromatic pixels, a high
-#'   membership to \code{thr}. The algorithm internally uses
+#'   membership to values above \code{thr}. The algorithm internally uses
 #'   \code{\link{membership_to_color}} and
 #'   \code{\link{local_fuzzy_thresholding}}. The argument \code{sky_blue} is the
 #'   \code{target_color} of the former function, which output is the argument
@@ -42,23 +42,22 @@
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' m <- !is.na(z)
-#' ecaim <- enhance_caim(caim, m)
+#' sky_blue <- colorspace::sRGB(matrix(c(0.2, 0.3, 0.5), ncol = 3)
+#' ecaim <- enhance_caim(caim, m, sky_blue)
 #' plot(ecaim)
 #' }
 enhance_caim <- function(caim,
                          m,
-                         w_red = 0.25,
-                         sky_blue = NULL) {
+                         sky_blue,
+                         w_red = 0.25) {
   .check_if_r_was_normalized(caim, "caim")
   if (!compareRaster(caim, m, stopiffalse = FALSE)) {
     stop("\"x\" should match pixel by pixel whit \"m\".")
   }
 
-  if (is.null(sky_blue)) {
-      sky_blue <- colorspace::sRGB(matrix(c(0.2, 0.3, 0.5), ncol = 3))
-    }
   mem_sky_blue <- membership_to_color(caim, sky_blue)
   re_br <- caim$Red * w_red + caim$Blue * (1 - w_red)
+  re_br <- gbc(re_br * 255)
   mem_sky_blue
   mem_thr <- suppressWarnings(local_fuzzy_thresholding(re_br,
                                                 m,

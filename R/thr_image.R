@@ -13,7 +13,7 @@
 #' Results clearly shown that the optimal threshold value was linearly related
 #' with the background digital number. Therefore, that shifts the aim from
 #' finding the optimal threshold to obtaining the background DN as if the canopy
-#' was not there. Functions \code{\link{fit_cone_shaped_model}} and
+#' was not there. Functions \code{\link{fit_coneshaped_model}} and
 #' \code{\link{fit_trend_surface}} address that topic.
 #'
 #' It is worth noting that Equation 1 was developed with 8-bit images, so

@@ -16,7 +16,7 @@
 #' argument \code{no_of_samples}, it goes back to the binarization step but
 #' decreasing the probability by 0.01 points.
 #'
-#' @inheritParams fit_cone_shaped_model
+#' @inheritParams fit_coneshaped_model
 #' @param no_of_samples Numeric vector of length one. Minimum number of samples
 #'   required.
 #'

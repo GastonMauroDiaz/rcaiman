@@ -70,5 +70,5 @@ sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
     g <- raster::subs(g, df)
   }
 
-  g
+  as.factor(g)
 }

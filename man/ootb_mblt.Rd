@@ -28,7 +28,7 @@ algorithm.
 \details{
 This function is a hard-coded version of a MBLT pipeline that starts with a
 working binarized image and ends with a refined binarized image. The pipeline
-combines \code{\link{find_sky_dns}}, \code{\link{fit_cone_shaped_model}},
+combines \code{\link{find_sky_dns}}, \code{\link{fit_coneshaped_model}},
 \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The code can be
 easily inspected by calling \code{ootb_mblt} --no parenthesis. Advanced users
 can use that code as a template.
@@ -48,13 +48,15 @@ the population, considering that it is made of  \eqn{5 \times 5} sky grid
 cells.
 
 \item It does not use asynchronous acquisition under the open sky. So, the
-cone shaped model (\code{\link{fit_cone_shaped_model}}) run without a filling
+cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
-\item If the cone shaped model predicts values below zero, those values are
-set to zero and values toward the horizon are forced to gradually become the
-median sky DN calculated from the DNs finded by \code{\link{find_sky_dns}}.
+\item The cone-shaped sky is edited as follow. The minimum found by
+\code{\link{find_sky_dns}} is calculated and any area on the cone-shaped sky
+below that threshold is flattened. Then, values toward the horizon are forced
+to gradually become the median sky DN calculated from the DNs found by
+\code{\link{find_sky_dns}}.
 
 }
 
@@ -89,7 +91,7 @@ plot(bin$bin)
 \seealso{
 Other MBLT functions: 
 \code{\link{find_sky_dns}()},
-\code{\link{fit_cone_shaped_model}()},
+\code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{thr_image}()}
 }
