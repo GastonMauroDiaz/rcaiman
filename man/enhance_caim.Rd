@@ -4,7 +4,7 @@
 \alias{enhance_caim}
 \title{Enhance canopy image}
 \usage{
-enhance_caim(caim, m, sky_blue, w_red = 0.25)
+enhance_caim(caim, m, sky_blue, w_red = 0)
 }
 \arguments{
 \item{caim}{\linkS4class{RasterBrick}. The return of a call to
@@ -34,17 +34,20 @@ everything that does not match this description is not sky. These linguistic
 rules were translated to math language by means of fuzzy logic.
 }
 \details{
+This is a pixel-wise methodology that evaluates the possibility for a pixel
+to be member of the class Gap. High score could mean either high membership
+to \code{sky_blue} or, in the case of achromatic pixels, a high membership to
+values above \code{thr}. The algorithm internally uses
+\code{\link{membership_to_color}} and \code{\link{local_fuzzy_thresholding}}.
+The argument \code{sky_blue} is the \code{target_color} of the former
+function, which output is the argument \code{mem} of the latter function.
+
+\code{caim} should use the sRGB color space since values passed to
+\code{\link{local_fuzzy_thresholding}} are corrected with \code{\link{gbc}}
+using gamma equal to 2.2.
+
 If you use this function in your research, please cite
 \insertCite{Diaz2015}{rcaiman}.
-
-This is a pixel-wise methodology that evaluates the possibility for
-  a pixel to be member of the class Gap. High score could mean either high
-  membership to \code{sky_blue} or, in the case of achromatic pixels, a high
-  membership to values above \code{thr}. The algorithm internally uses
-  \code{\link{membership_to_color}} and
-  \code{\link{local_fuzzy_thresholding}}. The argument \code{sky_blue} is the
-  \code{target_color} of the former function, which output is the argument
-  \code{mem} of the latter function.
 }
 \examples{
 \dontrun{

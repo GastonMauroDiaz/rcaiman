@@ -1,0 +1,52 @@
+#' Fix predicted sky
+#'
+#' Automatically edit a raster image of sky digital numbers (DNs) predicted with
+#' functions such as \code{\link{fit_coneshaped_model}} and
+#' \code{\link{fit_trend_surface}}.
+#'
+#' The predicted sky DNs are usually erroneous near the horizon because they are
+#' a misleading extrapolation or are based on corrupted data (non-pure sky DNs).
+#'
+#' This automatic edition consists of (1) flattening values below the minimum
+#' input data (2) and forcing the values toward the horizon to gradually become
+#' the median input data. The latter is achieved by calculating the weighted
+#' average of the median value and the predicted sky DNs --\code{z / 90} is used
+#' to determine the weights.
+#'
+#' @param sky \linkS4class{RasterLayer}. Sky DNs predicted with functions such
+#'   as \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
+#' @param z \linkS4class{RasterLayer}. The result of a call to
+#'   \code{\link{zenith_image}}.
+#' @param r \linkS4class{RasterLayer}. The source of the sky DNs used to build
+#'   \code{sky}.
+#' @param bin \linkS4class{RasterLayer}. The binarization of \code{r} used to
+#'   select the sky DNs for building \code{sky}.
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' blue <- gbc(r$Blue)
+#' bin <- find_sky_dns(blue, z, a)
+#' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+#' sky <- fix_predicted_sky(sky$image, z, blue, bin)
+#' persp(sky, theta = 90, phi = 0)
+#' }
+fix_predicted_sky <- function(sky, z, r, bin) {
+  .check_if_r_was_normalized(r)
+  stopifnot(class(z) == "RasterLayer")
+  stopifnot(.get_max(z) <= 90)
+  compareRaster(r, z)
+  compareRaster(r, sky)
+  compareRaster(r, bin)
+
+  mn <- min(r[bin])
+  sky[sky < mn] <- mn
+  x <- quantile(r[bin], 0.5)
+  w <- z / 90
+  x * w + sky * (1 - w)
+}

@@ -29,7 +29,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
 be a preliminary binarization of \code{r}. If the function returns
-\code{NA}, the quality of this input should be revised.}
+\code{NA}, then the quality of this input should be revised.}
 
 \item{prob}{Logical vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation. See reference

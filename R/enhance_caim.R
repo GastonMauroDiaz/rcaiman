@@ -11,6 +11,18 @@
 #' everything that does not match this description is not sky. These linguistic
 #' rules were translated to math language by means of fuzzy logic.
 #'
+#' This is a pixel-wise methodology that evaluates the possibility for a pixel
+#' to be member of the class Gap. High score could mean either high membership
+#' to \code{sky_blue} or, in the case of achromatic pixels, a high membership to
+#' values above \code{thr}. The algorithm internally uses
+#' \code{\link{membership_to_color}} and \code{\link{local_fuzzy_thresholding}}.
+#' The argument \code{sky_blue} is the \code{target_color} of the former
+#' function, which output is the argument \code{mem} of the latter function.
+#'
+#' \code{caim} should use the sRGB color space since values passed to
+#' \code{\link{local_fuzzy_thresholding}} are corrected with \code{\link{gbc}}
+#' using gamma equal to 2.2.
+#'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015}{rcaiman}.
 #'
@@ -22,15 +34,6 @@
 #'   blue is the complement of \code{w_red}.
 #' @param sky_blue \linkS4class{color}. Is the \code{target_color} argument to
 #'   be passed to \code{\link{membership_to_color}}.
-#'
-#' @details This is a pixel-wise methodology that evaluates the possibility for
-#'   a pixel to be member of the class Gap. High score could mean either high
-#'   membership to \code{sky_blue} or, in the case of achromatic pixels, a high
-#'   membership to values above \code{thr}. The algorithm internally uses
-#'   \code{\link{membership_to_color}} and
-#'   \code{\link{local_fuzzy_thresholding}}. The argument \code{sky_blue} is the
-#'   \code{target_color} of the former function, which output is the argument
-#'   \code{mem} of the latter function.
 #'
 #' @export
 #' @references \insertAllCited{}
@@ -49,7 +52,7 @@
 enhance_caim <- function(caim,
                          m,
                          sky_blue,
-                         w_red = 0.25) {
+                         w_red = 0) {
   .check_if_r_was_normalized(caim, "caim")
   if (!compareRaster(caim, m, stopiffalse = FALSE)) {
     stop("\"x\" should match pixel by pixel whit \"m\".")

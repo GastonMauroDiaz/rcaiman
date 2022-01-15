@@ -52,11 +52,7 @@ cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
-\item The cone-shaped sky is edited as follow. The minimum found by
-\code{\link{find_sky_dns}} is calculated and any area on the cone-shaped sky
-below that threshold is flattened. Then, values toward the horizon are forced
-to gradually become the median sky DN calculated from the DNs found by
-\code{\link{find_sky_dns}}.
+\item The cone-shaped sky is edited with \code{\link{fix_predicted_sky}}.
 
 }
 
