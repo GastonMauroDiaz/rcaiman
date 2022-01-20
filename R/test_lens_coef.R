@@ -8,6 +8,9 @@
 #'
 #' @export
 #'
+#' @return Returns \code{invisible(TRUE)} if all tests pass, otherwise throws an
+#'   error.
+#'
 #' @examples
 #' test_lens_coef(lens("Nikon_FCE9"))
 #' test_lens_coef(2 / pi)

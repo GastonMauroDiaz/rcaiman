@@ -10,7 +10,8 @@
 #'   the pixels that belong to a segment are labeled with an ID number.
 #'   Otherwise, the angle mean of the segment is assigned to the pixels.
 #'
-#' @return \linkS4class{RasterLayer} with segments shaped like concentric rings.
+#' @return An object from the class \linkS4class{RasterLayer} with segments
+#'   shaped like concentric rings.
 #' @export
 #'
 #' @family Segmentation functions

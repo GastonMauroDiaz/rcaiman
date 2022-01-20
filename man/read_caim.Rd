@@ -22,7 +22,8 @@ are provided.}
 \item{width, height}{An integer vector of length one (see details).}
 }
 \value{
-\code{\linkS4class{RasterBrick}}.
+An object from class \linkS4class{RasterBrick} with its layers named
+  Red, Green, and Blue.
 }
 \description{
 Wrapper function for \code{\link[raster]{raster}}.
@@ -38,12 +39,12 @@ RGB-TIFF are expected as input. To read a region of the file use
 parameter indicates the pixels coordinates of the upper left corner of the
 region of interest (ROI). These coordinates should be in the raster
 coordinates system, which works like a spreadsheet, i.e, when you go down
-through the vertical axis, the \emph{row} number increases (\strong{IMPORTANT:
-column and row must be provided instead of row and column}). The
-\code{width}, and \code{height} parameters indicate the size of the boxy ROI.
-I recommend using \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain this
-parameters, but any image editor can be used, such as ‘GIMP’ and ‘Adobe
-Photoshop’.
+through the vertical axis, the \emph{row} number increases
+(\strong{IMPORTANT: column and row must be provided instead of row and
+column}). The \code{width}, and \code{height} parameters indicate the size of
+the boxy ROI. I recommend using \href{https://imagej.nih.gov/ij/}{‘ImageJ’}
+to obtain this parameters, but any image editor can be used, such as ‘GIMP’
+and ‘Adobe Photoshop’.
 }
 \section{Functions}{
 \itemize{
@@ -69,6 +70,7 @@ r <- read_caim(path,
                upper_left = zenith_colrow - diameter_px/2,
                width = diameter_px,
                height = diameter_px)
+plotRGB(r)
 }
 \seealso{
 \code{\link{write_caim}}

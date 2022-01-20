@@ -58,10 +58,12 @@ calc_relative_radius <- function(angle, lens_coef) {
 #'
 #'
 #' @param diameter Numeric vector of length one. Diameter in pixels.
-#' @param lens_coef Numeric vector. Polynomial coefficients
-#'   of the lens projection function.
+#' @param lens_coef Numeric vector. Polynomial coefficients of the lens
+#'   projection function.
 #'
-#' @return \code{\linkS4class{RasterLayer}}.
+#' @return An object of class \linkS4class{RasterLayer} of zenith angles in
+#'   degrees, showing a complete hemispherical view, with the zenith on the
+#'   center.
 #' @export
 #'
 #' @family Lens functions

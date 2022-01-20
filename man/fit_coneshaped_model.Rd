@@ -79,7 +79,7 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- find_sky_dns(blue, z, a)
+bin <- find_sky_pixels(blue, z, a)
 sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
 plot(sky$image)
 persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
@@ -90,7 +90,7 @@ persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 }
 \seealso{
 Other MBLT functions: 
-\code{\link{find_sky_dns}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}

@@ -8,15 +8,16 @@
 #'
 #' @export
 #'
+#' @return No return value. Called for side effects.
+#'
 #' @seealso \code{\link{write_bin}}
 #' @family Tools functions
 #'
 #' @examples
 #' \dontrun{
-#' require(magrittr)
 #' caim <- read_caim() %>% normalize(., 0, 255)
-#' write_caim(caim * 2^8, "test_8bit", 8)
-#' write_caim(caim * 2^16, "test_16bit", 16)
+#' write_caim(caim * 2^8, file.path(tmpDir(), "test_8bit"), 8)
+#' write_caim(caim * 2^16, file.path(tmpDir(), "test_16bit"), 16)
 #' }
 write_caim <- function(caim, path, bit_depth) {
 

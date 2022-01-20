@@ -13,7 +13,8 @@ apply_thr(r, thr)
 Threshold.}
 }
 \value{
-\linkS4class{RasterLayer} with values \code{0} and \code{1}.
+An object of class \linkS4class{RasterLayer} with values \code{0} and
+  \code{1}.
 }
 \description{
 Global or local thresholding of images.
@@ -22,15 +23,15 @@ Global or local thresholding of images.
 It is a wrapper function around the operator \code{>} from the ‘raster’
 package. If a single threshold value is provided as \code{thr} argument, it
 is applied to every pixel of the raster object \code{r}. If instead a
-\linkS4class{RasterLayer} is provided, then a particular threshold
-is applied to each particular pixel.
+\linkS4class{RasterLayer} is provided, then a particular threshold is applied
+to each particular pixel.
 }
 \examples{
 r <- read_caim()
 apply_thr(r$Blue, 120)
 \dontrun{
 # This function is useful in combination with the ‘autothresholdr’
-package. For examples:
+# package. For example:
 require(autothresholdr)
 thr <- auto_thresh(r$Blue[], "IsoData")[1]
 bin <- apply_thr(r$Blue, thr)
@@ -38,8 +39,6 @@ plot(bin)
 }
 }
 \seealso{
-\code{\link{regional_thresholding}}.
-
 Other Tools functions: 
 \code{\link{extract_feature}()},
 \code{\link{gbc}()},

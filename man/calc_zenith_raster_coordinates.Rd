@@ -12,6 +12,14 @@ with the
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
  selection tool of ‘ImageJ’ software}.}
 }
+\value{
+Numeric vector of length two. Raster coordinates of the zenith,
+  assuming a lens facing up with its optical axis parallel to the
+  vertical line. It is important to note the difference between the raster
+  coordinates and the Cartesian coordinates. In the latter,  the vertical
+  axis value decreases down, but the opposite is true for the raster
+  coordinates, which works like a spreadsheet.
+}
 \description{
 Calculate zenith raster coordinates from points digitized with the
 open-source software package ‘ImageJ’. The zenith is the point on the image
@@ -19,11 +27,6 @@ that represents the zenith when upward-looking photographs are taken with the
 optical axis parallel to the vertical line.
 }
 \details{
-It is important to note the difference between the raster coordinates and the
-Cartesian coordinates. In the latter,  the vertical axis value decreases when
-you go down, but the opposite is true for the raster coordinates, which works
-like a spreadsheet.
-
 The technique described under the headline ‘Optical center characterization’
 of the
 \href{https://www6.paca.inrae.fr/can-eye/content/download/3052/30819/version/4/file/CAN_EYE_User_Manual.pdf}{user
@@ -32,8 +35,8 @@ determining the zenith coordinates. This technique was used by
 \insertCite{Pekin2009;textual}{rcaiman}, among others. Briefly, it consists
 in drilling a small hole in the cap of the fisheye lens (it must be away from
 the center of the cap), and taking about ten photographs without removing the
-cap. The cap must be rotated about 30º before taking each photograph. The
-method implemented here do not support multiple holes.
+cap. The cap must be rotated about 30º before taking each photograph.
+\strong{The method implemented here do not support multiple holes}.
 
 The
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point

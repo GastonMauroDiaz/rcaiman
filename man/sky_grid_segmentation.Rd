@@ -7,27 +7,27 @@
 sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
 }
 \arguments{
-\item{z}{\code{\linkS4class{RasterLayer}} built with
+\item{z}{\linkS4class{RasterLayer} built with
 \code{\link{zenith_image}}.}
 
 \item{a}{\code{\linkS4class{RasterLayer}} built with
 \code{\link{azimuth_image}}.}
 
-\item{angle_width}{Numeric vector of length one. It should be \code{30, 15, 10,
-7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This constrain
-is rooted in the requirement of a value able to divide both the \code{0} to
-\code{360} and \code{0} to \code{90} ranges into a whole number of
-segments.}
+\item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
+10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
+constrain is rooted in the requirement of a value able to divide both the
+\code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
+of segments.}
 
 \item{sequential}{Logical vector of length one. If it is \code{TRUE}, the
 segments are labeled with sequential numbers. By default (\code{FALSE}),
 labeling numbers are not sequential (see Details).}
 }
 \value{
-\linkS4class{RasterLayer} with segments shaped like windshields,
-  although some of them will look elongated in height. The pattern is two
-  opposite and converging straight sides and two opposite and parallel
-  curvy sides.
+An object from the class \linkS4class{RasterLayer} with segments
+  shaped like windshields, although some of them will look elongated in
+  height. The pattern is two opposite and converging straight sides and two
+  opposite and parallel curvy sides.
 }
 \description{
 Segmenting the hemisphere view into segments of equal angular resolution for
@@ -45,7 +45,7 @@ the ID number of the sector and \code{ringsID} is the ID number of the ring.
 z <- zenith_image(1490, lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
-plot(g == 36009)
+plot(g == 24005)
 \dontrun{
 g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 plot(g, col = sample(rainbow(length(raster::unique(g)))))

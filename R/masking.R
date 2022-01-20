@@ -1,16 +1,20 @@
 #' Image masking
 #'
 #' @param r \linkS4class{Raster}. The image. Values should be normalized, see
-#'   \code{\link{normalize}}.
-#' @param m \linkS4class{RasterLayer}. The mask, see
-#'   \code{\link{mask_hs}}.
+#'   \code{\link{normalize}}. Only methods for images with one or three layers
+#'   have been implemented.
+#' @param m \linkS4class{RasterLayer}. The mask, see \code{\link{mask_hs}}.
 #' @param RGB Numeric vector of length three. RGB color code. Red is the default
 #'   color.
 #'
-#' @return \linkS4class{RasterStack}
+#' @return An object of class \linkS4class{RasterStack} that essentially is
+#'   \code{r} with the areas delimited by \code{m} --where its pixels are equal
+#'   to one-- painted in a solid color. If \code{r} is a single layer image,
+#'   then the layer is triplicated to allow the use of colors.
 #' @export
 #' @family Tools functions
 #' @seealso \code{\link{mask_hs}}
+#'
 #'
 #' @examples
 #' \dontrun{

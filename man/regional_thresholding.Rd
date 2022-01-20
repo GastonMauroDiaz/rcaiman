@@ -37,7 +37,8 @@ function coefficients. Please, see the Details section of
 \insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{
-\linkS4class{RasterLayer}.
+An object of class \linkS4class{RasterLayer} with values \code{0} and
+  \code{1}.
 }
 \description{
 Regional thresholding of greyscale images
@@ -64,6 +65,7 @@ blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
 bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
+plot(bin) # gross errors near the horizon, try ootb_mblt()
 }
 \references{
 \insertAllCited{}

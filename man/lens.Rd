@@ -13,12 +13,17 @@ details.}
 \item{max_fov}{Logical. Use \code{TRUE} to return the maximum field of view
 in degrees.}
 }
+\value{
+If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector
+  of length one, which is the lens FOV in degrees. Otherwise, it returns a
+  numeric vector with the coefficient of the lens function.
+}
 \description{
 Database of lens projection functions and field of views.
 }
 \details{
-Eventually, this will be a large database, but only the following lenses
-are available at the moment:
+Eventually, this will be a large database, but only the following lenses are
+available at the moment:
 
 \itemize{ \item \strong{equidistant}: standard equidistant projection
 \insertCite{Schneider2009}{rcaiman}.
@@ -32,7 +37,8 @@ are available at the moment:
 }
 }
 \examples{
-lens("equidistant")
+lens("Nikon_FCE9")
+lens("Nikon_FCE9", max_fov = TRUE)
 }
 \references{
 \insertAllCited{}

@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a)
+ootb_mblt(r, z, a, parallel = TRUE)
 }
 \arguments{
 \item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
@@ -16,6 +16,8 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{a}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{azimuth_image}}.}
+
+\item{parallel}{Logical vector of length one. Allows parallel processing.}
 }
 \value{
 Object of class list with the binarized image (named ‘bin’) and the
@@ -28,7 +30,7 @@ algorithm.
 \details{
 This function is a hard-coded version of a MBLT pipeline that starts with a
 working binarized image and ends with a refined binarized image. The pipeline
-combines \code{\link{find_sky_dns}}, \code{\link{fit_coneshaped_model}},
+combines \code{\link{find_sky_pixels}}, \code{\link{fit_coneshaped_model}},
 \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The code can be
 easily inspected by calling \code{ootb_mblt} --no parenthesis. Advanced users
 can use that code as a template.
@@ -42,7 +44,7 @@ from that in the following main aspects:
 \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 
 \item This version implements a regional threholding approach as first step
-instead of a global one. Please refer to \code{\link{find_sky_dns}}. The
+instead of a global one. Please refer to \code{\link{find_sky_pixels}}. The
 minimum number of samples (sky DNs) required is equals to the 30 percent of
 the population, considering that it is made of  \eqn{5 \times 5} sky grid
 cells.
@@ -77,7 +79,7 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a)
+bin <- ootb_mblt(blue, z, a, parallel = FALSE)
 plot(bin$bin)
 }
 }
@@ -86,7 +88,7 @@ plot(bin$bin)
 }
 \seealso{
 Other MBLT functions: 
-\code{\link{find_sky_dns}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{thr_image}()}

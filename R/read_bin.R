@@ -6,6 +6,8 @@
 #'
 #' @export
 #'
+#' @return An object from class \linkS4class{RasterLayer}.
+#'
 #' @seealso \code{\link{write_bin}}
 #' @family Tools functions
 #'
@@ -13,8 +15,9 @@
 #' \dontrun{
 #' z <- zenith_image(1000, lens())
 #' m <- !is.na(z)
-#' write_bin(m, "mask")
-#' m_from_disk <- read_bin("mask.tif")
+#' my_file <- file.path(tmpDir(), "mask.tif")
+#' write_bin(m, my_file)
+#' m_from_disk <- read_bin(my_file)
 #' plot(m - m_from_disk)
 #' }
 read_bin <- function(path) {

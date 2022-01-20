@@ -13,19 +13,19 @@
 #'
 #' @inheritParams azimuth_image
 #' @inheritParams sectors_segmentation
-#' @param angle_width Numeric vector of length one. It should be \code{30, 15, 10,
-#'   7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This constrain
-#'   is rooted in the requirement of a value able to divide both the \code{0} to
-#'   \code{360} and \code{0} to \code{90} ranges into a whole number of
-#'   segments.
+#' @param angle_width Numeric vector of length one. It should be \code{30, 15,
+#'   10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
+#'   constrain is rooted in the requirement of a value able to divide both the
+#'   \code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
+#'   of segments.
 #' @param sequential Logical vector of length one. If it is \code{TRUE}, the
 #'   segments are labeled with sequential numbers. By default (\code{FALSE}),
 #'   labeling numbers are not sequential (see Details).
 #'
-#' @return \linkS4class{RasterLayer} with segments shaped like windshields,
-#'   although some of them will look elongated in height. The pattern is two
-#'   opposite and converging straight sides and two opposite and parallel
-#'   curvy sides.
+#' @return An object from the class \linkS4class{RasterLayer} with segments
+#'   shaped like windshields, although some of them will look elongated in
+#'   height. The pattern is two opposite and converging straight sides and two
+#'   opposite and parallel curvy sides.
 #' @export
 #'
 #' @family Segmentation functions
@@ -34,7 +34,7 @@
 #' z <- zenith_image(1490, lens())
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 15)
-#' plot(g == 36009)
+#' plot(g == 24005)
 #' \dontrun{
 #' g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 #' plot(g, col = sample(rainbow(length(raster::unique(g)))))

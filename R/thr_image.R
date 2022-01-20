@@ -37,6 +37,8 @@
 #'
 #' @export
 #'
+#' @return An object of the same class and dimensions than \code{dn}.
+#'
 #' @family MBLT functions
 #' @seealso \code{\link{normalize}}, \code{\link{gbc}}, \code{\link{apply_thr}}
 #'   and \code{\link{regional_thresholding}}.

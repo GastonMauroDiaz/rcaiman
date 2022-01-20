@@ -7,6 +7,8 @@
 #'
 #' @export
 #'
+#' @return No return value. Called for side effects.
+#'
 #' @seealso \code{\link{read_bin}}
 #' @family Tools functions
 #'
@@ -14,8 +16,10 @@
 #' \dontrun{
 #' z <- zenith_image(1000, lens())
 #' m <- !is.na(z)
-#' write_bin(m, "mask")
-#' m_from_disk <- read_bin("mask.tif")
+#' my_file <- file.path(tmpDir(), "mask")
+#' write_bin(m, my_file)
+#' extension(my_file) <- "tif"
+#' m_from_disk <- read_bin(my_file)
 #' plot(m - m_from_disk)
 #' }
 write_bin <- function(bin, path) {

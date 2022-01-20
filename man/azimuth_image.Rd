@@ -7,11 +7,18 @@
 azimuth_image(z)
 }
 \arguments{
-\item{z}{\code{\linkS4class{RasterLayer}} built with
+\item{z}{\linkS4class{RasterLayer} built with
 \code{\link{zenith_image}}.}
 }
 \value{
-\code{\linkS4class{RasterLayer}}.
+An object of class \linkS4class{RasterLayer} of azimuth angles
+  in degrees. North (0º) is pointing up as in maps, but East (90º) and West
+  (270º) are flipped respect to maps. To understand why is that, take two
+  flash-card size pieces of paper. Put one on a table in front of you and
+  draw on it a compass rose. Take the other and hold it with your arms
+  extended over your head, and, following the directions of the compass rose
+  in front of you, draw another compass rose in the paper side that face
+  down. Then, put it down and compare both compass roses.
 }
 \description{
 Build a single layer image with azimuth angles as pixel values.

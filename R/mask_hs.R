@@ -10,6 +10,9 @@
 #' @family Segmentation functions
 #' @seealso \code{\link{masking}}
 #'
+#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#'   \code{1}.
+#'
 #' @examples
 #' \dontrun{
 #' z <- zenith_image(1000, lens())

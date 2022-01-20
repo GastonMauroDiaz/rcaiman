@@ -11,6 +11,9 @@ write_bin(bin, path)
 
 \item{path}{Character vector of length one. Path for writing the image.}
 }
+\value{
+No return value. Called for side effects.
+}
 \description{
 Wrapper functions for \code{\link[raster]{writeRaster}}.
 }
@@ -18,8 +21,10 @@ Wrapper functions for \code{\link[raster]{writeRaster}}.
 \dontrun{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
-write_bin(m, "mask")
-m_from_disk <- read_bin("mask.tif")
+my_file <- file.path(tmpDir(), "mask")
+write_bin(m, my_file)
+extension(my_file) <- "tif"
+m_from_disk <- read_bin(my_file)
 plot(m - m_from_disk)
 }
 }

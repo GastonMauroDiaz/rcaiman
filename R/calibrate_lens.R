@@ -3,7 +3,7 @@
 #' Calibrate a fisheye lens. This type of lens has wide field of view and a
 #' consistent azimuthal distortion, so a precise mathematical relation can be
 #' fit between the distance to the zenith on the image space and the zenith
-#' angle on the hemispherical space
+#' angle on the hemispherical space.
 #'
 #' If you cannot find the coefficient of your lens on the literature, you may
 #' want to try the solution offered here. It requires, in addition to this
@@ -17,7 +17,7 @@
 #'
 #' \item standard yoga mat
 #'
-#' \item table larger than the yoga mat
+#' \item table of about 70 \eqn{\times} larger than the yoga mat
 #'
 #' \item twenty two push pins of different colors
 #'

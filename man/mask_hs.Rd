@@ -12,6 +12,10 @@ mask_hs(r, from, to)
 
 \item{from, to}{angle in degrees, inclusive limits.}
 }
+\value{
+An object of class \linkS4class{RasterLayer} with values \code{0} and
+  \code{1}.
+}
 \description{
 Given a zenith or azimuth image and angle restrictions, it produces a mask.
 }

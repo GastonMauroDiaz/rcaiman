@@ -13,12 +13,12 @@
 #' parameter indicates the pixels coordinates of the upper left corner of the
 #' region of interest (ROI). These coordinates should be in the raster
 #' coordinates system, which works like a spreadsheet, i.e, when you go down
-#' through the vertical axis, the \emph{row} number increases (\strong{IMPORTANT:
-#' column and row must be provided instead of row and column}). The
-#' \code{width}, and \code{height} parameters indicate the size of the boxy ROI.
-#' I recommend using \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain this
-#' parameters, but any image editor can be used, such as ‘GIMP’ and ‘Adobe
-#' Photoshop’.
+#' through the vertical axis, the \emph{row} number increases
+#' (\strong{IMPORTANT: column and row must be provided instead of row and
+#' column}). The \code{width}, and \code{height} parameters indicate the size of
+#' the boxy ROI. I recommend using \href{https://imagej.nih.gov/ij/}{‘ImageJ’}
+#' to obtain this parameters, but any image editor can be used, such as ‘GIMP’
+#' and ‘Adobe Photoshop’.
 #'
 #'
 #' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
@@ -27,7 +27,8 @@
 #' @param upper_left An integer vector of length two (see details).
 #' @param width,height An integer vector of length one (see details).
 #'
-#' @return \code{\linkS4class{RasterBrick}}.
+#' @return An object from class \linkS4class{RasterBrick} with its layers named
+#'   Red, Green, and Blue.
 #' @export
 #' @family Tools functions
 #'
@@ -48,6 +49,7 @@
 #'                upper_left = zenith_colrow - diameter_px/2,
 #'                width = diameter_px,
 #'                height = diameter_px)
+#' plotRGB(r)
 setGeneric("read_caim", function(path_to_file, upper_left = NULL, width = NULL,
                             height = NULL) {
   standardGeneric("read_caim")

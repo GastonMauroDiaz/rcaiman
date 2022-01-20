@@ -1,4 +1,3 @@
-
 #' Extract feature
 #'
 #' Extract features from raster images.
@@ -6,12 +5,12 @@
 #' Given a single layer raster, a segmentation, and a function,
 #' \code{extract_features} will returns a numeric vector or a
 #' \linkS4class{RasterLayer} depending on whether the parameter
-#' \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first
-#' case, each pixel of each segment will adopt the respective extracted feature
-#' value. For the second case, the return will be the extracted feature as a
-#' vector of length equal to the total number of segments. Each
-#' extracted feature value will be obtained by processing all pixels that belong
-#' to a segment with the provided function.
+#' \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each
+#' pixel of each segment will adopt the respective extracted feature value. For
+#' the second case, the return will be the extracted feature as a vector of
+#' length equal to the total number of segments. Each extracted feature value
+#' will be obtained by processing all pixels that belong to a segment with the
+#' provided function.
 #'
 #' @param r \linkS4class{RasterLayer}. Single layer raster.
 #' @param segmentation \linkS4class{RasterLayer}. The segmentation of \code{r}.
@@ -23,14 +22,19 @@
 #'
 #' @export
 #'
+#' @return If \code{return_raster} is set to \code{TRUE}, then an object of
+#'   class \linkS4class{RasterLayer} with the same pixel dimensions than
+#'   \code{r} will be returned. Otherwise, the return is a numeric vector of
+#'   length equal to the number of segments found in \code{segmentation}.
+#'
 #' @examples
 #' \dontrun{
 #' r <- read_caim()
 #' z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' extract_feature(r$Blue, g, return_raster = FALSE)
-#' plot(extract_feature(r$Blue, g, return_raster = FALSE))
+#' print(extract_feature(r$Blue, g, return_raster = FALSE))
+#' plot(extract_feature(r$Blue, g, return_raster = TRUE))
 #' }
 extract_feature <- function(r, segmentation, fun = mean, return_raster = TRUE) {
 

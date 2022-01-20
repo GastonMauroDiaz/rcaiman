@@ -27,7 +27,8 @@
 #' @inheritParams thr_image
 #' @inheritParams fit_coneshaped_model
 #'
-#' @return \linkS4class{RasterLayer}.
+#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#'   \code{1}.
 #'
 #' @export
 #' @family Tools functions
@@ -42,6 +43,7 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' rings <- rings_segmentation(z, 10)
 #' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
+#' plot(bin) # gross errors near the horizon, try ootb_mblt()
 regional_thresholding <- function(r,
                                   segmentation,
                                   method,

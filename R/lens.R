@@ -2,8 +2,8 @@
 #'
 #' Database of lens projection functions and field of views.
 #'
-#' Eventually, this will be a large database, but only the following lenses
-#' are available at the moment:
+#' Eventually, this will be a large database, but only the following lenses are
+#' available at the moment:
 #'
 #' \itemize{ \item \strong{equidistant}: standard equidistant projection
 #' \insertCite{Schneider2009}{rcaiman}.
@@ -23,11 +23,17 @@
 #'
 #' @export
 #'
+#' @return If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector
+#'   of length one, which is the lens FOV in degrees. Otherwise, it returns a
+#'   numeric vector with the coefficient of the lens function.
+#'
 #' @family Lens functions
 #'
 #' @references \insertAllCited{}
 #'
-#' @examples lens("equidistant")
+#' @examples
+#' lens("Nikon_FCE9")
+#' lens("Nikon_FCE9", max_fov = TRUE)
 lens <- function(type = "equidistant", max_fov = FALSE) {
   if (max_fov) index <- 2 else index <- 1
 

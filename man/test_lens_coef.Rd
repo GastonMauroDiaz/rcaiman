@@ -7,8 +7,12 @@
 test_lens_coef(lens_coef)
 }
 \arguments{
-\item{lens_coef}{Numeric vector. Polynomial coefficients
-of the lens projection function.}
+\item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
+projection function.}
+}
+\value{
+Returns \code{invisible(TRUE)} if all tests pass, otherwise throws an
+  error.
 }
 \description{
 Test that lens projection function works between the 0-to-1 range.

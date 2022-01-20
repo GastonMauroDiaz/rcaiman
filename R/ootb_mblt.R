@@ -5,7 +5,7 @@
 #'
 #' This function is a hard-coded version of a MBLT pipeline that starts with a
 #' working binarized image and ends with a refined binarized image. The pipeline
-#' combines \code{\link{find_sky_dns}}, \code{\link{fit_coneshaped_model}},
+#' combines \code{\link{find_sky_pixels}}, \code{\link{fit_coneshaped_model}},
 #' \code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The code can be
 #' easily inspected by calling \code{ootb_mblt} --no parenthesis. Advanced users
 #' can use that code as a template.
@@ -19,7 +19,7 @@
 #' \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 #'
 #' \item This version implements a regional threholding approach as first step
-#' instead of a global one. Please refer to \code{\link{find_sky_dns}}. The
+#' instead of a global one. Please refer to \code{\link{find_sky_pixels}}. The
 #' minimum number of samples (sky DNs) required is equals to the 30 percent of
 #' the population, considering that it is made of  \eqn{5 \times 5} sky grid
 #' cells.
@@ -64,18 +64,18 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a)
+#' bin <- ootb_mblt(blue, z, a, parallel = FALSE)
 #' plot(bin$bin)
 #' }
-ootb_mblt <- function(r, z, a) {
+ootb_mblt <- function(r, z, a, parallel = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
-  bin <- find_sky_dns(r, z, a, round((360/5) * (90/5) * 0.3))
+  bin <- find_sky_pixels(r, z, a, round((360/5) * (90/5) * 0.3))
   sky_cs <- fit_coneshaped_model(r, z, a, bin,
                                  prob = 0.95,
                                  filling_source = NULL,
                                  use_azimuth_angle = TRUE,
-                                 parallel = TRUE,
+                                 parallel = parallel,
                                  free_cores = 0)$image
   sky_cs <- fix_predicted_sky(sky_cs, z, r, bin)
   thr <- suppressWarnings(thr_image(sky_cs, 0, 0.5))

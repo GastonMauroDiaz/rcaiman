@@ -24,7 +24,7 @@ An object of class list with named elements. ‘lens_coef’ stands for
 Calibrate a fisheye lens. This type of lens has wide field of view and a
 consistent azimuthal distortion, so a precise mathematical relation can be
 fit between the distance to the zenith on the image space and the zenith
-angle on the hemispherical space
+angle on the hemispherical space.
 }
 \details{
 If you cannot find the coefficient of your lens on the literature, you may
@@ -39,7 +39,7 @@ following materials:
 
 \item standard yoga mat
 
-\item table larger than the yoga mat
+\item table of about 70 \eqn{\times} larger than the yoga mat
 
 \item twenty two push pins of different colors
 

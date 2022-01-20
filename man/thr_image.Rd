@@ -15,6 +15,9 @@ from JPEG image, gamma back corrected.}
 function coefficients. Please, see the Details section of
 \code{\link{thr_image}}.}
 }
+\value{
+An object of the same class and dimensions than \code{dn}.
+}
 \description{
 Transform background digital number into threshold values.
 }
@@ -56,7 +59,7 @@ thr_image(gbc(125), -8, 1)
   and \code{\link{regional_thresholding}}.
 
 Other MBLT functions: 
-\code{\link{find_sky_dns}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()}

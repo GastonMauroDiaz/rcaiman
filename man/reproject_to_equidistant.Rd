@@ -13,9 +13,8 @@ reproject_to_equidistant(r, z, a, radius = 745)
 \S4method{reproject_to_equidistant}{RasterStackBrick}(r, z, a, radius = 745)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{Raster}. Only methods for images with one or three
+layers have been implemented.}
 
 \item{z}{\linkS4class{RasterLayer}. The result of a call to
 \code{\link{zenith_image}}.}
@@ -39,7 +38,8 @@ bin <- apply_thr(caim$Blue, 0.5)
 bin_equi <- reproject_to_equidistant(bin, z, a, radius = 400)
 bin_equi <- apply_thr(bin_equi, 0.5)
 plot(bin_equi)
-write_bin(bin_equi, "bin") #ready for CIMES, GLA, CAN-EYE, etc.
+# use write_bin(bin, "path\file_name") to have a file ready
+# for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 }
 }
 \seealso{

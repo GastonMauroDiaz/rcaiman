@@ -1,6 +1,6 @@
-#' Find sky DNs
+#' Find sky pixles
 #'
-#' Find sky digital numbers automatically
+#' Find sky pixels automatically
 #'
 #' This function assumes that (1) there is at least one pure sky pixel at the
 #' level of cells of \eqn{30 \times 30} degrees, and (2) sky pixels have a
@@ -23,6 +23,8 @@
 #' @family MBLT functions
 #'
 #' @export
+#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#'   \code{1}. This layer masks pixels that are very likely pure sky pixels.
 #'
 #' @examples
 #' \dontrun{
@@ -31,10 +33,10 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(caim$Blue)
-#' bin <- find_sky_dns(blue, z, a)
+#' bin <- find_sky_pixels(blue, z, a)
 #' plot(bin)
 #' }
-find_sky_dns <- function(r, z, a, no_of_samples = 30) {
+find_sky_pixels <- function(r, z, a, no_of_samples = 30) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   g30 <- sky_grid_segmentation(z, a, 30)

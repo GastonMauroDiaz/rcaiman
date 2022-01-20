@@ -10,11 +10,16 @@
 #'
 #' @family Lens functions
 #'
+#' @return An object of class \linkS4class{RasterBrick} that is the result of
+#'   copying the pixels from \code{caim} and adding margins of \code{NA} pixel
+#'   values. The zenith point depicted in the picture should be in the center of
+#'   the image or very close to it.
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#'    my_file <- path.expand("~/DSC_2881.JPG")
+#'    my_file <- file.path(tmpDir(), "DSC_2881.JPG")
 #'    download.file("https://osf.io/x8urg/download", my_file,
 #'                method = "auto", mode = "wb"
 #'    )

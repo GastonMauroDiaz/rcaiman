@@ -19,14 +19,20 @@ logistic membership function. Typically it is obtained with
 \code{\link{membership_to_color}}.}
 
 \item{thr}{Numeric vector of length one. Location parameter of the logistic
-membership function. Use \code{NULL} (default) to estimate it
-automatically with the function \code{\link[autothresholdr]{auto_thresh}},
-method \code{"IsoData"}.}
+membership function. Use \code{NULL} (default) to estimate it automatically
+with the function \code{\link[autothresholdr]{auto_thresh}}, method
+\code{"IsoData"}.}
 
 \item{fuzziness}{Numeric vector of length one. This number is a constant that
-scale \code{mem}. Use \code{NULL} (default) to estimate it
-automatically as the midpoint between the maximum and minimum values of
-\code{lightness}.}
+scale \code{mem}. Use \code{NULL} (default) to estimate it automatically as
+the midpoint between the maximum and minimum values of \code{lightness}.}
+}
+\value{
+An object of class \linkS4class{RasterLayer} with same pixel
+  dimensions than \code{caim}. Depending on \code{mem}, changes could be
+  subtle. However, they should be in the direction of showing more contrast
+  between the sky and plant pixels than any of the individual bands from
+  \code{caim}.
 }
 \description{
 This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses

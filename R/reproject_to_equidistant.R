@@ -1,5 +1,7 @@
 #' Reproject to equidistant
 #'
+#' @param r \linkS4class{Raster}. Only methods for images with one or three
+#'   layers have been implemented.
 #' @inheritParams ootb_mblt
 #' @param radius Numeric integer of length one. Radius of the reprojected
 #'   hemispherical image.
@@ -18,7 +20,8 @@
 #' bin_equi <- reproject_to_equidistant(bin, z, a, radius = 400)
 #' bin_equi <- apply_thr(bin_equi, 0.5)
 #' plot(bin_equi)
-#' write_bin(bin_equi, "bin") #ready for CIMES, GLA, CAN-EYE, etc.
+#' # use write_bin(bin, "path\file_name") to have a file ready
+#' # for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 #' }
 setGeneric("reproject_to_equidistant",
            function(r, z, a, radius = 745)

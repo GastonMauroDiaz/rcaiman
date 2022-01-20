@@ -5,12 +5,6 @@
 #' that represents the zenith when upward-looking photographs are taken with the
 #' optical axis parallel to the vertical line.
 #'
-#'
-#' It is important to note the difference between the raster coordinates and the
-#' Cartesian coordinates. In the latter,  the vertical axis value decreases when
-#' you go down, but the opposite is true for the raster coordinates, which works
-#' like a spreadsheet.
-#'
 #' The technique described under the headline ‘Optical center characterization’
 #' of the
 #' \href{https://www6.paca.inrae.fr/can-eye/content/download/3052/30819/version/4/file/CAN_EYE_User_Manual.pdf}{user
@@ -19,8 +13,8 @@
 #' \insertCite{Pekin2009;textual}{rcaiman}, among others. Briefly, it consists
 #' in drilling a small hole in the cap of the fisheye lens (it must be away from
 #' the center of the cap), and taking about ten photographs without removing the
-#' cap. The cap must be rotated about 30º before taking each photograph. The
-#' method implemented here do not support multiple holes.
+#' cap. The cap must be rotated about 30º before taking each photograph.
+#' \strong{The method implemented here do not support multiple holes}.
 #'
 #' The
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
@@ -43,6 +37,13 @@
 #'
 #' @export
 #'
+#' @return Numeric vector of length two. Raster coordinates of the zenith,
+#'   assuming a lens facing up with its optical axis parallel to the
+#'   vertical line. It is important to note the difference between the raster
+#'   coordinates and the Cartesian coordinates. In the latter,  the vertical
+#'   axis value decreases down, but the opposite is true for the raster
+#'   coordinates, which works like a spreadsheet.
+#'
 #' @examples
 #' \dontrun{
 #' path <- system.file("external/points_over_perimeter.csv",
@@ -60,7 +61,6 @@ calc_zenith_raster_coordinates <- function(path_to_csv) {
   circle <- as.matrix(x) %>%
       conicfit::CircleFitByKasa() %>%
       .[-3]
-  zenith_coordinates <- matrix(circle, ncol = 2, byrow = TRUE)
-  colnames(zenith_coordinates) <- c("col", "row")
-  zenith_coordinates
+  names(circle) <- c("col", "row")
+  circle
 }

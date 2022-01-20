@@ -9,11 +9,13 @@ zenith_image(diameter, lens_coef)
 \arguments{
 \item{diameter}{Numeric vector of length one. Diameter in pixels.}
 
-\item{lens_coef}{Numeric vector. Polynomial coefficients
-of the lens projection function.}
+\item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
+projection function.}
 }
 \value{
-\code{\linkS4class{RasterLayer}}.
+An object of class \linkS4class{RasterLayer} of zenith angles in
+  degrees, showing a complete hemispherical view, with the zenith on the
+  center.
 }
 \description{
 Built a single layer image with zenith angles values.

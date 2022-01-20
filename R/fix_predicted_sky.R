@@ -23,6 +23,8 @@
 #'   select the sky DNs for building \code{sky}.
 #'
 #' @export
+#' @return An object of class \linkS4class{RasterLayer} that is an edited
+#'   version of \code{sky}. Pixel dimensions should remain unchanged.
 #'
 #' @examples
 #' \dontrun{
@@ -31,7 +33,7 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- find_sky_dns(blue, z, a)
+#' bin <- find_sky_pixels(blue, z, a)
 #' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
 #' sky <- fix_predicted_sky(sky$image, z, blue, bin)
 #' persp(sky, theta = 90, phi = 0)

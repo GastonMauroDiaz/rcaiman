@@ -14,16 +14,19 @@ masking(r, m, RGB = c(1, 0, 0))
 }
 \arguments{
 \item{r}{\linkS4class{Raster}. The image. Values should be normalized, see
-\code{\link{normalize}}.}
+\code{\link{normalize}}. Only methods for images with one or three layers
+have been implemented.}
 
-\item{m}{\linkS4class{RasterLayer}. The mask, see
-\code{\link{mask_hs}}.}
+\item{m}{\linkS4class{RasterLayer}. The mask, see \code{\link{mask_hs}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
 }
 \value{
-\linkS4class{RasterStack}
+An object of class \linkS4class{RasterStack} that essentially is
+  \code{r} with the areas delimited by \code{m} --where its pixels are equal
+  to one-- painted in a solid color. If \code{r} is a single layer image,
+  then the layer is triplicated to allow the use of colors.
 }
 \description{
 Image masking

@@ -77,7 +77,7 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- find_sky_dns(blue, z, a)
+bin <- find_sky_pixels(blue, z, a)
 sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
 m <- mask_hs(z, 0, 80)
 sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
@@ -89,7 +89,7 @@ plot(sky$image)
 }
 \seealso{
 Other MBLT functions: 
-\code{\link{find_sky_dns}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{ootb_mblt}()},
 \code{\link{thr_image}()}

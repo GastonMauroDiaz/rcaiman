@@ -7,7 +7,8 @@
 #'   \code{\link{azimuth_image}}.
 #' @inheritParams rings_segmentation
 #'
-#' @return \linkS4class{RasterLayer} with segments shaped like pizza slices.
+#' @return An object from the class \linkS4class{RasterLayer} with segments
+#'   shaped like pizza slices.
 #' @export
 #'
 #' @family Segmentation functions
