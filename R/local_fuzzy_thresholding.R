@@ -59,7 +59,7 @@ local_fuzzy_thresholding <- function (lightness,
                                       thr = NULL,
                                       fuzziness = NULL) {
   .check_if_r_was_normalized(lightness, "lightness")
-  .is_logic_and_NA_free()
+  .is_logic_and_NA_free(m)
   if (!terra::compareGeom(lightness, m, stopiffalse = FALSE)) {
     stop("\"x\" should match pixel by pixel whit \"m\".")
   }
