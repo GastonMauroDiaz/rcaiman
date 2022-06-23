@@ -7,7 +7,7 @@
 write_bin(bin, path)
 }
 \arguments{
-\item{bin}{\linkS4class{RasterLayer}.}
+\item{bin}{\linkS4class{SpatRaster}.}
 
 \item{path}{Character vector of length one. Path for writing the image.}
 }
@@ -15,13 +15,13 @@ write_bin(bin, path)
 No return value. Called for side effects.
 }
 \description{
-Wrapper functions for \code{\link[raster]{writeRaster}}.
+Wrapper functions for \code{\link[terra]{writeRaster}}.
 }
 \examples{
 \dontrun{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
-my_file <- file.path(tmpDir(), "mask")
+my_file <- file.path(tempdir(), "mask")
 write_bin(m, my_file)
 extension(my_file) <- "tif"
 m_from_disk <- read_bin(my_file)

@@ -63,7 +63,7 @@ calc_diameter <- function(lens_coef, radius_px, angle) {
     attr(diameter, "IQR") <- stats::IQR(diameters)
   }
 
-  if (diameter / 2 != round(diameter / 2)) {
+  if (!.is_even(diameter)) {
     diameter <- diameter + 1
   }
 

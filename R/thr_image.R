@@ -28,7 +28,7 @@
 #' Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
 #' which is very simple to follow.
 #'
-#' @param dn Numeric vector or \linkS4class{RasterLayer}. Digital number of the
+#' @param dn Numeric vector or \linkS4class{SpatRaster}. Digital number of the
 #'   background. These values should be normalized and, if they are extracted
 #'   from JPEG image, gamma back corrected.
 #' @param intercept,slope Numeric vector of length one. These are linear
@@ -60,6 +60,7 @@ thr_image <- function (dn, intercept, slope) {
 
   thr <- intercept  + slope * dn
   thr[thr < 0] <- 0
+  thr[is.na(thr)] <- 0
 
   thr / 255
 }

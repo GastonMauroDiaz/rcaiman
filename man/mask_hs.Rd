@@ -7,13 +7,13 @@
 mask_hs(r, from, to)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. The result of a call to
+\item{r}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}} or \code{\link{azimuth_image}}.}
 
 \item{from, to}{angle in degrees, inclusive limits.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} with values \code{0} and
+An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{

@@ -1,14 +1,13 @@
 #' @import methods
-#' @import raster
+#' @import terra
 #' @importFrom magrittr %>%
-#' @importFrom stats lm poly coefficients median IQR sd splinefun
+#' @importFrom stats lm poly coefficients IQR sd splinefun
 #' @importFrom colorspace sRGB
 NULL
 
 # https://groups.google.com/g/rdevtools/c/qT6cJt6DLJ0
 # spurious importFrom to avoid note
 #' @importFrom Rdpack c_Rd
-#' @importFrom rgdal compare_CRS
 NULL
 
 

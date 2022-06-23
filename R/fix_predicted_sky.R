@@ -13,17 +13,17 @@
 #' average of the median value and the predicted sky DNs --\code{z / 90} is used
 #' to determine the weights.
 #'
-#' @param sky \linkS4class{RasterLayer}. Sky DNs predicted with functions such
+#' @param sky \linkS4class{SpatRaster}. Sky DNs predicted with functions such
 #'   as \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
-#' @param z \linkS4class{RasterLayer}. The result of a call to
+#' @param z \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{zenith_image}}.
-#' @param r \linkS4class{RasterLayer}. The source of the sky DNs used to build
+#' @param r \linkS4class{SpatRaster}. The source of the sky DNs used to build
 #'   \code{sky}.
-#' @param bin \linkS4class{RasterLayer}. The binarization of \code{r} used to
+#' @param bin \linkS4class{SpatRaster}. The binarization of \code{r} used to
 #'   select the sky DNs for building \code{sky}.
 #'
 #' @export
-#' @return An object of class \linkS4class{RasterLayer} that is an edited
+#' @return An object of class \linkS4class{SpatRaster} that is an edited
 #'   version of \code{sky}. Pixel dimensions should remain unchanged.
 #'
 #' @examples
@@ -40,11 +40,14 @@
 #' }
 fix_predicted_sky <- function(sky, z, r, bin) {
   .check_if_r_was_normalized(r)
-  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(z) == "SpatRaster")
   stopifnot(.get_max(z) <= 90)
-  compareRaster(r, z)
-  compareRaster(r, sky)
-  compareRaster(r, bin)
+  terra::compareGeom(r, z)
+  terra::compareGeom(r, sky)
+  terra::compareGeom(r, bin)
+
+  stopifnot(!any(is.na(bin[])))
+  stopifnot(is.logical(bin[1][,]))
 
   mn <- min(r[bin])
   sky[sky < mn] <- mn

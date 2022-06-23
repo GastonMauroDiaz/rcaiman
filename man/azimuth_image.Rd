@@ -7,11 +7,11 @@
 azimuth_image(z)
 }
 \arguments{
-\item{z}{\linkS4class{RasterLayer} built with
+\item{z}{\linkS4class{SpatRaster} built with
 \code{\link{zenith_image}}.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} of azimuth angles
+An object of class \linkS4class{SpatRaster} of azimuth angles
   in degrees. North (0º) is pointing up as in maps, but East (90º) and West
   (270º) are flipped respect to maps. To understand why is that, take two
   flash-card size pieces of paper. Put one on a table in front of you and
@@ -25,8 +25,8 @@ Build a single layer image with azimuth angles as pixel values.
 }
 \examples{
 z <- zenith_image(1490, lens("Nikon_FCE9"))
-azimuth_image(z)
-plot(z)
+a <- azimuth_image(z)
+plot(a)
 }
 \seealso{
 Other Lens functions: 

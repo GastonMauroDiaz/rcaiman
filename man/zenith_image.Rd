@@ -13,7 +13,7 @@ zenith_image(diameter, lens_coef)
 projection function.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} of zenith angles in
+An object of class \linkS4class{SpatRaster} of zenith angles in
   degrees, showing a complete hemispherical view, with the zenith on the
   center.
 }

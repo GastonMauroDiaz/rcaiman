@@ -4,22 +4,22 @@
 #'
 #' An explanation of this function can be found on
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-#' the sky DN as a previous step for our method}.
+#' the sky DN as a previous step for our method}. If the function returns
+#' \code{NULL}, then the quality of the \emph{bin} input should be revised.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018}{rcaiman}.
 #'
-#' @param r \linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+#' @param r \linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 #'   the blue channel extracted from an hemispherical photograph. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.
-#' @param z \linkS4class{RasterLayer}. The result of a call to
+#' @param z \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{zenith_image}}.
-#' @param a \linkS4class{RasterLayer}. The result of a call to
+#' @param a \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{azimuth_image}}.
-#' @param bin \linkS4class{RasterLayer}. A working binarized image. This should
-#'   be a preliminary binarization of \code{r}. If the function returns
-#'   \code{NA}, then the quality of this input should be revised.
-#' @param filling_source \linkS4class{RasterLayer}. Default is \code{NULL}.
+#' @param bin \linkS4class{SpatRaster}. A working binarized image. This should
+#'   be a preliminary binarization of \code{r}.
+#' @param filling_source \linkS4class{SpatRaster}. Default is \code{NULL}.
 #'   Above-canopy photograph. This image should contain pixels with sky DN
 #'   values and \code{NA} in all the other pixels. A photograph taken
 #'   immediately after or before taking \code{r} under the open sky with the
@@ -37,12 +37,10 @@
 #'   azimuth angle. If \code{FALSE}, a simplified version based on
 #'   \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
 #'   \theta + c  \cdot \theta^2}.
-#' @param parallel Logical vector of length one. Allows parallel processing.
-#' @param free_cores Numeric vector of length one. This number is subtracted to
-#'   the number of cores detected by \code{\link[parallel]{detectCores}}.
 #'
-#' @return A list with two objects, one of class \linkS4class{RasterLayer} and
-#'   the other of class \code{lm} (see \code{\link[stats]{lm}}).
+#' @return A list with two objects, one of class \linkS4class{SpatRaster} and
+#'   the other of class \code{lm} (see \code{\link[stats]{lm}}). If the fitting
+#'   fails, it returns \code{NULL}.
 #' @export
 #'
 #' @family MBLT functions
@@ -57,21 +55,21 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+#' sky <- fit_coneshaped_model(blue, z, a, bin, use_azimuth_angle = FALSE)
 #' plot(sky$image)
-#' persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
+#' persp(sky$image, theta = 90, phi = 0) #a flipped cone!
 #' }
 fit_coneshaped_model <- function(r, z, a, bin,
                                  prob = 0.95,
                                  filling_source = NULL,
-                                 use_azimuth_angle = TRUE,
-                                 parallel = TRUE,
-                                 free_cores = 0) {
+                                 use_azimuth_angle = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
-  if (!is.null(filling_source)) compareRaster(bin, filling_source)
-  compareRaster(bin, r)
-  compareRaster(z, r)
-  compareRaster(z, a)
+  if (!is.null(filling_source)) terra::compareGeom(bin, filling_source)
+  terra::compareGeom(bin, r)
+  terra::compareGeom(z, r)
+  terra::compareGeom(z, a)
+
+  .is_logic_and_NA_free(bin)
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 
@@ -126,44 +124,8 @@ fit_coneshaped_model <- function(r, z, a, bin,
         a + b * z + c * z^2
       }
     }
-
-
-    no_threads <- parallel::detectCores() - free_cores
-    bs <- blockSize(z, round(ncell(z) / no_threads))
-
-    if (parallel) {
-
-      # go parallel
-
-      Values <- list()
-      for (u in 1:bs$n) {
-        Values[[u]] <- data.frame(
-          z = getValues(z, row = bs$row[u], nrows = bs$nrows[u]),
-          azimuth = getValues(a, row = bs$row[u], nrows = bs$nrows[u])
-        )
-      }
-
-      ## Initiate cluster
-      cl <- parallel::makeCluster(no_threads)
-      parallel::clusterExport(cl, c("skyFun", "model"), environment())
-      out <- parallel::parLapply(cl, Values, function(x) skyFun(x$z, x$azimuth))
-
-      ## finish
-      parallel::stopCluster(cl)
-    } else {
-      Values <- list()
-      for (u in 1:bs$n) {
-        Values[[u]] <- data.frame(
-          z = getValues(z, row = bs$row[u], nrows = bs$nrows[u]),
-          azimuth = getValues(a, row = bs$row[u], nrows = bs$nrows[u])
-        )
-      }
-      out <- lapply(Values, function(x) skyFun(x$z, x$azimuth))
-    }
-
-    z[] <- unlist(out)
-    return(list(image = z, model = model))
+    return(list(image = skyFun(z, a), model = model))
   } else {
-    return(NA)
+    return(NULL)
   }
 }

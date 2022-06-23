@@ -1,8 +1,8 @@
 #' Write canopy image
 #'
-#' Wrapper function for \code{\link[raster]{writeRaster}}.
+#' Wrapper function for \code{\link[terra]{writeRaster}}.
 #'
-#' @param caim \linkS4class{Raster}.
+#' @param caim \linkS4class{SpatRaster}.
 #' @param path Character vector of length one. Path for writing the image.
 #' @param bit_depth Numeric vector of length one.
 #'
@@ -16,8 +16,8 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim() %>% normalize(., 0, 255)
-#' write_caim(caim * 2^8, file.path(tmpDir(), "test_8bit"), 8)
-#' write_caim(caim * 2^16, file.path(tmpDir(), "test_16bit"), 16)
+#' write_caim(caim * 2^8, file.path(tempdir(), "test_8bit"), 8)
+#' write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
 #' }
 write_caim <- function(caim, path, bit_depth) {
 
@@ -25,21 +25,23 @@ write_caim <- function(caim, path, bit_depth) {
     stop("bit_depth should be 8 or 16.")
   }
 
-  projection(caim) <- NA
-  extent(caim) <- extent(0, ncol(caim), 0, nrow(caim))
+  terra::crs(r) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
+  terra::ext(caim) <- terra::ext(0, ncol(caim), 0, nrow(caim))
 
   file_name <- basename(path)
   extension(file_name) <- "tif"
 
   if (bit_depth == 8) {
     suppressWarnings(
-      writeRaster(caim, file.path(dirname(path), file_name),
-                  format = "GTiff", datatype = "INT1U", overwrite = TRUE)
+      terra::writeRaster(caim, file.path(dirname(path), file_name),
+                         filetype = "GTiff", datatype = "INT1U",
+                         overwrite = TRUE)
     )
   } else {
     suppressWarnings(
-      writeRaster(caim, file.path(dirname(path), file_name),
-                  format = "GTiff", datatype = "INT2U", overwrite = TRUE)
+      terra::writeRaster(caim, file.path(dirname(path), file_name),
+                         filetype = "GTiff", datatype = "INT2U",
+                         overwrite = TRUE)
     )
   }
 }

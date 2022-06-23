@@ -7,21 +7,21 @@
 find_sky_pixels(r, z, a, no_of_samples = 30)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\item{z}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{RasterLayer}. The result of a call to
+\item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
 \item{no_of_samples}{Numeric vector of length one. Minimum number of samples
 required.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} with values \code{0} and
+An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}. This layer masks pixels that are very likely pure sky pixels.
 }
 \description{

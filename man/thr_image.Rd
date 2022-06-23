@@ -7,7 +7,7 @@
 thr_image(dn, intercept, slope)
 }
 \arguments{
-\item{dn}{Numeric vector or \linkS4class{RasterLayer}. Digital number of the
+\item{dn}{Numeric vector or \linkS4class{SpatRaster}. Digital number of the
 background. These values should be normalized and, if they are extracted
 from JPEG image, gamma back corrected.}
 

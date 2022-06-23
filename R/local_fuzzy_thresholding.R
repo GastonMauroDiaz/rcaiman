@@ -14,11 +14,11 @@
 #' \insertCite{Diaz2015}{rcaiman}.
 #'
 #'
-#' @param lightness \linkS4class{RasterLayer}. A normalized greyscale image, the
+#' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image, the
 #'   lightness value. Values should range between zero and one --please see
 #'   \code{\link{normalize}}.
 #' @inheritParams fit_trend_surface
-#' @param mem \linkS4class{RasterLayer}. It is the scale parameter of the
+#' @param mem \linkS4class{SpatRaster}. It is the scale parameter of the
 #'   logistic membership function. Typically it is obtained with
 #'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
@@ -31,7 +31,7 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object of class \linkS4class{RasterLayer} with same pixel
+#' @return An object of class \linkS4class{SpatRaster} with same pixel
 #'   dimensions than \code{caim}. Depending on \code{mem}, changes could be
 #'   subtle. However, they should be in the direction of showing more contrast
 #'   between the sky and plant pixels than any of the individual bands from
@@ -47,7 +47,7 @@
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' target_color <- colorspace::sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
 #' mem <- membership_to_color(caim, target_color)
 #' m <- !is.na(z)
 #' mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
@@ -59,7 +59,8 @@ local_fuzzy_thresholding <- function (lightness,
                                       thr = NULL,
                                       fuzziness = NULL) {
   .check_if_r_was_normalized(lightness, "lightness")
-  if (!compareRaster(lightness, m, stopiffalse = FALSE)) {
+  .is_logic_and_NA_free()
+  if (!terra::compareGeom(lightness, m, stopiffalse = FALSE)) {
     stop("\"x\" should match pixel by pixel whit \"m\".")
   }
 
@@ -78,10 +79,11 @@ local_fuzzy_thresholding <- function (lightness,
   if (is.null(fuzziness)) {
     fuzziness <- (max(lightness[m]) - min(lightness[m])) / 2
   }
-
-  mem <- overlay(lightness, mem, fun = function(lightness, mem) {
+  fun <- function(lightness, mem) {
     suppressWarnings(stats::plogis(lightness, thr, fuzziness * (1 - mem)))
-  })
-  names(mem) <- "membership_to_values_above_the_threshold"
-  mem
+  }
+  mem <- fun(terra::values(lightness), terra::values(mem))
+  terra::values(lightness) <- mem
+  names(lightness) <- "membership_to_values_above_the_threshold"
+  lightness
 }

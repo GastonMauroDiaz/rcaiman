@@ -7,20 +7,20 @@
 fix_predicted_sky(sky, z, r, bin)
 }
 \arguments{
-\item{sky}{\linkS4class{RasterLayer}. Sky DNs predicted with functions such
+\item{sky}{\linkS4class{SpatRaster}. Sky DNs predicted with functions such
 as \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\item{z}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{r}{\linkS4class{RasterLayer}. The source of the sky DNs used to build
+\item{r}{\linkS4class{SpatRaster}. The source of the sky DNs used to build
 \code{sky}.}
 
-\item{bin}{\linkS4class{RasterLayer}. The binarization of \code{r} used to
+\item{bin}{\linkS4class{SpatRaster}. The binarization of \code{r} used to
 select the sky DNs for building \code{sky}.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} that is an edited
+An object of class \linkS4class{SpatRaster} that is an edited
   version of \code{sky}. Pixel dimensions should remain unchanged.
 }
 \description{

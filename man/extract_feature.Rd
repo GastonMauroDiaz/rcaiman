@@ -4,23 +4,32 @@
 \alias{extract_feature}
 \title{Extract feature}
 \usage{
-extract_feature(r, segmentation, fun = mean, return_raster = TRUE)
+extract_feature(
+  r,
+  segmentation,
+  fun = mean,
+  return_raster = TRUE,
+  ignore_label_0 = TRUE
+)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. Single layer raster.}
+\item{r}{\linkS4class{SpatRaster}. Single layer raster.}
 
-\item{segmentation}{\linkS4class{RasterLayer}. The segmentation of \code{r}.}
+\item{segmentation}{\linkS4class{SpatRaster}. The segmentation of \code{r}.}
 
 \item{fun}{\code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 
 \item{return_raster}{Logical vector of length one.}
+
+\item{ignore_label_0}{Logical vector of length one. If this is \code{TRUE},
+the segment labeled with \code{0} is ignored.}
 }
 \value{
 If \code{return_raster} is set to \code{TRUE}, then an object of
-  class \linkS4class{RasterLayer} with the same pixel dimensions than
-  \code{r} will be returned. Otherwise, the return is a numeric vector of
-  length equal to the number of segments found in \code{segmentation}.
+  class \linkS4class{SpatRaster} with the same pixel dimensions than \code{r}
+  will be returned. Otherwise, the return is a numeric vector of length equal
+  to the number of segments found in \code{segmentation}.
 }
 \description{
 Extract features from raster images.
@@ -28,7 +37,7 @@ Extract features from raster images.
 \details{
 Given a single layer raster, a segmentation, and a function,
 \code{extract_features} will returns a numeric vector or a
-\linkS4class{RasterLayer} depending on whether the parameter
+\linkS4class{SpatRaster} depending on whether the parameter
 \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each
 pixel of each segment will adopt the respective extracted feature value. For
 the second case, the return will be the extracted feature as a vector of

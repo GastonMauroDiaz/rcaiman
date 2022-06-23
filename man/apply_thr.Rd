@@ -7,24 +7,24 @@
 apply_thr(r, thr)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}}
+\item{r}{\linkS4class{SpatRaster}}
 
-\item{thr}{Numeric vector of length one or \linkS4class{RasterLayer}.
+\item{thr}{Numeric vector of length one or \linkS4class{SpatRaster}.
 Threshold.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} with values \code{0} and
+An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
 Global or local thresholding of images.
 }
 \details{
-It is a wrapper function around the operator \code{>} from the ‘raster’
+It is a wrapper function around the operator \code{>} from the ‘terra’
 package. If a single threshold value is provided as \code{thr} argument, it
 is applied to every pixel of the raster object \code{r}. If instead a
-\linkS4class{RasterLayer} is provided, then a particular threshold is applied
-to each particular pixel.
+\linkS4class{SpatRaster} is provided as \code{thr} argument, then a
+particular threshold is applied to each particular pixel.
 }
 \examples{
 r <- read_caim()

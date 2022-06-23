@@ -1,6 +1,6 @@
 #' Read a canopy image from a file
 #'
-#' Wrapper function for \code{\link[raster]{raster}}.
+#' Wrapper function for \code{\link[terra]{rast}}.
 #'
 #'
 #' Run \code{read_caim()} to obtain an example of a hemispherical photo taken in
@@ -8,17 +8,17 @@
 #' Argentina with a FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
 #'
 #' Since this function aims to read born-digital color photographs, RGB-JPEG and
-#' RGB-TIFF are expected as input. To read a region of the file use
-#' \code{upper_left}, \code{width}, and \code{height}. The \code{upper_left}
-#' parameter indicates the pixels coordinates of the upper left corner of the
-#' region of interest (ROI). These coordinates should be in the raster
-#' coordinates system, which works like a spreadsheet, i.e, when you go down
-#' through the vertical axis, the \emph{row} number increases
-#' (\strong{IMPORTANT: column and row must be provided instead of row and
-#' column}). The \code{width}, and \code{height} parameters indicate the size of
-#' the boxy ROI. I recommend using \href{https://imagej.nih.gov/ij/}{‘ImageJ’}
-#' to obtain this parameters, but any image editor can be used, such as ‘GIMP’
-#' and ‘Adobe Photoshop’.
+#' RGB-TIFF are expected as input. Use \code{upper_left}, \code{width}, and
+#' \code{height} to read a region of the file. The \code{upper_left} parameter
+#' indicates the pixels coordinates of the upper left corner of the region of
+#' interest (ROI). These coordinates should be in the raster coordinates system,
+#' which works like a spreadsheet, i.e, when you go down through the vertical
+#' axis, the \emph{row} number increases (\strong{IMPORTANT: column and row must
+#' be provided instead of row and column as in objects from the class data.frame
+#' and others alike}). The \code{width}, and \code{height} parameters indicate
+#' the size of the boxy ROI. I recommend using
+#' \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain this parameters, but
+#' any image editor can be used, such as ‘GIMP’ and ‘Adobe Photoshop’.
 #'
 #'
 #' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
@@ -27,7 +27,7 @@
 #' @param upper_left An integer vector of length two (see details).
 #' @param width,height An integer vector of length one (see details).
 #'
-#' @return An object from class \linkS4class{RasterBrick} with its layers named
+#' @return An object from class \linkS4class{SpatRaster} with its layers named
 #'   Red, Green, and Blue.
 #' @export
 #' @family Tools functions
@@ -65,8 +65,11 @@ setMethod(
     file_ext <- toupper(extension(path_to_file))
 
     if (file_ext %in% c(".JPG", ".JPEG", ".TIF", ".TIFF")) {
-      r <- brick(path_to_file)
-      if (nlayers(r) != 3) stop("The photograph should have three layers.")
+      r <- terra::rast(path_to_file)
+      if (terra::nlyr(r) != 3) stop("The photograph should have three layers.")
+      terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
+      # https://spatialreference.org/ref/sr-org/7589/
+      terra::crs(r) <- "epsg:7589"
     } else {
       stop("The file extension does not correspond to a JPEG or TIFF file.")
     }
@@ -85,10 +88,10 @@ setMethod(
         stop("width should be a one-lenght integer")
       }
 
-      xmn <- xFromCol(r, upper_left[1])
-      xmx <- xFromCol(r, upper_left[1] + width)
-      ymx <- yFromRow(r, upper_left[2])
-      ymn <- yFromRow(r, upper_left[2] + height)
+      xmn <- terra::xFromCol(r, upper_left[1])
+      xmx <- terra::xFromCol(r, upper_left[1] + width)
+      ymx <- terra::yFromRow(r, upper_left[2])
+      ymn <- terra::yFromRow(r, upper_left[2] + height)
 
       if (any(is.na(xmn), is.na(xmx), is.na(ymn), is.na(ymx))) {
         stop(
@@ -98,11 +101,9 @@ setMethod(
           )
         )
       }
-
-      e <- extent(xmn, xmx, ymn, ymx)
-      r <- crop(r, e)
-      extent(r) <- extent(0, ncol(r), 0, nrow(r))
-      projection(r) <- NA
+      e <- terra::ext(xmn, xmx, ymn, ymx)
+      r <- terra::crop(r, e)
+      terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
     }
 
     names(r) <- c("Red", "Green", "Blue")

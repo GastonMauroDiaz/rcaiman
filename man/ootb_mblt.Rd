@@ -4,20 +4,18 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a, parallel = TRUE)
+ootb_mblt(r, z, a)
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\item{z}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{RasterLayer}. The result of a call to
+\item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
-
-\item{parallel}{Logical vector of length one. Allows parallel processing.}
 }
 \value{
 Object of class list with the binarized image (named ‘bin’) and the
@@ -79,7 +77,7 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a, parallel = FALSE)
+bin <- ootb_mblt(blue, z, a)
 plot(bin$bin)
 }
 }

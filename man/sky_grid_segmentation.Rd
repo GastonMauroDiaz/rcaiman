@@ -7,10 +7,10 @@
 sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
 }
 \arguments{
-\item{z}{\linkS4class{RasterLayer} built with
+\item{z}{\linkS4class{SpatRaster} built with
 \code{\link{zenith_image}}.}
 
-\item{a}{\code{\linkS4class{RasterLayer}} built with
+\item{a}{\code{\linkS4class{SpatRaster}} built with
 \code{\link{azimuth_image}}.}
 
 \item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
@@ -24,7 +24,7 @@ segments are labeled with sequential numbers. By default (\code{FALSE}),
 labeling numbers are not sequential (see Details).}
 }
 \value{
-An object from the class \linkS4class{RasterLayer} with segments
+An object from the class \linkS4class{SpatRaster} with segments
   shaped like windshields, although some of them will look elongated in
   height. The pattern is two opposite and converging straight sides and two
   opposite and parallel curvy sides.
@@ -48,7 +48,8 @@ g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)
 \dontrun{
 g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
-plot(g, col = sample(rainbow(length(raster::unique(g)))))
+col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
+plot(g, col = col)
 }
 }
 \seealso{

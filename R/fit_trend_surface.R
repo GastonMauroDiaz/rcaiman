@@ -1,11 +1,11 @@
 
 .fit_trend_surface <- function(x, np) {
   tmp <- data.frame(
-    x = xFromCell(x, 1:ncell(x)),
-    y = yFromCell(x, 1:ncell(x)),
-    z = values(x)
+    terra::xFromCell(x, 1:ncell(x)),
+    terra::yFromCell(x, 1:ncell(x)),
+    terra::values(x)
   ) %>%
-    .[!is.na(.$z), ]
+    .[!is.na(.[,3]), ]
   colnames(tmp) <- c("x", "y", names(x))
 
   fit <- spatial::surf.ls(x = tmp[, 1], y = tmp[, 2], z = tmp[, 3], np)
@@ -15,8 +15,10 @@
   yu <- ymax(x)
 
   out <- spatial::trmat(fit, xl, xu, yl, yu, ncol(x))
-  out <- raster(out)
-  out <- resample(out, x)
+  out <- terra::rast(out$z)
+  crs(out) <- crs(x)
+  terra::ext(out) <- terra::ext(x)
+  out <- terra::resample(out, x)
 
   list(image = out, fit = fit)
 }
@@ -34,7 +36,7 @@
 #' the sky DN as a previous step for our method}, after the explanation of the
 #' \code{\link{fit_coneshaped_model}}.
 #'
-#' The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
+#' The argument \code{fact} is passed to \code{\link[terra]{aggregate}}. That
 #' argument allows to control the scale at which the fitting is performed. In
 #' general, a coarse scale lead to best generalization. The function used for
 #' aggregation is \code{\link[stats]{quantile}}, to which the argument
@@ -47,12 +49,12 @@
 #'
 #' @inheritParams stats::quantile
 #' @inheritParams fit_coneshaped_model
-#' @param m \linkS4class{RasterLayer}. A mask. Usually, the result of a call to
+#' @param m \linkS4class{SpatRaster}. A mask. Usually, the result of a call to
 #'   \code{\link{mask_hs}}.
-#' @inheritParams raster::aggregate
+#' @inheritParams terra::aggregate
 #' @inheritParams spatial::surf.ls
 #'
-#' @return A list with an object of class \linkS4class{RasterLayer} and of class
+#' @return A list with an object of class \linkS4class{SpatRaster} and of class
 #'   \code{trls} (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
@@ -68,7 +70,7 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+#' sky <- fit_coneshaped_model(blue, z, a, bin)
 #' m <- mask_hs(z, 0, 80)
 #' sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
 #' plot(sky$image)
@@ -80,9 +82,10 @@ fit_trend_surface <- function(r,
                               prob = 0.95,
                               fact = 5,
                               np = 6) {
-  stopifnot(class(r) == "RasterLayer")
-  compareRaster(bin, r)
-  if (!is.null(m)) compareRaster(bin, m)
+  stopifnot(class(r) == "SpatRaster")
+  terra::compareGeom(bin, r)
+  if (!is.null(m)) terra::compareGeom(bin, m)
+  .is_logic_and_NA_free(bin)
 
   if (!is.null(m)) r[!m] <- NA
 
@@ -90,18 +93,19 @@ fit_trend_surface <- function(r,
 
   blue <- r
   blue[!bin] <- NA
-  if (fact > 1) blue <- aggregate(blue, fact, fun, na.rm = TRUE)
+  if (fact > 1) blue <- terra::aggregate(blue, fact, fun, na.rm = TRUE)
   if (!is.null(filling_source)) {
-    compareRaster(bin, filling_source)
+    terra::compareGeom(bin, filling_source)
     if (fact > 1) {
-      filling_source <- aggregate(filling_source, fact, mean, na.rm = TRUE)
+      filling_source <- terra::aggregate(filling_source,
+                                         fact, mean, na.rm = TRUE)
     }
-    blue <- cover(blue, filling_source)
+    blue <- terra::cover(blue, filling_source)
   }
 
   surf <- .fit_trend_surface(blue, np = np)
 
-  if (fact > 1) surf$image <- resample(surf$image, r)
+  if (fact > 1) surf$image <- terra::resample(surf$image, r)
   if (!is.null(m)) surf$image[!m] <- NA
 
   surf

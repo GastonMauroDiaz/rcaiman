@@ -7,17 +7,17 @@
 expand_noncircular(caim, z, zenith_colrow)
 }
 \arguments{
-\item{caim}{\linkS4class{RasterBrick}. The return of a call to
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to
 \code{\link{read_caim}}.}
 
-\item{z}{\linkS4class{RasterLayer} built with
+\item{z}{\linkS4class{SpatRaster} built with
 \code{\link{zenith_image}}.}
 
 \item{zenith_colrow}{Numeric vector of length two. Raster coordinates of the
 zenith. See \code{\link{calc_zenith_raster_coordinates}}.}
 }
 \value{
-An object of class \linkS4class{RasterBrick} that is the result of
+An object of class \linkS4class{SpatRaster} that is the result of
   copying the pixels from \code{caim} and adding margins of \code{NA} pixel
   values. The zenith point depicted in the picture should be in the center of
   the image or very close to it.

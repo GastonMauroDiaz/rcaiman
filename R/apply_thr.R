@@ -2,17 +2,17 @@
 #'
 #' Global or local thresholding of images.
 #'
-#' It is a wrapper function around the operator \code{>} from the ‘raster’
+#' It is a wrapper function around the operator \code{>} from the ‘terra’
 #' package. If a single threshold value is provided as \code{thr} argument, it
 #' is applied to every pixel of the raster object \code{r}. If instead a
-#' \linkS4class{RasterLayer} is provided, then a particular threshold is applied
-#' to each particular pixel.
+#' \linkS4class{SpatRaster} is provided as \code{thr} argument, then a
+#' particular threshold is applied to each particular pixel.
 #'
-#' @param r \linkS4class{RasterLayer}
-#' @param thr Numeric vector of length one or \linkS4class{RasterLayer}.
+#' @param r \linkS4class{SpatRaster}
+#' @param thr Numeric vector of length one or \linkS4class{SpatRaster}.
 #'   Threshold.
 #'
-#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.
 #' @export
 #'
@@ -32,7 +32,7 @@
 apply_thr <- function (r, thr)
 {
 
-  stopifnot(class(r) == "RasterLayer" )
+  stopifnot(class(r) == "SpatRaster")
 
   if (any(class(thr) == "numeric", class(thr) == "integer")) {
     stopifnot(length(thr) == 1)
@@ -42,9 +42,9 @@ apply_thr <- function (r, thr)
     if (thr >= max(tmp, na.rm = TRUE))
       stop("\"thr\" should be lower than maximum layer value")
   } else {
-    if (class(thr) != "RasterLayer")
+    if (class(thr) != "SpatRaster")
       stop(paste("\"thr\" class should be \"numeric\",",
-                 "\"integer\", or \"RasterLayer\""))
+                 "\"integer\", or \"SpatRaster\""))
   }
 
   r > thr

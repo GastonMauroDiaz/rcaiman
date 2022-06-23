@@ -15,18 +15,17 @@ fit_trend_surface(
 )
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
-be a preliminary binarization of \code{r}. If the function returns
-\code{NA}, then the quality of this input should be revised.}
+\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
+be a preliminary binarization of \code{r}.}
 
-\item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
+\item{m}{\linkS4class{SpatRaster}. A mask. Usually, the result of a call to
 \code{\link{mask_hs}}.}
 
-\item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
+\item{filling_source}{\linkS4class{SpatRaster}. Default is \code{NULL}.
 Above-canopy photograph. This image should contain pixels with sky DN
 values and \code{NA} in all the other pixels. A photograph taken
 immediately after or before taking \code{r} under the open sky with the
@@ -38,14 +37,14 @@ relative to the North must be the same than for \code{r}.}
 \code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 
-\item{fact}{postive integer. Aggregation factor expressed as number of cells in each direction (horizontally and vertically). Or two integers (horizontal and vertical aggregation factor) or three integers (when also aggregating over layers). See Details}
+\item{fact}{positive integer. Aggregation factor expressed as number of cells in each direction (horizontally and vertically). Or two integers (horizontal and vertical aggregation factor) or three integers (when also aggregating over layers)}
 
 \item{np}{
 degree of polynomial surface
 }
 }
 \value{
-A list with an object of class \linkS4class{RasterLayer} and of class
+A list with an object of class \linkS4class{SpatRaster} and of class
   \code{trls} (see \code{\link[spatial]{surf.ls}}).
 }
 \description{
@@ -59,7 +58,7 @@ A short explanation of this function can be found on
 the sky DN as a previous step for our method}, after the explanation of the
 \code{\link{fit_coneshaped_model}}.
 
-The argument \code{fact} is passed to \code{\link[raster]{aggregate}}. That
+The argument \code{fact} is passed to \code{\link[terra]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
 general, a coarse scale lead to best generalization. The function used for
 aggregation is \code{\link[stats]{quantile}}, to which the argument
@@ -78,7 +77,7 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+sky <- fit_coneshaped_model(blue, z, a, bin)
 m <- mask_hs(z, 0, 80)
 sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
 plot(sky$image)

@@ -2,7 +2,7 @@
 #'
 #' Given a zenith or azimuth image and angle restrictions, it produces a mask.
 #'
-#' @param r \linkS4class{RasterLayer}. The result of a call to
+#' @param r \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{zenith_image}} or \code{\link{azimuth_image}}.
 #' @param from,to angle in degrees, inclusive limits.
 #'
@@ -10,7 +10,7 @@
 #' @family Segmentation functions
 #' @seealso \code{\link{masking}}
 #'
-#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.
 #'
 #' @examples
@@ -35,7 +35,7 @@
 #' plot(mask_hs(z, 0, 90))
 #' }
 mask_hs <- function(r, from, to) {
-  stopifnot(class(r) == "RasterLayer")
+  stopifnot(class(r) == "SpatRaster")
   stopifnot(class(from) == "numeric")
   stopifnot(class(to) == "numeric")
   stopifnot(length(from) == 1)
@@ -46,5 +46,5 @@ mask_hs <- function(r, from, to) {
   r[r >= from & r <= to] <- NA
   r <- is.na(r)
   r[m] <- 0
-  r
+  as.logical(r)
 }

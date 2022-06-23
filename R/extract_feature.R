@@ -4,7 +4,7 @@
 #'
 #' Given a single layer raster, a segmentation, and a function,
 #' \code{extract_features} will returns a numeric vector or a
-#' \linkS4class{RasterLayer} depending on whether the parameter
+#' \linkS4class{SpatRaster} depending on whether the parameter
 #' \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each
 #' pixel of each segment will adopt the respective extracted feature value. For
 #' the second case, the return will be the extracted feature as a vector of
@@ -12,20 +12,22 @@
 #' will be obtained by processing all pixels that belong to a segment with the
 #' provided function.
 #'
-#' @param r \linkS4class{RasterLayer}. Single layer raster.
-#' @param segmentation \linkS4class{RasterLayer}. The segmentation of \code{r}.
+#' @param r \linkS4class{SpatRaster}. Single layer raster.
+#' @param segmentation \linkS4class{SpatRaster}. The segmentation of \code{r}.
 #' @param fun \code{function} that takes a vector as input and returns a
 #'   one-length numeric or logical vector as output (e.g. mean).
 #' @param return_raster Logical vector of length one.
+#' @param ignore_label_0 Logical vector of length one. If this is \code{TRUE},
+#'   the segment labeled with \code{0} is ignored.
 #'
 #' @family Tools functions
 #'
 #' @export
 #'
 #' @return If \code{return_raster} is set to \code{TRUE}, then an object of
-#'   class \linkS4class{RasterLayer} with the same pixel dimensions than
-#'   \code{r} will be returned. Otherwise, the return is a numeric vector of
-#'   length equal to the number of segments found in \code{segmentation}.
+#'   class \linkS4class{SpatRaster} with the same pixel dimensions than \code{r}
+#'   will be returned. Otherwise, the return is a numeric vector of length equal
+#'   to the number of segments found in \code{segmentation}.
 #'
 #' @examples
 #' \dontrun{
@@ -36,23 +38,27 @@
 #' print(extract_feature(r$Blue, g, return_raster = FALSE))
 #' plot(extract_feature(r$Blue, g, return_raster = TRUE))
 #' }
-extract_feature <- function(r, segmentation, fun = mean, return_raster = TRUE) {
+extract_feature <- function(r, segmentation,
+                            fun = mean,
+                            return_raster = TRUE,
+                            ignore_label_0 = TRUE) {
 
-  stopifnot(class(r) == "RasterLayer")
-  stopifnot(class(segmentation) == "RasterLayer")
+  stopifnot(class(r) == "SpatRaster")
+  stopifnot(class(segmentation) == "SpatRaster")
   stopifnot(any(class(fun) == "function", class(fun) == "standardGeneric"))
   stopifnot(class(return_raster) == "logical")
 
-  feature <- tapply(values(r), values(segmentation), fun)
+  if (ignore_label_0 == TRUE) segmentation[segmentation == 0] <- NA
+
+  feature <- tapply(terra::values(r), terra::values(segmentation), fun)
 
   if (return_raster) {
     id <- as.numeric(names(feature))
-    df <- data.frame(id, feature)
-    subs(segmentation, df)
+    return(terra::subst(segmentation, id, feature))
   } else {
     ids <- names(feature)
     feature <- as.numeric(feature)
     names(feature) <- ids
-    feature
+    return(feature)
   }
 }

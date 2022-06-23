@@ -23,7 +23,7 @@
 #' @family MBLT functions
 #'
 #' @export
-#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}. This layer masks pixels that are very likely pure sky pixels.
 #'
 #' @examples
@@ -48,11 +48,27 @@ find_sky_pixels <- function(r, z, a, no_of_samples = 30) {
   count <- 0
   while (count <= no_of_samples) {
     if (prob < 0.9) {
-      stop(paste(
-        "The function is not working properly.",
-        "The problem might be related to inputs.",
-        "Please, make sure they are OK."
-      ))
+      prob <- 1
+      no_of_samples <- round(no_of_samples * 0.9)
+      if (no_of_samples < 30) {
+        stop(paste(
+          "The function is not working properly.",
+          "The problem might be related to inputs.",
+          "Please, make sure they are OK."
+        ))
+      }
+    }
+    prob <- prob - 0.025
+    bin <- regional_thresholding(r, g30, "Diaz2018", 0, 1, prob)
+    bin[m] <- 0
+    max_per_cell <- extract_feature(bin, g5, max, return_raster = FALSE)
+    count <- sum(max_per_cell)
+  }
+
+  prob <- prob + 0.025
+  while (count <= no_of_samples) {
+    if (prob < 0.895) {
+      stop("please, report error 001")
     }
     prob <- prob - 0.01
     bin <- regional_thresholding(r, g30, "Diaz2018", 0, 1, prob)
@@ -60,6 +76,7 @@ find_sky_pixels <- function(r, z, a, no_of_samples = 30) {
     max_per_cell <- extract_feature(bin, g5, max, return_raster = FALSE)
     count <- sum(max_per_cell)
   }
-  bin[is.na(g30)] <- NA
-  bin
+
+  bin[is.na(z)] <- 0
+  as.logical(bin)
 }

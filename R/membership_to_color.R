@@ -28,10 +28,9 @@
 #'   \code{target_color} and grey in the \emph{CIE L*a*b*} color space.
 #'
 #'
-#' @return It returns an object from the class \linkS4class{RasterBrick} or
-#'   \linkS4class{RasterStack} --this will depend on the input. First layer is
-#'   the membership to the target color. Second layer is the membership to grey.
-#'   Both memberships are calculated with same \code{sigma}.
+#' @return It returns an object from the class \linkS4class{SpatRaster}. First
+#'   layer is the membership to the target color. Second layer is the membership
+#'   to grey. Both memberships are calculated with same \code{sigma}.
 #'
 #' @export
 #' @family Fuzzy logic functions
@@ -43,7 +42,7 @@
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' target_color <- colorspace::sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
 #' mem <- membership_to_color(caim, target_color)
 #' plot(mem)
 #' }
@@ -51,7 +50,7 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   .is_class_from_colorspace(target_color)
   .check_if_r_was_normalized(caim, "caim")
   stopifnot(names(caim) == c("Red", "Green", "Blue"))
-  color <- colorspace::sRGB(values(caim))
+  color <- colorspace::sRGB(terra::values(caim))
   if (class(color) != "LAB") color <- as(color, "LAB")
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
@@ -64,7 +63,7 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], sigma)
   mem_to_grey <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], sigma) / max_z
 
-  r <- raster::subset(caim, 1:2)
+  r <- terra::subset(caim, 1:2)
   r$Red <- mem_to_color
   r$Green <- mem_to_grey
   names(r) <- c("membership_to_target_color", "membership_to_grey")

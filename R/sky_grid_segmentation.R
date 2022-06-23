@@ -22,7 +22,7 @@
 #'   segments are labeled with sequential numbers. By default (\code{FALSE}),
 #'   labeling numbers are not sequential (see Details).
 #'
-#' @return An object from the class \linkS4class{RasterLayer} with segments
+#' @return An object from the class \linkS4class{SpatRaster} with segments
 #'   shaped like windshields, although some of them will look elongated in
 #'   height. The pattern is two opposite and converging straight sides and two
 #'   opposite and parallel curvy sides.
@@ -37,11 +37,12 @@
 #' plot(g == 24005)
 #' \dontrun{
 #' g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
-#' plot(g, col = sample(rainbow(length(raster::unique(g)))))
+#' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
+#' plot(g, col = col)
 #' }
 sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
-  stopifnot(class(z) == "RasterLayer")
-  stopifnot(class(a) == "RasterLayer")
+  stopifnot(class(z) == "SpatRaster")
+  stopifnot(class(a) == "SpatRaster")
   stopifnot(.get_max(z) <= 90)
 
   stopifnot(class(sequential) == "logical")
@@ -57,18 +58,14 @@ sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
   }
 
   fun <- function(s, r) s * 1000 + r
-
-  g <- overlay(
-    sectors_segmentation(a, angle_width),
-    rings_segmentation(z, angle_width),
-    fun = fun
-  )
+  g <- fun(sectors_segmentation(a, angle_width),
+           rings_segmentation(z, angle_width))
 
   if (sequential) {
-    df <- levels(as.factor(g))[[1]]
-    df <- cbind(df, 1:nrow(df))
-    g <- raster::subs(g, df)
+    from <- unique(terra::values(g))
+    to <- 1:length(from)
+    g <- terra::subst(g, from, to)
   }
 
-  as.factor(g)
+  g
 }

@@ -14,21 +14,17 @@ regional_thresholding(
 )
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. Normalized greyscale image. See
+\item{r}{\linkS4class{SpatRaster}. Normalized greyscale image. See
 \code{\link{normalize}} and \code{\link{gbc}}}
 
-\item{segmentation}{\linkS4class{RasterLayer}. The result of segmenting
+\item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting
 \code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
 for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current
 options.}
 
-\item{intercept}{Numeric vector of length one. These are linear
-function coefficients. Please, see the Details section of
-\code{\link{thr_image}}.}
-
-\item{slope}{Numeric vector of length one. These are linear
+\item{intercept, slope}{Numeric vector of length one. These are linear
 function coefficients. Please, see the Details section of
 \code{\link{thr_image}}.}
 
@@ -37,7 +33,7 @@ function coefficients. Please, see the Details section of
 \insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} with values \code{0} and
+An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{

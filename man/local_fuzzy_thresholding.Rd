@@ -7,14 +7,14 @@
 local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 }
 \arguments{
-\item{lightness}{\linkS4class{RasterLayer}. A normalized greyscale image, the
+\item{lightness}{\linkS4class{SpatRaster}. A normalized greyscale image, the
 lightness value. Values should range between zero and one --please see
 \code{\link{normalize}}.}
 
-\item{m}{\linkS4class{RasterLayer}. A mask. Usually, the result of a call to
+\item{m}{\linkS4class{SpatRaster}. A mask. Usually, the result of a call to
 \code{\link{mask_hs}}.}
 
-\item{mem}{\linkS4class{RasterLayer}. It is the scale parameter of the
+\item{mem}{\linkS4class{SpatRaster}. It is the scale parameter of the
 logistic membership function. Typically it is obtained with
 \code{\link{membership_to_color}}.}
 
@@ -28,7 +28,7 @@ scale \code{mem}. Use \code{NULL} (default) to estimate it automatically as
 the midpoint between the maximum and minimum values of \code{lightness}.}
 }
 \value{
-An object of class \linkS4class{RasterLayer} with same pixel
+An object of class \linkS4class{SpatRaster} with same pixel
   dimensions than \code{caim}. Depending on \code{mem}, changes could be
   subtle. However, they should be in the direction of showing more contrast
   between the sky and plant pixels than any of the individual bands from
@@ -57,7 +57,7 @@ Argument \code{m} can be used to affect the estimation of \code{thr}
 caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-target_color <- colorspace::sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
 mem <- membership_to_color(caim, target_color)
 m <- !is.na(z)
 mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)

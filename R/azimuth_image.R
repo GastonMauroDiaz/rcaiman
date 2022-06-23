@@ -2,11 +2,11 @@
 #'
 #' Build a single layer image with azimuth angles as pixel values.
 #'
-#' @param z \linkS4class{RasterLayer} built with
+#' @param z \linkS4class{SpatRaster} built with
 #'   \code{\link{zenith_image}}.
 #'
 #'
-#' @return An object of class \linkS4class{RasterLayer} of azimuth angles
+#' @return An object of class \linkS4class{SpatRaster} of azimuth angles
 #'   in degrees. North (0º) is pointing up as in maps, but East (90º) and West
 #'   (270º) are flipped respect to maps. To understand why is that, take two
 #'   flash-card size pieces of paper. Put one on a table in front of you and
@@ -20,21 +20,23 @@
 #'
 #' @examples
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
-#' azimuth_image(z)
-#' plot(z)
+#' a <- azimuth_image(z)
+#' plot(a)
 azimuth_image <- function (z)
 {
-  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(z) == "SpatRaster")
   mask <- is.na(z)
 
-  xy <- xyFromCell(z, seq(length = ncell(z)))
-  v <- values(z)
+  xy <- terra::xyFromCell(z, seq(length = ncell(z)))
   sph <- pracma::cart2sph(
-    matrix(c(xy[, 1] - ncol(z) / 2, xy[, 2] - ncol(z) / 2, values(z)), ncol = 3)
+    matrix(c(xy[, 1] - ncol(z) / 2,
+             xy[, 2] - ncol(z) / 2,
+             terra::values(z)), ncol = 3)
   )
 
   values(z) <- sph[, 1] * 180 / pi
-  values(z) <- values(abs(raster::t(z) - 180)) #to orient North up and West left
+  values(z) <- terra::values(abs(terra::trans(z) - 180))
+  # above line is to orient North up and West left
 
   z[mask] <- NA
 

@@ -17,9 +17,9 @@
 #' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
 #' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
 #'
-#' @param r \linkS4class{RasterLayer}. Normalized greyscale image. See
+#' @param r \linkS4class{SpatRaster}. Normalized greyscale image. See
 #'   \code{\link{normalize}} and \code{\link{gbc}}
-#' @param segmentation \linkS4class{RasterLayer}. The result of segmenting
+#' @param segmentation \linkS4class{SpatRaster}. The result of segmenting
 #'   \code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
 #'   for fisheye images.
 #' @param method Character vector of length one. See details for current
@@ -27,7 +27,7 @@
 #' @inheritParams thr_image
 #' @inheritParams fit_coneshaped_model
 #'
-#' @return An object of class \linkS4class{RasterLayer} with values \code{0} and
+#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.
 #'
 #' @export
@@ -50,8 +50,8 @@ regional_thresholding <- function(r,
                                   intercept = NULL,
                                   slope = NULL,
                                   prob = NULL) {
-  stopifnot(class(r) == "RasterLayer")
-  stopifnot(class(segmentation) == "RasterLayer")
+  stopifnot(class(r) == "SpatRaster")
+  stopifnot(class(segmentation) == "SpatRaster")
   stopifnot(class(method) == "character")
   stopifnot(length(method) == 1)
 
@@ -88,13 +88,14 @@ regional_thresholding <- function(r,
                                   ignore_na = TRUE)[1] / 255
     }
   }
-
   bin <- apply_thr(r, .get_min(r))
   .binarize_per_ring <- function(segment_id) {
     indices <- segmentation == segment_id
     thr <- fun(r[indices])
     bin[indices] <<- r[indices] > thr
   }
-  Map(.binarize_per_ring, raster::unique(segmentation))
+  segs <- unique(terra::values(segmentation)) %>% as.numeric()
+  segs <- segs[!is.na(segs)]
+  Map(.binarize_per_ring, segs)
   bin
 }

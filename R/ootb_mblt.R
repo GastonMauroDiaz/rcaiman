@@ -64,30 +64,27 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
-#' bin <- ootb_mblt(blue, z, a, parallel = FALSE)
+#' bin <- ootb_mblt(blue, z, a)
 #' plot(bin$bin)
 #' }
-ootb_mblt <- function(r, z, a, parallel = TRUE) {
+ootb_mblt <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
-
+  r[is.na(z)] <- 0
   bin <- find_sky_pixels(r, z, a, round((360/5) * (90/5) * 0.3))
   sky_cs <- fit_coneshaped_model(r, z, a, bin,
                                  prob = 0.95,
                                  filling_source = NULL,
-                                 use_azimuth_angle = TRUE,
-                                 parallel = parallel,
-                                 free_cores = 0)$image
+                                 use_azimuth_angle = TRUE)$image
   sky_cs <- fix_predicted_sky(sky_cs, z, r, bin)
   thr <- suppressWarnings(thr_image(sky_cs, 0, 0.5))
   bin <- apply_thr(r, thr)
   sky_s <- fit_trend_surface(r, bin,
-                             m = NULL,
+                             m = !is.na(z),
                              filling_source = sky_cs,
                              prob = 0.95,
                              fact = 5,
                              np = 6)$image
   thr <- suppressWarnings(thr_image(sky_s, 0, 0.5))
   bin <- apply_thr(r, thr)
-  bin[is.na(z)] <- 0
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }

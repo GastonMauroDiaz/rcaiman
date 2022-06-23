@@ -10,7 +10,7 @@
 #'   the pixels that belong to a segment are labeled with an ID number.
 #'   Otherwise, the angle mean of the segment is assigned to the pixels.
 #'
-#' @return An object from the class \linkS4class{RasterLayer} with segments
+#' @return An object from the class \linkS4class{SpatRaster} with segments
 #'   shaped like concentric rings.
 #' @export
 #'
@@ -21,7 +21,7 @@
 #' rings <- rings_segmentation(z, 15)
 #' plot(rings == 1)
 rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
-  stopifnot(class(z) == "RasterLayer")
+  stopifnot(class(z) == "SpatRaster")
   stopifnot(class(return_angle) == "logical")
   stopifnot(length(angle_width) == 1)
 
@@ -42,5 +42,7 @@ rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
     c3 <- 1:(length(intervals) - 1)
   }
   rcl <- matrix(c(c1, c2, c3), ncol = 3)
-  reclassify(z, rcl)
+  rings <- terra::classify(z, rcl)
+  rings[is.na(rings)] <- 0
+  rings
 }

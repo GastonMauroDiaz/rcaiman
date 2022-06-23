@@ -10,16 +10,16 @@ read_bin(path)
 \item{path}{One-length character vector. Path to read or a binarized image.}
 }
 \value{
-An object from class \linkS4class{RasterLayer}.
+An object from class \linkS4class{SpatRaster}.
 }
 \description{
-Wrapper functions for \code{\link[raster]{raster}}.
+Wrapper functions for \code{\link[terra]{rast}}.
 }
 \examples{
 \dontrun{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
-my_file <- file.path(tmpDir(), "mask.tif")
+my_file <- file.path(tempdir(), "mask.tif")
 write_bin(m, my_file)
 m_from_disk <- read_bin(my_file)
 plot(m - m_from_disk)

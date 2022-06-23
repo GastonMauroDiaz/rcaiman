@@ -11,31 +11,28 @@ fit_coneshaped_model(
   bin,
   prob = 0.95,
   filling_source = NULL,
-  use_azimuth_angle = TRUE,
-  parallel = TRUE,
-  free_cores = 0
+  use_azimuth_angle = TRUE
 )
 }
 \arguments{
-\item{r}{\linkS4class{RasterLayer}. A normalized greyscale image. Typically,
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\item{z}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{RasterLayer}. The result of a call to
+\item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{bin}{\linkS4class{RasterLayer}. A working binarized image. This should
-be a preliminary binarization of \code{r}. If the function returns
-\code{NA}, then the quality of this input should be revised.}
+\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
+be a preliminary binarization of \code{r}.}
 
 \item{prob}{Logical vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation. See reference
 \insertCite{Diaz2018;textual}{rcaiman}.}
 
-\item{filling_source}{\linkS4class{RasterLayer}. Default is \code{NULL}.
+\item{filling_source}{\linkS4class{SpatRaster}. Default is \code{NULL}.
 Above-canopy photograph. This image should contain pixels with sky DN
 values and \code{NA} in all the other pixels. A photograph taken
 immediately after or before taking \code{r} under the open sky with the
@@ -51,15 +48,11 @@ cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
 azimuth angle. If \code{FALSE}, a simplified version based on
 \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
 \theta + c  \cdot \theta^2}.}
-
-\item{parallel}{Logical vector of length one. Allows parallel processing.}
-
-\item{free_cores}{Numeric vector of length one. This number is subtracted to
-the number of cores detected by \code{\link[parallel]{detectCores}}.}
 }
 \value{
-A list with two objects, one of class \linkS4class{RasterLayer} and
-  the other of class \code{lm} (see \code{\link[stats]{lm}}).
+A list with two objects, one of class \linkS4class{SpatRaster} and
+  the other of class \code{lm} (see \code{\link[stats]{lm}}). If the fitting
+  fails, it returns \code{NULL}.
 }
 \description{
 Generate the digital numbers of the whole sky through statistical modelling.
@@ -67,7 +60,8 @@ Generate the digital numbers of the whole sky through statistical modelling.
 \details{
 An explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-the sky DN as a previous step for our method}.
+the sky DN as a previous step for our method}. If the function returns
+\code{NULL}, then the quality of the \emph{bin} input should be revised.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018}{rcaiman}.
@@ -80,9 +74,9 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+sky <- fit_coneshaped_model(blue, z, a, bin, use_azimuth_angle = FALSE)
 plot(sky$image)
-persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
+persp(sky$image, theta = 90, phi = 0) #a flipped cone!
 }
 }
 \references{

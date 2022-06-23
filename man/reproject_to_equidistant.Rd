@@ -2,24 +2,18 @@
 % Please edit documentation in R/reproject_to_equidistant.R
 \name{reproject_to_equidistant}
 \alias{reproject_to_equidistant}
-\alias{reproject_to_equidistant,RasterLayer-method}
-\alias{reproject_to_equidistant,RasterStackBrick-method}
 \title{Reproject to equidistant}
 \usage{
 reproject_to_equidistant(r, z, a, radius = 745)
-
-\S4method{reproject_to_equidistant}{RasterLayer}(r, z, a, radius = 745)
-
-\S4method{reproject_to_equidistant}{RasterStackBrick}(r, z, a, radius = 745)
 }
 \arguments{
-\item{r}{\linkS4class{Raster}. Only methods for images with one or three
+\item{r}{\linkS4class{SpatRaster}. Only methods for images with one or three
 layers have been implemented.}
 
-\item{z}{\linkS4class{RasterLayer}. The result of a call to
+\item{z}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{RasterLayer}. The result of a call to
+\item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
 \item{radius}{Numeric integer of length one. Radius of the reprojected

@@ -2,28 +2,22 @@
 % Please edit documentation in R/masking.R
 \name{masking}
 \alias{masking}
-\alias{masking,RasterLayer-method}
-\alias{masking,RasterStackBrick-method}
 \title{Image masking}
 \usage{
 masking(r, m, RGB = c(1, 0, 0))
-
-\S4method{masking}{RasterLayer}(r, m, RGB = c(1, 0, 0))
-
-\S4method{masking}{RasterStackBrick}(r, m, RGB = c(1, 0, 0))
 }
 \arguments{
-\item{r}{\linkS4class{Raster}. The image. Values should be normalized, see
-\code{\link{normalize}}. Only methods for images with one or three layers
-have been implemented.}
+\item{r}{\linkS4class{SpatRaster}. The image. Values should be normalized,
+see \code{\link{normalize}}. Only methods for images with one or three
+layers have been implemented.}
 
-\item{m}{\linkS4class{RasterLayer}. The mask, see \code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. The mask, see \code{\link{mask_hs}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
 }
 \value{
-An object of class \linkS4class{RasterStack} that essentially is
+An object of class \linkS4class{SpatRaster} that essentially is
   \code{r} with the areas delimited by \code{m} --where its pixels are equal
   to one-- painted in a solid color. If \code{r} is a single layer image,
   then the layer is triplicated to allow the use of colors.
@@ -37,6 +31,7 @@ Image masking
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
+ m <- as.logical(m)
 
  masked_caim <-  masking(normalize(r, 0, 255), m)
  plotRGB(masked_caim * 255)
@@ -44,6 +39,7 @@ Image masking
  masked_bin <- masking(apply_thr(r$Blue, 125), m)
  plotRGB(masked_bin * 255)
  }
+
 }
 \seealso{
 \code{\link{mask_hs}}
