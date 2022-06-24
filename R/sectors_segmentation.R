@@ -19,7 +19,8 @@
 #' sectors <- sectors_segmentation(a, 15)
 #' plot(sectors == 1)
 sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
-  stopifnot(class(a) == "SpatRaster")
+  .is_single_layer_raster(a, "a")
+  stopifnot(.get_max(a) <= 360)
   stopifnot(class(return_angle) == "logical")
   stopifnot(length(angle_width) == 1)
 

@@ -1,5 +1,6 @@
 #' @import methods
 #' @import terra
+#' @import filenamer
 #' @importFrom magrittr %>%
 #' @importFrom stats lm poly coefficients IQR sd splinefun
 #' @importFrom colorspace sRGB

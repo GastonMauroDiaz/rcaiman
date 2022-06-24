@@ -38,24 +38,29 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' r <- read_caim()
+#' \dontrun{
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' blue <- gbc(r$Blue)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' rings <- rings_segmentation(z, 10)
 #' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
-#' plot(bin) # gross errors near the horizon, try ootb_mblt()
+#' plot(bin) # try ootb_mblt() for better results
+#' }
 regional_thresholding <- function(r,
                                   segmentation,
                                   method,
                                   intercept = NULL,
                                   slope = NULL,
                                   prob = NULL) {
-  stopifnot(class(r) == "SpatRaster")
-  stopifnot(class(segmentation) == "SpatRaster")
+  .is_single_layer_raster(r, "r")
+  .was_normalized(r)
+  .is_single_layer_raster(segmentation, "segmentation")
   stopifnot(class(method) == "character")
   stopifnot(length(method) == 1)
-
-  .check_if_r_was_normalized(r)
+  if (!is.null(intercept)) stopifnot(length(intercept) == 1)
+  if (!is.null(slope)) stopifnot(length(slope) == 1)
+  if (!is.null(prob)) stopifnot(length(prob) == 1)
 
   if (method == "Diaz2018") {
     if (any(is.null(intercept), is.null(slope), is.null(prob))) {

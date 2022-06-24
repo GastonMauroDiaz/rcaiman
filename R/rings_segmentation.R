@@ -21,7 +21,8 @@
 #' rings <- rings_segmentation(z, 15)
 #' plot(rings == 1)
 rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
-  stopifnot(class(z) == "SpatRaster")
+  .is_single_layer_raster(z, "z")
+  stopifnot(.get_max(z) <= 90)
   stopifnot(class(return_angle) == "logical")
   stopifnot(length(angle_width) == 1)
 

@@ -35,7 +35,7 @@
 #' plot(mask_hs(z, 0, 90))
 #' }
 mask_hs <- function(r, from, to) {
-  stopifnot(class(r) == "SpatRaster")
+  .is_single_layer_raster(r, "r")
   stopifnot(class(from) == "numeric")
   stopifnot(class(to) == "numeric")
   stopifnot(length(from) == 1)

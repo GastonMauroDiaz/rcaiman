@@ -64,7 +64,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
@@ -82,12 +82,23 @@ fit_trend_surface <- function(r,
                               prob = 0.95,
                               fact = 5,
                               np = 6) {
-  stopifnot(class(r) == "SpatRaster")
+  .is_single_layer_raster(r, "r")
+  .is_single_layer_raster(bin, "bin")
+  .is_logic_and_NA_free(bin, "bin")
   terra::compareGeom(bin, r)
-  if (!is.null(m)) terra::compareGeom(bin, m)
-  .is_logic_and_NA_free(bin)
-
-  if (!is.null(m)) r[!m] <- NA
+  if (!is.null(m)) {
+    .is_single_layer_raster(m, "m")
+    .is_logic_and_NA_free(m)
+    terra::compareGeom(r, m)
+    r[!m] <- NA
+  }
+  if (!is.null(filling_source)) {
+    .is_single_layer_raster(filling_source, "filling_source")
+    terra::compareGeom(r, filling_source)
+  }
+  stopifnot(length(prob) == 1)
+  stopifnot(length(fact) == 1)
+  stopifnot(length(np) == 1)
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 

@@ -62,10 +62,10 @@ enhance_caim <- function(caim,
                          thr = 0.5,
                          fuzziness = 10,
                          gamma = NULL) {
-  .check_if_r_was_normalized(caim, "caim")
-  if (!terra::compareGeom(caim, m, stopiffalse = FALSE)) {
-    stop("\"x\" should match pixel by pixel whit \"m\".")
-  }
+  .was_normalized(caim, "caim")
+  .is_single_layer_raster(m, "m")
+  .is_logic_and_NA_free(m, "m")
+  terra::compareGeom(caim, m)
 
   mem_sky_blue <- membership_to_color(caim, sky_blue)
   lightness <- caim$Red * w_red + caim$Blue * (1 - w_red)

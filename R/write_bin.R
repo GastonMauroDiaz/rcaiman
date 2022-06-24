@@ -18,7 +18,9 @@
 #' m <- !is.na(z)
 #' my_file <- file.path(tempdir(), "mask")
 #' write_bin(m, my_file)
-#' extension(my_file) <- "tif"
+#' my_file <- as.filename(my_file) %>%
+#'   insert(., ext = "tif", replace = TRUE) %>%
+#'   as.character()
 #' m_from_disk <- read_bin(my_file)
 #' plot(m - m_from_disk)
 #' }
@@ -26,10 +28,10 @@ write_bin <- function(bin, path) {
   stopifnot(.get_max(bin) <= 1)
 
   file_name <- basename(path)
-  extension(file_name) <- "tif"
+  file_name <-  .extension(file_name, "tif")
 
-  terra::crs(r) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
-  terra::ext(caim) <- terra::ext(0, ncol(caim), 0, nrow(caim))
+  terra::crs(bin) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
+  terra::ext(bin) <- terra::ext(0, ncol(bin), 0, nrow(bin))
 
   suppressWarnings(
     writeRaster(bin * 255, file.path(dirname(path), file_name),

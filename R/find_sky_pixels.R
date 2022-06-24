@@ -28,7 +28,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
@@ -38,6 +38,7 @@
 #' }
 find_sky_pixels <- function(r, z, a, no_of_samples = 30) {
   .check_if_r_z_and_a_are_ok(r, z, a)
+  stopifnot(length(no_of_samples) == 1)
 
   g30 <- sky_grid_segmentation(z, a, 30)
   g5 <- sky_grid_segmentation(z, a, 5)

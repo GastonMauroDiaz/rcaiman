@@ -48,8 +48,11 @@
 #' }
 membership_to_color <- function(caim, target_color, sigma = NULL) {
   .is_class_from_colorspace(target_color)
-  .check_if_r_was_normalized(caim, "caim")
+  stopifnot(class(caim) == "SpatRaster")
+  .was_normalized(caim, "caim")
   stopifnot(names(caim) == c("Red", "Green", "Blue"))
+  if (!is.null(sigma)) stopifnot(length(sigma) == 1)
+
   color <- colorspace::sRGB(terra::values(caim))
   if (class(color) != "LAB") color <- as(color, "LAB")
   p <- .get_gaussian_2d_parameters(target_color, sigma)

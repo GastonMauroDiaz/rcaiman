@@ -32,9 +32,12 @@
 #'  }
 #'
 masking <- function (r, m, RGB = c(1,0,0)) {
-  .check_if_r_was_normalized(r)
+  stopifnot(class(r) == "SpatRaster")
+  .was_normalized(r)
+  .is_single_layer_raster(m, "m")
   .is_logic_and_NA_free(m)
   terra::compareGeom(r, m)
+  stopifnot(length(RGB) == 3)
 
   if (terra::nlyr(r) == 1) {
     red = green = blue <- r

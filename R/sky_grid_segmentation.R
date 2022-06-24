@@ -41,10 +41,7 @@
 #' plot(g, col = col)
 #' }
 sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
-  stopifnot(class(z) == "SpatRaster")
-  stopifnot(class(a) == "SpatRaster")
-  stopifnot(.get_max(z) <= 90)
-
+  stopifnot(length(sequential) == 1)
   stopifnot(class(sequential) == "logical")
   stopifnot(length(angle_width) == 1)
 

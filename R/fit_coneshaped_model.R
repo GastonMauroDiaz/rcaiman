@@ -49,27 +49,29 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin, use_azimuth_angle = FALSE)
+#' sky <- fit_coneshaped_model(blue, z, a, bin)
 #' plot(sky$image)
-#' persp(sky$image, theta = 90, phi = 0) #a flipped cone!
+#' persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
 fit_coneshaped_model <- function(r, z, a, bin,
                                  prob = 0.95,
                                  filling_source = NULL,
                                  use_azimuth_angle = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
-  if (!is.null(filling_source)) terra::compareGeom(bin, filling_source)
+  .is_single_layer_raster(bin, "bin")
+  .is_logic_and_NA_free(bin, "bin")
   terra::compareGeom(bin, r)
-  terra::compareGeom(z, r)
-  terra::compareGeom(z, a)
-
-  .is_logic_and_NA_free(bin)
+  if (!is.null(filling_source)) {
+    .is_single_layer_raster(filling_source, "filling_source")
+    terra::compareGeom(r, filling_source)
+  }
+  stopifnot(length(use_azimuth_angle) == 1)
 
   fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
 

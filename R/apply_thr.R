@@ -31,8 +31,7 @@
 #' }
 apply_thr <- function (r, thr)
 {
-
-  stopifnot(class(r) == "SpatRaster")
+  .is_single_layer_raster(r)
 
   if (any(class(thr) == "numeric", class(thr) == "integer")) {
     stopifnot(length(thr) == 1)

@@ -62,10 +62,10 @@ setMethod(
   "read_caim",
   signature(path_to_file = "character"),
   function(path_to_file, upper_left, width, height) {
-    file_ext <- toupper(extension(path_to_file))
+    file_ext <- filenamer::as.filename(path_to_file)$ext %>% toupper()
 
-    if (file_ext %in% c(".JPG", ".JPEG", ".TIF", ".TIFF")) {
-      r <- terra::rast(path_to_file)
+    if (file_ext %in% c("JPG", "JPEG", "TIF", "TIFF")) {
+      suppressWarnings(r <- terra::rast(path_to_file))
       if (terra::nlyr(r) != 3) stop("The photograph should have three layers.")
       terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
       # https://spatialreference.org/ref/sr-org/7589/

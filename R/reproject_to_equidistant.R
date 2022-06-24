@@ -24,11 +24,13 @@
 #' # for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 #' }
 reproject_to_equidistant <- function(r, z, a, radius = 745) {
-  stopifnot(class(z) == "SpatRaster")
-  stopifnot(class(a) == "SpatRaster")
+  .is_single_layer_raster(z, "z")
+  .is_single_layer_raster(a, "a")
   stopifnot(.get_max(z) <= 90)
+  stopifnot(.get_max(a) <= 360)
   terra::compareGeom(r, z)
-  terra::compareGeom(z, a)
+  terra::compareGeom(r, a)
+  stopifnot(length(radius) == 1)
 
   .reproject_to_equidistant <- function(r, z, a, radius) {
     m <- !is.na(z)

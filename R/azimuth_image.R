@@ -24,7 +24,7 @@
 #' plot(a)
 azimuth_image <- function (z)
 {
-  stopifnot(class(z) == "SpatRaster")
+  .is_single_layer_raster(z, "z")
   mask <- is.na(z)
 
   xy <- terra::xyFromCell(z, seq(length = ncell(z)))

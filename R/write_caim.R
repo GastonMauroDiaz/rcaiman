@@ -29,7 +29,7 @@ write_caim <- function(caim, path, bit_depth) {
   terra::ext(caim) <- terra::ext(0, ncol(caim), 0, nrow(caim))
 
   file_name <- basename(path)
-  extension(file_name) <- "tif"
+  file_name <- .extension(file_name, "tif")
 
   if (bit_depth == 8) {
     suppressWarnings(

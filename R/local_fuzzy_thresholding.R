@@ -58,11 +58,13 @@ local_fuzzy_thresholding <- function (lightness,
                                       mem,
                                       thr = NULL,
                                       fuzziness = NULL) {
-  .check_if_r_was_normalized(lightness, "lightness")
-  .is_logic_and_NA_free(m)
-  if (!terra::compareGeom(lightness, m, stopiffalse = FALSE)) {
-    stop("\"x\" should match pixel by pixel whit \"m\".")
-  }
+  .is_single_layer_raster(lightness, "lightness")
+  .was_normalized(lightness, "lightness")
+  .is_single_layer_raster(m, "m")
+  .is_logic_and_NA_free(m, "m")
+  .is_single_layer_raster(mem, "mem")
+  terra::compareGeom(lightness, m)
+  terra::compareGeom(lightness, mem)
 
   if (is.null(thr)) {
     if (!requireNamespace("autothresholdr", quietly = TRUE)) {

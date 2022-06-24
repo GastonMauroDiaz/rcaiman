@@ -28,26 +28,27 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+#' path <- system.file("external/DSCN4502.JPG", package = "rcaiman")
 #' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin, parallel = FALSE)
+#' sky <- fit_coneshaped_model(blue, z, a, bin)
 #' sky <- fix_predicted_sky(sky$image, z, blue, bin)
 #' persp(sky, theta = 90, phi = 0)
 #' }
 fix_predicted_sky <- function(sky, z, r, bin) {
-  .check_if_r_was_normalized(r)
-  stopifnot(class(z) == "SpatRaster")
+  .is_single_layer_raster(r, "r")
+  .was_normalized(r)
+  .is_single_layer_raster(z, "z")
+  .is_single_layer_raster(sky, "sky")
   stopifnot(.get_max(z) <= 90)
+  .is_single_layer_raster(bin, "bin")
   terra::compareGeom(r, z)
   terra::compareGeom(r, sky)
   terra::compareGeom(r, bin)
-
-  stopifnot(!any(is.na(bin[])))
-  stopifnot(is.logical(bin[1][,]))
+  .is_logic_and_NA_free(bin, "bin")
 
   mn <- min(r[bin])
   sky[sky < mn] <- mn

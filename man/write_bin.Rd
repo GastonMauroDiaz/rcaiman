@@ -23,7 +23,9 @@ z <- zenith_image(1000, lens())
 m <- !is.na(z)
 my_file <- file.path(tempdir(), "mask")
 write_bin(m, my_file)
-extension(my_file) <- "tif"
+my_file <- as.filename(my_file) \%>\%
+  insert(., ext = "tif", replace = TRUE) \%>\%
+  as.character()
 m_from_disk <- read_bin(my_file)
 plot(m - m_from_disk)
 }
