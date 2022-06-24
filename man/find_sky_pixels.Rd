@@ -44,7 +44,7 @@ decreasing the probability by 0.01 points.
 }
 \examples{
 \dontrun{
-path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)

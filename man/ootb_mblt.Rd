@@ -41,7 +41,7 @@ from that in the following main aspects:
 
 \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 
-\item This version implements a regional threholding approach as first step
+\item This version implements a regional thresholding approach as first step
 instead of a global one. Please refer to \code{\link{find_sky_pixels}}. The
 minimum number of samples (sky DNs) required is equals to the 30 percent of
 the population, considering that it is made of  \eqn{5 \times 5} sky grid
@@ -72,7 +72,7 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)

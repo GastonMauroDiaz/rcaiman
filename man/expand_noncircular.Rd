@@ -27,7 +27,7 @@ Expand a non-circular hemispherical photograph.
 }
 \examples{
 \dontrun{
-   my_file <- file.path(tmpDir(), "DSC_2881.JPG")
+   my_file <- file.path(tempdir(), "DSC_2881.JPG")
    download.file("https://osf.io/x8urg/download", my_file,
                method = "auto", mode = "wb"
    )
@@ -38,6 +38,7 @@ Expand a non-circular hemispherical photograph.
    z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
    r <- expand_noncircular(r, z, zenith_colrow)
    plot(r)
+   plot(is.na(r$Red), add = TRUE, alpha = 0.5)
 }
 }
 \seealso{

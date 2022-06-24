@@ -29,9 +29,7 @@ Imports:
     stats,
     utils,
     Rdpack,
-    spatial,
-    rgeos,
-    sp
+    spatial
 Suggests: 
     autothresholdr,
     conicfit,

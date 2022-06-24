@@ -68,15 +68,15 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-path <- system.file("external/4_D_2_DSCN4502.JPG", package = "rcaiman")
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin, use_azimuth_angle = FALSE)
+sky <- fit_coneshaped_model(blue, z, a, bin)
 plot(sky$image)
-persp(sky$image, theta = 90, phi = 0) #a flipped cone!
+persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 }
 }
 \references{

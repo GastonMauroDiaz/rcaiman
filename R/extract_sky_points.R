@@ -1,6 +1,6 @@
-#' Extract sky marks
+#' Extract sky points
 #'
-#' Extract sky marks for CIE sky model fitting
+#' Extract sky points for model fitting
 #'
 #' The \code{bin} argument should be any binarized image that masked out pure
 #' canopy (non-gap) pixels and most of the mixed pixels, so to establish a
@@ -49,16 +49,15 @@
 #' bin <- apply_thr(ecaim, 0.75)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(caim$Blue*255)
-#' sky_marks <- extract_sky_marks(blue, bin, g,
-#'                                dist_to_plant = 3,
-#'                                min_raster_dist = 10)
-#' cells <- cellFromRowCol(z, sky_marks$row, sky_marks$col)
+#' set.seed(1)
+#' sky_points <- extract_sky_points(blue, bin, g)
+#' cells <- cellFromRowCol(z, sky_points$row, sky_points$col)
 #' hist(blue[cells][,1])
 #' xy <- xyFromCell(z, cells)
 #' plot(blue)
 #' plot(vect(xy), add = TRUE, col = 2)
 #' }
-extract_sky_marks <- function(r, bin, g,
+extract_sky_points <- function(r, bin, g,
                               dist_to_plant = 3,
                               min_raster_dist = 3) {
   .is_single_layer_raster(r)
@@ -101,7 +100,19 @@ extract_sky_marks <- function(r, bin, g,
                      dn = r[bin])
   }
 
-  indices <- tapply(1:nrow(ds), ds$g, function(x) x[which.max(ds$dn[x])])
+  indices <- tapply(1:nrow(ds), ds$g,
+                    function(x) {
+                      # browsser()
+                      x[which.max(ds$dn[x])]
+
+                      # indices <- ds$dn[x] >= quantile(ds$dn[x], 0.9)
+                      # sample(x[indices], 1)
+
+                      # dn <- ds$dn[x]
+                      # indices <- dn >= quantile(dn, 0.9)
+                      # i <- which.min(dn[indices])
+                      # x[i]
+                    })
   ds <- ds[indices,]
 
 

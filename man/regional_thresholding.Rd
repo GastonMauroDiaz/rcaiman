@@ -56,12 +56,15 @@ to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
 recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
 }
 \examples{
-r <- read_caim()
+\dontrun{
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
 bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
-plot(bin) # gross errors near the horizon, try ootb_mblt()
+plot(bin) # try ootb_mblt() for better results
+}
 }
 \references{
 \insertAllCited{}
