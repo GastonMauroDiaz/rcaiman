@@ -33,6 +33,7 @@ plot(rings == 1)
 \seealso{
 Other Segmentation functions: 
 \code{\link{mask_hs}()},
+\code{\link{polar_qtree}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}
 }

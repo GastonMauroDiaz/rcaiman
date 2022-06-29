@@ -40,14 +40,18 @@ to determine the weights.
 }
 \examples{
 \dontrun{
-path <- system.file("external/DSCN4502.JPG", package = "rcaiman")
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
+g <- sky_grid_segmentation(z, a, 10)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin)
-sky <- fix_predicted_sky(sky$image, z, blue, bin)
-persp(sky, theta = 90, phi = 0)
+sky_points <- extract_sky_points(blue, bin, g)
+zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
+sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+sky_cs <- fix_predicted_sky(sky_cs, z, blue, bin)
+persp(sky_cs, theta = 90, phi = 0)
 }
 }

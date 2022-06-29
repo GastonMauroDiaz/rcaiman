@@ -108,8 +108,9 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Please, see code{link{interpolate_dns}} for further considerations.
 #'
 #' @inheritParams ootb_mblt
-#' @param sky_points An object of class data.frame. The result of a call to
-#'   \code{\link{extract_sky_points}}.
+#' @inheritParams fit_coneshaped_model
+#' @param zenith_dn Numeric vector of length 1. Zenith digital number, see
+#'   \code{\link{extract_zenith_dn}} for how to obtain it.
 #' @param sun_coord An object of class list. The result of a call to
 #'   \code{\link{extract_sun_coord}}.
 #' @inheritParams cie_sky_model_raster
@@ -117,8 +118,6 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   \insertCite{Li2016;textual}{rcaiman}.
 #' @param general_sky_type Character vector of length one. "Overcast", "Clear",
 #'   or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.
-#' @param use_window Logical vector of length one. If \code{TRUE}, a 3 by 3
-#'   window will be used to extract the sky digital number from \code{r}.
 #' @param twilight Logical vector of length one. If it is \code{TRUE} and the
 #'   initial standard parameters belong to the "Clear" general sky type, sun
 #'   zenith angles from 90 to 96 degrees will be tested (civic twilight). This
@@ -128,9 +127,10 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
 #'   for selecting the best sky model is to choose the one with lest root mean
 #'   square error calculated from the sample (sky marks). Otherwise, the
-#'   criteria is to evaluate the whole hemisphere by calculating the ratio of
-#'   \code{r} to the sky model, then square it, and selecting the sky model that
-#'   produce the least value.
+#'   criteria is to evaluate the whole hemisphere by calculating the product
+#'   between the square ratio of \code{r} to the sky model and the fraction of
+#'   pixels from ratio above one or below zero, and selecting the sky
+#'   model that produce the least value.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertRef{Li2016}{rcaiman}
@@ -154,16 +154,19 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(caim$Blue*255)
 #' sun_coord <- extract_sun_coord(blue, z, a, bin, g)
-#' sky_points <- extract_sky_points(blue, bin, g)
-#' model <- fit_cie_sky_model(blue, z, a, sky_points, sun_coord,
+#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+#' model <- fit_cie_sky_model(blue, z, a, zenith_dn$sky_points,
+#'                            zenith_dn$zenith_dn, sun_coord,
+#'                            rmse = TRUE,
 #'                            general_sky_type = "Partly cloudy")
 #' sky_cie <- model$relative_luminance * model$zenith_dn
+#' sky_cie[sky_cie > 1] <- 1
 #' plot(sky_cie)
+#' plot(blue/sky_cie)
 #' }
-fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
+fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
-                              use_window = TRUE,
                               twilight = TRUE,
                               rmse = FALSE,
                               method = "BFGS") {
@@ -178,33 +181,8 @@ fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
   stopifnot(length(sun_coord$zenith_azimuth) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
 
-  cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
-  sky_points$a <- a[cells][,]
-  sky_points$z <- z[cells][,]
-
-  if (use_window) {
-    xy <-  terra::xyFromCell(r, cells)
-    r_smooth <- terra::focal(r, 3, "median")
-    sky_points$dn <-  terra::extract(r_smooth, xy)[,]
-  } else {
-    sky_points$dn <-  r[cells][,]
-  }
-
   AzP <- .degree2radian(sky_points$a)
   Zp <- .degree2radian(sky_points$z)
-
-  z_thr <- 2
-  zenith_dn <- c()
-  while (length(zenith_dn) < 20) {
-    zenith_dn <- sky_points$dn[sky_points$z < z_thr]
-    z_thr <- z_thr + 2
-  }
-  if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from pure ",
-                                       "sky pixels from zenith angle up to ",
-                                       z_thr, "."))
-  zenith_dn <- mean(zenith_dn)
-  attr(zenith_dn, "max_zenith_angle") <- z_thr
-  sky_points$dn <- sky_points$dn / zenith_dn
 
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
@@ -216,7 +194,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
 
     flog <- function(.a, .b, .c, .d, .e, S) {
       media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
-      - sum(stats::dnorm(sky_points$dn, mean = media, sd = exp(S)))
+      - sum(stats::dnorm(sky_points$rl, mean = media, sd = exp(S)))
     }
 
     fit <- NA
@@ -251,7 +229,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
                                                  fit@coef[-6])
       return(list(mle2_output = fit,
                   coef = fit@coef[-6],
-                  obs = sky_points$dn,
+                  obs = sky_points$rl,
                   pred = pred,
                   relative_luminance = relative_luminance,
                   zenith_dn = zenith_dn,
@@ -291,9 +269,9 @@ fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
       return(NA)
     } else {
       sky <- x$relative_luminance * x$zenith_dn
-      sun <- sky[x$sun_coord$row_col[1], x$sun_coord$row_col[2]]
+      sun_rl <- sky[x$sun_coord$row_col[1], x$sun_coord$row_col[2]][,]
       if (x$sun_coord$zenith_azimuth[1] < 90 &
-          sun > quantile(sky[], 0.9, na.rm = TRUE)
+          sun_rl > quantile(sky[], 0.9, na.rm = TRUE)
           ) {
         m <- sky < 0 | sky > 1
         area_outside_expected_values <- sum(m[], na.rm = TRUE)
@@ -315,6 +293,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, sun_coord,
   }
 
   if (!rmse) {
+    # .calc_ratio_squared(fit[[4]])
     error <- Map(.calc_ratio_squared, fit) %>% unlist()
   } else {
     error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()

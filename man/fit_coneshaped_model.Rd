@@ -4,41 +4,11 @@
 \alias{fit_coneshaped_model}
 \title{Fit cone-shaped model}
 \usage{
-fit_coneshaped_model(
-  r,
-  z,
-  a,
-  bin,
-  prob = 0.95,
-  filling_source = NULL,
-  use_azimuth_angle = TRUE
-)
+fit_coneshaped_model(sky_points, use_azimuth_angle = TRUE)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
-
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
-
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
-
-\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
-be a preliminary binarization of \code{r}.}
-
-\item{prob}{Logical vector of length one. Probability for
-\code{\link[stats]{quantile}} calculation. See reference
-\insertCite{Diaz2018;textual}{rcaiman}.}
-
-\item{filling_source}{\linkS4class{SpatRaster}. Default is \code{NULL}.
-Above-canopy photograph. This image should contain pixels with sky DN
-values and \code{NA} in all the other pixels. A photograph taken
-immediately after or before taking \code{r} under the open sky with the
-same equipment and configuration is a very good option. The ideal option is
-one taken at the same time and place but above the canopy. The orientation
-relative to the North must be the same than for \code{r}.}
+\item{sky_points}{The data.frame returned by \code{\link{extract_zenith_dn}},
+or a data.frame with the same structure and names.}
 
 \item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE},
 Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
@@ -50,9 +20,10 @@ azimuth angle. If \code{FALSE}, a simplified version based on
 \theta + c  \cdot \theta^2}.}
 }
 \value{
-A list with two objects, one of class \linkS4class{SpatRaster} and
-  the other of class \code{lm} (see \code{\link[stats]{lm}}). If the fitting
-  fails, it returns \code{NULL}.
+A list of two objects, one of class \code{function} and the other of
+  class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
+  returns \code{NULL}. The function requires two arguments, azimuth and
+  zenith in degrees, and returns relative luminance.
 }
 \description{
 Generate the digital numbers of the whole sky through statistical modelling.
@@ -60,8 +31,9 @@ Generate the digital numbers of the whole sky through statistical modelling.
 \details{
 An explanation of this function can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-the sky DN as a previous step for our method}. If the function returns
-\code{NULL}, then the quality of the \emph{bin} input should be revised.
+the sky DN as a previous step for our method}. However, although the model is
+the same, this implementation is more flexible thank to
+\code{\link{extract_sky_points}} and \code{\link{extract_zenith_dn}}.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018}{rcaiman}.
@@ -73,10 +45,13 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
+g <- sky_grid_segmentation(z, a, 10)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin)
-plot(sky$image)
-persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
+sky_points <- extract_sky_points(blue, bin, g)
+zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
+sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 }
 }
 \references{
@@ -84,6 +59,8 @@ persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_sky_points}()},
+\code{\link{extract_zenith_dn}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()},

@@ -31,7 +31,7 @@
 #' @param min_raster_dist Numeric vector of length one or \code{NULL}. Distance
 #'   in pixels.
 #'
-#' @family hps functions
+#' @family MBLT functions
 #'
 #' @export
 #'
@@ -49,7 +49,6 @@
 #' bin <- apply_thr(ecaim, 0.75)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(caim$Blue*255)
-#' set.seed(1)
 #' sky_points <- extract_sky_points(blue, bin, g)
 #' cells <- cellFromRowCol(z, sky_points$row, sky_points$col)
 #' hist(blue[cells][,1])

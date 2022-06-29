@@ -4,31 +4,15 @@
 #'
 #' An explanation of this function can be found on
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-#' the sky DN as a previous step for our method}. If the function returns
-#' \code{NULL}, then the quality of the \emph{bin} input should be revised.
+#' the sky DN as a previous step for our method}. However, although the model is
+#' the same, this implementation is more flexible thank to
+#' \code{\link{extract_sky_points}} and \code{\link{extract_zenith_dn}}.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018}{rcaiman}.
 #'
-#' @param r \linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-#'   the blue channel extracted from an hemispherical photograph. Please see
-#'   \code{\link{read_caim}} and \code{\link{normalize}}.
-#' @param z \linkS4class{SpatRaster}. The result of a call to
-#'   \code{\link{zenith_image}}.
-#' @param a \linkS4class{SpatRaster}. The result of a call to
-#'   \code{\link{azimuth_image}}.
-#' @param bin \linkS4class{SpatRaster}. A working binarized image. This should
-#'   be a preliminary binarization of \code{r}.
-#' @param filling_source \linkS4class{SpatRaster}. Default is \code{NULL}.
-#'   Above-canopy photograph. This image should contain pixels with sky DN
-#'   values and \code{NA} in all the other pixels. A photograph taken
-#'   immediately after or before taking \code{r} under the open sky with the
-#'   same equipment and configuration is a very good option. The ideal option is
-#'   one taken at the same time and place but above the canopy. The orientation
-#'   relative to the North must be the same than for \code{r}.
-#' @param prob Logical vector of length one. Probability for
-#'   \code{\link[stats]{quantile}} calculation. See reference
-#'   \insertCite{Diaz2018;textual}{rcaiman}.
+#' @param sky_points The data.frame returned by \code{\link{extract_zenith_dn}},
+#'   or a data.frame with the same structure and names.
 #' @param use_azimuth_angle Logical vector of length one. If \code{TRUE},
 #'   Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
 #'   a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
@@ -38,9 +22,10 @@
 #'   \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
 #'   \theta + c  \cdot \theta^2}.
 #'
-#' @return A list with two objects, one of class \linkS4class{SpatRaster} and
-#'   the other of class \code{lm} (see \code{\link[stats]{lm}}). If the fitting
-#'   fails, it returns \code{NULL}.
+#' @return A list of two objects, one of class \code{function} and the other of
+#'   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
+#'   returns \code{NULL}. The function requires two arguments, azimuth and
+#'   zenith in degrees, and returns relative luminance.
 #' @export
 #'
 #' @family MBLT functions
@@ -54,53 +39,22 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
+#' g <- sky_grid_segmentation(z, a, 10)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin)
-#' plot(sky$image)
-#' persp(sky$image, theta = 90, phi = 0) #a flipped rounded cone!
+#' sky_points <- extract_sky_points(blue, bin, g)
+#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+#' rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
+#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+#' persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
-fit_coneshaped_model <- function(r, z, a, bin,
-                                 prob = 0.95,
-                                 filling_source = NULL,
+fit_coneshaped_model <- function(sky_points,
                                  use_azimuth_angle = TRUE) {
-  .check_if_r_z_and_a_are_ok(r, z, a)
-  .is_single_layer_raster(bin, "bin")
-  .is_logic_and_NA_free(bin, "bin")
-  terra::compareGeom(bin, r)
-  if (!is.null(filling_source)) {
-    .is_single_layer_raster(filling_source, "filling_source")
-    terra::compareGeom(r, filling_source)
-  }
+  stopifnot(class(sky_points) == "data.frame")
   stopifnot(length(use_azimuth_angle) == 1)
 
-  fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
-
-  blue <- r
-  rm(r)
-  blue[!bin] <- NA
-  rm(bin)
-
-  if (!is.null(filling_source)) blue <- cover(blue, filling_source)
-
-  g <- sky_grid_segmentation(z, a, 5)
-  # objects starting with UPPERCASE are vectors instead of images
-  Blue <- extract_feature(blue, g, fun, return_raster = FALSE)
-  rm(g)
-
-  Zenith <- as.numeric(substr(names(Blue), 4, 5)) * 5 - 5 / 2
-  Azimuth <- trunc(as.numeric(names(Blue)) / 1000) * 5 - 5 / 2
-
-  # Filter out saturated
-  index <- Blue < 1
-  Blue <- Blue[index]
-  Zenith <- Zenith[index]
-  Azimuth <- Azimuth[index]
-
-  # Filter out NA
-  index <- !is.na(Blue)
-  Blue <- Blue[index]
-  Zenith <- Zenith[index]
-  Azimuth <- Azimuth[index]
+  Blue <- sky_points$rl
+  Zenith <- sky_points$a
+  Azimuth <- sky_points$z
 
   if (length(Blue) > 30) {
     if (use_azimuth_angle) {
@@ -108,7 +62,7 @@ fit_coneshaped_model <- function(r, z, a, bin,
         sin(Azimuth * pi / 180) + cos(Azimuth * pi / 180))
 
       # only to avoid note from check, code is OK without this line.
-      b <- d <- e <- NA
+      a <- b <- d <- e <- NA
 
       skyFun <- function(z, azimuth) {
         x <- coefficients(model)
@@ -126,7 +80,7 @@ fit_coneshaped_model <- function(r, z, a, bin,
         a + b * z + c * z^2
       }
     }
-    return(list(image = skyFun(z, a), model = model))
+    return(list(rl_cs_fun = skyFun, model = model))
   } else {
     return(NULL)
   }

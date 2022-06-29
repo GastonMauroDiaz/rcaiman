@@ -40,15 +40,25 @@
 #' argument allows to control the scale at which the fitting is performed. In
 #' general, a coarse scale lead to best generalization. The function used for
 #' aggregation is \code{\link[stats]{quantile}}, to which the argument
-#' \code{prob} is passed. Essentially, the aggregation step works as the one
-#' from \code{\link{fit_coneshaped_model}}, but it is made on the raster space
-#' rather than on the hemispherical space.
+#' \code{prob} is passed.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018}{rcaiman}.
 #'
 #' @inheritParams stats::quantile
-#' @inheritParams fit_coneshaped_model
+#' @inheritParams ootb_mblt
+#' @param bin \linkS4class{SpatRaster}. A working binarized image. This should
+#'   be a preliminary binarization of \code{r}.
+#' @param filling_source \linkS4class{SpatRaster}. Default is \code{NULL}.
+#'   Above-canopy photograph. This image should contain pixels with sky DN
+#'   values and \code{NA} in all the other pixels. A photograph taken
+#'   immediately after or before taking \code{r} under the open sky with the
+#'   same equipment and configuration is a very good option. The ideal option is
+#'   one taken at the same time and place but above the canopy. The orientation
+#'   relative to the North must be the same than for \code{r}.
+#' @param prob Logical vector of length one. Probability for
+#'   \code{\link[stats]{quantile}} calculation. See reference
+#'   \insertCite{Diaz2018;textual}{rcaiman}.
 #' @param m \linkS4class{SpatRaster}. A mask. Usually, the result of a call to
 #'   \code{\link{mask_hs}}.
 #' @inheritParams terra::aggregate
@@ -69,10 +79,14 @@
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
+#' g <- sky_grid_segmentation(z, a, 10)
 #' bin <- find_sky_pixels(blue, z, a)
-#' sky <- fit_coneshaped_model(blue, z, a, bin)
+#' sky_points <- extract_sky_points(blue, bin, g)
+#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+#' rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
+#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
 #' m <- mask_hs(z, 0, 80)
-#' sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
+#' sky <- fit_trend_surface(blue, bin, m, filling_source = sky_cs)
 #' plot(sky$image)
 #' }
 fit_trend_surface <- function(r,

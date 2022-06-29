@@ -62,9 +62,7 @@ The argument \code{fact} is passed to \code{\link[terra]{aggregate}}. That
 argument allows to control the scale at which the fitting is performed. In
 general, a coarse scale lead to best generalization. The function used for
 aggregation is \code{\link[stats]{quantile}}, to which the argument
-\code{prob} is passed. Essentially, the aggregation step works as the one
-from \code{\link{fit_coneshaped_model}}, but it is made on the raster space
-rather than on the hemispherical space.
+\code{prob} is passed.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018}{rcaiman}.
@@ -76,10 +74,14 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
+g <- sky_grid_segmentation(z, a, 10)
 bin <- find_sky_pixels(blue, z, a)
-sky <- fit_coneshaped_model(blue, z, a, bin)
+sky_points <- extract_sky_points(blue, bin, g)
+zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
+sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
 m <- mask_hs(z, 0, 80)
-sky <- fit_trend_surface(blue, bin, m, filling_source = sky$image)
+sky <- fit_trend_surface(blue, bin, m, filling_source = sky_cs)
 plot(sky$image)
 }
 }
@@ -88,6 +90,8 @@ plot(sky$image)
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_sky_points}()},
+\code{\link{extract_zenith_dn}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{ootb_mblt}()},

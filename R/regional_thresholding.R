@@ -25,7 +25,7 @@
 #' @param method Character vector of length one. See details for current
 #'   options.
 #' @inheritParams thr_image
-#' @inheritParams fit_coneshaped_model
+#' @inheritParams fit_trend_surface
 #'
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.

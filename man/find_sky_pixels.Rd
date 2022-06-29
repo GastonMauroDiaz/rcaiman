@@ -55,6 +55,8 @@ plot(bin)
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_sky_points}()},
+\code{\link{extract_zenith_dn}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()},

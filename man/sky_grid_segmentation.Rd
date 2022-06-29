@@ -55,6 +55,7 @@ plot(g, col = col)
 \seealso{
 Other Segmentation functions: 
 \code{\link{mask_hs}()},
+\code{\link{polar_qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()}
 }

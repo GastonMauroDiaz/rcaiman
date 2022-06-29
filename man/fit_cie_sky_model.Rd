@@ -9,10 +9,10 @@ fit_cie_sky_model(
   z,
   a,
   sky_points,
+  zenith_dn,
   sun_coord,
   std_sky_no = NULL,
   general_sky_type = NULL,
-  use_window = TRUE,
   twilight = TRUE,
   rmse = FALSE,
   method = "BFGS"
@@ -29,8 +29,11 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{sky_points}{An object of class data.frame. The result of a call to
-\code{\link{extract_sky_points}}.}
+\item{sky_points}{The data.frame returned by \code{\link{extract_zenith_dn}},
+or a data.frame with the same structure and names.}
+
+\item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
+\code{\link{extract_zenith_dn}} for how to obtain it.}
 
 \item{sun_coord}{An object of class list. The result of a call to
 \code{\link{extract_sun_coord}}.}
@@ -40,9 +43,6 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{general_sky_type}{Character vector of length one. "Overcast", "Clear",
 or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.}
-
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a 3 by 3
-window will be used to extract the sky digital number from \code{r}.}
 
 \item{twilight}{Logical vector of length one. If it is \code{TRUE} and the
 initial standard parameters belong to the "Clear" general sky type, sun
@@ -54,9 +54,10 @@ solar disk.}
 \item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
 for selecting the best sky model is to choose the one with lest root mean
 square error calculated from the sample (sky marks). Otherwise, the
-criteria is to evaluate the whole hemisphere by calculating the ratio of
-\code{r} to the sky model, then square it, and selecting the sky model that
-produce the least value.}
+criteria is to evaluate the whole hemisphere by calculating the product
+between the square ratio of \code{r} to the sky model and the fraction of
+pixels from ratio above one or below zero, and selecting the sky
+model that produce the least value.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
@@ -102,11 +103,15 @@ bin <- apply_thr(ecaim, 0.75)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(caim$Blue*255)
 sun_coord <- extract_sun_coord(blue, z, a, bin, g)
-sky_points <- extract_sky_points(blue, bin, g)
-model <- fit_cie_sky_model(blue, z, a, sky_points, sun_coord,
+zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
+model <- fit_cie_sky_model(blue, z, a, zenith_dn$sky_points,
+                           zenith_dn$zenith_dn, sun_coord,
+                           rmse = TRUE,
                            general_sky_type = "Partly cloudy")
 sky_cie <- model$relative_luminance * model$zenith_dn
+sky_cie[sky_cie > 1] <- 1
 plot(sky_cie)
+plot(blue/sky_cie)
 }
 }
 \references{
