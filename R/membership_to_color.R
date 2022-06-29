@@ -42,7 +42,7 @@
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
+#' target_color <- sRGB(matrix(c(0.25, 0.75, 0), ncol = 3))
 #' mem <- membership_to_color(caim, target_color)
 #' plot(mem)
 #' }

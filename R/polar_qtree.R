@@ -73,7 +73,6 @@ polar_qtree <- function(r, z, a,
 
   if (terra::nlyr(r) > 1) {
     delta <- Map(.calc_delta_single_layer, as.list(r))
-    browser()
     delta <- Map(function(i) {
                   x <- Map(function(j) delta[[j]][[i]], seq_along(delta))
                   apply(as.data.frame(x), 1, mean)
@@ -94,8 +93,8 @@ polar_qtree <- function(r, z, a,
     r[r == 0] <- NA
     r + i*10000000
   }, seq_along(ges))
-  ges <- rast(ges)
-  it_should_be_splited <- rast(it_should_be_splited)
+  ges <- terra::rast(ges)
+  it_should_be_splited <- terra::rast(it_should_be_splited)
   seg <- ges * it_should_be_splited
   g <- sky_grid_segmentation(z, a, angle.wds[1])
   seg <- c(g, seg)
