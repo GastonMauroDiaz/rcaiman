@@ -21,9 +21,7 @@
 #' minimum distance threshold between points that is applied in the raster
 #' space.
 #'
-#' @param r \linkS4class{SpatRaster}. Greyscale image hemispherical image.
-#' @param bin \linkS4class{SpatRaster}. The result of binarizing the \code{r}
-#'   argument.
+#' @inheritParams fit_trend_surface
 #' @param g \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 #'   and pre-processing involved in obtaining the \code{r} argument.

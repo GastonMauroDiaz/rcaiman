@@ -7,10 +7,12 @@
 extract_sky_points(r, bin, g, dist_to_plant = 3, min_raster_dist = 3)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. Greyscale image hemispherical image.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
+the blue channel extracted from an hemispherical photograph. Please see
+\code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. The result of binarizing the \code{r}
-argument.}
+\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
+be a preliminary binarization of \code{r}.}
 
 \item{g}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,

@@ -6,12 +6,12 @@
 #' Boolean version will agree. This method is an alternative to applying a
 #' global threshold with \code{\link{apply_thr}}.
 #'
-#' @param mem An object of the class \linkS4class{SpatRast}. Degree of
+#' @param mem An object of the class \linkS4class{SpatRaster}. Degree of
 #'   membership.
-#' @param segmentation An object of the class \linkS4class{SpatRast}, such as
+#' @param segmentation An object of the class \linkS4class{SpatRaster}, such as
 #'   the result of a call to \code{\link{sky_grid_segmentation}}.
 #'
-#' @return An object of the class \linkS4class{SpatRast} containing binary
+#' @return An object of the class \linkS4class{SpatRaster} containing binary
 #'   information.
 #' @export
 #'

@@ -4,6 +4,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom stats lm poly coefficients IQR sd splinefun
 #' @importFrom colorspace sRGB
+#' @importClassesFrom lidR LAS
 NULL
 
 # https://groups.google.com/g/rdevtools/c/qT6cJt6DLJ0

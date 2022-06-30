@@ -29,7 +29,9 @@ Imports:
     stats,
     utils,
     Rdpack,
-    spatial
+    spatial,
+    lidR,
+    sf
 Suggests: 
     autothresholdr,
     conicfit,

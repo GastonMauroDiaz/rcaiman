@@ -154,6 +154,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(caim$Blue*255)
 #' sun_coord <- extract_sun_coord(blue, z, a, bin, g)
+#' sky_points <- extract_sky_points(blue, bin, g)
 #' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
 #' model <- fit_cie_sky_model(blue, z, a, zenith_dn$sky_points,
 #'                            zenith_dn$zenith_dn, sun_coord,
