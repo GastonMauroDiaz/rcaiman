@@ -50,9 +50,12 @@
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' m <- !is.na(z)
-#' sky_blue <- sRGB(matrix(c(0.2, 0.3, 0.5), ncol = 3))
-#' ecaim <- enhance_caim(caim, m, sky_blue, gamma = 2.2)
+#' sky_blue_sample <- crop(caim, ext(610,643,760,806))
+#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
+#'   as.numeric() %>%
+#'   matrix(., ncol = 3) %>%
+#'   sRGB()
+#' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 #' plot(ecaim)
 #' }
 enhance_caim <- function(caim,
