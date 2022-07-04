@@ -74,7 +74,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
                                        as.numeric(sky_coef[3]),
                                        as.numeric(sky_coef[4]),
                                        as.numeric(sky_coef[5]))
-  z[] <- relative_luminance
+  terra::values(z) <- relative_luminance
   z
 }
 
@@ -110,7 +110,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #' @param zenith_dn Numeric vector of length 1. Zenith digital number, see
-#'   \code{\link{extract_zenith_dn}} for how to obtain it.
+#'   \code{\link{extract_rl}} for how to obtain it.
 #' @param sun_coord An object of class list. The result of a call to
 #'   \code{\link{extract_sun_coord}}.
 #' @inheritParams cie_sky_model_raster
@@ -155,9 +155,9 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' blue <- gbc(caim$Blue*255)
 #' sun_coord <- extract_sun_coord(blue, z, a, bin, g)
 #' sky_points <- extract_sky_points(blue, bin, g)
-#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-#' model <- fit_cie_sky_model(blue, z, a, zenith_dn$sky_points,
-#'                            zenith_dn$zenith_dn, sun_coord,
+#' rl <- extract_rl(blue, z, a, sky_points)
+#' model <- fit_cie_sky_model(blue, z, a, rl$sky_points,
+#'                            rl$zenith_dn, sun_coord,
 #'                            rmse = TRUE,
 #'                            general_sky_type = "Partly cloudy")
 #' sky_cie <- model$relative_luminance * model$zenith_dn

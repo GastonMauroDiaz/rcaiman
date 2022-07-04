@@ -59,8 +59,8 @@ thr_image(gbc(125), -8, 1)
   and \code{\link{regional_thresholding}}.
 
 Other MBLT functions: 
+\code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{extract_zenith_dn}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

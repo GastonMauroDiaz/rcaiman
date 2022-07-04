@@ -70,7 +70,7 @@ plot(vect(xy), add = TRUE, col = 2)
 }
 \seealso{
 Other MBLT functions: 
-\code{\link{extract_zenith_dn}()},
+\code{\link{extract_rl}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

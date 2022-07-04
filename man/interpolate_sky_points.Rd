@@ -7,7 +7,7 @@
 interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
 }
 \arguments{
-\item{sky_points}{The data.frame returned by \code{\link{extract_zenith_dn}},
+\item{sky_points}{The data.frame returned by \code{\link{extract_rl}},
 or a data.frame with the same structure and names.}
 
 \item{g}{\linkS4class{SpatRaster}. The result of a call to
@@ -65,12 +65,12 @@ bin <- apply_thr(ecaim, 0.75)
 g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(caim$Blue*255)
 sky_points <- extract_sky_points(blue, bin, g)
-zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-sky_rl <- interpolate_sky_points(zenith_dn$sky_points, g)
-sky <- sky_rl * zenith_dn$zenith_dn
+rl <- extract_rl(blue, z, a, sky_points)
+sky_rl <- interpolate_sky_points(rl$sky_points, g)
+sky <- sky_rl * rl$zenith_dn
 plot(sky)
 }
 }
 \references{
-\insertRef{Lang2010}{rcaiman}
+\insertAllCited{}
 }

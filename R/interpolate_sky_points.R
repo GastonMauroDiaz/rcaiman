@@ -31,7 +31,7 @@
 #' @inheritParams extract_sky_points
 #' @inheritParams lidR::knnidw
 #'
-#' @references \insertRef{Lang2010}{rcaiman}
+#' @references \insertAllCited{}
 #'
 #' @export
 #'
@@ -51,9 +51,9 @@
 #' g <- sky_grid_segmentation(z, a, 10)
 #' blue <- gbc(caim$Blue*255)
 #' sky_points <- extract_sky_points(blue, bin, g)
-#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-#' sky_rl <- interpolate_sky_points(zenith_dn$sky_points, g)
-#' sky <- sky_rl * zenith_dn$zenith_dn
+#' rl <- extract_rl(blue, z, a, sky_points)
+#' sky_rl <- interpolate_sky_points(rl$sky_points, g)
+#' sky <- sky_rl * rl$zenith_dn
 #' plot(sky)
 #' }
 interpolate_sky_points <- function(sky_points, g,

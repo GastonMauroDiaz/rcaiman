@@ -2,9 +2,9 @@
 % Please edit documentation in R/find_sky_pixels.R
 \name{find_sky_pixels}
 \alias{find_sky_pixels}
-\title{Find sky pixles}
+\title{Find sky pixels}
 \usage{
-find_sky_pixels(r, z, a, no_of_samples = 30)
+find_sky_pixels(r, z, a, sample_size_pct = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -17,12 +17,16 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{no_of_samples}{Numeric vector of length one. Minimum number of samples
-required.}
+\item{sample_size_pct}{Numeric vector of length one. Minimum sample size
+percentage required. The population is comprised of 1296 cells of \eqn{5
+\times 5} degrees.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}. This layer masks pixels that are very likely pure sky pixels.
+Object from class list containing an object of class
+  \linkS4class{SpatRaster} (named ‘bin’), and two numeric vector of length
+  one (named ‘prob’ and ‘sample_size_pct’). Object ‘bin’ masks pixels that
+  are very likely pure sky pixels. The objects ‘prob’ and ‘sample_size_pct’
+  are described in the Details section.
 }
 \description{
 Find sky pixels automatically
@@ -32,15 +36,20 @@ This function assumes that (1) there is at least one pure sky pixel at the
 level of cells of \eqn{30 \times 30} degrees, and (2) sky pixels have a
 digital number (DN) greater than canopy pixels have.
 
-For each cell, it compute a quantile value and use it as a threshold to
-select the pure sky pixels of the cell, which produce binarized image as a
-result in a regional binarization fashion
+For each \eqn{30 \times 30} cell, this method computes a quantile value and
+use it as a threshold to select the pure sky pixels of the given cell. As a
+result, a binarized image is produced in a regional binarization fashion
 (\code{\link{regional_thresholding}}). This process start with a quantile
 probability of 0.99. After producing the binarized image, this function use a
-search grid with cells of \eqn{5 \times 5} degrees to count how many cells on
-the binarired image have at least one sky pixel. If the count does not reach
-argument \code{no_of_samples}, it goes back to the binarization step but
-decreasing the probability by 0.01 points.
+search grid with cells of \eqn{5 \times 5} degrees to count in how many of
+these cells are at least one sky pixel (pixels equal to one in the binarized
+image). If the percentage of  cells with sky pixels does not reach argument
+\code{sample_size_pct}, it goes back to the binarization step but decreasing
+the probability by 0.01 points.
+
+If probability reach 0.9 and the \code{sample_size_pct} criterion were not
+yet satisfied, the \code{sample_size_pct} is decreased one percent and the
+process start all over again.
 }
 \examples{
 \dontrun{
@@ -49,14 +58,14 @@ caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(caim$Blue)
-bin <- find_sky_pixels(blue, z, a)
+bin <- find_sky_pixels(blue, z, a)$bin
 plot(bin)
 }
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{extract_zenith_dn}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{ootb_mblt}()},

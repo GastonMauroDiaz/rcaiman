@@ -37,6 +37,7 @@
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
 #' sky_blue_sample <- crop(caim, ext(610,643,760,806))
 #' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
 #'   as.numeric() %>%
@@ -70,5 +71,5 @@ obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
   ma <- matrix(c(1,1,1,1,-8,1,1,1,1), ncol = 3, nrow = 3)
   bin_obia[terra::focal(bin_obia, ma) == 8] <- 1
   bin_obia[!bin] <- 0
-  bin_obia
+  as.logical(bin_obia)
 }

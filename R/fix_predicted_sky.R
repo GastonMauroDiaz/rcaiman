@@ -34,11 +34,11 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels(blue, z, a)
+#' bin <- find_sky_pixels(blue, z, a)$bin
 #' sky_points <- extract_sky_points(blue, bin, g)
-#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-#' rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
-#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+#' rl <- extract_rl(blue, z, a, sky_points)
+#' rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
+#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
 #' sky_cs <- fix_predicted_sky(sky_cs, z, blue, bin)
 #' persp(sky_cs, theta = 90, phi = 0)
 #' }

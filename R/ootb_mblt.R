@@ -19,10 +19,8 @@
 #' \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 #'
 #' \item This version implements a regional thresholding approach as first step
-#' instead of a global one. Please refer to \code{\link{find_sky_pixels}}. The
-#' minimum number of samples (sky DNs) required is equals to the 30 percent of
-#' the population, considering that it is made of  \eqn{5 \times 5} sky grid
-#' cells.
+#' instead of a global one. Please refer to \code{\link{find_sky_pixels}} and
+#' \code{\link{find_sky_pixels_nonnull_criteria}}.
 #'
 #' \item It does not use asynchronous acquisition under the open sky. So, the
 #' cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
@@ -58,8 +56,8 @@
 #' @export
 #' @family MBLT functions
 #'
-#' @return Object from the class list containing the binarized image (named
-#'   ‘bin’) and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
+#' @return Object from class list containing the binarized image (named ‘bin’)
+#'   and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
 #'
 #' @references \insertAllCited{}
 #'
@@ -76,13 +74,14 @@
 ootb_mblt <- function(r, z, a) {
   .check_if_r_z_and_a_are_ok(r, z, a)
   r[is.na(z)] <- 0
-  bin <- find_sky_pixels(r, z, a, round((360/5) * (90/5) * 0.3))
+  prob <- find_sky_pixels(r, z, a, round((360/5) * (90/5) * 0.3))$prob
+  bin <- find_sky_pixels_nonnull_criteria(r, z, a, prob)
 
   g <- sky_grid_segmentation(z, a, 10)
   sky_points <- extract_sky_points(r, bin, g)
-  zenith_dn <- extract_zenith_dn(r, z, a, sky_points)
-  rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
-  sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+  rl <- extract_rl(r, z, a, sky_points)
+  rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
+  sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
   sky_cs <- fix_predicted_sky(sky_cs, z, r, bin)
   thr <- suppressWarnings(thr_image(sky_cs, 0, 0.5))
   bin <- apply_thr(r, thr)

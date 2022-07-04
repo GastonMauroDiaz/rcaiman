@@ -29,11 +29,11 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{sky_points}{The data.frame returned by \code{\link{extract_zenith_dn}},
+\item{sky_points}{The data.frame returned by \code{\link{extract_rl}},
 or a data.frame with the same structure and names.}
 
 \item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
-\code{\link{extract_zenith_dn}} for how to obtain it.}
+\code{\link{extract_rl}} for how to obtain it.}
 
 \item{sun_coord}{An object of class list. The result of a call to
 \code{\link{extract_sun_coord}}.}
@@ -104,9 +104,9 @@ g <- sky_grid_segmentation(z, a, 10)
 blue <- gbc(caim$Blue*255)
 sun_coord <- extract_sun_coord(blue, z, a, bin, g)
 sky_points <- extract_sky_points(blue, bin, g)
-zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-model <- fit_cie_sky_model(blue, z, a, zenith_dn$sky_points,
-                           zenith_dn$zenith_dn, sun_coord,
+rl <- extract_rl(blue, z, a, sky_points)
+model <- fit_cie_sky_model(blue, z, a, rl$sky_points,
+                           rl$zenith_dn, sun_coord,
                            rmse = TRUE,
                            general_sky_type = "Partly cloudy")
 sky_cie <- model$relative_luminance * model$zenith_dn

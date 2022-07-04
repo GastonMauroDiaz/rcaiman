@@ -75,11 +75,11 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels(blue, z, a)
+bin <- find_sky_pixels(blue, z, a)$bin
 sky_points <- extract_sky_points(blue, bin, g)
-zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
-sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+rl <- extract_rl(blue, z, a, sky_points)
+rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
+sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
 m <- mask_hs(z, 0, 80)
 sky <- fit_trend_surface(blue, bin, m, filling_source = sky_cs)
 plot(sky$image)
@@ -90,8 +90,8 @@ plot(sky$image)
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{extract_zenith_dn}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{ootb_mblt}()},

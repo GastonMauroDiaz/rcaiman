@@ -6,12 +6,12 @@
 #' \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
 #' the sky DN as a previous step for our method}. However, although the model is
 #' the same, this implementation is more flexible thank to
-#' \code{\link{extract_sky_points}} and \code{\link{extract_zenith_dn}}.
+#' \code{\link{extract_sky_points}} and \code{\link{extract_rl}}.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018}{rcaiman}.
 #'
-#' @param sky_points The data.frame returned by \code{\link{extract_zenith_dn}},
+#' @param sky_points The data.frame returned by \code{\link{extract_rl}},
 #'   or a data.frame with the same structure and names.
 #' @param use_azimuth_angle Logical vector of length one. If \code{TRUE},
 #'   Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
@@ -40,11 +40,11 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels(blue, z, a)
+#' bin <- find_sky_pixels(blue, z, a)$bin
 #' sky_points <- extract_sky_points(blue, bin, g)
-#' zenith_dn <- extract_zenith_dn(blue, z, a, sky_points)
-#' rl_cs_fun <- fit_coneshaped_model(zenith_dn$sky_points)
-#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * zenith_dn$zenith_dn
+#' rl <- extract_rl(blue, z, a, sky_points)
+#' rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
+#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
 #' persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
 fit_coneshaped_model <- function(sky_points,

@@ -66,9 +66,5 @@ hist(ratio)
 }
 }
 \references{
-\insertRef{Lang2010}{rcaiman}
-
-  \insertRef{Lang2013}{rcaiman}
-
-  \insertRef{Diaz2018}{rcaiman}
+\insertAllCited{}
 }

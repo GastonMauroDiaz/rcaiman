@@ -18,7 +18,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{azimuth_image}}.}
 }
 \value{
-Object from the class list containing the binarized image (named
+Object from class list containing the binarized image (named
   ‘bin’) and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
 }
 \description{
@@ -86,8 +86,8 @@ plot(bin$bin)
 }
 \seealso{
 Other MBLT functions: 
+\code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{extract_zenith_dn}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

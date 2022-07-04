@@ -37,11 +37,7 @@
 #'
 #' @export
 #'
-#' @references \insertRef{Lang2010}{rcaiman}
-#'
-#'   \insertRef{Lang2013}{rcaiman}
-#'
-#'   \insertRef{Diaz2018}{rcaiman}
+#' @references \insertAllCited{}
 #'
 #' @examples
 #' \dontrun{
@@ -63,19 +59,31 @@ ootb_sky_reconstruction <- function(r, z, a, bin = NULL) {
   bin <- as.logical(bin)
   g <- sky_grid_segmentation(z, a, 10)
   sky_points <- extract_sky_points(r, bin, g)
-  zenith_dn <- extract_zenith_dn(r, z, a, sky_points)
+  rl <- extract_rl(r, z, a, sky_points)
   sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 45)
   model <- fit_cie_sky_model(r, z, a,
-                             zenith_dn$sky_points,
-                             zenith_dn$zenith_dn,
+                             rl$sky_points,
+                             rl$zenith_dn,
                              sun_coord)
   sky_cie <- model$relative_luminance * model$zenith_dn
 
   residu <- sky_cie - r
-  zenith_dn <- suppressWarnings(extract_zenith_dn(residu, z, a, sky_points))
-  zenith_dn$sky_points$rl <- zenith_dn$sky_points$dn
-  residu_i <- interpolate_sky_points(zenith_dn$sky_points, g,
+  rl <- suppressWarnings(extract_rl(residu, z, a, sky_points,
+                                    no_of_points = NULL))
+  residu_i <- interpolate_sky_points(rl$sky_points, g,
                                      rmax = ncol(r) / 7)
   sky <- sky_cie - residu_i
-  terra::cover(sky, sky_cie)
+  sky <- terra::cover(sky, sky_cie)
+  sky <- normalize(sky, 0, 1, TRUE)
+
+  r[!bin] <- sky[!bin]
+  sky_points <- extract_sky_points(r, !is.na(z),
+                                   sky_grid_segmentation(z, a, 1),
+                                   dist_to_plant = NULL,
+                                   min_raster_dist = NULL)
+  sky_points <- extract_rl(r, z, a, sky_points, NULL,
+                           use_window = FALSE)$sky_points
+  sky_points <- sky_points[!is.na(sky_points$rl),]
+
+  sky <- interpolate_sky_points(sky_points, g)
 }
