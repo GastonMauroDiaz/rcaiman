@@ -57,6 +57,7 @@ segmentation of 10 degrees and \code{apply_thr} with a threshold equal to
 caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+a <- azimuth_image(z)
 sky_blue_sample <- crop(caim, ext(610,643,760,806))
 sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
   as.numeric() \%>\%

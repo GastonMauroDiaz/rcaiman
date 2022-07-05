@@ -22,11 +22,8 @@ percentage required. The population is comprised of 1296 cells of \eqn{5
 \times 5} degrees.}
 }
 \value{
-Object from class list containing an object of class
-  \linkS4class{SpatRaster} (named ‘bin’), and two numeric vector of length
-  one (named ‘prob’ and ‘sample_size_pct’). Object ‘bin’ masks pixels that
-  are very likely pure sky pixels. The objects ‘prob’ and ‘sample_size_pct’
-  are described in the Details section.
+An object of class \linkS4class{SpatRaster} with values \code{0} and
+  \code{1}. This layer masks pixels that are very likely pure sky pixels.
 }
 \description{
 Find sky pixels automatically
@@ -57,8 +54,8 @@ path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-blue <- gbc(caim$Blue)
-bin <- find_sky_pixels(blue, z, a)$bin
+r <- gbc(caim$Blue)
+bin <- find_sky_pixels(r, z, a)
 plot(bin)
 }
 }

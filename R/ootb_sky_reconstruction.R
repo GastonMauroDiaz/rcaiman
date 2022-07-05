@@ -44,10 +44,10 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' blue <- gbc(caim$Blue)
-#' sky <- ootb_sky_reconstruction(blue, z, a)
+#' r <- gbc(caim$Blue)
+#' sky <- ootb_sky_reconstruction(r, z, a)
 #' plot(sky)
-#' ratio <- blue / sky
+#' ratio <- r / sky
 #' plot(ratio)
 #' hist(ratio)
 #' }

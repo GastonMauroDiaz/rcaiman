@@ -4,43 +4,38 @@
 \alias{find_sky_pixels_nonnull_criteria}
 \title{Find sky pixels following the non-null criteria}
 \usage{
-find_sky_pixels_nonnull_criteria(r, z, a, prob = 1, slope = 0.5)
+find_sky_pixels_nonnull_criteria(r, sky, g, slope = 0.5)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{sky}{An object of class \linkS4class{SpatRaster} produced with
+\code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
+\code{\link{fit_cie_sky_model}}, or \code{\link{ootb_sky_reconstruction}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{g}{\linkS4class{SpatRaster}. The result of a call to
+\code{\link{sky_grid_segmentation}} taking into account the camera, lens,
+and pre-processing involved in obtaining the \code{r} argument.}
 
-\item{prob}{Logical vector of length one. Probability for
-\code{\link[stats]{quantile}} calculation. See reference
-\insertCite{Diaz2018;textual}{rcaiman}.}
+\item{slope}{Numeric vector of length one. Please, see the Details section of
+\code{\link{thr_image}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
-This function assumes that (1) there is at least one pure sky pixel at the
-level of cells of \eqn{30 \times 30} degrees, and (2) sky pixels have a
-digital number (DN) greater than canopy pixels have.
+To produce a binarized image, the arguments \code{sky} and \code{slope} is
+passed to \code{\link{thr_image}}, which result is in turn passed to
+\code{\link{apply_thr}} along with \code{r}.
 }
 \details{
-A sky grid of \eqn{30 \times 30} degrees along with the arguments \code{r},
-\code{prob} and \code{slope} are passed to
-\code{\link{regional_thresholding}} in order to produce a binarized image.
-Then, a sky grid of \eqn{10 \times 10} degrees is used to compute the number
-of cells having none sky pixels (the so-called null cells).
-
-The process is repeated but increasing \code{slope} in steps of 0.05 till the
-the number of null cells increases.
-
-The \code{prob} argument can be obtained with \code{\link{find_sky_pixels}}.
+A sky grid of \eqn{10 \times 10} degrees is used to compute the number of
+cells having none sky pixels (the so-called null cells). The process is
+repeated but increasing \code{slope} in steps of 0.05 as long as the number
+of null cells remain constant.
 }
 \examples{
 \dontrun{
@@ -48,8 +43,15 @@ path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-blue <- gbc(caim$Blue)
-bin <- find_sky_pixels_nonnull_criteria(blue, z, a)
+r <- gbc(caim$Blue)
+bin <- find_sky_pixels(r, z, a)
+g <- sky_grid_segmentation(z, a, 10)
+sky_points <- extract_sky_points(r, bin, g)
+sky_points <- extract_rl(r, z, a, sky_points, NULL)
+model <- fit_coneshaped_model(sky_points$sky_points)
+sky_cs <- model$fun(z, a)
+g[mask_hs(z, 0, 10) | mask_hs(z, 70, 90)] <- NA
+bin <- find_sky_pixels_nonnull_criteria(r, sky_cs, g)
 plot(bin)
 }
 }

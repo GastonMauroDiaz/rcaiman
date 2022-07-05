@@ -49,11 +49,10 @@
 #' bin <- apply_thr(ecaim, 0.75)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
-#' blue <- gbc(caim$Blue*255)
-#' sky_points <- extract_sky_points(blue, bin, g)
-#' rl <- extract_rl(blue, z, a, sky_points)
-#' sky_rl <- interpolate_sky_points(rl$sky_points, g)
-#' sky <- sky_rl * rl$zenith_dn
+#' r <- gbc(caim$Blue*255)
+#' sky_points <- extract_sky_points(r, bin, g)
+#' sky_points <- extract_rl(r, z, a, sky_points, NULL)
+#' sky <- interpolate_sky_points(sky_points$sky_points, g)
 #' plot(sky)
 #' }
 interpolate_sky_points <- function(sky_points, g,

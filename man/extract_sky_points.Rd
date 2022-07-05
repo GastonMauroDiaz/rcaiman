@@ -59,12 +59,12 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
 ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 bin <- apply_thr(ecaim, 0.75)
 g <- sky_grid_segmentation(z, a, 10)
-blue <- gbc(caim$Blue*255)
-sky_points <- extract_sky_points(blue, bin, g)
+r <- gbc(caim$Blue*255)
+sky_points <- extract_sky_points(r, bin, g)
 cells <- cellFromRowCol(z, sky_points$row, sky_points$col)
-hist(blue[cells][,1])
+hist(r[cells][,1])
 xy <- xyFromCell(z, cells)
-plot(blue)
+plot(r)
 plot(vect(xy), add = TRUE, col = 2)
 }
 }

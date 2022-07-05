@@ -18,20 +18,22 @@ the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{azimuth_image}}.}
 }
 \value{
-Object from class list containing the binarized image (named
-  ‘bin’) and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
+Object from class list containing the binarized image (named ‘bin’)
+  and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
 }
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)
 algorithm.
 }
 \details{
-This function is a hard-coded version of a MBLT pipeline that starts with a
-working binarized image and ends with a refined binarized image. The pipeline
-combines \code{\link{find_sky_pixels}}, \code{\link{fit_coneshaped_model}},
-\code{\link{fit_trend_surface}}, and \code{\link{thr_image}}. The code can be
-easily inspected by calling \code{ootb_mblt} --no parenthesis. Advanced users
-can use that code as a template.
+This function is a hard-coded version of a MBLT pipeline that starts
+producing a working binarized image and ends with a refined binarized image.
+The pipeline combines these main functions \code{\link{find_sky_pixels}},
+\code{\link{fit_coneshaped_model}},
+\code{\link{find_sky_pixels_nonnull_criteria}}, and
+\code{\link{fit_trend_surface}}. The code can be easily inspected by calling
+\code{ootb_mblt} --no parenthesis. Advanced users can use that code as a
+template.
 
 The MBLT algorithm was first presented in
 \insertCite{Diaz2018;textual}{rcaiman}. The version presented here differs
@@ -42,17 +44,15 @@ from that in the following main aspects:
 \item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
 
 \item This version implements a regional thresholding approach as first step
-instead of a global one. Please refer to \code{\link{find_sky_pixels}}. The
-minimum number of samples (sky DNs) required is equals to the 30 percent of
-the population, considering that it is made of  \eqn{5 \times 5} sky grid
-cells.
+instead of a global one. Please refer to \code{\link{find_sky_pixels}}
 
 \item It does not use asynchronous acquisition under the open sky. So, the
 cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
-\item The cone-shaped sky is edited with \code{\link{fix_predicted_sky}}.
+\item  \code{\link{find_sky_pixels_nonnull_criteria}} is used to update the
+first working binarized image.
 
 }
 
@@ -73,11 +73,12 @@ If you use this function in your research, please cite
 \examples{
 \dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a)
+r <- gbc(caim$Blue)
+r[is.na(z)] <- 0 #because FOV > 180
+bin <- ootb_mblt(r, z, a)
 plot(bin$bin)
 }
 }

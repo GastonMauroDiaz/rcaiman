@@ -53,15 +53,13 @@ obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
   gf <- extract_feature(bin, segmentation)
-  my_class <- (gf > gf_mn & gf < gf_mx) * 2
-  g1 <- sky_grid_segmentation(z, a, 1)
-  gf1 <- extract_feature(bin, g1)
-  my_class[gf1 == 0] <- 0
-  my_class[my_class == 0] <- NA
-  my_class[gf == 1] <- 1
-  synth <- r/extract_feature(r, (my_class == 2) * segmentation,
-                          function(x) quantile(x, 0.9))
-  synth[my_class == 1] <- 1
+  gf1 <- extract_feature(bin, sky_grid_segmentation(z, a, 1))
+  foliage <- (gf > gf_mn & gf < gf_mx)
+  foliage[gf1 == 0] <- 0
+  segmentation <- segmentation * foliage
+  segmentation[segmentation == 0] <- NA
+  synth <- r/extract_feature(r, segmentation, function(x) quantile(x, 0.9))
+  synth[gf == 1] <- 1
   synth[synth > 1 | synth < 0] <- NA
   synth[is.na(synth)] <- 1
   synth[!bin] <- 0

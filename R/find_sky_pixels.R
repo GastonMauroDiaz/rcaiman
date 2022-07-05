@@ -32,11 +32,8 @@
 #' @family MBLT functions
 #'
 #' @export
-#' @return Object from class list containing an object of class
-#'   \linkS4class{SpatRaster} (named ‘bin’), and two numeric vector of length
-#'   one (named ‘prob’ and ‘sample_size_pct’). Object ‘bin’ masks pixels that
-#'   are very likely pure sky pixels. The objects ‘prob’ and ‘sample_size_pct’
-#'   are described in the Details section.
+#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
+#'   \code{1}. This layer masks pixels that are very likely pure sky pixels.
 #'
 #' @examples
 #' \dontrun{
@@ -44,8 +41,8 @@
 #' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' blue <- gbc(caim$Blue)
-#' bin <- find_sky_pixels(blue, z, a)$bin
+#' r <- gbc(caim$Blue)
+#' bin <- find_sky_pixels(r, z, a)
 #' plot(bin)
 #' }
 find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
@@ -96,5 +93,4 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
 
   bin[is.na(z)] <- 0
   as.logical(bin)
-  list(bin = bin, prob = prob, sample_size_pct = sample_size_pct)
 }

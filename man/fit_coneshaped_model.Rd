@@ -22,8 +22,8 @@ azimuth angle. If \code{FALSE}, a simplified version based on
 \value{
 A list of two objects, one of class \code{function} and the other of
   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
-  returns \code{NULL}. The function requires two arguments, azimuth and
-  zenith in degrees, and returns relative luminance.
+  returns \code{NULL}. The function requires two arguments, zenith and
+  azimuth in degrees, and returns relative luminance.
 }
 \description{
 Generate the digital numbers of the whole sky through statistical modelling.
@@ -46,11 +46,11 @@ z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 blue <- gbc(r$Blue)
 g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels(blue, z, a)$bin
+bin <- find_sky_pixels(blue, z, a)
 sky_points <- extract_sky_points(blue, bin, g)
-rl <- extract_rl(blue, z, a, sky_points)
-rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
-sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
+sky_points <- extract_rl(blue, z, a, sky_points, NULL)
+model <- fit_coneshaped_model(sky_points$sky_points)
+sky_cs <- model$fun(z, a)
 persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 }
 }

@@ -75,18 +75,18 @@
 #' @examples
 #' \dontrun{
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' blue <- gbc(r$Blue)
+#' r <- gbc(caim$Blue)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels(blue, z, a)$bin
-#' sky_points <- extract_sky_points(blue, bin, g)
-#' rl <- extract_rl(blue, z, a, sky_points)
-#' rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
-#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
+#' bin <- find_sky_pixels(r, z, a)
+#' sky_points <- extract_sky_points(r, bin, g)
+#' sky_points <- extract_rl(r, z, a, sky_points, NULL)
+#' model <- fit_coneshaped_model(sky_points$sky_points)
+#' sky_cs <- model$fun(z, a)
 #' m <- mask_hs(z, 0, 80)
-#' sky <- fit_trend_surface(blue, bin, m, filling_source = sky_cs)
+#' sky <- fit_trend_surface(r, bin, m, filling_source = sky_cs)
 #' plot(sky$image)
 #' }
 fit_trend_surface <- function(r,

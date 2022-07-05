@@ -24,8 +24,8 @@
 #'
 #' @return A list of two objects, one of class \code{function} and the other of
 #'   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
-#'   returns \code{NULL}. The function requires two arguments, azimuth and
-#'   zenith in degrees, and returns relative luminance.
+#'   returns \code{NULL}. The function requires two arguments, zenith and
+#'   azimuth in degrees, and returns relative luminance.
 #' @export
 #'
 #' @family MBLT functions
@@ -40,11 +40,11 @@
 #' a <- azimuth_image(z)
 #' blue <- gbc(r$Blue)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels(blue, z, a)$bin
+#' bin <- find_sky_pixels(blue, z, a)
 #' sky_points <- extract_sky_points(blue, bin, g)
-#' rl <- extract_rl(blue, z, a, sky_points)
-#' rl_cs_fun <- fit_coneshaped_model(rl$sky_points)
-#' sky_cs <- rl_cs_fun$rl_cs_fun(a, z) * rl$zenith_dn
+#' sky_points <- extract_rl(blue, z, a, sky_points, NULL)
+#' model <- fit_coneshaped_model(sky_points$sky_points)
+#' sky_cs <- model$fun(z, a)
 #' persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 #' }
 fit_coneshaped_model <- function(sky_points,
@@ -53,8 +53,8 @@ fit_coneshaped_model <- function(sky_points,
   stopifnot(length(use_azimuth_angle) == 1)
 
   Blue <- sky_points$rl
-  Zenith <- sky_points$a
-  Azimuth <- sky_points$z
+  Zenith <- sky_points$z
+  Azimuth <- sky_points$a
 
   if (length(Blue) > 30) {
     if (use_azimuth_angle) {
@@ -64,23 +64,23 @@ fit_coneshaped_model <- function(sky_points,
       # only to avoid note from check, code is OK without this line.
       a <- b <- d <- e <- NA
 
-      skyFun <- function(z, azimuth) {
+      skyFun <- function(zenith, azimuth) {
         x <- coefficients(model)
         x[is.na(x)] <- 0
         for (i in 1:5) assign(letters[i], x[i])
-        a + b * z + c * z^2 +
+        a + b * zenith + c * zenith^2 +
           d * sin(azimuth * pi / 180) + e * cos(azimuth * pi / 180)
       }
     } else {
       model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE))
-      skyFun <- function(z, azimuth) {
+      skyFun <- function(zenith, azimuth) {
         x <- coefficients(model)
         x[is.na(x)] <- 0
         for (i in 1:5) assign(letters[i], x[i])
-        a + b * z + c * z^2
+        a + b * zenith + c * zenith^2
       }
     }
-    return(list(rl_cs_fun = skyFun, model = model))
+    return(list(fun = skyFun, model = model))
   } else {
     return(NULL)
   }

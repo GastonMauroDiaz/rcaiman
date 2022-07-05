@@ -74,11 +74,11 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
 ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 bin <- apply_thr(ecaim, 0.75)
 g <- sky_grid_segmentation(z, a, 10)
-blue <- gbc(caim$Blue*255)
-sun_coord <- extract_sun_coord(blue, z, a, bin, g, max_angular_dist = 30)
-xy <- cellFromRowCol(z, sun_mark$row_col[1], sun_mark$row_col[2]) \%>\%
+r <- gbc(caim$Blue*255)
+sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
+xy <- cellFromRowCol(z, sun_coord$row_col[1], sun_coord$row_col[2]) \%>\%
   xyFromCell(z, .)
-plot(blue)
+plot(r)
 plot(vect(xy), add = TRUE, col = 2)
 }
 }

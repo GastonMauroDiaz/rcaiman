@@ -27,17 +27,19 @@ global threshold with \code{\link{apply_thr}}.
 \examples{
 \dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-blue <- gbc(r$Blue)
-bin <- ootb_mblt(blue, z, a)
+r <- gbc(caim$Blue)
+r[is.na(z)] <- 0 # because FOV > 180
+bin <- ootb_mblt(r, z, a)
 plot(bin$bin)
-ratio <- blue / bin$sky_s
-ratio[ratio > 1] <- 1
-ratio[is.na(ratio)] <- 0
+ratio <- r / bin$sky_s
+ratio <- normalize(ratio, 0, 1, TRUE)
 plot(ratio)
 g <- sky_grid_segmentation(z, a, 10)
 bin2 <- defuzzify(ratio, g)
+plot(bin2)
+plot(bin$bin - bin2)
 }
 }

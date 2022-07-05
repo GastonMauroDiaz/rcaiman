@@ -152,18 +152,18 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 #' bin <- apply_thr(ecaim, 0.75)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' blue <- gbc(caim$Blue*255)
-#' sun_coord <- extract_sun_coord(blue, z, a, bin, g)
-#' sky_points <- extract_sky_points(blue, bin, g)
-#' rl <- extract_rl(blue, z, a, sky_points)
-#' model <- fit_cie_sky_model(blue, z, a, rl$sky_points,
+#' r <- gbc(caim$Blue*255)
+#' sun_coord <- extract_sun_coord(r, z, a, bin, g)
+#' sky_points <- extract_sky_points(r, bin, g)
+#' rl <- extract_rl(r, z, a, sky_points)
+#' model <- fit_cie_sky_model(r, z, a, rl$sky_points,
 #'                            rl$zenith_dn, sun_coord,
 #'                            rmse = TRUE,
 #'                            general_sky_type = "Partly cloudy")
 #' sky_cie <- model$relative_luminance * model$zenith_dn
-#' sky_cie[sky_cie > 1] <- 1
+#' sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 #' plot(sky_cie)
-#' plot(blue/sky_cie)
+#' plot(r/sky_cie)
 #' }
 fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
                               std_sky_no = NULL,
