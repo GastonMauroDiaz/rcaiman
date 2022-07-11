@@ -22,9 +22,9 @@ An object of class list with named elements. ‘lens_coef’ stands for
 }
 \description{
 Calibrate a fisheye lens. This type of lens has wide field of view and a
-consistent azimuthal distortion, so a precise mathematical relation can be
-fit between the distance to the zenith on the image space and the zenith
-angle on the hemispherical space.
+consistent azimuthal distortion so a precise mathematical relation can be fit
+between the distance to the zenith on the image space and the zenith angle on
+the hemispherical space.
 }
 \details{
 If you cannot find the coefficient of your lens on the literature, you may
@@ -39,13 +39,13 @@ following materials:
 
 \item standard yoga mat
 
-\item table of about 70 \eqn{\times} larger than the yoga mat
+\item table of width about 2 \eqn{\times} larger than the yoga mat width
 
 \item twenty two push pins of different colors
 
 \item scissors
 
-\item One print of this \href{https://osf.io/tudzc/download}{sheet} (A1 size,
+\item one print of this \href{https://osf.io/tudzc/download}{sheet} (A1 size,
 almost like a poster).
 
 }
@@ -59,8 +59,9 @@ cardboard, foam, nails, etc.
 
 Place the camera on the tripod, align its optical axis with the table while
 looking for getting an image showing the overlapping of the three pairs of
-push pins as instructed in the print. Take a photograph and check if it looks
-more or less like \href{https://osf.io/tudzc/download}{this one}.
+push pins as instructed in the print. To take care of the line of pins at 90º
+relative to the optical axis it is better to use the naked eye to alight the
+front of the lens with the pins.
 
 Transfer the photograph to the computer, open it with ImageJ, and use the
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
@@ -89,8 +90,9 @@ Other Lens functions:
 \code{\link{calc_diameter}()},
 \code{\link{calc_zenith_raster_coordinates}()},
 \code{\link{expand_noncircular}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }

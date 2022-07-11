@@ -18,9 +18,8 @@ zenith. See \code{\link{calc_zenith_raster_coordinates}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that is the result of
-  copying the pixels from \code{caim} and adding margins of \code{NA} pixel
-  values. The zenith point depicted in the picture should be in the center of
-  the image or very close to it.
+  adding margins (\code{NA} pixels) to \code{caim}. The zenith point depicted
+  in the picture should be in the center of the image or very close to it.
 }
 \description{
 Expand a non-circular hemispherical photograph.
@@ -47,8 +46,9 @@ Other Lens functions:
 \code{\link{calc_diameter}()},
 \code{\link{calc_zenith_raster_coordinates}()},
 \code{\link{calibrate_lens}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }

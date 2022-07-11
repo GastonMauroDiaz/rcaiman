@@ -17,46 +17,47 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\code{\linkS4class{SpatRaster}} built with
 \code{\link{azimuth_image}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
-be a preliminary binarization of \code{r}.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
+binarization of \code{r} useful for masking pixels that are very likely
+pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,
 and pre-processing involved in obtaining the \code{r} argument.}
 
 \item{max_angular_dist}{Numeric vector of length one. Angle in degree to
-establish the maximum size of the sun corona. See details. The former is
-raster coordinates of the solar disk (row and column), and the other is
-angular coordinates (zenith and azimuth angles in degrees).}
+establish the maximum size of the sun corona, see details.}
 }
 \value{
-Object of class list with two elements names "row_col" and
-  "zenith_azimuth", both are numeric vectors of length two.
+Object of class list with two elements names \emph{row_col} and
+  \emph{zenith_azimuth}, both are numeric vectors of length two. The former is
+  raster coordinates of the solar disk (row and column), and the other is
+  angular coordinates (zenith and azimuth angles in degrees).
 }
 \description{
 Extract the sun coordinates for CIE sky model fitting.
 }
 \details{
-This function use an object-based image analyze theoretical framework. The
+This function uses an object-based image analyze theoretical framework. The
 segmentation are given by \code{g} and \code{bin}. For every cell of
 \code{g}, the maximum is calculated from the pixel values on \code{r} that
-have a value equal to one on \code{bin}. Then, the quantile 0.95 is extracted
-from these maximum values and is used to filter out cells below that
-threshold, i.e, only the ones with at least one extremely bright sky pixel is
+have a value equal to one on \code{bin}. Then, the quantile 0.95 is computed
+from these maximum values and it is used to filter out cells below that
+threshold; i.e, only the ones with at least one extremely bright sky pixel is
 keep.
 
 Selected cells are grouped into segments based on adjacency. The degree of
-membership to the class _Sun_ is calculated for every segment by using linear
-membership functions for the features brightness --digital number from
+membership to the class \emph{Sun} is calculated for every segment by using
+linear membership functions for the features brightness --digital number from
 \code{r}-- and size -- number of cells that constitute the segment. In other
 words, the brighteners and lagers segments are the ones that score higher.
-The one with the highest score is selected as a sun seed.
+The one with the highest score is selected as the \emph{sun seed}.
 
 The angular distance from the sun seed to every other segments are computed,
 and only the segments not farther than \code{max_angular_dist} are classified
 as part of the sun corona. A multi-part segment is created by merging the
-sun-corona segments, the center of its bounding box is considered as the sun
-location.
+sun-corona segments and, finally, the center of its bounding box is
+considered as the sun location.
 
 The \code{bin} argument should be the same than for
 \code{\link{extract_sky_points}}.
@@ -82,4 +83,7 @@ plot(r)
 plot(vect(xy), add = TRUE, col = 2)
 }
 }
-\concept{hsp functions}
+\seealso{
+fit_cie_sky_model
+}
+\concept{HSP functions}

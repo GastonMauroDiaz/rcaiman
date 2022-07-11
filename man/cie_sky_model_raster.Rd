@@ -33,8 +33,4 @@ sun_coord <- c(45, 0)
 plot(cie_sky_model_raster(z, a, sun_coord, sky_coef))
 }
 }
-\seealso{
-Other cie sky model functions: 
-\code{\link{fit_cie_sky_model}()}
-}
 \concept{cie sky model functions}

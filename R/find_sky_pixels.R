@@ -1,13 +1,21 @@
 #' Find sky pixels
 #'
-#' Find sky pixels automatically
+#' Find sky pixels automatically.
 #'
-#' This function assumes that (1) there is at least one pure sky pixel at the
-#' level of cells of \eqn{30 \times 30} degrees, and (2) sky pixels have a
-#' digital number (DN) greater than canopy pixels have.
+#' This function assumes that:
+#'
+#' \itemize{
+#'
+#' \item there is at least one pure sky pixel at the level of cells of \eqn{30
+#' \times 30} degrees, and
+#'
+#' \item sky pixels have a digital number (DN) greater than canopy pixels have.
+#'
+#' }
+#'
 #'
 #' For each \eqn{30 \times 30} cell, this method computes a quantile value and
-#' use it as a threshold to select the pure sky pixels of the given cell. As a
+#' use it as a threshold to select the pure sky pixels from the given cell. As a
 #' result, a binarized image is produced in a regional binarization fashion
 #' (\code{\link{regional_thresholding}}). This process start with a quantile
 #' probability of 0.99. After producing the binarized image, this function use a
@@ -21,15 +29,12 @@
 #' yet satisfied, the \code{sample_size_pct} is decreased one percent and the
 #' process start all over again.
 #'
-#'
-#'
-#'
 #' @inheritParams ootb_mblt
 #' @param sample_size_pct Numeric vector of length one. Minimum sample size
 #'   percentage required. The population is comprised of 1296 cells of \eqn{5
 #'   \times 5} degrees.
 #'
-#' @family MBLT functions
+#' @family Binarization functions
 #'
 #' @export
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and

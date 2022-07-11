@@ -26,14 +26,19 @@
 #'
 #' The recommended input for this function is data pre-processed with the HSP
 #' software package \insertCite{Lang2013}{rcaiman}. Please, refer to
-#' code{link{write_sky_marks}} for additional details about HSP, and refer to
+#' \code{link{write_sky_points}} for additional details about HSP, and refer to
 #' \code{\link{fit_cie_sky_model}} and \code{\link{interpolate_sky_points}} to
 #' know why the HSP pre-processing is convenient.
 #'
+#' A binarized image can be provided trough the \code{bin} argument. In that
+#' case, \code{\link{ootb_mblt}} will not be used.
+#'
+#' Providing a \code{filling source} trigger an alternative pipeline in which
+#' the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
+#' after a dense sampling (\eqn{1 \times 1} degree cells).
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
-#'
 #'
 #' @export
 #'
@@ -51,39 +56,43 @@
 #' plot(ratio)
 #' hist(ratio)
 #' }
-ootb_sky_reconstruction <- function(r, z, a, bin = NULL) {
+ootb_sky_reconstruction <- function(r, z, a,
+                                    bin = NULL,
+                                    filling_source = NULL) {
   if (is.null(bin)) {
     bin <- ootb_mblt(r, z, a)$bin
+    bin <- bin & mask_hs(z, 0, 80)
   }
-  bin[mask_hs(z, 80, 90)] <- 0
-  bin <- as.logical(bin)
-  g <- sky_grid_segmentation(z, a, 10)
-  sky_points <- extract_sky_points(r, bin, g)
-  rl <- extract_rl(r, z, a, sky_points)
-  sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 45)
-  model <- fit_cie_sky_model(r, z, a,
-                             rl$sky_points,
-                             rl$zenith_dn,
-                             sun_coord)
-  sky_cie <- model$relative_luminance * model$zenith_dn
+  if (is.null(filling_source)) {
+    g <- sky_grid_segmentation(z, a, 10)
+    sky_points <- extract_sky_points(r, bin, g)
+    rl <- extract_rl(r, z, a, sky_points)
+    sun_coord <- extract_sun_coord(r, z, a, bin, g)
+    model <- fit_cie_sky_model(r, z, a,
+                               rl$sky_points,
+                               rl$zenith_dn,
+                               sun_coord)
+    sky_cie <- model$relative_luminance * model$zenith_dn
+    sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 
-  residu <- sky_cie - r
-  rl <- suppressWarnings(extract_rl(residu, z, a, sky_points,
-                                    no_of_points = NULL))
-  residu_i <- interpolate_sky_points(rl$sky_points, g,
-                                     rmax = ncol(r) / 7)
-  sky <- sky_cie - residu_i
-  sky <- terra::cover(sky, sky_cie)
-  sky <- normalize(sky, 0, 1, TRUE)
+    residu <- sky_cie - r
+    sky_points <- suppressWarnings(extract_rl(residu, z, a, sky_points, NULL))
+    residu_i <- interpolate_sky_points(sky_points$sky_points, g,
+                                       rmax = ncol(r)/7)
 
-  r[!bin] <- sky[!bin]
-  sky_points <- extract_sky_points(r, !is.na(z),
-                                   sky_grid_segmentation(z, a, 1),
-                                   dist_to_plant = NULL,
-                                   min_raster_dist = NULL)
-  sky_points <- extract_rl(r, z, a, sky_points, NULL,
-                           use_window = FALSE)$sky_points
-  sky_points <- sky_points[!is.na(sky_points$rl),]
-
-  sky <- interpolate_sky_points(sky_points, g)
+    sky <- sky_cie - residu_i
+    sky <- terra::cover(sky, sky_cie)
+  } else {
+    terra::compareGeom(r, filling_source)
+    r[!bin] <- filling_source[!bin]
+    sky_points <- extract_sky_points(r, !is.na(z),
+                                     sky_grid_segmentation(z, a, 1),
+                                     dist_to_plant = NULL,
+                                     min_raster_dist = NULL)
+    sky_points <- extract_rl(r, z, a, sky_points, NULL,
+                             use_window = FALSE)$sky_points
+    sky_points <- sky_points[!is.na(sky_points$rl),]
+    sky <- interpolate_sky_points(sky_points, g)
+  }
+  sky
 }

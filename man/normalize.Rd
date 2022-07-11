@@ -40,8 +40,10 @@ normalize(read_caim(), 0, 255)
 \code{\link{gbc}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},

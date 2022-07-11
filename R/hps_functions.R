@@ -1,0 +1,245 @@
+#' Write sky points
+#'
+#' Create a special file to interface with the HSP software.
+#'
+#' This function is part of a workflow that connects this package with the HSP
+#' software package \insertCite{Lang2013}{rcaiman}.
+#'
+#' This function was designed to be called after
+#' \code{\link{extract_sky_points}}, and is part of a workflow that connects the
+#' MBLT algorithm with the HSP software package. In such a workflow, the
+#' \code{r} argument from \code{\link{extract_sky_points}} should be an image
+#' pre-processed by the HSP software. Those images are stored as PGM files by
+#' HSP in the subfolder "manipulate" of the project folder (which will be in
+#' turn a subfolder of the "project\strong{s}" folder). Those PGM files can be
+#' read with \code{\link[terra]{rast}}. For instance: \code{r <-
+#' rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")}.
+#' Then, they will be ready to be used as input after running
+#' \code{normalize(r)}.
+#'
+#' The \code{img_name} argument of \code{write_sky_points()} should be the name
+#' of the file associated to the aforementioned \code{r} argument.
+#'
+#'
+#' @param x An object of the class \emph{data.frame}. The result of a calling to
+#'   \code{\link{extract_sky_points}}.
+#' @param path_to_HSP_project Character vector of length one. Path to the HSP
+#'   project folder.
+#' @param img_name Character vector of length one. See details.
+#'
+#' @family HSP functions
+#'
+#' @references \insertAllCited{}
+#'
+#' @return None. A file will be written in the HSP project folder.
+#'
+#' @export
+write_sky_points <- function(x, path_to_HSP_project, img_name) {
+  no <- nrow(ds)
+
+  col.row_coordinates <- paste(ds$col, ds$row, "3", sep = ".")
+  col.row_coordinates <- paste(col.row_coordinates, collapse = " ")
+
+  ds <- c(no, col.row_coordinates)
+  ds <- data.frame(ds)
+
+  img_name <-  .extension(img_name, "")
+  utils::write.table(ds, file.path(path_to_HSP_project,
+                            "manipulate",
+                            paste0(img_name, "_points.conf")),
+              quote = FALSE, row.names = FALSE, col.names = FALSE,
+              fileEncoding = "UTF-8", eol = "\n")
+}
+
+
+#' Write sun coordinates
+#'
+#' Create a special file to interface with the HSP software.
+#'
+#' Refer to the Details section of this function:
+#' \code{\link{write_sky_points}}.
+#'
+#' @param x Numeric vector of length two. Raster coordinates of the solar disk
+#'   that can be obtained by calling to \code{\link{extract_sun_coord}}.
+#'   \strong{TIP}: if the output of \code{extrac_sun_coord()} is
+#'   \code{sun_coord}, then you should provide to \code{write_sun_coord()} this:
+#'   \code{sun_coord$row_col}. See also
+#'   \code{\link{row_col_from_zenith_azimuth}}.
+#' @inheritParams write_sky_points
+#'
+#'
+#' @family HPS functions
+#'
+#' @return None. A file will be written in the HSP project folder.
+#'
+#' @export
+write_sun_coord <- function(x, path_to_HSP_project, img_name) {
+  sun <- paste(x[c(2,1)], collapse = ".")
+  img_name <-  .extension(img_name, "")
+  utils::write.table(sun, file.path(path_to_HSP_project,
+                                    "manipulate",
+                                    paste0(img_name, "_sun.conf")),
+              quote = FALSE, row.names = FALSE, col.names = FALSE,
+              fileEncoding = "UTF-8", eol = "\n")
+}
+
+#' Read manual input
+#'
+#' Read manual input stored in an HSP project.
+#'
+#' Refer to the Details section of this function:
+#' \code{\link{write_sky_points}}.
+#'
+#' @inheritParams write_sky_points
+#' @family hps functions
+#'
+#' @return A list of seven named numeric vectors.
+#'
+#' @export
+read_manual_input <- function(path_to_HSP_project, img_name) {
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "settings", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  settings <- scan(file, "character")
+  settings <- settings[c(9, 11:13)]
+  settings <- data.frame(
+    name = Map(function(x) x[1], strsplit(settings, "=")) %>% unlist(),
+    value = Map(function(x) x[2], strsplit(settings, "=")) %>% unlist()
+  )
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "sun", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sun <- scan(file, "character")
+  sun <- strsplit(sun, "\\.") %>% unlist() %>% as.numeric()
+  sun_mark <- list()
+  sun_mark$row_col <- rev(sun)
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "points", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sky_marks <- scan(file, "character", skip = 1)
+  sky_marks <- strsplit(sky_marks, "\\.") %>%
+    unlist() %>%
+    as.numeric() %>%
+    matrix(., ncol = 3, byrow = TRUE) %>%
+    as.data.frame(.)
+  names(sky_marks) <- c("col", "row", "type" )
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "statistics", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  content <- scan(file, "character", skip = 1, sep = "\n")
+  zenith_dn <- content[grep( "Zenith", content)]
+  zenith_dn <- strsplit(zenith_dn, "=")[[1]][2] %>%
+    sub(",", ".", .) %>% as.numeric()
+
+  list(weight = settings[1,2] %>% as.numeric(),
+       max_points = settings[2,2] %>% as.numeric(),
+       angle = settings[3,2] %>% as.numeric(),
+       point_radius = settings[4,2] %>% as.numeric(),
+       sun_mark = sun_mark,
+       sky_marks = sky_marks,
+       zenith_dn = zenith_dn)
+}
+
+#' Read optimized sky coefficients
+#'
+#' Read optimized CIE sky coefficients stored in an HSP project.
+#'
+#' Refer to the Details section of this function:
+#' \code{\link{write_sky_points}}.
+#'
+#' @inheritParams write_sky_points
+#' @family HSP functions
+#' @return Numeric vector of length five.
+#' @seealso cie_sky_model_raster
+#'
+#' @export
+read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "opt-parameters", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  sky_coef <- scan(file, "character", skip = 1)
+  sky_coef <- data.frame(
+    name = Map(function(x) x[1], strsplit(sky_coef, "=")) %>% unlist(),
+    value = Map(function(x) x[2], strsplit(sky_coef, "=")) %>% unlist()
+  )
+  sky_coef[c(2, 1, 5, 4, 3), 2] %>% sub(",", ".", .) %>% as.numeric()
+}
+
+#' Row and col numbers from zenith and azimuth angles
+#'
+#' @inheritParams ootb_mblt
+#' @inheritParams zenith_image
+#' @param za Numeric vector of length two. Zenith and azimuth angles in degrees.
+#'
+#' @export
+#'
+#' @family HSP functions
+#' @return Numeric vector of length two.
+#'
+#' @examples
+#' z <- zenith_image(1000, lens())
+#' row_col <- row_col_from_zenith_azimuth(z, c(45, 270), lens())
+row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
+  .is_single_layer_raster(r, "r")
+  stopifnot(ncol(r) == nrow(r))
+  stopifnot(is.numeric(lens_coef))
+  stopifnot(is.numeric(za))
+  stopifnot(length(za) == 2)
+  az <- rev(za)
+  rr <- calc_relative_radius(az[2], lens_coef)
+  pol <- data.frame(theta = az[1] * pi/180 + pi/2,
+                    r = rr * 90 * pi/180,
+                    z = 0)
+  cart <- pracma::pol2cart(as.matrix(pol))
+  p <- terra::vect(matrix(cart[1:2], ncol = 2))
+  terra::crs(p) <- terra::crs(r)
+  e <- terra::ext(r)
+  terra::ext(r) <- terra::ext(-pi/2,pi/2,-pi/2,pi/2)
+  ir <- terra::rasterize(p, r)
+  terra::cells(r, terra::ext(p)) %>%
+    terra::rowColFromCell(r, .) %>%
+    as.numeric()
+}
+
+
+#' Zenith and azimuth angles from row and col numbers
+#'
+#' @inheritParams ootb_mblt
+#' @param row_col Numeric vector of length two. Row and col numbers.
+#' @inheritParams zenith_image
+#'
+#' @export
+#'
+#' @family HSP functions
+#' @examples
+#' z <- zenith_image(1000, lens_coef = lens())
+#' zenith_azimuth_from_row_col(z, c(501, 750), lens())
+zenith_azimuth_from_row_col <- function(r, row_col, lens_coef) {
+  .is_single_layer_raster(r, "r")
+  stopifnot(ncol(r) == nrow(r))
+  stopifnot(is.numeric(lens_coef))
+  stopifnot(is.numeric(row_col))
+  stopifnot(length(row_col) == 2)
+
+  #get azimuth
+  e <- terra::ext(r)
+  terra::ext(r) <- terra::ext(-pi/2,pi/2,-pi/2,pi/2)
+  xy <- terra::cellFromRowCol(r, row_col[1], row_col[2]) %>%
+    terra::xyFromCell(r, .)
+  tr <- pracma::cart2pol(as.numeric(xy))
+  azimuth <- tr[1] - pi/2 * 180/pi
+  if (azimuth < 0) azimuth <- 360 + azimuth
+  #get relative radius
+  rr <- tr[2] * 180/pi / 90
+  #invert
+  zs <- seq(0,150, 0.1)
+  rrs <- calc_relative_radius(zs, lens_coef)
+  z_from_rr <- suppressWarnings(splinefun(rrs, zs))
+  zenith <- z_from_rr(rr)
+  c(zenith, azimuth)
+}
+
+

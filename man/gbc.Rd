@@ -33,8 +33,10 @@ gbc(r)
 \code{\link{normalize}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{normalize}()},
 \code{\link{read_bin}()},

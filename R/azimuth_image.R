@@ -6,7 +6,7 @@
 #'   \code{\link{zenith_image}}.
 #'
 #'
-#' @return An object of class \linkS4class{SpatRaster} of azimuth angles
+#' @return An object of class \linkS4class{SpatRaster} with azimuth angles
 #'   in degrees. North (0º) is pointing up as in maps, but East (90º) and West
 #'   (270º) are flipped respect to maps. To understand why is that, take two
 #'   flash-card size pieces of paper. Put one on a table in front of you and
@@ -39,6 +39,6 @@ azimuth_image <- function (z)
   # above line is to orient North up and West left
 
   z[mask] <- NA
-
+  names(z) <- "Azimuth image"
   z
 }

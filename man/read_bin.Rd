@@ -29,8 +29,10 @@ plot(m - m_from_disk)
 \code{\link{write_bin}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{masking}()},
 \code{\link{normalize}()},

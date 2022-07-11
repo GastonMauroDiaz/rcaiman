@@ -22,8 +22,10 @@
 #' @param bin \linkS4class{SpatRaster}. The binarization of \code{r} used to
 #'   select the sky DNs for building \code{sky}.
 #'
+#' @family Sky reconstruction functions
+#'
 #' @export
-#' @return An object of class \linkS4class{SpatRaster} that is an edited
+#' @return An object of class \linkS4class{SpatRaster}. The edited
 #'   version of \code{sky}. Pixel dimensions should remain unchanged.
 #'
 #' @examples

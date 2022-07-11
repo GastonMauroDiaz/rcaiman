@@ -39,25 +39,25 @@ scale \code{mem}. Use \code{NULL} (default) to estimate it automatically as
 the midpoint between the maximum and minimum values of \code{lightness}.}
 
 \item{gamma}{Numeric vector of length one. This is for applying a gamma back
-correction to the lightness information (see argument \code{w_red} and
-\code{\link{gbc}}.}
+correction to the lightness information (see details and argument
+\code{w_red}).}
 }
 \value{
-An object of class \linkS4class{SpatRaster}, with same pixel
-  dimensions than \code{caim}, that should show more contrast between the sky
-  and plant pixels than any of the individual bands from \code{caim}. Also
+An object of class \linkS4class{SpatRaster} --with same pixel
+  dimensions than \code{caim}-- that should show more contrast between the
+  sky and plant pixels than any of the individual bands from \code{caim}.
 }
 \description{
-This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses
-the color perceptual attributes to enhance the contrast between the sky and
-plants through fuzzy classification. Color has three different perceptual
-attributes: hue, lightness, and chroma. The algorithm was developed following
-this premise: the color of the sky is different from the color of plants. It
-performs the next classification rules, here expressed in natural language:
-clear sky is blue and clouds decrease its chroma; if clouds are highly dense,
-then the sky is achromatic, and, in such cases, it can be light or dark;
-everything that does not match this description is not sky. These linguistic
-rules were translated to math language by means of fuzzy logic.
+This function was proposed in \insertCite{Diaz2015;textual}{rcaiman}. It uses
+the color perceptual attributes (hue, lightness, and chroma) to enhance the
+contrast between the sky and plants through fuzzy classification. The
+algorithm was developed following this premise: the color of the sky is
+different from the color of plants. It performs the next classification
+rules, here expressed in natural language: clear sky is blue and clouds
+decrease its chroma; if clouds are highly dense, then the sky is achromatic,
+and, in such cases, it can be light or dark; everything that does not match
+this description is not sky. These linguistic rules were translated to math
+language by means of fuzzy logic.
 }
 \details{
 This is a pixel-wise methodology that evaluates the possibility for a pixel
@@ -68,12 +68,11 @@ membership to values above \code{thr}. The algorithm internally uses
 The argument \code{sky_blue} is the \code{target_color} of the former
 function, which output is the argument \code{mem} of the latter function.
 
-\code{gamma} is applied to back-correct values
-passed to \code{\link{local_fuzzy_thresholding}} with
-\code{\link{gbc}}.
+The \code{gamma} argument, along with \code{\link{gbc}}, is used to
+back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2015}{rcaiman}.
+\insertCite{Diaz2015}{rcaiman} and this package.
 }
 \examples{
 \dontrun{
@@ -92,9 +91,4 @@ plot(ecaim)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Fuzzy logic functions: 
-\code{\link{local_fuzzy_thresholding}()},
-\code{\link{membership_to_color}()}
-}
-\concept{Fuzzy logic functions}
+\concept{Pre-processing functions}

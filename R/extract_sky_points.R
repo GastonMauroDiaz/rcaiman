@@ -1,25 +1,28 @@
 #' Extract sky points
 #'
-#' Extract sky points for model fitting
+#' Extract sky points for model fitting.
 #'
 #' The \code{bin} argument should be any binarized image that masked out pure
-#' canopy (non-gap) pixels and most of the mixed pixels, so to establish a
-#' region of interest dominated by pure sky pixels (a.k.a., gap pixels). The
-#' \code{bin} argument can be obtained with the \code{\link{ootb_mblt}}.
+#' canopy (non-gap) pixels and most of the mixed pixels, so that it establish a
+#' region of interest dominated by pure sky pixels (a.k.a., gap pixels). This
+#' argument can be obtained with \code{\link{find_sky_pixels}} and
+#' \code{\link{find_sky_pixels_nonnull_criteria}}, among other alternatives.
 #'
-#' This function will automatically sample in the sky region delimited by
-#' \code{bin}. The density and distribution of the sampling points is controlled
-#' by the arguments \code{g}, \code{dist_to_plant}, and \code{min_raster_dist}.
+#' This function will automatically sample sky pixels from the sky region
+#' delimited by \code{bin}. The density and distribution of the sampling points
+#' is controlled by the arguments \code{g}, \code{dist_to_plant}, and
+#' \code{min_raster_dist}.
 #'
-#' As first step, the digital number under the class *Gap* --digital numbers
-#' from \code{r} covered by pixels values equal to one on the \code{bin} layer--
-#' are evaluated to extract its maximum value per cell of the sky grid \code{g}.
-#' But, \code{dist_to_plant} allows users to establish a buffer zone which
-#' modify \code{bin}.
+#' As first step, the digital number under the class \emph{Gap} --digital
+#' numbers from \code{r} covered by pixels values equal to one on the \code{bin}
+#' layer-- are evaluated to extract its maximum value per cell of \code{g}. But,
+#' \code{dist_to_plant} allows users to establish a buffer zone for \code{bin}.
 #'
-#' The final step filter these local maximum values.\code{min_raster_dist} is a
-#' minimum distance threshold between points that is applied in the raster
-#' space.
+#' The final step filter these local maximum values as follow. The
+#' \code{min_raster_dist} argument is a minimum distance threshold between
+#' points that is applied in the raster space.
+#'
+#' Using code \code{NULL} as argument skip the filtering step in question.
 #'
 #' @inheritParams fit_trend_surface
 #' @param g \linkS4class{SpatRaster}. The result of a call to
@@ -29,7 +32,10 @@
 #' @param min_raster_dist Numeric vector of length one or \code{NULL}. Distance
 #'   in pixels.
 #'
-#' @family MBLT functions
+#' @family Tools functions
+#'
+#' @return An object of the class \emph{data.frame} with two columns named
+#'   \emph{col}, \emph{row}.
 #'
 #' @export
 #'

@@ -4,7 +4,7 @@
 #' passed to \code{\link{thr_image}}, which result is in turn passed to
 #' \code{\link{apply_thr}} along with \code{r}.
 #'
-#' A sky grid of \eqn{10 \times 10} degrees is used to compute the number of
+#' A sky grid \code{g} is used to compute the number of
 #' cells having none sky pixels (the so-called null cells). The process is
 #' repeated but increasing \code{slope} in steps of 0.05 as long as the number
 #' of null cells remain constant.
@@ -21,6 +21,8 @@
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.
 #' @export
+#'
+#' @family Binarization functions
 #'
 #' @examples
 #' \dontrun{
@@ -40,6 +42,7 @@
 #' plot(bin)
 #' }
 find_sky_pixels_nonnull_criteria <- function(r, sky, g, slope = 0.5) {
+  sky[is.na(sky)] <- 1
   .get_nulls_no <- function(slope) {
     thr <- suppressWarnings(thr_image(sky, 0, slope))
     bin <- apply_thr(r, thr)

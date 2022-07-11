@@ -4,7 +4,7 @@
 \alias{ootb_sky_reconstruction}
 \title{Out-of-the-box sky reconstruction}
 \usage{
-ootb_sky_reconstruction(r, z, a, bin = NULL)
+ootb_sky_reconstruction(r, z, a, bin = NULL, filling_source = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -17,8 +17,19 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
-be a preliminary binarization of \code{r}.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
+binarization of \code{r} useful for masking pixels that are very likely
+pure sky pixels.}
+
+\item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
+above-canopy image to complement the sky pixels detected through the gaps
+of \code{r}. If an incomplete above-canopy image is available, the non-sky
+pixels should be turned \code{NA} or they will be erroneously considered as
+sky pixels. A photograph taken immediately after or before taking \code{r}
+under the open sky with the same equipment and configuration is a very good
+option but not recommended under fleeting clouds. The orientation relative
+to the North must be the same than for \code{r}. If \code{NULL} is
+provided, only sky pixels from \code{r} will be used as input.}
 }
 \description{
 Build an above canopy image from a single below canopy image.
@@ -48,9 +59,16 @@ weighted average parameterized by the user.
 
 The recommended input for this function is data pre-processed with the HSP
 software package \insertCite{Lang2013}{rcaiman}. Please, refer to
-code{link{write_sky_marks}} for additional details about HSP, and refer to
+\code{link{write_sky_points}} for additional details about HSP, and refer to
 \code{\link{fit_cie_sky_model}} and \code{\link{interpolate_sky_points}} to
 know why the HSP pre-processing is convenient.
+
+A binarized image can be provided trough the \code{bin} argument. In that
+case, \code{\link{ootb_mblt}} will not be used.
+
+Providing a \code{filling source} trigger an alternative pipeline in which
+the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
+after a dense sampling (\eqn{1 \times 1} degree cells).
 }
 \examples{
 \dontrun{

@@ -7,7 +7,9 @@
 .decode_label <- function(label) {
   sector_ID <- trunc(label / 1000)
   rings_ID <- label - sector_ID * 1000
-  data.frame(sector_ID, rings_ID)
+  ds <- data.frame(sector_ID, rings_ID)
+  names(ds) <- c("sector_ID", "rings_ID")
+  ds
 }
 
 .calc_rmse <- function(x) sqrt(mean(x^2))

@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a)
+ootb_mblt(r, z, a, bin = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -16,10 +16,15 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
+
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
+binarization of \code{r} useful for masking pixels that are very likely
+pure sky pixels.}
 }
 \value{
-Object from class list containing the binarized image (named ‘bin’)
-  and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
+Object from class list containing the binarized image (named
+  \emph{bin}) and the reconstructed skies (named \emph{sky_cs} and
+  \emph{sky_s}).
 }
 \description{
 Out-of-the-box version of the model-based local thresholding (MBLT)
@@ -28,8 +33,8 @@ algorithm.
 \details{
 This function is a hard-coded version of a MBLT pipeline that starts
 producing a working binarized image and ends with a refined binarized image.
-The pipeline combines these main functions \code{\link{find_sky_pixels}},
-\code{\link{fit_coneshaped_model}},
+The pipeline combines these main functions \code{\link{find_sky_pixels}}
+--if \code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
 \code{\link{find_sky_pixels_nonnull_criteria}}, and
 \code{\link{fit_trend_surface}}. The code can be easily inspected by calling
 \code{ootb_mblt} --no parenthesis. Advanced users can use that code as a
@@ -63,9 +68,10 @@ picture, and the result will fit user expectations. However, if an
 hemispherical photograph taken under the open sky is provided, this algorithm
 would be still searching black objects against a light background, so the
 darker portions of the sky will be taken as objects, i.e., canopy. As a
-consequence, this will not fit users expectations, since they require the
-classes ‘Gap’ and ‘No-gap’. This kind of error could be find in photographs
-of open forests for the same reason.
+consequence, this will not fit users expectations since they are looking for
+the classes \emph{Gap} and \emph{No-gap}, no matter if one of those are not
+in the picture itself. This kind of error could be find in photographs of
+open forests for the same working principle.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018}{rcaiman}.
@@ -86,12 +92,15 @@ plot(bin$bin)
 \insertAllCited{}
 }
 \seealso{
-Other MBLT functions: 
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{find_sky_pixels}()},
+Other Binarization functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull_criteria}()},
+\code{\link{find_sky_pixels}()}
+
+Other Sky reconstruction functions: 
+\code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{thr_image}()}
+\code{\link{fit_trend_surface}()}
 }
-\concept{MBLT functions}
+\concept{Binarization functions}
+\concept{Sky reconstruction functions}

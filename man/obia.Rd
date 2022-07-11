@@ -17,8 +17,9 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. A working binarized image. This should
-be a preliminary binarization of \code{r}.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
+binarization of \code{r} useful for masking pixels that are very likely
+pure sky pixels.}
 
 \item{segmentation}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{polar_qtree}}.}

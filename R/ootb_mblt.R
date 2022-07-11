@@ -5,8 +5,8 @@
 #'
 #' This function is a hard-coded version of a MBLT pipeline that starts
 #' producing a working binarized image and ends with a refined binarized image.
-#' The pipeline combines these main functions \code{\link{find_sky_pixels}},
-#' \code{\link{fit_coneshaped_model}},
+#' The pipeline combines these main functions \code{\link{find_sky_pixels}}
+#' --if \code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
 #' \code{\link{find_sky_pixels_nonnull_criteria}}, and
 #' \code{\link{fit_trend_surface}}. The code can be easily inspected by calling
 #' \code{ootb_mblt} --no parenthesis. Advanced users can use that code as a
@@ -40,9 +40,10 @@
 #' hemispherical photograph taken under the open sky is provided, this algorithm
 #' would be still searching black objects against a light background, so the
 #' darker portions of the sky will be taken as objects, i.e., canopy. As a
-#' consequence, this will not fit users expectations, since they require the
-#' classes ‘Gap’ and ‘No-gap’. This kind of error could be find in photographs
-#' of open forests for the same reason.
+#' consequence, this will not fit users expectations since they are looking for
+#' the classes \emph{Gap} and \emph{No-gap}, no matter if one of those are not
+#' in the picture itself. This kind of error could be find in photographs of
+#' open forests for the same working principle.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018}{rcaiman}.
@@ -54,12 +55,17 @@
 #'   \code{\link{zenith_image}}.
 #' @param a \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{azimuth_image}}.
+#' @param bin \linkS4class{SpatRaster}. This should be a preliminary
+#'   binarization of \code{r} useful for masking pixels that are very likely
+#'   pure sky pixels.
 #'
 #' @export
-#' @family MBLT functions
+#' @family Binarization functions
+#' @family Sky reconstruction functions
 #'
-#' @return Object from class list containing the binarized image (named ‘bin’)
-#'   and the reconstructed skies (named ‘sky_cs’ and ‘sky_s’).
+#' @return Object from class list containing the binarized image (named
+#'   \emph{bin}) and the reconstructed skies (named \emph{sky_cs} and
+#'   \emph{sky_s}).
 #'
 #' @references \insertAllCited{}
 #'
@@ -74,9 +80,11 @@
 #' bin <- ootb_mblt(r, z, a)
 #' plot(bin$bin)
 #' }
-ootb_mblt <- function(r, z, a) {
+ootb_mblt <- function(r, z, a, bin = NULL) {
   .check_if_r_z_and_a_are_ok(r, z, a)
-  bin <- find_sky_pixels(r, z, a)
+  if (is.null(bin)) {
+    bin <- find_sky_pixels(r, z, a)
+  }
 
   g <- sky_grid_segmentation(z, a, 10)
   sky_points <- extract_sky_points(r, bin, g)
@@ -85,11 +93,8 @@ ootb_mblt <- function(r, z, a) {
   sky_cs <- model$fun(z, a)
   bin <- find_sky_pixels_nonnull_criteria(r, sky_cs, g)
 
-  sky_s <- fit_trend_surface(r, bin,
-                             m = !is.na(z),
+  sky_s <- fit_trend_surface(r, z, a, bin,
                              filling_source = sky_cs,
-                             prob = 0.95,
-                             fact = 5,
                              np = 6)$image
   thr <- suppressWarnings(thr_image(sky_s, 0, 0.5))
   bin <- apply_thr(r, thr)

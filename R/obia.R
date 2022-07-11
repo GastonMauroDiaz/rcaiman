@@ -2,16 +2,16 @@
 #'
 #' This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' This version is simpler since it relies on a better working binarized image.
-#' The version from 2015 used an automatic selection of samples followed by a
+#' The version from 2015 uses an automatic selection of samples followed by a
 #' knn classification of segments containing foliage. This version uses de gap
-#' fraction extracted from \code{bin} to classify foliage by defining upper and
-#' lower limits through \code{gf_mx} and \code{gf_mn}.
+#' fraction extracted from \code{bin} to classify \emph{foliage} by defining
+#' upper and lower limits through the arguments \code{gf_mx} and \code{gf_mn}.
 #'
 #' This method produce a synthetic layer by computing the ratio of \code{r} to
 #' the maximum value of \code{r} at the segment level. This process is carried
-#' out only on the pixels covered by the classes foliage and sky (i.e.,
-#' \code{bin} equal to one). To avoid spurious values, the quantile 0.9 is
-#' computed instead of the maximum. Pixels from the synthetic layer comprised
+#' out only on the pixels covered by the classes \emph{foliage} and \emph{sky}
+#' (i.e., \code{bin} equal to one). To avoid spurious values, the quantile 0.9
+#' is computed instead of the maximum. Pixels from the synthetic layer comprised
 #' between 0 an 1 are binarized following two criteria in such a way that to be
 #' turned plant on \code{bin} (i.e, to be assigned as 0) it have to be 0 under
 #' both criteria. Those criteria are \code{defuzzify} with a sky grid
@@ -19,7 +19,6 @@
 #' 0.5. In addition, it cannot be exclusively surrounded by sky pixels.
 #'
 #' @inheritParams ootb_mblt
-#' @inheritParams fit_trend_surface
 #' @param segmentation \linkS4class{SpatRaster}. The result of a call to
 #'   \code{\link{polar_qtree}}.
 #' @param gf_mn Numeric vector of length one. The minimum gap fraction that a
@@ -27,8 +26,10 @@
 #' @param gf_mx Numeric vector of length one. The maximum gap fraction that a
 #'   segment should have to be considered as one containing foliage.
 #'
-#' @return \linkS4class{SpatRaster}. A improved version of \code{bin}.
+#' @return \linkS4class{SpatRaster}. An improved version of \code{bin}.
 #' @export
+#'
+#' @family Binarization functions
 #'
 #' @references \insertAllCited{}
 #'

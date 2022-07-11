@@ -35,14 +35,14 @@ have if the equipment would depict the whole hemisphere.
 The required data (radius-angle data) can be obtained following the
 instructions given in the
 \href{https://www.schleppi.ch/patrick/hemisfer/help/en/lens.htm}{user manual
-of Hemisfer software}. They suggests using a corner to set up markers on the
+of Hemisfer software}. It suggests using a corner to set up markers on the
 walls from 0º to 90º \eqn{\theta}. A fast way of obtaining a photograph
 showing several targets with known \eqn{\theta} is to find a wall, draw  a
 triangle of \eqn{5 \times 4 \times 3} meters on the floor, with the 4-meter
-side over the wall. Locate the camera over the vertice that is 3 meters away
+side over the wall. Locate the camera over the vertex that is 3 meters away
 from the wall. Place it at a given height above the floor, 1.3 meters for
 instance. Point the camera to the wall. Make a mark on the wall at 1.3 meters
-over the vertice that is in front of the camera. Next, make four more marks
+over the vertex that is in front of the camera. Next, make four more marks
 with one meter of distance between them and on a horizontal line. This will
 create marks for 0º, 18º, 34º, 45º, and 54º \eqn{\theta}. Don’t forget to
 align the zenith coordinates with the 0º \eqn{\theta} mark and check if the
@@ -61,8 +61,9 @@ Other Lens functions:
 \code{\link{calc_zenith_raster_coordinates}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }

@@ -10,7 +10,7 @@
 #' @return An object of class \linkS4class{SpatRaster} that essentially is
 #'   \code{r} with the areas delimited by \code{m} --where its pixels are equal
 #'   to one-- painted in a solid color. If \code{r} is a single layer image,
-#'   then the layer is triplicated to allow the use of colors.
+#'   then the layer is triplicated to allow the use of color.
 #' @export
 #' @family Tools functions
 #' @seealso \code{\link{mask_hs}}

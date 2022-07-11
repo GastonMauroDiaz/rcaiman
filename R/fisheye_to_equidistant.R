@@ -1,10 +1,9 @@
-#' Reproject to equidistant
+#' Fisheye to equidistant
 #'
-#' @param r \linkS4class{SpatRaster}. Only methods for images with one or three
-#'   layers have been implemented.
+#' @param r \linkS4class{SpatRaster}.
 #' @inheritParams ootb_mblt
 #' @param radius Numeric integer of length one. Radius of the reprojected
-#'   hemispherical image.
+#'   hemispherical image (i.e., the output).
 #'
 #' @export
 #'
@@ -17,13 +16,13 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' bin <- apply_thr(caim$Blue, 0.5)
-#' bin_equi <- reproject_to_equidistant(bin, z, a, radius = 400)
+#' bin_equi <- fisheye_to_equidistant(bin, z, a, radius = 400)
 #' bin_equi <- apply_thr(bin_equi, 0.5)
 #' plot(bin_equi)
 #' # use write_bin(bin, "path\file_name") to have a file ready
 #' # for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 #' }
-reproject_to_equidistant <- function(r, z, a, radius = 745) {
+fisheye_to_equidistant <- function(r, z, a, radius = 745) {
   .is_single_layer_raster(z, "z")
   .is_single_layer_raster(a, "a")
   stopifnot(.get_max(z) <= 90)
@@ -32,7 +31,7 @@ reproject_to_equidistant <- function(r, z, a, radius = 745) {
   terra::compareGeom(r, a)
   stopifnot(length(radius) == 1)
 
-  .reproject_to_equidistant <- function(r, z, a, radius) {
+  .fisheye_to_equidistant <- function(r) {
     m <- !is.na(z)
     pol <- data.frame(theta = a[m] * pi / 180 + pi / 2,
                       r = z[m] * pi / 180,
@@ -51,14 +50,12 @@ reproject_to_equidistant <- function(r, z, a, radius = 745) {
   }
 
   if (terra::nlyr(r) == 1) {
-    r <- suppressWarnings(.reproject_to_equidistant(r, z, a, radius))
+    r <- suppressWarnings(.fisheye_to_equidistant(r))
   } else {
-    red <- suppressWarnings(.reproject_to_equidistant(r$Red, z, a, radius))
-    green <- suppressWarnings(.reproject_to_equidistant(r$Green, z, a, radius))
-    blue <-  suppressWarnings(.reproject_to_equidistant(r$Blue, z, a, radius))
-    r <- c(red, green, blue)
-    names(r) <- c("Red", "Green", "Blue")
-    r
+    layer_names <- names(r)
+    r <- Map(function(r) .fisheye_to_equidistant(r), as.list(r))
+    r <- terra::rast(r)
+    names(r) <- layer_names
   }
   r
 }

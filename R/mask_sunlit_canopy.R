@@ -3,9 +3,11 @@
 #' @inheritParams enhance_caim
 #'
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1} that masks pixels that are very likely sunlit canopy.
+#'   \code{1}. It masks pixels that are very likely sunlit canopy.
 #'
 #' @export
+#'
+#' @family Segmentation functions
 #'
 #' @examples
 #' caim <- read_caim() %>% normalize()

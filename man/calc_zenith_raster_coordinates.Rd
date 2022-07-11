@@ -14,11 +14,11 @@ with the
 }
 \value{
 Numeric vector of length two. Raster coordinates of the zenith,
-  assuming a lens facing up with its optical axis parallel to the
-  vertical line. It is important to note the difference between the raster
-  coordinates and the Cartesian coordinates. In the latter,  the vertical
-  axis value decreases down, but the opposite is true for the raster
-  coordinates, which works like a spreadsheet.
+  assuming a lens facing up with its optical axis parallel to the vertical
+  line. It is important to note the difference between the raster coordinates
+  and the Cartesian coordinates. In the latter,  the vertical axis value
+  decreases down, but the opposite is true for the raster coordinates, which
+  works like a spreadsheet.
 }
 \description{
 Calculate zenith raster coordinates from points digitized with the
@@ -67,8 +67,9 @@ Other Lens functions:
 \code{\link{calc_diameter}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }

@@ -18,7 +18,7 @@
 #'
 #' The use of \code{k = 1} solve the linear dilemma from the theoretical point
 #' of view since no averaging is taking place in the calculations. However,
-#' probably is best to use k greater than 1.
+#' probably is best to use \code{k = 1} greater than 1.
 #'
 #' Default parameters are the used by \insertCite{Lang2010;textual}{rcaiman}.
 #' The argument \code{rmax} should account for between 15 to 20 degrees, but is
@@ -26,12 +26,18 @@
 #' be taken into account to properly set this argument.
 #'
 #' The argument \code{g} should be the same used to obtain \code{sky_points}.
+#' The result will be limited to the cells with at least one pixel covered by
+#' the convex hull of the sky points.
 #'
 #' @inheritParams fit_cie_sky_model
 #' @inheritParams extract_sky_points
 #' @inheritParams lidR::knnidw
 #'
 #' @references \insertAllCited{}
+#'
+#' @family Sky reconstruction functions
+#'
+#' @return An object of class \linkS4class{SpatRaster}.
 #'
 #' @export
 #'

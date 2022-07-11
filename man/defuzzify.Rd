@@ -18,11 +18,12 @@ An object of the class \linkS4class{SpatRaster} containing binary
   information.
 }
 \description{
-This function translates degree of membership into Boolean logic using an
-regional approach. The result will ensure that at the chosen level of
-aggregation (controlled by the argument \code{segmentation}) the fuzzy and
-Boolean version will agree. This method is an alternative to applying a
-global threshold with \code{\link{apply_thr}}.
+This function translates degree of membership into Boolean logic using a
+regional approach. The result will ensure that the fuzzy and Boolean version
+will agree at the chosen level of aggregation (controlled by the argument
+\code{segmentation}). This method makes perfect sense to translate a subpixel
+classification of gap fraction --or a linear ratio
+\insertCite{Lang2013}{rcaiman}-- into a binary product.
 }
 \examples{
 \dontrun{
@@ -43,3 +44,21 @@ plot(bin2)
 plot(bin$bin - bin2)
 }
 }
+\references{
+\insertAllCited{}
+}
+\seealso{
+Other Tools functions: 
+\code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
+\code{\link{gbc}()},
+\code{\link{masking}()},
+\code{\link{normalize}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{regional_thresholding}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
+}
+\concept{Tools functions}

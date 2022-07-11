@@ -17,8 +17,7 @@
 #' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
 #' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
 #'
-#' @param r \linkS4class{SpatRaster}. Normalized greyscale image. See
-#'   \code{\link{normalize}} and \code{\link{gbc}}
+#' @inheritParams ootb_mblt
 #' @param segmentation \linkS4class{SpatRaster}. The result of segmenting
 #'   \code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
 #'   for fisheye images.

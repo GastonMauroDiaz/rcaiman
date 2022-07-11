@@ -11,7 +11,7 @@ azimuth_image(z)
 \code{\link{zenith_image}}.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} of azimuth angles
+An object of class \linkS4class{SpatRaster} with azimuth angles
   in degrees. North (0º) is pointing up as in maps, but East (90º) and West
   (270º) are flipped respect to maps. To understand why is that, take two
   flash-card size pieces of paper. Put one on a table in front of you and
@@ -34,8 +34,9 @@ Other Lens functions:
 \code{\link{calc_zenith_raster_coordinates}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }

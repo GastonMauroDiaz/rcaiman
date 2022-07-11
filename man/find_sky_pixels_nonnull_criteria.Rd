@@ -32,7 +32,7 @@ passed to \code{\link{thr_image}}, which result is in turn passed to
 \code{\link{apply_thr}} along with \code{r}.
 }
 \details{
-A sky grid of \eqn{10 \times 10} degrees is used to compute the number of
+A sky grid \code{g} is used to compute the number of
 cells having none sky pixels (the so-called null cells). The process is
 repeated but increasing \code{slope} in steps of 0.05 as long as the number
 of null cells remain constant.
@@ -55,3 +55,10 @@ bin <- find_sky_pixels_nonnull_criteria(r, sky_cs, g)
 plot(bin)
 }
 }
+\seealso{
+Other Binarization functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{ootb_mblt}()}
+}
+\concept{Binarization functions}

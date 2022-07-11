@@ -17,13 +17,13 @@ extract_feature(
 
 \item{segmentation}{\linkS4class{SpatRaster}. The segmentation of \code{r}.}
 
-\item{fun}{\code{function} that takes a vector as input and returns a
+\item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 
-\item{return_raster}{Logical vector of length one.}
+\item{return_raster}{Logical vector of length one, see details.}
 
 \item{ignore_label_0}{Logical vector of length one. If this is \code{TRUE},
-the segment labeled with \code{0} is ignored.}
+then the segment labeled with \code{0} will be ignored.}
 }
 \value{
 If \code{return_raster} is set to \code{TRUE}, then an object of
@@ -57,7 +57,9 @@ plot(extract_feature(r$Blue, g, return_raster = TRUE))
 }
 \seealso{
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{masking}()},
 \code{\link{normalize}()},

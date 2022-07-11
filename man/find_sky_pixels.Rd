@@ -26,15 +26,23 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}. This layer masks pixels that are very likely pure sky pixels.
 }
 \description{
-Find sky pixels automatically
+Find sky pixels automatically.
 }
 \details{
-This function assumes that (1) there is at least one pure sky pixel at the
-level of cells of \eqn{30 \times 30} degrees, and (2) sky pixels have a
-digital number (DN) greater than canopy pixels have.
+This function assumes that:
+
+\itemize{
+
+\item there is at least one pure sky pixel at the level of cells of \eqn{30
+\times 30} degrees, and
+
+\item sky pixels have a digital number (DN) greater than canopy pixels have.
+
+}
+
 
 For each \eqn{30 \times 30} cell, this method computes a quantile value and
-use it as a threshold to select the pure sky pixels of the given cell. As a
+use it as a threshold to select the pure sky pixels from the given cell. As a
 result, a binarized image is produced in a regional binarization fashion
 (\code{\link{regional_thresholding}}). This process start with a quantile
 probability of 0.99. After producing the binarized image, this function use a
@@ -60,12 +68,9 @@ plot(bin)
 }
 }
 \seealso{
-Other MBLT functions: 
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{ootb_mblt}()},
-\code{\link{thr_image}()}
+Other Binarization functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull_criteria}()},
+\code{\link{ootb_mblt}()}
 }
-\concept{MBLT functions}
+\concept{Binarization functions}

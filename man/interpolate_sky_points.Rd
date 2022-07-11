@@ -7,8 +7,8 @@
 interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
 }
 \arguments{
-\item{sky_points}{The data.frame returned by \code{\link{extract_rl}},
-or a data.frame with the same structure and names.}
+\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
+or a \emph{data.frame} with the same structure and names.}
 
 \item{g}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{sky_grid_segmentation}} taking into account the camera, lens,

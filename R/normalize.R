@@ -21,7 +21,8 @@
 #'   linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
 #'   one. Therefore, if \code{mn} and \code{mx} do not match with the actual
 #'   minimum and maximum from \code{r}, the output will not cover the 0-to-1
-#'   range.
+#'   range, and it may be outside that range if \code{force_range} is set to
+#'   \code{FALSE}.
 #'
 #' @seealso \code{\link{gbc}}
 #' @family Tools functions

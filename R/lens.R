@@ -24,8 +24,9 @@
 #' @export
 #'
 #' @return If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector
-#'   of length one, which is the lens FOV in degrees. Otherwise, it returns a
-#'   numeric vector with the coefficient of the lens function.
+#'   of length one, which is the lens maximum field of view in degrees.
+#'   Otherwise, it returns a numeric vector with the coefficient of the lens
+#'   function.
 #'
 #' @family Lens functions
 #'

@@ -69,7 +69,6 @@ plot(mem_thr)
 }
 \seealso{
 Other Fuzzy logic functions: 
-\code{\link{enhance_caim}()},
 \code{\link{membership_to_color}()}
 }
 \concept{Fuzzy logic functions}

@@ -14,8 +14,9 @@ regional_thresholding(
 )
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. Normalized greyscale image. See
-\code{\link{normalize}} and \code{\link{gbc}}}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
+the blue channel extracted from an hemispherical photograph. Please see
+\code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting
 \code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
@@ -27,10 +28,6 @@ options.}
 \item{intercept, slope}{Numeric vector of length one. These are linear
 function coefficients. Please, see the Details section of
 \code{\link{thr_image}}.}
-
-\item{prob}{Logical vector of length one. Probability for
-\code{\link[stats]{quantile}} calculation. See reference
-\insertCite{Diaz2018;textual}{rcaiman}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
@@ -73,8 +70,10 @@ plot(bin) # try ootb_mblt() for better results
 \code{\link{thr_image}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{masking}()},
 \code{\link{normalize}()},

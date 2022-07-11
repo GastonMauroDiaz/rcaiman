@@ -14,11 +14,11 @@
 #'
 #' @param r \linkS4class{SpatRaster}. Single layer raster.
 #' @param segmentation \linkS4class{SpatRaster}. The segmentation of \code{r}.
-#' @param fun \code{function} that takes a vector as input and returns a
+#' @param fun A \code{function} that takes a vector as input and returns a
 #'   one-length numeric or logical vector as output (e.g. mean).
-#' @param return_raster Logical vector of length one.
+#' @param return_raster Logical vector of length one, see details.
 #' @param ignore_label_0 Logical vector of length one. If this is \code{TRUE},
-#'   the segment labeled with \code{0} is ignored.
+#'   then the segment labeled with \code{0} will be ignored.
 #'
 #' @family Tools functions
 #'

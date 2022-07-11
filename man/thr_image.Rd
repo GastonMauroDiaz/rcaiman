@@ -57,13 +57,5 @@ thr_image(gbc(125), -8, 1)
 \seealso{
 \code{\link{normalize}}, \code{\link{gbc}}, \code{\link{apply_thr}}
   and \code{\link{regional_thresholding}}.
-
-Other MBLT functions: 
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{find_sky_pixels}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{ootb_mblt}()}
 }
 \concept{MBLT functions}

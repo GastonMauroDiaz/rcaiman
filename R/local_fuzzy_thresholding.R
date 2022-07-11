@@ -1,33 +1,37 @@
 #' local fuzzy thresholding
 #'
-#' This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It uses
-#' a threshold value as the location parameter of a logistic membership function
-#' whose scale parameter depends on a variable, here named \code{mem}. This
-#' dependence can be explained as follows: if the variable is equal to \code{1},
-#' then the membership function is same as a threshold function because the
-#' scale parameter is \code{0}; lowering the variable increases the scale
-#' parameter, thus blurring the threshold because it decreases the steepness of
-#' the curve. Since the variable is defined pixel by pixel, this should be
-#' considered as a \strong{local} fuzzy thresholding method.
+#' This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
+#' uses a threshold value as the location parameter of a logistic membership
+#' function whose scale parameter depends on a variable, here named \code{mem}.
+#' This dependence can be explained as follows: if the variable is equal to
+#' \code{1}, then the membership function is same as a threshold function
+#' because the scale parameter is \code{0}; lowering the variable increases the
+#' scale parameter, thus blurring the threshold because it decreases the
+#' steepness of the curve. Since the variable is defined pixel by pixel, this
+#' should be considered as a \strong{local} fuzzy thresholding method.
+#'
+#' Argument \code{m} can be used to affect the automatic estimation of
+#'   \code{thr} and \code{fuzziness}.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015}{rcaiman}.
+#' \insertCite{Diaz2015;textual}{rcaiman}.
 #'
 #'
 #' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image, the
 #'   lightness value. Values should range between zero and one --please see
 #'   \code{\link{normalize}}.
-#' @inheritParams fit_trend_surface
+#' @param m \linkS4class{SpatRaster}. A mask. Usually, the result of a call to
+#'   \code{\link{mask_hs}}.
 #' @param mem \linkS4class{SpatRaster}. It is the scale parameter of the
 #'   logistic membership function. Typically it is obtained with
 #'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
-#'   membership function. Use \code{NULL} (default) to estimate it automatically
-#'   with the function \code{\link[autothresholdr]{auto_thresh}}, method
+#'   membership function. Use \code{NULL} to estimate it automatically with the
+#'   function \code{\link[autothresholdr]{auto_thresh}}, method
 #'   \code{"IsoData"}.
 #' @param fuzziness Numeric vector of length one. This number is a constant that
-#'   scale \code{mem}. Use \code{NULL} (default) to estimate it automatically as
-#'   the midpoint between the maximum and minimum values of \code{lightness}.
+#'   scale \code{mem}. Use \code{NULL} to estimate it automatically as the
+#'   midpoint between the maximum and minimum values of \code{lightness}.
 #'
 #' @references \insertAllCited{}
 #'
@@ -37,11 +41,9 @@
 #'   between the sky and plant pixels than any of the individual bands from
 #'   \code{caim}.
 #'
-#' @details Argument \code{m} can be used to affect the estimation of \code{thr}
-#'   and \code{fuzziness}.
 #'
 #' @export
-#' @family Fuzzy logic functions
+#' @family Pre-processing functions
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

@@ -11,15 +11,15 @@
   c(target_a, target_b, sigma)
 }
 
-#' Compute membership to a color
+#' Compute the membership to a target color
 #'
-#' This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It
+#' This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
 #' Computes the degree of membership to a color with two Gaussian membership
 #' functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
 #' color space. The lightness dimension is not considered in the calculations.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015}{rcaiman}.
+#' \insertCite{Diaz2015;textual}{rcaiman}.
 #'
 #' @inheritParams expand_noncircular
 #' @param target_color \linkS4class{color}.
@@ -33,7 +33,7 @@
 #'   to grey. Both memberships are calculated with same \code{sigma}.
 #'
 #' @export
-#' @family Fuzzy logic functions
+#' @family Pre-processing functions
 #'
 #' @references \insertAllCited{}
 #'

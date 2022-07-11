@@ -46,7 +46,6 @@ plot(mem)
 }
 \seealso{
 Other Fuzzy logic functions: 
-\code{\link{enhance_caim}()},
 \code{\link{local_fuzzy_thresholding}()}
 }
 \concept{Fuzzy logic functions}

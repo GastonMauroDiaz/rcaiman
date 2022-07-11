@@ -114,5 +114,6 @@ zenith_image <- function (diameter, lens_coef)
   z3 <- terra::extend(z3, terra::ext(0, diameter, 0, diameter))
   z4 <- terra::extend(z4, terra::ext(0, diameter, 0, diameter))
   z <- sum(z1, z2, z3, z4, na.rm = TRUE)
+  names(z) <- "Zenith image"
   z
 }

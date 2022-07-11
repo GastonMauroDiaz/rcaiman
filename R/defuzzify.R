@@ -1,10 +1,11 @@
 #' Defuzzify fuzzy classification
 #'
-#' This function translates degree of membership into Boolean logic using an
-#' regional approach. The result will ensure that at the chosen level of
-#' aggregation (controlled by the argument \code{segmentation}) the fuzzy and
-#' Boolean version will agree. This method is an alternative to applying a
-#' global threshold with \code{\link{apply_thr}}.
+#' This function translates degree of membership into Boolean logic using a
+#' regional approach. The result will ensure that the fuzzy and Boolean version
+#' will agree at the chosen level of aggregation (controlled by the argument
+#' \code{segmentation}). This method makes perfect sense to translate a subpixel
+#' classification of gap fraction --or a linear ratio
+#' \insertCite{Lang2013}{rcaiman}-- into a binary product.
 #'
 #' @param mem An object of the class \linkS4class{SpatRaster}. Degree of
 #'   membership.
@@ -14,6 +15,10 @@
 #' @return An object of the class \linkS4class{SpatRaster} containing binary
 #'   information.
 #' @export
+#'
+#' @references \insertAllCited{}
+#'
+#' @family Tools functions
 #'
 #' @examples
 #' \dontrun{

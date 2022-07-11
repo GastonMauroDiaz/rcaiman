@@ -30,8 +30,10 @@ write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
 \code{\link{write_bin}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{masking}()},
 \code{\link{normalize}()},

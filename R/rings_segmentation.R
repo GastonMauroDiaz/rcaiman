@@ -45,5 +45,6 @@ rings_segmentation <- function(z, angle_width, return_angle = FALSE) {
   rcl <- matrix(c(c1, c2, c3), ncol = 3)
   rings <- terra::classify(z, rcl)
   rings[is.na(rings)] <- 0
+  names(rings) <- "Rings"
   rings
 }

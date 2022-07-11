@@ -3,8 +3,8 @@
 #' Gamma back correction of JPEG images.
 #'
 #' @param DN_from_JPEG Numeric vector or object from the
-#'   \code{\linkS4class{SpatRaster}} class. Digital numbers from a JPEG file (0 to
-#'   255, the standard 8-bit encoded).
+#'   \code{\linkS4class{SpatRaster}} class. Digital numbers from a JPEG file (0
+#'   to 255, the standard 8-bit encoded).
 #' @param gamma Numeric vector of length one. Gamma value. Please see
 #'   \insertCite{Diaz2018;textual}{rcaiman} for details.
 #'

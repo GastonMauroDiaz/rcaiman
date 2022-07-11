@@ -29,8 +29,8 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster}. The result of a call to
 \code{\link{azimuth_image}}.}
 
-\item{sky_points}{The data.frame returned by \code{\link{extract_rl}},
-or a data.frame with the same structure and names.}
+\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
+or a \emph{data.frame} with the same structure and names.}
 
 \item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
 \code{\link{extract_rl}} for how to obtain it.}
@@ -41,14 +41,15 @@ or a data.frame with the same structure and names.}
 \item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
 \insertCite{Li2016;textual}{rcaiman}.}
 
-\item{general_sky_type}{Character vector of length one. "Overcast", "Clear",
-or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.}
+\item{general_sky_type}{Character vector of length one. It could be any of
+these strings: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
+\insertCite{Li2016;textual}{rcaiman} for additional details.}
 
 \item{twilight}{Logical vector of length one. If it is \code{TRUE} and the
 initial standard parameters belong to the "Clear" general sky type, sun
 zenith angles from 90 to 96 degrees will be tested (civic twilight). This
 is necessary since \code{\link{extract_sun_coord}} would mistakenly
-recognize the gravity center of what can be seen of the solar corona as the
+recognize the center of what can be seen of the solar corona as the
 solar disk.}
 
 \item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
@@ -56,17 +57,17 @@ for selecting the best sky model is to choose the one with lest root mean
 square error calculated from the sample (sky marks). Otherwise, the
 criteria is to evaluate the whole hemisphere by calculating the product
 between the square ratio of \code{r} to the sky model and the fraction of
-pixels from ratio above one or below zero, and selecting the sky
-model that produce the least value.}
+pixels from ratio above one or below zero, and selecting the sky model that
+produce the least value.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \description{
-Fit CIE sky model using data from real hemispherical photographs.
+Fit the CIE sky model using data from real hemispherical photographs.
 }
 \details{
 This function use maximum likelihood to estimate the coefficients of the CIE
-sky model that fit best to data sampled from a real image. The result include
+sky model that fit best to data sampled from a real scene. The result include
 the output produced by \code{\link[bbmle]{mle2}}, the 5 model coefficients,
 observed and predicted values, the sun coordinates (zenith and azimuth angle
 in degrees), the relative luminance calculated for every pixel using the
@@ -78,15 +79,16 @@ more about these coefficients.
 This function assume an hemispherical image as input. It is based on
 \insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
 obtained with data showing a linear relation between digital numbers and the
-amount of light reaching the sensor. However, the CIE sky model is indeed the
-adjoin of two mathematical models, one controlling the gradation between the
-zenith and the horizon (two parameters), and the other controlling the
-gradation originated at the solar disk (three parameters). This make the CIE
-model capable of cope with any non-linearity.
+amount of light reaching the sensor. However, because the CIE sky model is
+indeed the adjoin of two mathematical model --one controlling the gradation
+between the zenith and the horizon (two parameters), and the other
+controlling the gradation originated at the solar disk (three parameters)--
+it is capable of cope with any non-linearity since it is not a physical model
+with strict assumptions.
 
 Ultimately, if the goal is to calculate the ratio of canopy DN to sky DN, if
 the latter is accurately constructed, any non-linearity will be canceled.
-Please, see code{link{interpolate_dns}} for further considerations.
+Please, see \code{link{interpolate_sky_points}} for further considerations.
 }
 \examples{
 \dontrun{
@@ -116,10 +118,12 @@ plot(r/sky_cie)
 }
 }
 \references{
-\insertRef{Li2016}{rcaiman}
+\insertAllCited{}
 }
 \seealso{
-Other cie sky model functions: 
-\code{\link{cie_sky_model_raster}()}
+Other Sky reconstruction functions: 
+\code{\link{fit_coneshaped_model}()},
+\code{\link{fit_trend_surface}()},
+\code{\link{ootb_mblt}()}
 }
-\concept{cie sky model functions}
+\concept{Sky reconstruction functions}

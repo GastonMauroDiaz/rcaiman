@@ -82,10 +82,10 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 
 #' Fit CIE sky model
 #'
-#' Fit CIE sky model using data from real hemispherical photographs.
+#' Fit the CIE sky model using data from real hemispherical photographs.
 #'
 #' This function use maximum likelihood to estimate the coefficients of the CIE
-#' sky model that fit best to data sampled from a real image. The result include
+#' sky model that fit best to data sampled from a real scene. The result include
 #' the output produced by \code{\link[bbmle]{mle2}}, the 5 model coefficients,
 #' observed and predicted values, the sun coordinates (zenith and azimuth angle
 #' in degrees), the relative luminance calculated for every pixel using the
@@ -97,15 +97,16 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' This function assume an hemispherical image as input. It is based on
 #' \insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
 #' obtained with data showing a linear relation between digital numbers and the
-#' amount of light reaching the sensor. However, the CIE sky model is indeed the
-#' adjoin of two mathematical models, one controlling the gradation between the
-#' zenith and the horizon (two parameters), and the other controlling the
-#' gradation originated at the solar disk (three parameters). This make the CIE
-#' model capable of cope with any non-linearity.
+#' amount of light reaching the sensor. However, because the CIE sky model is
+#' indeed the adjoin of two mathematical model --one controlling the gradation
+#' between the zenith and the horizon (two parameters), and the other
+#' controlling the gradation originated at the solar disk (three parameters)--
+#' it is capable of cope with any non-linearity since it is not a physical model
+#' with strict assumptions.
 #'
 #' Ultimately, if the goal is to calculate the ratio of canopy DN to sky DN, if
 #' the latter is accurately constructed, any non-linearity will be canceled.
-#' Please, see code{link{interpolate_dns}} for further considerations.
+#' Please, see \code{link{interpolate_sky_points}} for further considerations.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
@@ -116,26 +117,27 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @inheritParams cie_sky_model_raster
 #' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman}.
-#' @param general_sky_type Character vector of length one. "Overcast", "Clear",
-#'   or "Partly cloudy". See Table 1 from \insertCite{Li2016;textual}{rcaiman}.
+#' @param general_sky_type Character vector of length one. It could be any of
+#'   these strings: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
+#'   \insertCite{Li2016;textual}{rcaiman} for additional details.
 #' @param twilight Logical vector of length one. If it is \code{TRUE} and the
 #'   initial standard parameters belong to the "Clear" general sky type, sun
 #'   zenith angles from 90 to 96 degrees will be tested (civic twilight). This
 #'   is necessary since \code{\link{extract_sun_coord}} would mistakenly
-#'   recognize the gravity center of what can be seen of the solar corona as the
+#'   recognize the center of what can be seen of the solar corona as the
 #'   solar disk.
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
 #'   for selecting the best sky model is to choose the one with lest root mean
 #'   square error calculated from the sample (sky marks). Otherwise, the
 #'   criteria is to evaluate the whole hemisphere by calculating the product
 #'   between the square ratio of \code{r} to the sky model and the fraction of
-#'   pixels from ratio above one or below zero, and selecting the sky
-#'   model that produce the least value.
+#'   pixels from ratio above one or below zero, and selecting the sky model that
+#'   produce the least value.
 #' @inheritParams bbmle::mle2
 #'
-#' @references \insertRef{Li2016}{rcaiman}
+#' @references \insertAllCited{}
 #'
-#' @family  cie sky model functions
+#' @family  Sky reconstruction functions
 #'
 #' @export
 #'
@@ -274,16 +276,18 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
       if (x$sun_coord$zenith_azimuth[1] < 90 &
           sun_rl > quantile(sky[], 0.9, na.rm = TRUE)
           ) {
-        m <- sky < 0 | sky > 1
-        area_outside_expected_values <- sum(m[], na.rm = TRUE)
         ratio <- r / sky
+        ratio[is.infinite(ratio)] <- -0.1
+        m <- ratio < 0 | ratio > 1
+        area_outside_expected_values <- sum(m[], na.rm = TRUE)
         w <- area_outside_expected_values / total_area
         return(sum(ratio[]^2, na.rm = TRUE) * w)
       } else {
         if (x$sun_coord$zenith_azimuth[1] >= 90) {
-          m <- sky < 0 | sky > 1
-          area_outside_expected_values <- sum(m[], na.rm = TRUE)
           ratio <- r / sky
+          ratio[is.infinite(ratio)] <- -0.1
+          m <- ratio < 0 | ratio > 1
+          area_outside_expected_values <- sum(m[], na.rm = TRUE)
           w <- area_outside_expected_values / total_area
           return(sum(ratio[]^2, na.rm = TRUE) * w)
         } else {
@@ -294,7 +298,6 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
   }
 
   if (!rmse) {
-    # .calc_ratio_squared(fit[[4]])
     error <- Map(.calc_ratio_squared, fit) %>% unlist()
   } else {
     error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()

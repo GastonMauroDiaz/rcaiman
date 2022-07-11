@@ -45,8 +45,10 @@ Image masking
 \code{\link{mask_hs}}
 
 Other Tools functions: 
-\code{\link{apply_thr}()},
+\code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
 \code{\link{gbc}()},
 \code{\link{normalize}()},
 \code{\link{read_bin}()},

@@ -1,30 +1,3 @@
-
-.fit_trend_surface <- function(x, np) {
-  tmp <- data.frame(
-    terra::xFromCell(x, 1:ncell(x)),
-    terra::yFromCell(x, 1:ncell(x)),
-    terra::values(x)
-  ) %>%
-    .[!is.na(.[,3]), ]
-  colnames(tmp) <- c("x", "y", names(x))
-
-  fit <- spatial::surf.ls(x = tmp[, 1], y = tmp[, 2], z = tmp[, 3], np)
-  xl <- xmin(x)
-  xu <- xmax(x)
-  yl <- ymin(x)
-  yu <- ymax(x)
-
-  out <- spatial::trmat(fit, xl, xu, yl, yu, ncol(x))
-  out <- terra::rast(out$z)
-  crs(out) <- crs(x)
-  terra::ext(out) <- terra::ext(x)
-  out <- terra::resample(out, x)
-
-  list(image = out, fit = fit)
-}
-
-
-
 #' Fit a trend surface to sky digital numbers
 #'
 #' Fit a trend surface using spatial::surf.ls as workhorse function.
@@ -36,39 +9,26 @@
 #' the sky DN as a previous step for our method}, after the explanation of the
 #' \code{\link{fit_coneshaped_model}}.
 #'
-#' The argument \code{fact} is passed to \code{\link[terra]{aggregate}}. That
-#' argument allows to control the scale at which the fitting is performed. In
-#' general, a coarse scale lead to best generalization. The function used for
-#' aggregation is \code{\link[stats]{quantile}}, to which the argument
-#' \code{prob} is passed.
-#'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2018}{rcaiman}.
+#' \insertCite{Diaz2018;textual}{rcaiman}.
 #'
-#' @inheritParams stats::quantile
 #' @inheritParams ootb_mblt
-#' @param bin \linkS4class{SpatRaster}. A working binarized image. This should
-#'   be a preliminary binarization of \code{r}.
-#' @param filling_source \linkS4class{SpatRaster}. Default is \code{NULL}.
-#'   Above-canopy photograph. This image should contain pixels with sky DN
-#'   values and \code{NA} in all the other pixels. A photograph taken
-#'   immediately after or before taking \code{r} under the open sky with the
-#'   same equipment and configuration is a very good option. The ideal option is
-#'   one taken at the same time and place but above the canopy. The orientation
-#'   relative to the North must be the same than for \code{r}.
-#' @param prob Logical vector of length one. Probability for
-#'   \code{\link[stats]{quantile}} calculation. See reference
-#'   \insertCite{Diaz2018;textual}{rcaiman}.
-#' @param m \linkS4class{SpatRaster}. A mask. Usually, the result of a call to
-#'   \code{\link{mask_hs}}.
-#' @inheritParams terra::aggregate
+#' @param filling_source \linkS4class{SpatRaster}. An actual or reconstructed
+#'   above-canopy image to complement the sky pixels detected through the gaps
+#'   of \code{r}. If an incomplete above-canopy image is available, the non-sky
+#'   pixels should be turned \code{NA} or they will be erroneously considered as
+#'   sky pixels. A photograph taken immediately after or before taking \code{r}
+#'   under the open sky with the same equipment and configuration is a very good
+#'   option but not recommended under fleeting clouds. The orientation relative
+#'   to the North must be the same than for \code{r}. If \code{NULL} is
+#'   provided, only sky pixels from \code{r} will be used as input.
 #' @inheritParams spatial::surf.ls
 #'
 #' @return A list with an object of class \linkS4class{SpatRaster} and of class
 #'   \code{trls} (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
-#' @family MBLT functions
+#' @family Sky reconstruction functions
 #'
 #' @references \insertAllCited{}
 #'
@@ -86,52 +46,74 @@
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' sky_cs <- model$fun(z, a)
 #' m <- mask_hs(z, 0, 80)
-#' sky <- fit_trend_surface(r, bin, m, filling_source = sky_cs)
+#' sky <- fit_trend_surface(r, z, a, bin, filling_source = sky_cs)
 #' plot(sky$image)
 #' }
 fit_trend_surface <- function(r,
+                              z,
+                              a,
                               bin,
-                              m = NULL,
                               filling_source = NULL,
-                              prob = 0.95,
-                              fact = 5,
                               np = 6) {
-  .is_single_layer_raster(r, "r")
+  .check_if_r_z_and_a_are_ok(r, z, a)
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
   terra::compareGeom(bin, r)
-  if (!is.null(m)) {
-    .is_single_layer_raster(m, "m")
-    .is_logic_and_NA_free(m)
-    terra::compareGeom(r, m)
-    r[!m] <- NA
-  }
   if (!is.null(filling_source)) {
     .is_single_layer_raster(filling_source, "filling_source")
     terra::compareGeom(r, filling_source)
   }
-  stopifnot(length(prob) == 1)
-  stopifnot(length(fact) == 1)
   stopifnot(length(np) == 1)
 
-  fun <- function(x, ...) quantile(x, prob, na.rm = TRUE)
-
-  blue <- r
-  blue[!bin] <- NA
-  if (fact > 1) blue <- terra::aggregate(blue, fact, fun, na.rm = TRUE)
+  r[!bin] <- NA
   if (!is.null(filling_source)) {
     terra::compareGeom(bin, filling_source)
-    if (fact > 1) {
-      filling_source <- terra::aggregate(filling_source,
-                                         fact, mean, na.rm = TRUE)
-    }
-    blue <- terra::cover(blue, filling_source)
+    r <- terra::cover(r, filling_source)
   }
 
-  surf <- .fit_trend_surface(blue, np = np)
+  .fit_trend_surface <- function(x, np) {
+    tmp <- data.frame(
+      terra::xFromCell(x, 1:ncell(x)),
+      terra::yFromCell(x, 1:ncell(x)),
+      terra::values(x)
+    ) %>%
+      .[!is.na(.[,3]), ]
+    colnames(tmp) <- c("x", "y", names(x))
+    fit <- spatial::surf.ls(x = tmp[, 1], y = tmp[, 2], z = tmp[, 3], np)
+    xl <- xmin(x)
+    xu <- xmax(x)
+    yl <- ymin(x)
+    yu <- ymax(x)
 
-  if (fact > 1) surf$image <- terra::resample(surf$image, r)
-  if (!is.null(m)) surf$image[!m] <- NA
+    out <- spatial::trmat(fit, xl, xu, yl, yu, ncol(x))
+    out <- terra::rast(out$z) %>% t %>% flip
+    crs(out) <- crs(x)
+    terra::ext(out) <- terra::ext(x)
+    out <- terra::resample(out, x)
 
-  surf
+    list(image = out, fit = fit)
+  }
+  out <- .fit_trend_surface(r, np)
+  out$image[is.na(z)] <- NA
+  out
 }
+
+# pano = FALSE
+# if (pano) {
+#   r[!bin] <- filling_source[!bin]
+#   angle_width <- 5
+#   r <- fisheye_to_pano(r, z, a, angle_width = angle_width)
+#   out <- .fit_trend_surface(r, np)
+#   image <- out$image
+#   .a <- .z <- r
+#   terra::values(.a) <- .col(dim(r)[1:2])
+#   terra::values(.z) <- .row(dim(r)[1:2])
+#   g <- sky_grid_segmentation(z, a, angle_width)
+#   cells <- 1:terra::ncell(image)
+#   fun <- function(s, r) s * 1000 + r
+#   .labels <- fun(.a[cells], .z[cells])
+#   image <- terra::subst(g, .labels, image[cells])
+#   out$image <- image
+# } else {
+#   out <- .fit_trend_surface(r, np)
+# }

@@ -31,8 +31,9 @@ Other Lens functions:
 \code{\link{calc_zenith_raster_coordinates}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{fisheye_to_equidistant}()},
+\code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
-\code{\link{reproject_to_equidistant}()},
 \code{\link{test_lens_coef}()}
 }
 \concept{Lens functions}

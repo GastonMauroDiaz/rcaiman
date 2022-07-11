@@ -63,6 +63,6 @@ sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
     to <- 1:length(from)
     g <- terra::subst(g, from, to)
   }
-
+  names(g) <- "Sky grid"
   g
 }

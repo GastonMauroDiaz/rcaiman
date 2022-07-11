@@ -11,9 +11,8 @@
 #' @family Lens functions
 #'
 #' @return An object of class \linkS4class{SpatRaster} that is the result of
-#'   copying the pixels from \code{caim} and adding margins of \code{NA} pixel
-#'   values. The zenith point depicted in the picture should be in the center of
-#'   the image or very close to it.
+#'   adding margins (\code{NA} pixels) to \code{caim}. The zenith point depicted
+#'   in the picture should be in the center of the image or very close to it.
 #'
 #' @export
 #'
@@ -58,5 +57,6 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   terra::ext(r) <- terra::align(terra::ext(r), z)
   r <- terra::crop(r, z)
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
+  # names(r) <- "Expanded non-circular image"
   r
 }

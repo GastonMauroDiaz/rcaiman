@@ -38,11 +38,11 @@
 #' @export
 #'
 #' @return Numeric vector of length two. Raster coordinates of the zenith,
-#'   assuming a lens facing up with its optical axis parallel to the
-#'   vertical line. It is important to note the difference between the raster
-#'   coordinates and the Cartesian coordinates. In the latter,  the vertical
-#'   axis value decreases down, but the opposite is true for the raster
-#'   coordinates, which works like a spreadsheet.
+#'   assuming a lens facing up with its optical axis parallel to the vertical
+#'   line. It is important to note the difference between the raster coordinates
+#'   and the Cartesian coordinates. In the latter,  the vertical axis value
+#'   decreases down, but the opposite is true for the raster coordinates, which
+#'   works like a spreadsheet.
 #'
 #' @examples
 #' \dontrun{

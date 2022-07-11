@@ -7,26 +7,27 @@
 fit_coneshaped_model(sky_points, use_azimuth_angle = TRUE)
 }
 \arguments{
-\item{sky_points}{The data.frame returned by \code{\link{extract_rl}},
-or a data.frame with the same structure and names.}
+\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
+or a \emph{data.frame} with the same structure and names.}
 
-\item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE},
-Equation 4 from \insertCite{Diaz2018;textual}{rcaiman} is used: \eqn{sDN =
-a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
-cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
-\eqn{e} are coefficients, \eqn{\theta} is zenith angle, and \eqn{\phi} is
-azimuth angle. If \code{FALSE}, a simplified version based on
-\insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
-\theta + c  \cdot \theta^2}.}
+\item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE}, the
+next equation (Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is
+used: \eqn{sDN = a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot
+sin(\phi) + e  \cdot cos(\phi)}, where \eqn{sDN} is sky digital number,
+\eqn{a,b,c,d} and \eqn{e} are coefficients, \eqn{\theta} is zenith angle,
+and \eqn{\phi} is azimuth angle. If \code{FALSE}, the next simplified
+version based on \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN
+= a + b \cdot \theta + c  \cdot \theta^2}.}
 }
 \value{
 A list of two objects, one of class \code{function} and the other of
   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
-  returns \code{NULL}. The function requires two arguments, zenith and
-  azimuth in degrees, and returns relative luminance.
+  returns \code{NULL}. The function requires two arguments --zenith and
+  azimuth in degrees-- to return relative luminance.
 }
 \description{
-Generate the digital numbers of the whole sky through statistical modelling.
+Statistical modelling to predict the digital numbers from spherical
+coordinates.
 }
 \details{
 An explanation of this function can be found on
@@ -36,19 +37,19 @@ the same, this implementation is more flexible thank to
 \code{\link{extract_sky_points}} and \code{\link{extract_rl}}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2018}{rcaiman}.
+\insertCite{Diaz2018;textual}{rcaiman}.
 }
 \examples{
 \dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
+caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-blue <- gbc(r$Blue)
+r <- gbc(caim$Blue)
 g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels(blue, z, a)
-sky_points <- extract_sky_points(blue, bin, g)
-sky_points <- extract_rl(blue, z, a, sky_points, NULL)
+bin <- find_sky_pixels(r, z, a)
+sky_points <- extract_sky_points(r, bin, g)
+sky_points <- extract_rl(r, z, a, sky_points, NULL)
 model <- fit_coneshaped_model(sky_points$sky_points)
 sky_cs <- model$fun(z, a)
 persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
@@ -58,12 +59,9 @@ persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 \insertAllCited{}
 }
 \seealso{
-Other MBLT functions: 
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{find_sky_pixels}()},
+Other Sky reconstruction functions: 
+\code{\link{fit_cie_sky_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{ootb_mblt}()},
-\code{\link{thr_image}()}
+\code{\link{ootb_mblt}()}
 }
-\concept{MBLT functions}
+\concept{Sky reconstruction functions}

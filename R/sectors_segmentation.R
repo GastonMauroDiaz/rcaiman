@@ -43,5 +43,6 @@ sectors_segmentation <- function(a, angle_width, return_angle = FALSE) {
   rcl <- matrix(c(c1, c2, c3), ncol = 3)
   sectors <- terra::classify(a, rcl)
   sectors[is.na(sectors)] <- 0
+  names(sectors) <- "Sectors"
   sectors
 }
