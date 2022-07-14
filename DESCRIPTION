@@ -1,7 +1,7 @@
 Package: rcaiman
 Type: Package
 Title: An R Package for CAnopy IMage ANalysis
-Version: 1.0.1.9000
+Version: 1.0.2.9000
 Date: 2022-07-14
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 

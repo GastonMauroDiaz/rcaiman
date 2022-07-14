@@ -41,7 +41,7 @@ apply_thr <- function (r, thr)
     if (thr >= max(tmp, na.rm = TRUE))
       stop("\"thr\" should be lower than maximum layer value")
   } else {
-    if (is(thr, "SpatRaster"))
+    if (!is(thr, "SpatRaster"))
       stop(paste("\"thr\" class should be \"numeric\",",
                  "\"integer\", or \"SpatRaster\""))
   }

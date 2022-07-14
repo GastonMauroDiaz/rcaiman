@@ -3,7 +3,7 @@
 }
 
 .get_gaussian_2d_parameters <- function(target_color, sigma) {
-  if (is(target_color, "LAB")) target_color <- as(target_color, "LAB")
+  if (!is(target_color, "LAB")) target_color <- as(target_color, "LAB")
   ma <- colorspace::coords(target_color)
   target_a <- ma[, 2]
   target_b <- ma[, 3]
@@ -55,7 +55,7 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   if (!is.null(sigma)) stopifnot(length(sigma) == 1)
 
   color <- colorspace::sRGB(terra::values(caim))
-  if (is(color, "LAB")) color <- as(color, "LAB")
+  if (!is(color, "LAB")) color <- as(color, "LAB")
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
   x <- colorspace::coords(color)
