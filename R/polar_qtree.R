@@ -1,4 +1,4 @@
-#' Quad-tree segmentation in a polar space.
+#' Quad-tree segmentation in a polar space
 #'
 #' The quad-tree segmentation algorithm is a top-down process that makes
 #' recursive divisions in four equal parts until a condition is satisfied and
@@ -21,12 +21,13 @@
 #' @inheritParams ootb_mblt
 #' @param scale_parameter Numeric vector of length one. Quad-tree is a top-down
 #'   method. This parameter controls the stopping condition. Therefore, it
-#'   allows the user to controls the size of the resulting segments. See Details
-#'   for more information.
+#'   allows the user to controls the size of the resulting segments. Ultimately,
+#'   segments sizes will depend on the heterogeneity of \code{r} and this
+#'   parameter.
 #'
 #' @export polar_qtree
 #'
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #'
 #' @examples
 #' \dontrun{
@@ -98,5 +99,7 @@ polar_qtree <- function(r, z, a,
   seg <- ges * it_should_be_splited
   g <- sky_grid_segmentation(z, a, angle.wds[1])
   seg <- c(g, seg)
-  max(seg)
+  seg <- max(seg)
+  names(seg) <- "Polar quad-tree"
+  seg
 }

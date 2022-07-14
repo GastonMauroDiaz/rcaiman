@@ -43,7 +43,7 @@ side over the wall. Locate the camera over the vertex that is 3 meters away
 from the wall. Place it at a given height above the floor, 1.3 meters for
 instance. Point the camera to the wall. Make a mark on the wall at 1.3 meters
 over the vertex that is in front of the camera. Next, make four more marks
-with one meter of distance between them and on a horizontal line. This will
+with one meter of spacing and following a horizontal line. This will
 create marks for 0º, 18º, 34º, 45º, and 54º \eqn{\theta}. Don’t forget to
 align the zenith coordinates with the 0º \eqn{\theta} mark and check if the
 optical axis is leveled.
@@ -56,9 +56,9 @@ For obtaining the lens projection of a new lens, refer to
 calc_diameter(lens("Nikkor_10.5_mm"), 1202, 54)
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
@@ -67,4 +67,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

@@ -7,8 +7,7 @@
 sectors_segmentation(a, angle_width, return_angle = FALSE)
 }
 \arguments{
-\item{a}{\code{\linkS4class{SpatRaster}} built with
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{angle_width}{Numeric vector of length one. Angle in degrees able to
 divide the angle range into a whole number of segments.}
@@ -32,10 +31,11 @@ sectors <- sectors_segmentation(a, 15)
 plot(sectors == 1)
 }
 \seealso{
-Other Segmentation functions: 
+Other Segmentation Functions: 
 \code{\link{mask_hs}()},
+\code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sky_grid_segmentation}()}
 }
-\concept{Segmentation functions}
+\concept{Segmentation Functions}

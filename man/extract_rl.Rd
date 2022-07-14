@@ -19,16 +19,14 @@ extract_rl(
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{sky_points}{An object of class \emph{data.frame}. The result of a call
 to \code{\link{extract_sky_points}}.}
 
-\item{no_of_points}{Numeric vector on length one. The number of near zenith
+\item{no_of_points}{Numeric vector on length one. The number of near-zenith
 points required for the estimation of the zenith DN.}
 
 \item{z_thr}{Numeric vector on length one. The starting maximum zenith angle
@@ -42,9 +40,9 @@ used to search for near zenith points.}
 A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
   from the class numeric, and \emph{sky_points} from the class
   \emph{data.frame}; \emph{zenith_dn} is the estimated zenith digital number,
-  \emph{max_zenith_angle} is the maximum azimuth reached in the search for
-  near zenith sky points, and \emph{sky_points} is the input argument
-  \code{sky_points} with the additional columns: \emph{a}, \emph{z}, and
+  \emph{max_zenith_angle} is the maximum zenith angle reached in the search
+  for near-zenith sky points, and \emph{sky_points} is the input argument
+  \code{sky_points} with the additional columns: \emph{a}, \emph{z},
   \emph{dn}, and \emph{rl}, which stand for azimuth and zenith angle in
   degrees, digital number, and relative luminance, respectively. If
   \code{NULL} is provided as \code{no_of_points}, then \emph{zenith_dn} is
@@ -54,7 +52,7 @@ A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
 Extract the luminance relative to the zenith digital number.
 }
 \details{
-To estimate the zenith digital number (zenith DN), the search for near zenith
+To estimate the zenith digital number (zenith DN), the search for near-zenith
 points starts in the region  region ranged between \code{0} and \code{z_thr}.
 If the number of near zenith points is less than \code{no_of_points}, the
 region increase by \code{2} degrees of zenith angle till the required number
@@ -74,17 +72,14 @@ rl <- extract_rl(r, z, a, sky_points, 1)
 }
 }
 \seealso{
-Other Tools functions: 
+Other Tools Functions: 
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
 \code{\link{masking}()},
-\code{\link{normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools functions}
+\concept{Tools Functions}

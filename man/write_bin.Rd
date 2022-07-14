@@ -33,17 +33,14 @@ plot(m - m_from_disk)
 \seealso{
 \code{\link{read_bin}}
 
-Other Tools functions: 
+Other Tools Functions: 
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
 \code{\link{masking}()},
-\code{\link{normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools functions}
+\concept{Tools Functions}

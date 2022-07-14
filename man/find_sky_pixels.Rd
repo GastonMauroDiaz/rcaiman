@@ -11,11 +11,9 @@ find_sky_pixels(r, z, a, sample_size_pct = 30)
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{sample_size_pct}{Numeric vector of length one. Minimum sample size
 percentage required. The population is comprised of 1296 cells of \eqn{5
@@ -68,9 +66,12 @@ plot(bin)
 }
 }
 \seealso{
-Other Binarization functions: 
+Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull_criteria}()},
-\code{\link{ootb_mblt}()}
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{obia}()},
+\code{\link{ootb_mblt}()},
+\code{\link{regional_thresholding}()},
+\code{\link{thr_image}()}
 }
-\concept{Binarization functions}
+\concept{Binarization Functions}

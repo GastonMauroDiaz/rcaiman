@@ -3,7 +3,7 @@
 }
 
 .get_gaussian_2d_parameters <- function(target_color, sigma) {
-  if (class(target_color) != "LAB") target_color <- as(target_color, "LAB")
+  if (is(target_color, "LAB")) target_color <- as(target_color, "LAB")
   ma <- colorspace::coords(target_color)
   target_a <- ma[, 2]
   target_b <- ma[, 3]
@@ -16,7 +16,8 @@
 #' This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
 #' Computes the degree of membership to a color with two Gaussian membership
 #' functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
-#' color space. The lightness dimension is not considered in the calculations.
+#' color space. To be clear, the lightness dimension is not considered in the
+#' calculations.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman}.
@@ -33,7 +34,7 @@
 #'   to grey. Both memberships are calculated with same \code{sigma}.
 #'
 #' @export
-#' @family Pre-processing functions
+#' @family Pre-processing Functions
 #'
 #' @references \insertAllCited{}
 #'
@@ -54,7 +55,7 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   if (!is.null(sigma)) stopifnot(length(sigma) == 1)
 
   color <- colorspace::sRGB(terra::values(caim))
-  if (class(color) != "LAB") color <- as(color, "LAB")
+  if (is(color, "LAB")) color <- as(color, "LAB")
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
   x <- colorspace::coords(color)

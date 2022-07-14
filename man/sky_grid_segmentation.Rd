@@ -7,11 +7,9 @@
 sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\code{\linkS4class{SpatRaster}} built with
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
@@ -25,7 +23,7 @@ labeling numbers are not sequential (see Details).}
 }
 \value{
 An object from the class \linkS4class{SpatRaster} with segments
-  shaped like windshields, although some of them will look elongated in
+  shaped like windshields, though some of them will look elongated in
   height. The pattern is two opposite and converging straight sides and two
   opposite and parallel curvy sides.
 }
@@ -53,10 +51,11 @@ plot(g, col = col)
 }
 }
 \seealso{
-Other Segmentation functions: 
+Other Segmentation Functions: 
 \code{\link{mask_hs}()},
+\code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()}
 }
-\concept{Segmentation functions}
+\concept{Segmentation Functions}

@@ -16,15 +16,16 @@ equivalent to the minimum value from \code{r}.}
 equivalent to the maximum value from \code{r}.}
 
 \item{force_range}{Logical vector of length one. If it is \code{TRUE}, the
-range is forced to be between 0 and 1 by flattening below and above those
-limits.}
+range is forced to be between zero and one by flattening below and above
+those limits.}
 }
 \value{
 An object from the same class than \code{r} with values from \code{r}
   linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
   one. Therefore, if \code{mn} and \code{mx} do not match with the actual
   minimum and maximum from \code{r}, the output will not cover the 0-to-1
-  range.
+  range, and it may be outside that range if \code{force_range} is set to
+  \code{FALSE}.
 }
 \description{
 Normalize data laying between \code{mn} and \code{mx} in the range \code{0}
@@ -37,19 +38,10 @@ histogram.
 normalize(read_caim(), 0, 255)
 }
 \seealso{
-\code{\link{gbc}}
-
-Other Tools functions: 
-\code{\link{defuzzify}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
+Other Pre-processing Functions: 
+\code{\link{enhance_caim}()},
 \code{\link{gbc}()},
-\code{\link{masking}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\code{\link{local_fuzzy_thresholding}()},
+\code{\link{membership_to_color}()}
 }
-\concept{Tools functions}
+\concept{Pre-processing Functions}

@@ -11,27 +11,24 @@ extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\code{\linkS4class{SpatRaster}} built with
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
 pure sky pixels.}
 
-\item{g}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{sky_grid_segmentation}} taking into account the camera, lens,
-and pre-processing involved in obtaining the \code{r} argument.}
+\item{g}{\linkS4class{SpatRaster} built with
+\code{\link{sky_grid_segmentation}}.}
 
 \item{max_angular_dist}{Numeric vector of length one. Angle in degree to
-establish the maximum size of the sun corona, see details.}
+establish the maximum size of the sun corona.}
 }
 \value{
-Object of class list with two elements names \emph{row_col} and
-  \emph{zenith_azimuth}, both are numeric vectors of length two. The former is
-  raster coordinates of the solar disk (row and column), and the other is
+Object of class list with two elements named \emph{row_col} and
+  \emph{zenith_azimuth}, both are numeric vectors of length two. The former
+  is raster coordinates of the solar disk (row and column), and the other is
   angular coordinates (zenith and azimuth angles in degrees).
 }
 \description{
@@ -40,18 +37,17 @@ Extract the sun coordinates for CIE sky model fitting.
 \details{
 This function uses an object-based image analyze theoretical framework. The
 segmentation are given by \code{g} and \code{bin}. For every cell of
-\code{g}, the maximum is calculated from the pixel values on \code{r} that
-have a value equal to one on \code{bin}. Then, the quantile 0.95 is computed
-from these maximum values and it is used to filter out cells below that
-threshold; i.e, only the ones with at least one extremely bright sky pixel is
-keep.
+\code{g}, the maximum value is calculated from the pixel on \code{r} that are
+equal to one on \code{bin}. Then, the 95th percentile of these maximum values
+is computed and it is used to filter out cells below that threshold; i.e,
+only the ones with at least one extremely bright sky pixel is keep.
 
-Selected cells are grouped into segments based on adjacency. The degree of
+After grouping the selected segments based on adjacency, the degree of
 membership to the class \emph{Sun} is calculated for every segment by using
-linear membership functions for the features brightness --digital number from
-\code{r}-- and size -- number of cells that constitute the segment. In other
-words, the brighteners and lagers segments are the ones that score higher.
-The one with the highest score is selected as the \emph{sun seed}.
+linear membership functions for the digital number from \code{r} and number
+of cells that constitute the segment. In other words, the brighteners and
+lagers segments are the ones that score higher. The one with the highest
+score is selected as the \emph{sun seed}.
 
 The angular distance from the sun seed to every other segments are computed,
 and only the segments not farther than \code{max_angular_dist} are classified
@@ -85,5 +81,13 @@ plot(vect(xy), add = TRUE, col = 2)
 }
 \seealso{
 fit_cie_sky_model
+
+Other HSP Functions: 
+\code{\link{read_manual_input}()},
+\code{\link{read_opt_sky_coef}()},
+\code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sky_points}()},
+\code{\link{write_sun_coord}()},
+\code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{HSP functions}
+\concept{HSP Functions}

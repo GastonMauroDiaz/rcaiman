@@ -2,12 +2,12 @@
 #'
 #' Given a zenith or azimuth image and angle restrictions, it produces a mask.
 #'
-#' @param r \linkS4class{SpatRaster}. The result of a call to
-#'   \code{\link{zenith_image}} or \code{\link{azimuth_image}}.
+#' @param r \linkS4class{SpatRaster} built with \code{\link{zenith_image}} or
+#'   \code{\link{azimuth_image}}.
 #' @param from,to angle in degrees, inclusive limits.
 #'
 #' @export
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #' @seealso \code{\link{masking}}
 #'
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and

@@ -4,8 +4,8 @@
 #'
 #'
 #' Run \code{read_caim()} to obtain an example of a hemispherical photo taken in
-#' non-diffuse light conditions in a \emph{Nothofagus pumilio} forest from
-#' Argentina with a FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
+#' non-diffuse light conditions in a \emph{Nothofagus pumilio} forest with a
+#' FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
 #'
 #' Since this function aims to read born-digital color photographs, RGB-JPEG and
 #' RGB-TIFF are expected as input. Use \code{upper_left}, \code{width}, and
@@ -22,15 +22,15 @@
 #'
 #'
 #' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
-#'   file. The function will return a data example (see details) if no arguments
+#'   file. The function will return a data example if no arguments
 #'   are provided.
-#' @param upper_left An integer vector of length two (see details).
-#' @param width,height An integer vector of length one (see details).
+#' @param upper_left An integer vector of length two.
+#' @param width,height An integer vector of length one.
 #'
 #' @return An object from class \linkS4class{SpatRaster} with its layers named
 #'   Red, Green, and Blue.
 #' @export
-#' @family Tools functions
+#' @family Tools Functions
 #'
 #' @seealso \code{\link{write_caim}}
 #'

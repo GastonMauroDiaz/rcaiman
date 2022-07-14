@@ -11,11 +11,9 @@ ootb_mblt(r, z, a, bin = NULL)
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
@@ -33,12 +31,11 @@ algorithm.
 \details{
 This function is a hard-coded version of a MBLT pipeline that starts
 producing a working binarized image and ends with a refined binarized image.
-The pipeline combines these main functions \code{\link{find_sky_pixels}}
---if \code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
-\code{\link{find_sky_pixels_nonnull_criteria}}, and
-\code{\link{fit_trend_surface}}. The code can be easily inspected by calling
-\code{ootb_mblt} --no parenthesis. Advanced users can use that code as a
-template.
+The pipeline combines these main functions \code{\link{find_sky_pixels}} --if
+\code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
+\code{\link{find_sky_pixels_nonnull}}, and \code{\link{fit_trend_surface}}.
+The code can be easily inspected by calling \code{ootb_mblt} --no
+parenthesis. Advanced users can use that code as a template.
 
 The MBLT algorithm was first presented in
 \insertCite{Diaz2018;textual}{rcaiman}. The version presented here differs
@@ -46,25 +43,26 @@ from that in the following main aspects:
 
 \itemize{
 
-\item \eqn{intercept} is set to 0, \eqn{slope} to 1, and \eqn{w} to 0.5
+\item \code{intercept} is set to \code{0}, \code{slope} to \code{1}, and
+\code{w} to \code{0.5}
 
 \item This version implements a regional thresholding approach as first step
-instead of a global one. Please refer to \code{\link{find_sky_pixels}}
+instead of a global one. Please refer to \code{\link{find_sky_pixels}}.
 
 \item It does not use asynchronous acquisition under the open sky. So, the
 cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
 source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
-\item  \code{\link{find_sky_pixels_nonnull_criteria}} is used to update the
-first working binarized image.
+\item  \code{\link{find_sky_pixels_nonnull}} is used to update the first
+working binarized image.
 
 }
 
 This function searches for black objects against a light background. When
 regular canopy hemispherical images are provided as input, the algorithm will
 find dark canopy elements against a bright sky almost everywhere in the
-picture, and the result will fit user expectations. However, if an
+picture and, therefore, the result will fit user expectations. However, if an
 hemispherical photograph taken under the open sky is provided, this algorithm
 would be still searching black objects against a light background, so the
 darker portions of the sky will be taken as objects, i.e., canopy. As a
@@ -74,7 +72,7 @@ in the picture itself. This kind of error could be find in photographs of
 open forests for the same working principle.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2018}{rcaiman}.
+\insertCite{Diaz2018;textual}{rcaiman}.
 }
 \examples{
 \dontrun{
@@ -92,15 +90,14 @@ plot(bin$bin)
 \insertAllCited{}
 }
 \seealso{
-Other Binarization functions: 
-\code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull_criteria}()},
-\code{\link{find_sky_pixels}()}
+thr_image
 
-Other Sky reconstruction functions: 
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()}
+Other Binarization Functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{obia}()},
+\code{\link{regional_thresholding}()},
+\code{\link{thr_image}()}
 }
-\concept{Binarization functions}
-\concept{Sky reconstruction functions}
+\concept{Binarization Functions}

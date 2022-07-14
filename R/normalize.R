@@ -12,8 +12,8 @@
 #' @param mx Numeric vector of length one. Maximum expected value. Defaults is
 #'   equivalent to the maximum value from \code{r}.
 #' @param force_range Logical vector of length one. If it is \code{TRUE}, the
-#'   range is forced to be between 0 and 1 by flattening below and above those
-#'   limits.
+#'   range is forced to be between zero and one by flattening below and above
+#'   those limits.
 #'
 #' @export
 #'
@@ -24,8 +24,7 @@
 #'   range, and it may be outside that range if \code{force_range} is set to
 #'   \code{FALSE}.
 #'
-#' @seealso \code{\link{gbc}}
-#' @family Tools functions
+#' @family Pre-processing Functions
 #'
 #' @examples
 #' normalize(read_caim(), 0, 255)

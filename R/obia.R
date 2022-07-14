@@ -10,26 +10,25 @@
 #' This method produce a synthetic layer by computing the ratio of \code{r} to
 #' the maximum value of \code{r} at the segment level. This process is carried
 #' out only on the pixels covered by the classes \emph{foliage} and \emph{sky}
-#' (i.e., \code{bin} equal to one). To avoid spurious values, the quantile 0.9
-#' is computed instead of the maximum. Pixels from the synthetic layer comprised
-#' between 0 an 1 are binarized following two criteria in such a way that to be
-#' turned plant on \code{bin} (i.e, to be assigned as 0) it have to be 0 under
-#' both criteria. Those criteria are \code{defuzzify} with a sky grid
-#' segmentation of 10 degrees and \code{apply_thr} with a threshold equal to
-#' 0.5. In addition, it cannot be exclusively surrounded by sky pixels.
+#' --\code{bin} equal to one. To avoid spurious values, the quantile
+#' \code{0.9} is computed instead of the maximum. Pixels from the synthetic
+#' layer comprised between \code{0} an \code{1} are binarized following two
+#' criteria in such a way that to be turned plant on \code{bin} (i.e, to be
+#' assigned as \code{0}) it have to be \code{0} under both criteria. Those
+#' criteria are \code{defuzzify} with a sky grid segmentation of \code{10}
+#' degrees and \code{apply_thr} with a threshold equal to \code{0.5}. In
+#' addition, it cannot be exclusively surrounded by sky pixels.
 #'
 #' @inheritParams ootb_mblt
-#' @param segmentation \linkS4class{SpatRaster}. The result of a call to
+#' @param segmentation \linkS4class{SpatRaster} built with
 #'   \code{\link{polar_qtree}}.
-#' @param gf_mn Numeric vector of length one. The minimum gap fraction that a
-#'   segment should have to be considered as one containing foliage.
-#' @param gf_mx Numeric vector of length one. The maximum gap fraction that a
+#' @param gf_mn,gf_mx Numeric vector of length one. The minimum/maximum gap fraction that a
 #'   segment should have to be considered as one containing foliage.
 #'
 #' @return \linkS4class{SpatRaster}. An improved version of \code{bin}.
 #' @export
 #'
-#' @family Binarization functions
+#' @family Binarization Functions
 #'
 #' @references \insertAllCited{}
 #'

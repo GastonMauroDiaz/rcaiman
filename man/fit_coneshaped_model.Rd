@@ -11,13 +11,13 @@ fit_coneshaped_model(sky_points, use_azimuth_angle = TRUE)
 or a \emph{data.frame} with the same structure and names.}
 
 \item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE}, the
-next equation (Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is
-used: \eqn{sDN = a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot
-sin(\phi) + e  \cdot cos(\phi)}, where \eqn{sDN} is sky digital number,
-\eqn{a,b,c,d} and \eqn{e} are coefficients, \eqn{\theta} is zenith angle,
-and \eqn{\phi} is azimuth angle. If \code{FALSE}, the next simplified
-version based on \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN
-= a + b \cdot \theta + c  \cdot \theta^2}.}
+Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is used: \eqn{sDN =
+a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
+cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
+\eqn{e} are coefficients, \eqn{\theta} is zenith angle, and \eqn{\phi} is
+azimuth angle. If \code{FALSE}, the next simplified version based on
+\insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
+\theta + c  \cdot \theta^2}.}
 }
 \value{
 A list of two objects, one of class \code{function} and the other of
@@ -30,11 +30,9 @@ Statistical modelling to predict the digital numbers from spherical
 coordinates.
 }
 \details{
-An explanation of this function can be found on
+An explanation of this model can be found on
 \insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-the sky DN as a previous step for our method}. However, although the model is
-the same, this implementation is more flexible thank to
-\code{\link{extract_sky_points}} and \code{\link{extract_rl}}.
+the sky DN as a previous step for our method}.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018;textual}{rcaiman}.
@@ -59,9 +57,13 @@ persp(sky_cs, theta = 90, phi = 0) #a flipped rounded cone!
 \insertAllCited{}
 }
 \seealso{
-Other Sky reconstruction functions: 
+\code{\link{thr_image}}
+
+Other Sky Reconstruction Functions: 
+\code{\link{cie_sky_model_raster}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{ootb_mblt}()}
+\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_sky_points}()}
 }
-\concept{Sky reconstruction functions}
+\concept{Sky Reconstruction Functions}

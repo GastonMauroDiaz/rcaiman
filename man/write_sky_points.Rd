@@ -7,7 +7,7 @@
 write_sky_points(x, path_to_HSP_project, img_name)
 }
 \arguments{
-\item{x}{An object of the class data.frame. The result of a calling to
+\item{x}{An object of the class \emph{data.frame}. The result of a calling to
 \code{\link{extract_sky_points}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
@@ -26,15 +26,16 @@ This function is part of a workflow that connects this package with the HSP
 software package \insertCite{Lang2013}{rcaiman}.
 
 This function was designed to be called after
-\code{\link{extract_sky_points}} as part of a workflow that connects the MBLT
-algorithm with the HSP software package. In such a workflow, the \code{r}
-argument from \code{\link{extract_sky_points}} should be an image
-pre-processed by the HSP software. Those images are stored as PGM files by
-HSP in the subfolder "manipulate" of the project folder (which will be in
-turn a subfolder of the "project*s*" folder). Those PGM files can be read
-with \code{\link[terra]{rast}}. For instance: \code{r <-
+\code{\link{extract_sky_points}}, and is part of a workflow that connects the
+MBLT algorithm with the HSP software package. In such a workflow, the
+\code{r} argument provided to \code{\link{extract_sky_points}} should be an
+image pre-processed by the HSP software. Those images are stored as PGM files
+by HSP in the subfolder "manipulate" of the project folder (which will be in
+turn a subfolder of the "project\strong{s}" folder). Those PGM files can be
+read with \code{\link[terra]{rast}}. For instance: \code{r <-
 rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")}.
-Then, they will be ready to use as input after running \code{normalize(r)}.
+Then, they will be ready for use as input after running
+\code{normalize(r)}.
 
 The \code{img_name} argument of \code{write_sky_points()} should be the name
 of the file associated to the aforementioned \code{r} argument.
@@ -43,7 +44,12 @@ of the file associated to the aforementioned \code{r} argument.
 \insertAllCited{}
 }
 \seealso{
-Other hsp functions: 
-\code{\link{write_sun_coord}()}
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
+\code{\link{read_manual_input}()},
+\code{\link{read_opt_sky_coef}()},
+\code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sun_coord}()},
+\code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{hsp functions}
+\concept{HSP Functions}

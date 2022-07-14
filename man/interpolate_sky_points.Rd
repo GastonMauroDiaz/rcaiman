@@ -10,15 +10,17 @@ interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
 \item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
 or a \emph{data.frame} with the same structure and names.}
 
-\item{g}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{sky_grid_segmentation}} taking into account the camera, lens,
-and pre-processing involved in obtaining the \code{r} argument.}
+\item{g}{\linkS4class{SpatRaster} built with
+\code{\link{sky_grid_segmentation}}.}
 
 \item{k}{integer. Number of k-nearest neighbours. Default 10.}
 
 \item{p}{numeric. Power for inverse-distance weighting. Default 2.}
 
 \item{rmax}{numeric. Maximum radius where to search for knn. Default 50.}
+}
+\value{
+An object of class \linkS4class{SpatRaster}.
 }
 \description{
 Interpolate values from hemispherical photographs.
@@ -40,7 +42,7 @@ effect.
 
 The use of \code{k = 1} solve the linear dilemma from the theoretical point
 of view since no averaging is taking place in the calculations. However,
-probably is best to use k greater than 1.
+probably is best to use \code{k} greater than 1.
 
 Default parameters are the used by \insertCite{Lang2010;textual}{rcaiman}.
 The argument \code{rmax} should account for between 15 to 20 degrees, but is
@@ -48,6 +50,8 @@ expressed in pixels units. So, image resolution and lens projections should
 be taken into account to properly set this argument.
 
 The argument \code{g} should be the same used to obtain \code{sky_points}.
+The result will be limited to the cells with at least one pixel covered by
+the convex hull of the sky points.
 }
 \examples{
 \dontrun{
@@ -73,3 +77,12 @@ plot(sky)
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other Sky Reconstruction Functions: 
+\code{\link{cie_sky_model_raster}()},
+\code{\link{fit_cie_sky_model}()},
+\code{\link{fit_coneshaped_model}()},
+\code{\link{fit_trend_surface}()},
+\code{\link{fix_reconstructed_sky}()}
+}
+\concept{Sky Reconstruction Functions}

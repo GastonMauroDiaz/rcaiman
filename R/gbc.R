@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @seealso \code{\link{normalize}}
-#' @family Tools functions
+#' @family Pre-processing Functions
 #'
 #'
 #' @references \insertAllCited{}

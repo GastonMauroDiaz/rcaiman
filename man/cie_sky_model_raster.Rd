@@ -7,16 +7,14 @@
 cie_sky_model_raster(z, a, sun_coord, sky_coef)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\code{\linkS4class{SpatRaster}} built with
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
-\item{sun_coord}{Numeric vector of length 2. Zenith and azimuth angles in
+\item{sun_coord}{Numeric vector of length two. Zenith and azimuth angles in
 degrees, corresponding to the location of the solar disk center.}
 
-\item{sky_coef}{Numeric vector of length 5. Parameters of the sky model.}
+\item{sky_coef}{Numeric vector of length five. Parameters of the sky model.}
 }
 \description{
 CIE sky model raster
@@ -33,4 +31,12 @@ sun_coord <- c(45, 0)
 plot(cie_sky_model_raster(z, a, sun_coord, sky_coef))
 }
 }
-\concept{cie sky model functions}
+\seealso{
+Other Sky Reconstruction Functions: 
+\code{\link{fit_cie_sky_model}()},
+\code{\link{fit_coneshaped_model}()},
+\code{\link{fit_trend_surface}()},
+\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_sky_points}()}
+}
+\concept{Sky Reconstruction Functions}

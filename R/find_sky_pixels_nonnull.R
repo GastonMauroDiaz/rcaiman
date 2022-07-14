@@ -1,13 +1,14 @@
 #' Find sky pixels following the non-null criteria
 #'
-#' To produce a binarized image, the arguments \code{sky} and \code{slope} is
-#' passed to \code{\link{thr_image}}, which result is in turn passed to
-#' \code{\link{apply_thr}} along with \code{r}.
+#' Find sky pixels by using the increase in the number of cells having no sky
+#' pixels (the so-called null cells) as an stopping criteria.
 #'
-#' A sky grid \code{g} is used to compute the number of
-#' cells having none sky pixels (the so-called null cells). The process is
-#' repeated but increasing \code{slope} in steps of 0.05 as long as the number
-#' of null cells remain constant.
+#' The arguments \code{sky} and \code{slope} is passed to
+#' \code{\link{thr_image}}, which result is in turn passed to
+#' \code{\link{apply_thr}} along with \code{r}. As a result, \code{r} is
+#' binarized and used along with \code{g}, to compute the number of null cells.
+#' The process is repeated but increasing \code{slope} in steps of 0.05 as long
+#' as the number of null cells remains constant.
 #'
 #'
 #' @inheritParams find_sky_pixels
@@ -22,7 +23,7 @@
 #'   \code{1}.
 #' @export
 #'
-#' @family Binarization functions
+#' @family Binarization Functions
 #'
 #' @examples
 #' \dontrun{
@@ -38,10 +39,10 @@
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' sky_cs <- model$fun(z, a)
 #' g[mask_hs(z, 0, 10) | mask_hs(z, 70, 90)] <- NA
-#' bin <- find_sky_pixels_nonnull_criteria(r, sky_cs, g)
+#' bin <- find_sky_pixels_nonnull(r, sky_cs, g)
 #' plot(bin)
 #' }
-find_sky_pixels_nonnull_criteria <- function(r, sky, g, slope = 0.5) {
+find_sky_pixels_nonnull <- function(r, sky, g, slope = 0.5) {
   sky[is.na(sky)] <- 1
   .get_nulls_no <- function(slope) {
     thr <- suppressWarnings(thr_image(sky, 0, slope))

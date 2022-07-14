@@ -28,6 +28,9 @@ options.}
 \item{intercept, slope}{Numeric vector of length one. These are linear
 function coefficients. Please, see the Details section of
 \code{\link{thr_image}}.}
+
+\item{prob}{Numeric vector of length one. Probability for
+\code{\link[stats]{quantile}} calculation.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
@@ -39,18 +42,23 @@ Regional thresholding of greyscale images
 \details{
 Methods currently implemented are:
 
-\itemize{ \item \strong{Diaz2018}: method presented in
+\itemize{
+
+\item \strong{Diaz2018}: method presented in
 \insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
 selected, the arguments \code{intercept}, \code{slope}, and \code{prob}
-should be provided. It works segmentwise extracting the digital numbers (dns)
-per segment and passing them to \code{quantile(dns, prob)}, which aggregated
-result (x) is in turn passed to \code{thr_image(x, intercept, slope)}.
-Finally, this threshold image is applied to obtain a binarized image.
+should be provided. It works segment-wise extracting the digital numbers
+(dns) per segment and passing them to \code{quantile(dns, prob)}, which
+aggregated result (\code{x}) is in turn passed to \code{thr_image(x,
+intercept, slope)}. Finally, this threshold image is applied to obtain a
+binarized image.
 
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
-recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
+to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the
+one recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+
+}
 }
 \examples{
 \dontrun{
@@ -59,8 +67,8 @@ r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
 blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
-bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
-plot(bin) # try ootb_mblt() for better results
+bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 1)
+plot(bin)
 }
 }
 \references{
@@ -69,17 +77,12 @@ plot(bin) # try ootb_mblt() for better results
 \seealso{
 \code{\link{thr_image}}
 
-Other Tools functions: 
-\code{\link{defuzzify}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
-\code{\link{masking}()},
-\code{\link{normalize}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()}
+Other Binarization Functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{obia}()},
+\code{\link{ootb_mblt}()},
+\code{\link{thr_image}()}
 }
-\concept{Tools functions}
+\concept{Binarization Functions}

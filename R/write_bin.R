@@ -10,7 +10,7 @@
 #' @return No return value. Called for side effects.
 #'
 #' @seealso \code{\link{read_bin}}
-#' @family Tools functions
+#' @family Tools Functions
 #'
 #' @examples
 #' \dontrun{
@@ -34,7 +34,7 @@ write_bin <- function(bin, path) {
   terra::ext(bin) <- terra::ext(0, ncol(bin), 0, nrow(bin))
 
   suppressWarnings(
-    writeRaster(bin * 255, file.path(dirname(path), file_name),
-                filetype = "GTiff", datatype = "INT1U", overwrite = TRUE)
+    terra::writeRaster(bin * 255, file.path(dirname(path), file_name),
+                       filetype = "GTiff", datatype = "INT1U", overwrite = TRUE)
   )
 }

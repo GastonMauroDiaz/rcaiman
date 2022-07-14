@@ -23,7 +23,7 @@
 #' back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015}{rcaiman} and this package.
+#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 #'
 #' @inheritParams expand_noncircular
 #' @inheritParams local_fuzzy_thresholding
@@ -32,14 +32,14 @@
 #'   channels. This layer is used as lightness information. The weight of the
 #'   blue is the complement of \code{w_red}.
 #' @param gamma Numeric vector of length one. This is for applying a gamma back
-#'   correction to the lightness information (see details and argument
+#'   correction to the lightness information (see Details and argument
 #'   \code{w_red}).
 #' @param sky_blue \linkS4class{color}. Is the \code{target_color} argument to
 #'   be passed to \code{\link{membership_to_color}}.
 #'
 #' @export
 #' @references \insertAllCited{}
-#' @family Pre-processing functions
+#' @family Pre-processing Functions
 #' @return An object of class \linkS4class{SpatRaster} --with same pixel
 #'   dimensions than \code{caim}-- that should show more contrast between the
 #'   sky and plant pixels than any of the individual bands from \code{caim}.

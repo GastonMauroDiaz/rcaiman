@@ -39,9 +39,12 @@ plot(bin)
 }
 }
 \seealso{
-Other Binarization functions: 
-\code{\link{find_sky_pixels_nonnull_criteria}()},
+Other Binarization Functions: 
+\code{\link{find_sky_pixels_nonnull}()},
 \code{\link{find_sky_pixels}()},
-\code{\link{ootb_mblt}()}
+\code{\link{obia}()},
+\code{\link{ootb_mblt}()},
+\code{\link{regional_thresholding}()},
+\code{\link{thr_image}()}
 }
-\concept{Binarization functions}
+\concept{Binarization Functions}

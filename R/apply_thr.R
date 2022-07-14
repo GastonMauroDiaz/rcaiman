@@ -16,7 +16,7 @@
 #'   \code{1}.
 #' @export
 #'
-#' @family Binarization functions
+#' @family Binarization Functions
 #'
 #' @examples
 #' r <- read_caim()
@@ -33,7 +33,7 @@ apply_thr <- function (r, thr)
 {
   .is_single_layer_raster(r)
 
-  if (any(class(thr) == "numeric", class(thr) == "integer")) {
+  if (any(is(thr, "numeric"), is(thr, "integer"))) {
     stopifnot(length(thr) == 1)
     tmp <- values(r)
     if (thr < min(tmp, na.rm = TRUE))
@@ -41,7 +41,7 @@ apply_thr <- function (r, thr)
     if (thr >= max(tmp, na.rm = TRUE))
       stop("\"thr\" should be lower than maximum layer value")
   } else {
-    if (class(thr) != "SpatRaster")
+    if (is(thr, "SpatRaster"))
       stop(paste("\"thr\" class should be \"numeric\",",
                  "\"integer\", or \"SpatRaster\""))
   }

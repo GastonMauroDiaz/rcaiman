@@ -24,9 +24,12 @@ z <- zenith_image(1000, lens_coef = lens())
 zenith_azimuth_from_row_col(z, c(501, 750), lens())
 }
 \seealso{
-Other hps functions: 
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
 \code{\link{read_manual_input}()},
 \code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()}
+\code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sky_points}()},
+\code{\link{write_sun_coord}()}
 }
-\concept{hps functions}
+\concept{HSP Functions}

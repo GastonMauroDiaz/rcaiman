@@ -4,18 +4,23 @@
 #'
 #' Methods currently implemented are:
 #'
-#' \itemize{ \item \strong{Diaz2018}: method presented in
+#' \itemize{
+#'
+#' \item \strong{Diaz2018}: method presented in
 #' \insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
 #' selected, the arguments \code{intercept}, \code{slope}, and \code{prob}
-#' should be provided. It works segmentwise extracting the digital numbers (dns)
-#' per segment and passing them to \code{quantile(dns, prob)}, which aggregated
-#' result (x) is in turn passed to \code{thr_image(x, intercept, slope)}.
-#' Finally, this threshold image is applied to obtain a binarized image.
+#' should be provided. It works segment-wise extracting the digital numbers
+#' (dns) per segment and passing them to \code{quantile(dns, prob)}, which
+#' aggregated result (\code{x}) is in turn passed to \code{thr_image(x,
+#' intercept, slope)}. Finally, this threshold image is applied to obtain a
+#' binarized image.
 #'
 #' \item \strong{Methods from autothresholdr package}: this function can call
 #' methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-#' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the one
-#' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}. }
+#' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the
+#' one recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+#'
+#' }
 #'
 #' @inheritParams ootb_mblt
 #' @param segmentation \linkS4class{SpatRaster}. The result of segmenting
@@ -25,12 +30,14 @@
 #'   options.
 #' @inheritParams thr_image
 #' @inheritParams fit_trend_surface
+#' @param prob Numeric vector of length one. Probability for
+#'   \code{\link[stats]{quantile}} calculation.
 #'
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
 #'   \code{1}.
 #'
 #' @export
-#' @family Tools functions
+#' @family Binarization Functions
 #'
 #' @seealso \code{\link{thr_image}}
 #'
@@ -43,8 +50,8 @@
 #' blue <- gbc(r$Blue)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' rings <- rings_segmentation(z, 10)
-#' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 0.9)
-#' plot(bin) # try ootb_mblt() for better results
+#' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 1)
+#' plot(bin)
 #' }
 regional_thresholding <- function(r,
                                   segmentation,

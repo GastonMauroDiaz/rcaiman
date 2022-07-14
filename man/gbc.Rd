@@ -8,8 +8,8 @@ gbc(DN_from_JPEG, gamma = 2.2)
 }
 \arguments{
 \item{DN_from_JPEG}{Numeric vector or object from the
-\code{\linkS4class{SpatRaster}} class. Digital numbers from a JPEG file (0 to
-255, the standard 8-bit encoded).}
+\code{\linkS4class{SpatRaster}} class. Digital numbers from a JPEG file (0
+to 255, the standard 8-bit encoded).}
 
 \item{gamma}{Numeric vector of length one. Gamma value. Please see
 \insertCite{Diaz2018;textual}{rcaiman} for details.}
@@ -32,17 +32,10 @@ gbc(r)
 \seealso{
 \code{\link{normalize}}
 
-Other Tools functions: 
-\code{\link{defuzzify}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{masking}()},
-\code{\link{normalize}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()}
+Other Pre-processing Functions: 
+\code{\link{enhance_caim}()},
+\code{\link{local_fuzzy_thresholding}()},
+\code{\link{membership_to_color}()},
+\code{\link{normalize}()}
 }
-\concept{Tools functions}
+\concept{Pre-processing Functions}

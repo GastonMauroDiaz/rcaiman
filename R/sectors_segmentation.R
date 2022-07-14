@@ -3,15 +3,14 @@
 #' Segmenting an hemispherical view by slicing the azimuth angle from \code{0}
 #' to \code{360º} in equals intervals.
 #'
-#' @param a \code{\linkS4class{SpatRaster}} built with
-#'   \code{\link{azimuth_image}}.
+#' @inheritParams ootb_mblt
 #' @inheritParams rings_segmentation
 #'
 #' @return An object from the class \linkS4class{SpatRaster} with segments
 #'   shaped like pizza slices.
 #' @export
 #'
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #'
 #' @examples
 #' z <- zenith_image(1490, lens())

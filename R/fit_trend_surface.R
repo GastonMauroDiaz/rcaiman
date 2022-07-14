@@ -1,6 +1,7 @@
 #' Fit a trend surface to sky digital numbers
 #'
-#' Fit a trend surface using spatial::surf.ls as workhorse function.
+#' Fit a trend surface using \code{\link[spatial]{surf.ls}} as workhorse
+#' function.
 #'
 #' This function is meant to be used after \code{\link{fit_coneshaped_model}}.
 #'
@@ -15,20 +16,21 @@
 #' @inheritParams ootb_mblt
 #' @param filling_source \linkS4class{SpatRaster}. An actual or reconstructed
 #'   above-canopy image to complement the sky pixels detected through the gaps
-#'   of \code{r}. If an incomplete above-canopy image is available, the non-sky
+#'   of \code{r}. If an incomplete above-canopy image is available, non-sky
 #'   pixels should be turned \code{NA} or they will be erroneously considered as
 #'   sky pixels. A photograph taken immediately after or before taking \code{r}
 #'   under the open sky with the same equipment and configuration is a very good
 #'   option but not recommended under fleeting clouds. The orientation relative
-#'   to the North must be the same than for \code{r}. If \code{NULL} is
-#'   provided, only sky pixels from \code{r} will be used as input.
+#'   to the North must be the same than for \code{r}. If it is set to
+#'   \code{NULL} (default), only sky pixels from \code{r} will be used as input.
 #' @inheritParams spatial::surf.ls
 #'
 #' @return A list with an object of class \linkS4class{SpatRaster} and of class
 #'   \code{trls} (see \code{\link[spatial]{surf.ls}}).
 #' @export
 #'
-#' @family Sky reconstruction functions
+#' @family Sky Reconstruction Functions
+#' @seealso \code{\link{thr_image}}
 #'
 #' @references \insertAllCited{}
 #'

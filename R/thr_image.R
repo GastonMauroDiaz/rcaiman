@@ -23,7 +23,7 @@
 #' design decision aiming to harmonize the whole package.
 #'
 #' To apply the weighting parameter (w) from Equation 1, just provide the
-#' argument \code{slope} as \code{slope_value * w}.
+#' argument \code{slope} as \eqn{slope \times w}.
 #'
 #' Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
 #' which is very simple to follow.
@@ -39,7 +39,7 @@
 #'
 #' @return An object of the same class and dimensions than \code{dn}.
 #'
-#' @family MBLT functions
+#' @family Binarization Functions
 #' @seealso \code{\link{normalize}}, \code{\link{gbc}}, \code{\link{apply_thr}}
 #'   and \code{\link{regional_thresholding}}.
 #'

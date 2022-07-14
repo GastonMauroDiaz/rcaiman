@@ -7,16 +7,16 @@
 lens(type = "equidistant", max_fov = FALSE)
 }
 \arguments{
-\item{type}{Character vector of length one. The name of the lens, see
-details.}
+\item{type}{Character vector of length one. The name of the lens.}
 
-\item{max_fov}{Logical. Use \code{TRUE} to return the maximum field of view
-in degrees.}
+\item{max_fov}{Logical vector of length one. Use \code{TRUE} to return the
+maximum field of view in degrees.}
 }
 \value{
 If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector
-  of length one, which is the lens FOV in degrees. Otherwise, it returns a
-  numeric vector with the coefficient of the lens function.
+  of length one, which is the lens maximum field of view in degrees.
+  Otherwise, it returns a numeric vector with the coefficient of the lens
+  function.
 }
 \description{
 Database of lens projection functions and field of views.
@@ -44,10 +44,10 @@ lens("Nikon_FCE9", max_fov = TRUE)
 \insertAllCited{}
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
@@ -55,4 +55,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

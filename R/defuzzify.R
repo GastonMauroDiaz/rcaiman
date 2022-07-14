@@ -18,7 +18,7 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Tools functions
+#' @family Tools Functions
 #'
 #' @examples
 #' \dontrun{

@@ -34,12 +34,12 @@
 
 #' CIE sky model raster
 #'
-#' @inheritParams sky_grid_segmentation
-#' @param sun_coord Numeric vector of length 2. Zenith and azimuth angles in
+#' @inheritParams ootb_mblt
+#' @param sun_coord Numeric vector of length two. Zenith and azimuth angles in
 #'   degrees, corresponding to the location of the solar disk center.
-#' @param sky_coef Numeric vector of length 5. Parameters of the sky model.
+#' @param sky_coef Numeric vector of length five. Parameters of the sky model.
 #'
-#' @family  cie sky model functions
+#' @family  Sky Reconstruction Functions
 #'
 #' @export
 #'
@@ -82,62 +82,60 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 
 #' Fit CIE sky model
 #'
-#' Fit the CIE sky model using data from real hemispherical photographs.
+#' Use maximum likelihood to estimate the coefficients of the CIE sky model that
+#' fit best to data sampled from a real scene.
 #'
-#' This function use maximum likelihood to estimate the coefficients of the CIE
-#' sky model that fit best to data sampled from a real scene. The result include
-#' the output produced by \code{\link[bbmle]{mle2}}, the 5 model coefficients,
-#' observed and predicted values, the sun coordinates (zenith and azimuth angle
-#' in degrees), the relative luminance calculated for every pixel using the
-#' estimated coefficients and corresponding sun coordinate, the digital number
-#' at the zenith, and the description of the standard sky from which the initial
-#' coefficients were drawn. See \insertCite{Li2016;textual}{rcaiman} to known
-#' more about these coefficients.
-#'
-#' This function assume an hemispherical image as input. It is based on
+#' This function assumes an hemispherical image as input. It is based on
 #' \insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
 #' obtained with data showing a linear relation between digital numbers and the
 #' amount of light reaching the sensor. However, because the CIE sky model is
-#' indeed the adjoin of two mathematical model --one controlling the gradation
-#' between the zenith and the horizon (two parameters), and the other
-#' controlling the gradation originated at the solar disk (three parameters)--
-#' it is capable of cope with any non-linearity since it is not a physical model
-#' with strict assumptions.
+#' indeed the adjoin of two mathematical model, it is capable of cope with any
+#' non-linearity since it is not a physical model with strict assumptions.
 #'
-#' Ultimately, if the goal is to calculate the ratio of canopy DN to sky DN, if
-#' the latter is accurately constructed, any non-linearity will be canceled.
-#' Please, see \code{link{interpolate_sky_points}} for further considerations.
+#' Ultimately, if the goal is to calculate the ratio of canopy to sky digital
+#' numbers, if the latter is accurately constructed, any non-linearity will be
+#' canceled. Please, see \code{\link{interpolate_sky_points}} for further
+#' considerations.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #' @param zenith_dn Numeric vector of length 1. Zenith digital number, see
 #'   \code{\link{extract_rl}} for how to obtain it.
-#' @param sun_coord An object of class list. The result of a call to
+#' @param sun_coord An object of class \emph{list}. The result of a call to
 #'   \code{\link{extract_sun_coord}}.
 #' @inheritParams cie_sky_model_raster
 #' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman}.
 #' @param general_sky_type Character vector of length one. It could be any of
-#'   these strings: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
+#'   these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman} for additional details.
 #' @param twilight Logical vector of length one. If it is \code{TRUE} and the
 #'   initial standard parameters belong to the "Clear" general sky type, sun
 #'   zenith angles from 90 to 96 degrees will be tested (civic twilight). This
 #'   is necessary since \code{\link{extract_sun_coord}} would mistakenly
-#'   recognize the center of what can be seen of the solar corona as the
-#'   solar disk.
+#'   recognize the center of what can be seen of the solar corona as the solar
+#'   disk.
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
 #'   for selecting the best sky model is to choose the one with lest root mean
 #'   square error calculated from the sample (sky marks). Otherwise, the
 #'   criteria is to evaluate the whole hemisphere by calculating the product
 #'   between the square ratio of \code{r} to the sky model and the fraction of
-#'   pixels from ratio above one or below zero, and selecting the sky model that
-#'   produce the least value.
+#'   pixels from this new layer that are above one or below zero, and selecting
+#'   the sky model that produce the least value.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertAllCited{}
 #'
-#' @family  Sky reconstruction functions
+#' @return The result include the output produced by \code{\link[bbmle]{mle2}},
+#'   the 5 model coefficients, observed and predicted values, the sun
+#'   coordinates (zenith and azimuth angle in degrees), the relative luminance
+#'   calculated for every pixel using the estimated coefficients and
+#'   corresponding sun coordinate, the digital number at the zenith, and the
+#'   description of the standard sky from which the initial coefficients were
+#'   drawn. See \insertCite{Li2016;textual}{rcaiman} to known more about these
+#'   coefficients.
+#'
+#' @family  Sky Reconstruction Functions
 #'
 #' @export
 #'

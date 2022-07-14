@@ -12,6 +12,9 @@ project folder.}
 
 \item{img_name}{Character vector of length one. See details.}
 }
+\value{
+Numeric vector of length five.
+}
 \description{
 Read optimized CIE sky coefficients stored in an HSP project.
 }
@@ -22,9 +25,12 @@ Refer to the Details section of this function:
 \seealso{
 cie_sky_model_raster
 
-Other hps functions: 
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
 \code{\link{read_manual_input}()},
 \code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sky_points}()},
+\code{\link{write_sun_coord}()},
 \code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{hps functions}
+\concept{HSP Functions}

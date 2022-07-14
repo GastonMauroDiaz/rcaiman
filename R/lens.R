@@ -16,10 +16,9 @@
 #'
 #' }
 #'
-#' @param type Character vector of length one. The name of the lens, see
-#'   details.
-#' @param max_fov Logical. Use \code{TRUE} to return the maximum field of view
-#'   in degrees.
+#' @param type Character vector of length one. The name of the lens.
+#' @param max_fov Logical vector of length one. Use \code{TRUE} to return the
+#'   maximum field of view in degrees.
 #'
 #' @export
 #'
@@ -28,7 +27,7 @@
 #'   Otherwise, it returns a numeric vector with the coefficient of the lens
 #'   function.
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @references \insertAllCited{}
 #'

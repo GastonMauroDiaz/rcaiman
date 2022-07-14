@@ -2,7 +2,7 @@
 % Please edit documentation in R/membership_to_color.R
 \name{membership_to_color}
 \alias{membership_to_color}
-\title{Compute membership to a color}
+\title{Compute the membership to a target color}
 \usage{
 membership_to_color(caim, target_color, sigma = NULL)
 }
@@ -22,14 +22,15 @@ It returns an object from the class \linkS4class{SpatRaster}. First
   to grey. Both memberships are calculated with same \code{sigma}.
 }
 \description{
-This function is presented in \insertCite{Diaz2015;textual}{rcaiman}. It
+This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
 Computes the degree of membership to a color with two Gaussian membership
 functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
-color space. The lightness dimension is not considered in the calculations.
+color space. To be clear, the lightness dimension is not considered in the
+calculations.
 }
 \details{
 If you use this function in your research, please cite
-\insertCite{Diaz2015}{rcaiman}.
+\insertCite{Diaz2015;textual}{rcaiman}.
 }
 \examples{
 \dontrun{
@@ -45,7 +46,10 @@ plot(mem)
 \insertAllCited{}
 }
 \seealso{
-Other Fuzzy logic functions: 
-\code{\link{local_fuzzy_thresholding}()}
+Other Pre-processing Functions: 
+\code{\link{enhance_caim}()},
+\code{\link{gbc}()},
+\code{\link{local_fuzzy_thresholding}()},
+\code{\link{normalize}()}
 }
-\concept{Fuzzy logic functions}
+\concept{Pre-processing Functions}

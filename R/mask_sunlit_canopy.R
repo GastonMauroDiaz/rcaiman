@@ -7,12 +7,12 @@
 #'
 #' @export
 #'
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #'
 #' @examples
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' m<- is.na(z)
+#' m <- !is.na(z)
 #' sunlit_canopy <- mask_sunlit_canopy(caim, m)
 #' plot(sunlit_canopy)
 mask_sunlit_canopy <- function(caim, m) {

@@ -10,11 +10,10 @@ expand_noncircular(caim, z, zenith_colrow)
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
 \code{\link{read_caim}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
 \item{zenith_colrow}{Numeric vector of length two. Raster coordinates of the
-zenith. See \code{\link{calc_zenith_raster_coordinates}}.}
+zenith. See \code{\link{calc_zenith_raster_coord}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that is the result of
@@ -41,10 +40,10 @@ Expand a non-circular hemispherical photograph.
 }
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},
@@ -52,4 +51,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

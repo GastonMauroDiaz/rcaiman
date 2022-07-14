@@ -11,47 +11,43 @@ obia(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
 pure sky pixels.}
 
-\item{segmentation}{\linkS4class{SpatRaster}. The result of a call to
+\item{segmentation}{\linkS4class{SpatRaster} built with
 \code{\link{polar_qtree}}.}
 
-\item{gf_mn}{Numeric vector of length one. The minimum gap fraction that a
-segment should have to be considered as one containing foliage.}
-
-\item{gf_mx}{Numeric vector of length one. The maximum gap fraction that a
+\item{gf_mn, gf_mx}{Numeric vector of length one. The minimum/maximum gap fraction that a
 segment should have to be considered as one containing foliage.}
 }
 \value{
-\linkS4class{SpatRaster}. A improved version of \code{bin}.
+\linkS4class{SpatRaster}. An improved version of \code{bin}.
 }
 \description{
 This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 This version is simpler since it relies on a better working binarized image.
-The version from 2015 used an automatic selection of samples followed by a
+The version from 2015 uses an automatic selection of samples followed by a
 knn classification of segments containing foliage. This version uses de gap
-fraction extracted from \code{bin} to classify foliage by defining upper and
-lower limits through \code{gf_mx} and \code{gf_mn}.
+fraction extracted from \code{bin} to classify \emph{foliage} by defining
+upper and lower limits through the arguments \code{gf_mx} and \code{gf_mn}.
 }
 \details{
 This method produce a synthetic layer by computing the ratio of \code{r} to
 the maximum value of \code{r} at the segment level. This process is carried
-out only on the pixels covered by the classes foliage and sky (i.e.,
-\code{bin} equal to one). To avoid spurious values, the quantile 0.9 is
-computed instead of the maximum. Pixels from the synthetic layer comprised
-between 0 an 1 are binarized following two criteria in such a way that to be
-turned plant on \code{bin} (i.e, to be assigned as 0) it have to be 0 under
-both criteria. Those criteria are \code{defuzzify} with a sky grid
-segmentation of 10 degrees and \code{apply_thr} with a threshold equal to
-0.5. In addition, it cannot be exclusively surrounded by sky pixels.
+out only on the pixels covered by the classes \emph{foliage} and \emph{sky}
+--\code{bin} equal to one. To avoid spurious values, the quantile
+\code{0.9} is computed instead of the maximum. Pixels from the synthetic
+layer comprised between \code{0} an \code{1} are binarized following two
+criteria in such a way that to be turned plant on \code{bin} (i.e, to be
+assigned as \code{0}) it have to be \code{0} under both criteria. Those
+criteria are \code{defuzzify} with a sky grid segmentation of \code{10}
+degrees and \code{apply_thr} with a threshold equal to \code{0.5}. In
+addition, it cannot be exclusively surrounded by sky pixels.
 }
 \examples{
 \dontrun{
@@ -74,3 +70,13 @@ plot(bin - bin_obia)
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other Binarization Functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{ootb_mblt}()},
+\code{\link{regional_thresholding}()},
+\code{\link{thr_image}()}
+}
+\concept{Binarization Functions}

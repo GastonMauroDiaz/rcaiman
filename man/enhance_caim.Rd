@@ -18,7 +18,7 @@ enhance_caim(
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
 \code{\link{read_caim}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. Usually, the result of a call to
+\item{m}{\linkS4class{SpatRaster}. A mask. Usually, built with
 \code{\link{mask_hs}}.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
@@ -30,16 +30,16 @@ channels. This layer is used as lightness information. The weight of the
 blue is the complement of \code{w_red}.}
 
 \item{thr}{Numeric vector of length one. Location parameter of the logistic
-membership function. Use \code{NULL} (default) to estimate it automatically
-with the function \code{\link[autothresholdr]{auto_thresh}}, method
-\code{"IsoData"}.}
+membership function. Use \code{NULL} to estimate it automatically with the
+function \code{\link[autothresholdr]{auto_thresh}}, method
+"IsoData".}
 
 \item{fuzziness}{Numeric vector of length one. This number is a constant that
-scale \code{mem}. Use \code{NULL} (default) to estimate it automatically as
-the midpoint between the maximum and minimum values of \code{lightness}.}
+scale \code{mem}. Use \code{NULL} to estimate it automatically as the
+midpoint between the maximum and minimum values of \code{lightness}.}
 
 \item{gamma}{Numeric vector of length one. This is for applying a gamma back
-correction to the lightness information (see details and argument
+correction to the lightness information (see Details and argument
 \code{w_red}).}
 }
 \value{
@@ -72,7 +72,7 @@ The \code{gamma} argument, along with \code{\link{gbc}}, is used to
 back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2015}{rcaiman} and this package.
+\insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{
@@ -91,4 +91,11 @@ plot(ecaim)
 \references{
 \insertAllCited{}
 }
-\concept{Pre-processing functions}
+\seealso{
+Other Pre-processing Functions: 
+\code{\link{gbc}()},
+\code{\link{local_fuzzy_thresholding}()},
+\code{\link{membership_to_color}()},
+\code{\link{normalize}()}
+}
+\concept{Pre-processing Functions}

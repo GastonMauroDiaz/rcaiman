@@ -14,12 +14,12 @@ read_caim(path_to_file, upper_left = NULL, width = NULL, height = NULL)
 }
 \arguments{
 \item{path_to_file}{Character vector of length one. Path to a JPEG or TIFF
-file. The function will return a data example (see details) if no arguments
+file. The function will return a data example if no arguments
 are provided.}
 
-\item{upper_left}{An integer vector of length two (see details).}
+\item{upper_left}{An integer vector of length two.}
 
-\item{width, height}{An integer vector of length one (see details).}
+\item{width, height}{An integer vector of length one.}
 }
 \value{
 An object from class \linkS4class{SpatRaster} with its layers named
@@ -30,8 +30,8 @@ Wrapper function for \code{\link[terra]{rast}}.
 }
 \details{
 Run \code{read_caim()} to obtain an example of a hemispherical photo taken in
-non-diffuse light conditions in a \emph{Nothofagus pumilio} forest from
-Argentina with a FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
+non-diffuse light conditions in a \emph{Nothofagus pumilio} forest with a
+FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
 
 Since this function aims to read born-digital color photographs, RGB-JPEG and
 RGB-TIFF are expected as input. Use \code{upper_left}, \code{width}, and
@@ -75,17 +75,14 @@ plotRGB(r)
 \seealso{
 \code{\link{write_caim}}
 
-Other Tools functions: 
+Other Tools Functions: 
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
 \code{\link{masking}()},
-\code{\link{normalize}()},
 \code{\link{read_bin}()},
-\code{\link{regional_thresholding}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools functions}
+\concept{Tools Functions}

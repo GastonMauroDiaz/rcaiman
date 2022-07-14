@@ -9,11 +9,12 @@ fisheye_to_pano(r, z, a, fun = mean, angle_width = 1)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+
+\item{fun}{A \code{function} that takes a vector as input and returns a
+one-length numeric or logical vector as output (e.g. mean).}
 
 \item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
@@ -34,10 +35,10 @@ plotRGB(pano)
 }
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
@@ -45,4 +46,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

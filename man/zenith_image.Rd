@@ -25,10 +25,10 @@ z <- zenith_image(1490, lens("Nikon_FCE9"))
 plot(z)
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
@@ -36,4 +36,4 @@ Other Lens functions:
 \code{\link{lens}()},
 \code{\link{test_lens_coef}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

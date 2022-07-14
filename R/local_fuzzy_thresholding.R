@@ -11,16 +11,15 @@
 #' should be considered as a \strong{local} fuzzy thresholding method.
 #'
 #' Argument \code{m} can be used to affect the automatic estimation of
-#'   \code{thr} and \code{fuzziness}.
+#' \code{thr} and \code{fuzziness}.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman}.
 #'
 #'
-#' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image, the
-#'   lightness value. Values should range between zero and one --please see
-#'   \code{\link{normalize}}.
-#' @param m \linkS4class{SpatRaster}. A mask. Usually, the result of a call to
+#' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image (see
+#'   \code{\link{normalize}}).
+#' @param m \linkS4class{SpatRaster}. A mask. Usually, built with
 #'   \code{\link{mask_hs}}.
 #' @param mem \linkS4class{SpatRaster}. It is the scale parameter of the
 #'   logistic membership function. Typically it is obtained with
@@ -28,7 +27,7 @@
 #' @param thr Numeric vector of length one. Location parameter of the logistic
 #'   membership function. Use \code{NULL} to estimate it automatically with the
 #'   function \code{\link[autothresholdr]{auto_thresh}}, method
-#'   \code{"IsoData"}.
+#'   "IsoData".
 #' @param fuzziness Numeric vector of length one. This number is a constant that
 #'   scale \code{mem}. Use \code{NULL} to estimate it automatically as the
 #'   midpoint between the maximum and minimum values of \code{lightness}.
@@ -43,7 +42,7 @@
 #'
 #'
 #' @export
-#' @family Pre-processing functions
+#' @family Pre-processing Functions
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

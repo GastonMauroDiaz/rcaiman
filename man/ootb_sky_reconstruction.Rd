@@ -11,11 +11,9 @@ ootb_sky_reconstruction(r, z, a, bin = NULL, filling_source = NULL)
 the blue channel extracted from an hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
@@ -23,13 +21,13 @@ pure sky pixels.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
-of \code{r}. If an incomplete above-canopy image is available, the non-sky
+of \code{r}. If an incomplete above-canopy image is available, non-sky
 pixels should be turned \code{NA} or they will be erroneously considered as
 sky pixels. A photograph taken immediately after or before taking \code{r}
 under the open sky with the same equipment and configuration is a very good
 option but not recommended under fleeting clouds. The orientation relative
-to the North must be the same than for \code{r}. If \code{NULL} is
-provided, only sky pixels from \code{r} will be used as input.}
+to the North must be the same than for \code{r}. If it is set to
+\code{NULL} (default), only sky pixels from \code{r} will be used as input.}
 }
 \description{
 Build an above canopy image from a single below canopy image.
@@ -50,16 +48,24 @@ Details about how the original method by
 \code{\link{ootb_mblt}}.
 
 The main differences between the original method by
-\insertCite{Lang2010;textual}{rcaiman} and the one implemented here are: (1)
-it is fully automatic, (2) the residuals of the CIE sky model
-($residuals=model-data$) are interpolated instead of the sky digital numbers
-(the data), and (3) the final sky reconstruction is obtained by subtracting
-the interpolated residuals to the CIE sky model instead of by calculating a
+\insertCite{Lang2010;textual}{rcaiman} and the one implemented here are:
+
+\itemize{
+
+\item it is fully automatic,
+
+\item the residuals of the CIE sky model (\eqn{residuals=model-data}) are
+interpolated instead of the sky digital numbers (the data), and
+
+\item the final sky reconstruction is obtained by subtracting the
+interpolated residuals to the CIE sky model instead of by calculating a
 weighted average parameterized by the user.
+
+}
 
 The recommended input for this function is data pre-processed with the HSP
 software package \insertCite{Lang2013}{rcaiman}. Please, refer to
-\code{link{write_sky_points}} for additional details about HSP, and refer to
+\code{link{write_sky_points}} for additional details about HSP and refer to
 \code{\link{fit_cie_sky_model}} and \code{\link{interpolate_sky_points}} to
 know why the HSP pre-processing is convenient.
 
@@ -68,7 +74,10 @@ case, \code{\link{ootb_mblt}} will not be used.
 
 Providing a \code{filling source} trigger an alternative pipeline in which
 the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
-after a dense sampling (\eqn{1 \times 1} degree cells).
+after a dense sampling (\eqn{1 \times 1} degree cells) supported by the fact
+that sky digital numbers wil be available for every pixel, either from
+\code{r} gaps or from the filling source --an exception is a filling source
+with plenty of \code{NA} values.
 }
 \examples{
 \dontrun{

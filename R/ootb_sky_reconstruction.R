@@ -17,16 +17,24 @@
 #' \code{\link{ootb_mblt}}.
 #'
 #' The main differences between the original method by
-#' \insertCite{Lang2010;textual}{rcaiman} and the one implemented here are: (1)
-#' it is fully automatic, (2) the residuals of the CIE sky model
-#' ($residuals=model-data$) are interpolated instead of the sky digital numbers
-#' (the data), and (3) the final sky reconstruction is obtained by subtracting
-#' the interpolated residuals to the CIE sky model instead of by calculating a
+#' \insertCite{Lang2010;textual}{rcaiman} and the one implemented here are:
+#'
+#' \itemize{
+#'
+#' \item it is fully automatic,
+#'
+#' \item the residuals of the CIE sky model (\eqn{residuals=model-data}) are
+#' interpolated instead of the sky digital numbers (the data), and
+#'
+#' \item the final sky reconstruction is obtained by subtracting the
+#' interpolated residuals to the CIE sky model instead of by calculating a
 #' weighted average parameterized by the user.
+#'
+#' }
 #'
 #' The recommended input for this function is data pre-processed with the HSP
 #' software package \insertCite{Lang2013}{rcaiman}. Please, refer to
-#' \code{link{write_sky_points}} for additional details about HSP, and refer to
+#' \code{link{write_sky_points}} for additional details about HSP and refer to
 #' \code{\link{fit_cie_sky_model}} and \code{\link{interpolate_sky_points}} to
 #' know why the HSP pre-processing is convenient.
 #'
@@ -35,7 +43,10 @@
 #'
 #' Providing a \code{filling source} trigger an alternative pipeline in which
 #' the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
-#' after a dense sampling (\eqn{1 \times 1} degree cells).
+#' after a dense sampling (\eqn{1 \times 1} degree cells) supported by the fact
+#' that sky digital numbers wil be available for every pixel, either from
+#' \code{r} gaps or from the filling source --an exception is a filling source
+#' with plenty of \code{NA} values.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
@@ -83,6 +94,7 @@ ootb_sky_reconstruction <- function(r, z, a,
     sky <- sky_cie - residu_i
     sky <- terra::cover(sky, sky_cie)
   } else {
+    g <- sky_grid_segmentation(z, a, 10)
     terra::compareGeom(r, filling_source)
     r[!bin] <- filling_source[!bin]
     sky_points <- extract_sky_points(r, !is.na(z),

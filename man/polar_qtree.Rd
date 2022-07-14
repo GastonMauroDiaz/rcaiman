@@ -2,23 +2,22 @@
 % Please edit documentation in R/polar_qtree.R
 \name{polar_qtree}
 \alias{polar_qtree}
-\title{Quad-tree segmentation in a polar space.}
+\title{Quad-tree segmentation in a polar space}
 \usage{
 polar_qtree(r, z, a, scale_parameter = 0.2)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{scale_parameter}{Numeric vector of length one. Quad-tree is a top-down
 method. This parameter controls the stopping condition. Therefore, it
-allows the user to controls the size of the resulting segments. See Details
-for more information.}
+allows the user to controls the size of the resulting segments. Ultimately,
+segments sizes will depend on the heterogeneity of \code{r} and this
+parameter.}
 }
 \description{
 The quad-tree segmentation algorithm is a top-down process that makes
@@ -52,10 +51,11 @@ plot(tmp)
 }
 }
 \seealso{
-Other Segmentation functions: 
+Other Segmentation Functions: 
 \code{\link{mask_hs}()},
+\code{\link{mask_sunlit_canopy}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}
 }
-\concept{Segmentation functions}
+\concept{Segmentation Functions}

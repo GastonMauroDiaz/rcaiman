@@ -9,17 +9,15 @@ fisheye_to_equidistant(r, z, a, radius = 745)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
 
-\item{z}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
-\item{a}{\linkS4class{SpatRaster}. The result of a call to
-\code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{radius}{Numeric integer of length one. Radius of the reprojected
-hemispherical image.}
+hemispherical image (i.e., the output).}
 }
 \description{
-Fisheye to equidistant
+Fisheye to equidistant projection (also known as polar projection).
 }
 \examples{
 \dontrun{
@@ -36,10 +34,10 @@ plot(bin_equi)
 }
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_pano}()},
@@ -47,4 +45,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

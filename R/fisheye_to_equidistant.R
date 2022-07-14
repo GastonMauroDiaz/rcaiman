@@ -1,5 +1,7 @@
 #' Fisheye to equidistant
 #'
+#' Fisheye to equidistant projection (also known as polar projection).
+#'
 #' @param r \linkS4class{SpatRaster}.
 #' @inheritParams ootb_mblt
 #' @param radius Numeric integer of length one. Radius of the reprojected
@@ -7,7 +9,7 @@
 #'
 #' @export
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @examples
 #' \dontrun{

@@ -48,17 +48,14 @@ plot(bin$bin - bin2)
 \insertAllCited{}
 }
 \seealso{
-Other Tools functions: 
+Other Tools Functions: 
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
 \code{\link{masking}()},
-\code{\link{normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools functions}
+\concept{Tools Functions}

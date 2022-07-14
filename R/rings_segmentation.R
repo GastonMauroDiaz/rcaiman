@@ -3,7 +3,7 @@
 #' Segmenting an hemispherical view by slicing the zenith angle from \code{0} to
 #' \code{90º} in equals intervals.
 #'
-#' @inheritParams azimuth_image
+#' @inheritParams ootb_mblt
 #' @param angle_width Numeric vector of length one. Angle in degrees able to
 #'   divide the angle range into a whole number of segments.
 #' @param return_angle Logical vector of length one. If it is \code{FALSE}, all
@@ -14,7 +14,7 @@
 #'   shaped like concentric rings.
 #' @export
 #'
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #'
 #' @examples
 #' z <- zenith_image(1490, lens())

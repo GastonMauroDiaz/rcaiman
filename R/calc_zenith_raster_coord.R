@@ -25,15 +25,15 @@
 #' taking a very bright picture (for example, a picture of a room with walls
 #' painted in light colors) with the lens completely free (do not use any
 #' mount). Then, digitize points over the perimeter of the circle. This was the
-#' method used for producing the example (see below). It is worth noting that
-#' the perimeter of the circle depicted in a circular hemispherical photograph
-#' is not necessarily the horizon.
+#' method used for producing the example file (see Examples). It is worth noting
+#' that the perimeter of the circle depicted in a circular hemispherical
+#' photograph is not necessarily the horizon.
 #'
 #' @inheritParams calibrate_lens
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @export
 #'
@@ -41,16 +41,16 @@
 #'   assuming a lens facing up with its optical axis parallel to the vertical
 #'   line. It is important to note the difference between the raster coordinates
 #'   and the Cartesian coordinates. In the latter,  the vertical axis value
-#'   decreases down, but the opposite is true for the raster coordinates, which
-#'   works like a spreadsheet.
+#'   decreases downward, but the opposite is true for the raster coordinates,
+#'   which works like a spreadsheet.
 #'
 #' @examples
 #' \dontrun{
 #' path <- system.file("external/points_over_perimeter.csv",
 #'                     package = "rcaiman")
-#' calc_zenith_raster_coordinates(path)
+#' calc_zenith_raster_coord(path)
 #' }
-calc_zenith_raster_coordinates <- function(path_to_csv) {
+calc_zenith_raster_coord <- function(path_to_csv) {
   if (!requireNamespace("conicfit", quietly = TRUE)) {
     stop(paste("Package \"conicfit\" needed for this function to work.",
                "Please install it."),

@@ -11,8 +11,7 @@
 #' the ID number of the sector and \code{ringsID} is the ID number of the ring.
 #'
 #'
-#' @inheritParams azimuth_image
-#' @inheritParams sectors_segmentation
+#' @inheritParams ootb_mblt
 #' @param angle_width Numeric vector of length one. It should be \code{30, 15,
 #'   10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 #'   constrain is rooted in the requirement of a value able to divide both the
@@ -23,12 +22,12 @@
 #'   labeling numbers are not sequential (see Details).
 #'
 #' @return An object from the class \linkS4class{SpatRaster} with segments
-#'   shaped like windshields, although some of them will look elongated in
+#'   shaped like windshields, though some of them will look elongated in
 #'   height. The pattern is two opposite and converging straight sides and two
 #'   opposite and parallel curvy sides.
 #' @export
 #'
-#' @family Segmentation functions
+#' @family Segmentation Functions
 #'
 #' @examples
 #' z <- zenith_image(1490, lens())

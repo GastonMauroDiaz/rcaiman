@@ -8,13 +8,13 @@
 #' This function was designed to be called after
 #' \code{\link{extract_sky_points}}, and is part of a workflow that connects the
 #' MBLT algorithm with the HSP software package. In such a workflow, the
-#' \code{r} argument from \code{\link{extract_sky_points}} should be an image
-#' pre-processed by the HSP software. Those images are stored as PGM files by
-#' HSP in the subfolder "manipulate" of the project folder (which will be in
+#' \code{r} argument provided to \code{\link{extract_sky_points}} should be an
+#' image pre-processed by the HSP software. Those images are stored as PGM files
+#' by HSP in the subfolder "manipulate" of the project folder (which will be in
 #' turn a subfolder of the "project\strong{s}" folder). Those PGM files can be
 #' read with \code{\link[terra]{rast}}. For instance: \code{r <-
 #' rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")}.
-#' Then, they will be ready to be used as input after running
+#' Then, they will be ready for use as input after running
 #' \code{normalize(r)}.
 #'
 #' The \code{img_name} argument of \code{write_sky_points()} should be the name
@@ -27,7 +27,7 @@
 #'   project folder.
 #' @param img_name Character vector of length one. See details.
 #'
-#' @family HSP functions
+#' @family HSP Functions
 #'
 #' @references \insertAllCited{}
 #'
@@ -68,7 +68,7 @@ write_sky_points <- function(x, path_to_HSP_project, img_name) {
 #' @inheritParams write_sky_points
 #'
 #'
-#' @family HPS functions
+#' @family HSP Functions
 #'
 #' @return None. A file will be written in the HSP project folder.
 #'
@@ -91,9 +91,11 @@ write_sun_coord <- function(x, path_to_HSP_project, img_name) {
 #' \code{\link{write_sky_points}}.
 #'
 #' @inheritParams write_sky_points
-#' @family hps functions
+#' @family HSP Functions
 #'
-#' @return A list of seven named numeric vectors.
+#' @return A list of numeric vectors named as \emph{weight}, \emph{max_points},
+#'   \emph{angle}, \emph{point_radius}, \emph{sun_mark}, \emph{sky_marks} and
+#'   \emph{zenith_dn.}
 #'
 #' @export
 read_manual_input <- function(path_to_HSP_project, img_name) {
@@ -151,7 +153,7 @@ read_manual_input <- function(path_to_HSP_project, img_name) {
 #' \code{\link{write_sky_points}}.
 #'
 #' @inheritParams write_sky_points
-#' @family HSP functions
+#' @family HSP Functions
 #' @return Numeric vector of length five.
 #' @seealso cie_sky_model_raster
 #'
@@ -176,7 +178,7 @@ read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
 #'
 #' @export
 #'
-#' @family HSP functions
+#' @family HSP Functions
 #' @return Numeric vector of length two.
 #'
 #' @examples
@@ -213,7 +215,7 @@ row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
 #'
 #' @export
 #'
-#' @family HSP functions
+#' @family HSP Functions
 #' @examples
 #' z <- zenith_image(1000, lens_coef = lens())
 #' zenith_azimuth_from_row_col(z, c(501, 750), lens())

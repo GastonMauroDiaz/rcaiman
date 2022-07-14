@@ -17,7 +17,7 @@
 #'
 #' \item standard yoga mat
 #'
-#' \item table of width about 2 \eqn{\times} larger than the yoga mat width
+#' \item table of width about two times larger than the yoga mat width
 #'
 #' \item twenty two push pins of different colors
 #'
@@ -44,12 +44,14 @@
 #' Transfer the photograph to the computer, open it with ImageJ, and use the
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 #' selection tool} to digitize the push pins, starting from the zenith push pin
-#' and not skipping any showed push pin. This method was inspired by the
-#' calibration board from \insertCite{Clark1988;textual}{rcaiman}.
+#' and not skipping any showed push pin.
 #'
-#' As a tip, use \code{\link{test_lens_coef}} to test if coefficient are OK. If
-#' not, try moving the last points a little bit. Put the last one a few pixels
-#' farther from the zenith is usually enough.
+#' This method was inspired by the calibration board from
+#' \insertCite{Clark1988;textual}{rcaiman}.
+#'
+#' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficient are OK.
+#' If not, try moving the last points a little bit. Putting the last one a few
+#' pixels farther from the zenith is usually enough.
 #'
 #' @param path_to_csv Character vector of length one. Path to a CSV file created
 #'   with the
@@ -57,12 +59,12 @@
 #'    selection tool of ‘ImageJ’ software}.
 #' @param degree Numeric vector of length one. Polynomial model degree.
 #'
-#' @return An object of class list with named elements. ‘lens_coef’ stands for
-#'   lens coefficients, ‘max_theta’ for maximum zenith angle in degrees, and
-#'   ‘max_theta_px’ for distance in pixels between the zenith and the maximum
-#'   zenith angle in pixels units.
+#' @return An object of class \emph{list} with named elements. \emph{lens_coef}
+#'   stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
+#'   degrees, and \emph{max_theta_px} for distance in pixels between the zenith
+#'   and the maximum zenith angle in pixels units.
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @references \insertAllCited{}
 #'

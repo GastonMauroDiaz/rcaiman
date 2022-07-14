@@ -87,7 +87,7 @@ calc_relative_radius <- function(angle, lens_coef) {
 #'   center.
 #' @export
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @examples
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))

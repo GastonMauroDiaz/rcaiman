@@ -7,13 +7,12 @@
 azimuth_image(z)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with azimuth angles
   in degrees. North (0º) is pointing up as in maps, but East (90º) and West
-  (270º) are flipped respect to maps. To understand why is that, take two
+  (270º) are flipped respecting to maps. To understand why is that, take two
   flash-card size pieces of paper. Put one on a table in front of you and
   draw on it a compass rose. Take the other and hold it with your arms
   extended over your head, and, following the directions of the compass rose
@@ -29,9 +28,9 @@ a <- azimuth_image(z)
 plot(a)
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
@@ -40,4 +39,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

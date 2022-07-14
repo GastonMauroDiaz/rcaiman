@@ -1,3 +1,52 @@
+#' rcaiman: An R package for CAnopy IMage ANalysis
+#'
+#' Solutions for binarizing canopy images, particularly hemispherical
+#' photographs, including non-circular ones, such as the ones from
+#' Smartphone-based hemispherical photography.
+#'
+#' @section Binarization: \code{\link{apply_thr}}, \code{\link{defuzzify}},
+#'   \code{\link{find_sky_pixels_nonnull}}, \code{\link{find_sky_pixels}},
+#'   \code{\link{obia}}, \code{\link{ootb_mblt}},
+#'   \code{\link{ootb_sky_reconstruction}}, \code{\link{regional_thresholding}},
+#'   and \code{\link{thr_image}}.
+#'
+#' @section HSP: \code{\link{extract_sun_coord}},
+#'   \code{\link{read_manual_input}}, \code{\link{read_opt_sky_coef}},
+#'   \code{\link{row_col_from_zenith_azimuth}}, \code{\link{write_sky_points}},
+#'   \code{\link{write_sun_coord}}, and
+#'   \code{\link{zenith_azimuth_from_row_col}}.
+#'
+#' @section Lens: \code{\link{azimuth_image}}, \code{\link{calc_diameter}},
+#'   \code{\link{calc_zenith_raster_coord}}, \code{\link{calibrate_lens}},
+#'   \code{\link{expand_noncircular}}, \code{\link{fisheye_to_equidistant}},
+#'   \code{\link{fisheye_to_pano}}, \code{\link{lens}},
+#'   \code{\link{test_lens_coef}}, and \code{\link{zenith_image}}.
+#'
+#' @section Pre-processing: \code{\link{enhance_caim}}, \code{\link{gbc}},
+#'   \code{\link{local_fuzzy_thresholding}}, \code{\link{membership_to_color}},
+#'   and \code{\link{normalize}}.
+#'
+#' @section Segmentation: \code{\link{mask_hs}},
+#'   \code{\link{mask_sunlit_canopy}}, \code{\link{polar_qtree}},
+#'   \code{\link{rings_segmentation}}, \code{\link{sectors_segmentation}}, and
+#'   \code{\link{sky_grid_segmentation}}.
+#'
+#' @section Sky reconstruction: \code{\link{fit_cie_sky_model}},
+#'   \code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
+#'   \code{\link{fix_reconstructed_sky}}, and
+#'   \code{\link{interpolate_sky_points}}.
+#'
+#' @section Tools: \code{\link{extract_feature}}, \code{\link{extract_rl}},
+#'   \code{\link{extract_sky_points}}, \code{\link{masking}},
+#'   \code{\link{read_bin}}, \code{\link{read_caim}}, \code{\link{write_bin}},
+#'   and \code{\link{write_caim}}.
+#'
+#'
+#' @docType package
+#' @name rcaiman
+NULL
+
+
 #' @import methods
 #' @import terra
 #' @import filenamer

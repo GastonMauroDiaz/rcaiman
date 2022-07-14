@@ -7,8 +7,7 @@
 rings_segmentation(z, angle_width, return_angle = FALSE)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with
-\code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
 
 \item{angle_width}{Numeric vector of length one. Angle in degrees able to
 divide the angle range into a whole number of segments.}
@@ -31,10 +30,11 @@ rings <- rings_segmentation(z, 15)
 plot(rings == 1)
 }
 \seealso{
-Other Segmentation functions: 
+Other Segmentation Functions: 
 \code{\link{mask_hs}()},
+\code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}
 }
-\concept{Segmentation functions}
+\concept{Segmentation Functions}

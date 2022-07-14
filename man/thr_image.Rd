@@ -43,7 +43,7 @@ should be normalized. The latter --that might sound counter intuitive-- was a
 design decision aiming to harmonize the whole package.
 
 To apply the weighting parameter (w) from Equation 1, just provide the
-argument \code{slope} as \code{slope_value * w}.
+argument \code{slope} as \eqn{slope \times w}.
 
 Type \code{thr_image} --no parenthesis-- in the console to inspect the code,
 which is very simple to follow.
@@ -57,5 +57,13 @@ thr_image(gbc(125), -8, 1)
 \seealso{
 \code{\link{normalize}}, \code{\link{gbc}}, \code{\link{apply_thr}}
   and \code{\link{regional_thresholding}}.
+
+Other Binarization Functions: 
+\code{\link{apply_thr}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{obia}()},
+\code{\link{ootb_mblt}()},
+\code{\link{regional_thresholding}()}
 }
-\concept{MBLT functions}
+\concept{Binarization Functions}

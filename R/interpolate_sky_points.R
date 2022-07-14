@@ -18,7 +18,7 @@
 #'
 #' The use of \code{k = 1} solve the linear dilemma from the theoretical point
 #' of view since no averaging is taking place in the calculations. However,
-#' probably is best to use \code{k = 1} greater than 1.
+#' probably is best to use \code{k} greater than 1.
 #'
 #' Default parameters are the used by \insertCite{Lang2010;textual}{rcaiman}.
 #' The argument \code{rmax} should account for between 15 to 20 degrees, but is
@@ -35,7 +35,7 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Sky reconstruction functions
+#' @family Sky Reconstruction Functions
 #'
 #' @return An object of class \linkS4class{SpatRaster}.
 #'

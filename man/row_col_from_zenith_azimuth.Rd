@@ -16,6 +16,9 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
 projection function.}
 }
+\value{
+Numeric vector of length two.
+}
 \description{
 Row and col numbers from zenith and azimuth angles
 }
@@ -24,9 +27,12 @@ z <- zenith_image(1000, lens())
 row_col <- row_col_from_zenith_azimuth(z, c(45, 270), lens())
 }
 \seealso{
-Other hps functions: 
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
 \code{\link{read_manual_input}()},
 \code{\link{read_opt_sky_coef}()},
+\code{\link{write_sky_points}()},
+\code{\link{write_sun_coord}()},
 \code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{hps functions}
+\concept{HSP Functions}

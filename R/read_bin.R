@@ -2,14 +2,14 @@
 #'
 #' Wrapper functions for \code{\link[terra]{rast}}.
 #'
-#' @param path One-length character vector. Path to read or a binarized image.
+#' @param path One-length character vector. Path to a binarized image.
 #'
 #' @export
 #'
 #' @return An object from class \linkS4class{SpatRaster}.
 #'
 #' @seealso \code{\link{write_bin}}
-#' @family Tools functions
+#' @family Tools Functions
 #'
 #' @examples
 #' \dontrun{

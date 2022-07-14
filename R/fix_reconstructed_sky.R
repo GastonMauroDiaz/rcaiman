@@ -4,29 +4,29 @@
 #' functions such as \code{\link{fit_coneshaped_model}} and
 #' \code{\link{fit_trend_surface}}.
 #'
-#' The predicted sky DNs are usually erroneous near the horizon because they are
-#' a misleading extrapolation or are based on corrupted data (non-pure sky DNs).
+#' The predicted sky DNs are usually erroneous near the horizon because either
+#' they are a misleading extrapolation or are based on corrupted data (non-pure
+#' sky DNs).
 #'
 #' This automatic edition consists of (1) flattening values below the minimum
 #' input data (2) and forcing the values toward the horizon to gradually become
 #' the median input data. The latter is achieved by calculating the weighted
-#' average of the median value and the predicted sky DNs --\code{z / 90} is used
-#' to determine the weights.
+#' average of the median value and the predicted sky DNs --the ratio of \code{z}
+#' to \code{90} is used to determine the weights.
 #'
-#' @param sky \linkS4class{SpatRaster}. Sky DNs predicted with functions such
-#'   as \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
-#' @param z \linkS4class{SpatRaster}. The result of a call to
-#'   \code{\link{zenith_image}}.
+#' @param sky \linkS4class{SpatRaster}. Sky DNs predicted with functions such as
+#'   \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
+#' @inheritParams ootb_mblt
 #' @param r \linkS4class{SpatRaster}. The source of the sky DNs used to build
 #'   \code{sky}.
 #' @param bin \linkS4class{SpatRaster}. The binarization of \code{r} used to
 #'   select the sky DNs for building \code{sky}.
 #'
-#' @family Sky reconstruction functions
+#' @family Sky Reconstruction Functions
 #'
 #' @export
-#' @return An object of class \linkS4class{SpatRaster}. The edited
-#'   version of \code{sky}. Pixel dimensions should remain unchanged.
+#' @return An object of class \linkS4class{SpatRaster}. The argument \code{sky}
+#'   with dimensions unchanged but values edited.
 #'
 #' @examples
 #' \dontrun{
@@ -41,10 +41,10 @@
 #' sky_points <- extract_rl(r, z, a, sky_points, NULL)
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' sky_cs <- model$fun(z, a)
-#' sky_cs <- fix_predicted_sky(sky_cs, z, r, bin)
+#' sky_cs <- fix_reconstructed_sky(sky_cs, z, r, bin)
 #' persp(sky_cs, theta = 90, phi = 0)
 #' }
-fix_predicted_sky <- function(sky, z, r, bin) {
+fix_reconstructed_sky <- function(sky, z, r, bin) {
   .is_single_layer_raster(r, "r")
   .was_normalized(r)
   .is_single_layer_raster(z, "z")

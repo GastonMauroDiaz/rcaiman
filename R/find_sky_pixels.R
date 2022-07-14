@@ -34,7 +34,7 @@
 #'   percentage required. The population is comprised of 1296 cells of \eqn{5
 #'   \times 5} degrees.
 #'
-#' @family Binarization functions
+#' @family Binarization Functions
 #'
 #' @export
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and

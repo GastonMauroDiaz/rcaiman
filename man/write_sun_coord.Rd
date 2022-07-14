@@ -8,9 +8,10 @@ write_sun_coord(x, path_to_HSP_project, img_name)
 }
 \arguments{
 \item{x}{Numeric vector of length two. Raster coordinates of the solar disk
-that can be obtained by calling to \code{\link{extract_sun_coord}}. *TIP*:
-if the output of \code{extrac_sun_coord()} is \code{x}, then you should
-provide to \code{write_sun_coord()} this: \code{x$row_col}. See also
+that can be obtained by calling to \code{\link{extract_sun_coord}}.
+\strong{TIP}: if the output of \code{extrac_sun_coord()} is
+\code{sun_coord}, then you should provide to \code{write_sun_coord()} this:
+\code{sun_coord$row_col}. See also
 \code{\link{row_col_from_zenith_azimuth}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
@@ -29,7 +30,12 @@ Refer to the Details section of this function:
 \code{\link{write_sky_points}}.
 }
 \seealso{
-Other hsp functions: 
-\code{\link{write_sky_points}()}
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
+\code{\link{read_manual_input}()},
+\code{\link{read_opt_sky_coef}()},
+\code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sky_points}()},
+\code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{hsp functions}
+\concept{HSP Functions}

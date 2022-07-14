@@ -4,11 +4,11 @@
 #'
 #' @param caim \linkS4class{SpatRaster}. The return of a call to
 #'   \code{\link{read_caim}}.
-#' @inheritParams azimuth_image
+#' @inheritParams ootb_mblt
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
-#'   zenith. See \code{\link{calc_zenith_raster_coordinates}}.
+#'   zenith. See \code{\link{calc_zenith_raster_coord}}.
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @return An object of class \linkS4class{SpatRaster} that is the result of
 #'   adding margins (\code{NA} pixels) to \code{caim}. The zenith point depicted

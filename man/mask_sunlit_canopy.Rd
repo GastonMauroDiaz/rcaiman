@@ -10,12 +10,12 @@ mask_sunlit_canopy(caim, m)
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
 \code{\link{read_caim}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. Usually, the result of a call to
+\item{m}{\linkS4class{SpatRaster}. A mask. Usually, built with
 \code{\link{mask_hs}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1} that masks pixels that are very likely sunlit canopy.
+  \code{1}. It masks pixels that are very likely sunlit canopy.
 }
 \description{
 Mask sunlit canopy
@@ -23,7 +23,16 @@ Mask sunlit canopy
 \examples{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-m<- is.na(z)
+m <- !is.na(z)
 sunlit_canopy <- mask_sunlit_canopy(caim, m)
 plot(sunlit_canopy)
 }
+\seealso{
+Other Segmentation Functions: 
+\code{\link{mask_hs}()},
+\code{\link{polar_qtree}()},
+\code{\link{rings_segmentation}()},
+\code{\link{sectors_segmentation}()},
+\code{\link{sky_grid_segmentation}()}
+}
+\concept{Segmentation Functions}

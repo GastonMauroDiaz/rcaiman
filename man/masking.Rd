@@ -18,9 +18,9 @@ color.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that essentially is
-  \code{r} with the areas delimited by \code{m} --where its pixels are equal
-  to one-- painted in a solid color. If \code{r} is a single layer image,
-  then the layer is triplicated to allow the use of colors.
+  \code{r} with the areas delimited by \code{m} painted in a solid color. If
+  \code{r} is a single layer image, then the layer is triplicated to allow
+  the use of color.
 }
 \description{
 Image masking
@@ -44,17 +44,14 @@ Image masking
 \seealso{
 \code{\link{mask_hs}}
 
-Other Tools functions: 
+Other Tools Functions: 
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
-\code{\link{gbc}()},
-\code{\link{normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
-\code{\link{regional_thresholding}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools functions}
+\concept{Tools Functions}

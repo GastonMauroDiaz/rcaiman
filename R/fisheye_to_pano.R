@@ -5,10 +5,11 @@
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams ootb_mblt
+#' @inheritParams extract_feature
 #'
 #' @export
 #'
-#' @family Lens functions
+#' @family Lens Functions
 #'
 #' @examples
 #' \dontrun{

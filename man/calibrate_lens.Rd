@@ -15,10 +15,10 @@ with the
 \item{degree}{Numeric vector of length one. Polynomial model degree.}
 }
 \value{
-An object of class list with named elements. ‘lens_coef’ stands for
-  lens coefficients, ‘max_theta’ for maximum zenith angle in degrees, and
-  ‘max_theta_px’ for distance in pixels between the zenith and the maximum
-  zenith angle in pixels units.
+An object of class \emph{list} with named elements. \emph{lens_coef}
+  stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
+  degrees, and \emph{max_theta_px} for distance in pixels between the zenith
+  and the maximum zenith angle in pixels units.
 }
 \description{
 Calibrate a fisheye lens. This type of lens has wide field of view and a
@@ -39,7 +39,7 @@ following materials:
 
 \item standard yoga mat
 
-\item table of width about 2 \eqn{\times} larger than the yoga mat width
+\item table of width about two times larger than the yoga mat width
 
 \item twenty two push pins of different colors
 
@@ -66,12 +66,14 @@ front of the lens with the pins.
 Transfer the photograph to the computer, open it with ImageJ, and use the
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 selection tool} to digitize the push pins, starting from the zenith push pin
-and not skipping any showed push pin. This method was inspired by the
-calibration board from \insertCite{Clark1988;textual}{rcaiman}.
+and not skipping any showed push pin.
 
-As a tip, use \code{\link{test_lens_coef}} to test if coefficient are OK. If
-not, try moving the last points a little bit. Put the last one a few pixels
-farther from the zenith is usually enough.
+This method was inspired by the calibration board from
+\insertCite{Clark1988;textual}{rcaiman}.
+
+\strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficient are OK.
+If not, try moving the last points a little bit. Putting the last one a few
+pixels farther from the zenith is usually enough.
 }
 \examples{
 path <- system.file("external/Results_calibration.csv", package = "rcaiman")
@@ -85,10 +87,10 @@ test_lens_coef(calibration$lens_coef)
 \insertAllCited{}
 }
 \seealso{
-Other Lens functions: 
+Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coordinates}()},
+\code{\link{calc_zenith_raster_coord}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},
@@ -96,4 +98,4 @@ Other Lens functions:
 \code{\link{test_lens_coef}()},
 \code{\link{zenith_image}()}
 }
-\concept{Lens functions}
+\concept{Lens Functions}

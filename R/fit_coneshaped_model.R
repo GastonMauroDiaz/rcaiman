@@ -13,13 +13,13 @@
 #' @param sky_points The \emph{data.frame} returned by \code{\link{extract_rl}},
 #'   or a \emph{data.frame} with the same structure and names.
 #' @param use_azimuth_angle Logical vector of length one. If \code{TRUE}, the
-#'   next equation (Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is
-#'   used: \eqn{sDN = a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot
-#'   sin(\phi) + e  \cdot cos(\phi)}, where \eqn{sDN} is sky digital number,
-#'   \eqn{a,b,c,d} and \eqn{e} are coefficients, \eqn{\theta} is zenith angle,
-#'   and \eqn{\phi} is azimuth angle. If \code{FALSE}, the next simplified
-#'   version based on \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN
-#'   = a + b \cdot \theta + c  \cdot \theta^2}.
+#'   Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is used: \eqn{sDN =
+#'   a + b \cdot \theta + c  \cdot \theta^2 + d  \cdot sin(\phi) + e  \cdot
+#'   cos(\phi)}, where \eqn{sDN} is sky digital number, \eqn{a,b,c,d} and
+#'   \eqn{e} are coefficients, \eqn{\theta} is zenith angle, and \eqn{\phi} is
+#'   azimuth angle. If \code{FALSE}, the next simplified version based on
+#'   \insertCite{Wagner2001;textual}{rcaiman} is used: \eqn{sDN = a + b \cdot
+#'   \theta + c  \cdot \theta^2}.
 #'
 #' @return A list of two objects, one of class \code{function} and the other of
 #'   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
@@ -27,7 +27,8 @@
 #'   azimuth in degrees-- to return relative luminance.
 #' @export
 #'
-#' @family Sky reconstruction functions
+#' @family Sky Reconstruction Functions
+#' @seealso \code{\link{thr_image}}
 #'
 #' @references \insertAllCited{}
 #'

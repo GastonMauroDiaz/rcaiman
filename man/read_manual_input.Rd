@@ -12,6 +12,11 @@ project folder.}
 
 \item{img_name}{Character vector of length one. See details.}
 }
+\value{
+A list of numeric vectors named as \emph{weight}, \emph{max_points},
+  \emph{angle}, \emph{point_radius}, \emph{sun_mark}, \emph{sky_marks} and
+  \emph{zenith_dn.}
+}
 \description{
 Read manual input stored in an HSP project.
 }
@@ -20,9 +25,12 @@ Refer to the Details section of this function:
 \code{\link{write_sky_points}}.
 }
 \seealso{
-Other hps functions: 
+Other HSP Functions: 
+\code{\link{extract_sun_coord}()},
 \code{\link{read_opt_sky_coef}()},
 \code{\link{row_col_from_zenith_azimuth}()},
+\code{\link{write_sky_points}()},
+\code{\link{write_sun_coord}()},
 \code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{hps functions}
+\concept{HSP Functions}
