@@ -78,12 +78,17 @@ calc_relative_radius <- function(angle, lens_coef) {
 #'
 #' Built a single layer image with zenith angles values.
 #'
-#' @param diameter Numeric vector of length one. Diameter in pixels.
+#'
+#' @param diameter Numeric vector of length one. Diameter in pixels expressed as
+#'   an even integer, so to simplify calculations by having the zenith point
+#'   located between pixels. Snapping the zenith point between pixels does not
+#'   affect accuracy because half-pixel is less than the uncertainty in
+#'   localizing the circle within the picture.
 #' @param lens_coef Numeric vector. Polynomial coefficients of the lens
 #'   projection function.
 #'
 #' @return An object of class \linkS4class{SpatRaster} of zenith angles in
-#'   degrees, showing a complete hemispherical view, with the zenith on the
+#'   degrees, showing a complete hemispherical view with the zenith on the
 #'   center.
 #' @export
 #'
@@ -96,6 +101,7 @@ zenith_image <- function (diameter, lens_coef)
 {
   # Assign zenith angle by inverting relative radius(R)
   # with a Look Up Table (LUT).
+  stopifnot(.is_integerish(diameter))
   stopifnot(.is_even(diameter))
 
   x <- relative_radius_image(diameter)

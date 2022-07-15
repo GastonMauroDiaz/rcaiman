@@ -39,7 +39,6 @@
 #' @export
 #' @family Binarization Functions
 #'
-#' @seealso \code{\link{thr_image}}
 #'
 #' @references \insertAllCited{}
 #'

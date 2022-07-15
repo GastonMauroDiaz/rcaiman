@@ -9,8 +9,8 @@
 #'   (270º) are flipped respecting to maps. To understand why is that, take two
 #'   flash-card size pieces of paper. Put one on a table in front of you and
 #'   draw on it a compass rose. Take the other and hold it with your arms
-#'   extended over your head, and, following the directions of the compass rose
-#'   in front of you, draw another compass rose in the paper side that face
+#'   extended over your head and, following the directions of the compass rose
+#'   in front of you, draw another one in the paper side that face
 #'   down. Then, put it down and compare both compass roses.
 #' @export
 #'

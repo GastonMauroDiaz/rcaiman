@@ -9,10 +9,14 @@
 
 .is_single_layer_raster <- function(r, name = "r") {
   # if (!(class(r) == "SpatRaster" & terra::nlyr(r) == 1))
-  if (!(is(r, "SpatRaster") & terra::nlyr(r) == 1))
-    stop(paste("The argument \"", name,
-                  "\" should be a single-layer object",
-                  "from the SpatRaster class."))
+  msn <- paste0("The argument \"", name,
+               "\" should be a single-layer object",
+               "from the SpatRaster class.")
+  if (!is(r, "SpatRaster")) {
+      stop(msn)
+    } else {
+      if (terra::nlyr(r) != 1)  stop(msn)
+    }
 }
 
 .check_if_r_z_and_a_are_ok <- function(r, z, a) {

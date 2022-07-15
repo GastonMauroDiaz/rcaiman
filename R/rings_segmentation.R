@@ -1,7 +1,7 @@
 #' Rings segmentation
 #'
-#' Segmenting an hemispherical view by slicing the zenith angle from \code{0} to
-#' \code{90º} in equals intervals.
+#' Segmenting an hemispherical view by slicing the zenith angle from zero to 90º
+#' in equals intervals.
 #'
 #' @inheritParams ootb_mblt
 #' @param angle_width Numeric vector of length one. Angle in degrees able to

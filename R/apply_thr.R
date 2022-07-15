@@ -8,7 +8,7 @@
 #' \linkS4class{SpatRaster} is provided as \code{thr} argument, then a
 #' particular threshold is applied to each particular pixel.
 #'
-#' @param r \linkS4class{SpatRaster}. Image to binarize.
+#' @param r \linkS4class{SpatRaster}. A greyscale image.
 #' @param thr Numeric vector of length one or \linkS4class{SpatRaster}.
 #'   Threshold.
 #'
