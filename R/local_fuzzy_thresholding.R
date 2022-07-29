@@ -26,11 +26,10 @@
 #'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
 #'   membership function. Use \code{NULL} to estimate it automatically with the
-#'   function \code{\link[autothresholdr]{auto_thresh}}, method
-#'   "IsoData".
-#' @param fuzziness Numeric vector of length one. This number is a constant that
-#'   scale \code{mem}. Use \code{NULL} to estimate it automatically as the
-#'   midpoint between the maximum and minimum values of \code{lightness}.
+#'   function \code{\link[autothresholdr]{auto_thresh}}, method "IsoData".
+#' @param fuzziness Numeric vector of length one. This number is a constant
+#'   value that scales \code{mem}. Use \code{NULL} to estimate it automatically
+#'   as the midpoint between the maximum and minimum values of \code{lightness}.
 #'
 #' @references \insertAllCited{}
 #'

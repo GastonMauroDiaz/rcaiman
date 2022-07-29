@@ -7,7 +7,7 @@
 apply_thr(r, thr)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. Image to binarize.}
+\item{r}{\linkS4class{SpatRaster}. A greyscale image.}
 
 \item{thr}{Numeric vector of length one or \linkS4class{SpatRaster}.
 Threshold.}
@@ -22,7 +22,7 @@ Global or local thresholding of images.
 \details{
 It is a wrapper function around the operator \code{>} from the ‘terra’
 package. If a single threshold value is provided as \code{thr} argument, it
-is applied to every pixel of the object \code{r}. If instead a
+is applied to every pixel of the object \code{r}. If, instead, a
 \linkS4class{SpatRaster} is provided as \code{thr} argument, then a
 particular threshold is applied to each particular pixel.
 }

@@ -7,14 +7,18 @@
 zenith_image(diameter, lens_coef)
 }
 \arguments{
-\item{diameter}{Numeric vector of length one. Diameter in pixels.}
+\item{diameter}{Numeric vector of length one. Diameter in pixels expressed as
+an even integer, so to simplify calculations by having the zenith point
+located between pixels. Snapping the zenith point between pixels does not
+affect accuracy because half-pixel is less than the uncertainty in
+localizing the circle within the picture.}
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
 projection function.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} of zenith angles in
-  degrees, showing a complete hemispherical view, with the zenith on the
+  degrees, showing a complete hemispherical view with the zenith on the
   center.
 }
 \description{

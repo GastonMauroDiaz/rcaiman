@@ -16,7 +16,7 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' pano <- fisheye_to_pano(caim, z, a, radius = 400)
+#' pano <- fisheye_to_pano(caim, z, a)
 #' plotRGB(pano)
 #' }
 fisheye_to_pano<- function(r, z, a, fun = mean, angle_width = 1) {

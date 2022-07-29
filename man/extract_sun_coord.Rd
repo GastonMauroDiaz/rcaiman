@@ -26,10 +26,10 @@ pure sky pixels.}
 establish the maximum size of the sun corona.}
 }
 \value{
-Object of class list with two elements named \emph{row_col} and
-  \emph{zenith_azimuth}, both are numeric vectors of length two. The former
-  is raster coordinates of the solar disk (row and column), and the other is
-  angular coordinates (zenith and azimuth angles in degrees).
+Object of class \emph{list} with two numeric vectors of length two
+  named \emph{row_col} and \emph{zenith_azimuth}. The former is raster
+  coordinates of the solar disk (row and column), and the other is angular
+  coordinates (zenith and azimuth angles in degrees).
 }
 \description{
 Extract the sun coordinates for CIE sky model fitting.
@@ -37,26 +37,25 @@ Extract the sun coordinates for CIE sky model fitting.
 \details{
 This function uses an object-based image analyze theoretical framework. The
 segmentation are given by \code{g} and \code{bin}. For every cell of
-\code{g}, the maximum value is calculated from the pixel on \code{r} that are
-equal to one on \code{bin}. Then, the 95th percentile of these maximum values
-is computed and it is used to filter out cells below that threshold; i.e,
-only the ones with at least one extremely bright sky pixel is keep.
+\code{g}, the pixels from \code{r} that are equal to one on \code{bin} are
+selected, and its maximum value is calculated. Then, the 95th percentile of
+these maximum values is computed and it is used to filter out cells below
+that threshold; i.e, only the cells with at least one extremely bright sky
+pixel is selected.
 
-After grouping the selected segments based on adjacency, the degree of
-membership to the class \emph{Sun} is calculated for every segment by using
-linear membership functions for the digital number from \code{r} and number
-of cells that constitute the segment. In other words, the brighteners and
-lagers segments are the ones that score higher. The one with the highest
-score is selected as the \emph{sun seed}.
+The selected cells are grouped based on adjacency, and new bigger segments
+are created from the groups. The degree of membership to the class \emph{Sun}
+is calculated for every new segment by computing the number of cells that
+constitute the segment and its mean digital number (values taken from
+\code{r}). In other words, the brightest and largest segments are the ones
+that score higher. The one with the highest score is selected as the
+\emph{sun seed}.
 
 The angular distance from the sun seed to every other segments are computed,
 and only the segments not farther than \code{max_angular_dist} are classified
 as part of the sun corona. A multi-part segment is created by merging the
 sun-corona segments and, finally, the center of its bounding box is
 considered as the sun location.
-
-The \code{bin} argument should be the same than for
-\code{\link{extract_sky_points}}.
 }
 \examples{
 \dontrun{

@@ -2,20 +2,20 @@
 #'
 #' Calculate the diameter in pixels of a 180º fisheye image.
 #'
-#' This function is useful to handle devices with field of view different than
-#' 180 degrees. Given a lens projection function and data points consisting of
-#' radii (pixels) and their correspondent zenith angle (\eqn{\theta}), it
-#' returns the radius of the horizon (i.e., the radius for \eqn{\theta} equal to
-#' 90 degrees).
+#' This function helps handle devices with a field of view different than 180
+#' degrees. Given a lens projection function and data points consisting of radii
+#' (pixels) and their correspondent zenith angle (\eqn{\theta}), it returns the
+#' radius of the horizon (i.e., the radius for \eqn{\theta} equal to 90
+#' degrees).
 #'
-#' It is particularly useful when working with non-circular hemispherical
-#' photography. It will help to find the diameter that a circular image would
-#' have if the equipment would record the whole hemisphere.
+#' When working with non-circular hemispherical photography, this function will
+#' help to find the diameter that a circular image would have if the equipment
+#' would record the whole hemisphere.
 #'
 #' The required data (radius-angle data) can be obtained following the
 #' instructions given in the
 #' \href{https://www.schleppi.ch/patrick/hemisfer/help/en/lens.htm}{user manual
-#' of Hemisfer software}.A slightly simpler alternative is to find a wall, draw
+#' of Hemisfer software}. A slightly simpler alternative is to find a wall, draw
 #' a triangle of \eqn{5 \times 4 \times 3} meters on the floor, with the 4-meter
 #' side over the wall. Locate the camera over the vertex that is 3 meters away
 #' from the wall. Place it at a given height above the floor, 1.3 meters for
@@ -36,8 +36,8 @@
 #'
 #' @family Lens Functions
 #'
-#' @return Numeric vector of length one. Diameter adjusted to a whole
-#'   number (see \code{\link{zenith_image}}.
+#' @return Numeric vector of length one. Diameter adjusted to a whole number
+#'   (see \code{\link{zenith_image}} for details about that constrain).
 #'
 #' @export
 #'

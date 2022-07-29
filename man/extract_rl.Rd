@@ -38,7 +38,7 @@ used to search for near zenith points.}
 }
 \value{
 A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
-  from the class numeric, and \emph{sky_points} from the class
+  from the class \emph{numeric}, and \emph{sky_points} from the class
   \emph{data.frame}; \emph{zenith_dn} is the estimated zenith digital number,
   \emph{max_zenith_angle} is the maximum zenith angle reached in the search
   for near-zenith sky points, and \emph{sky_points} is the input argument
@@ -52,11 +52,10 @@ A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
 Extract the luminance relative to the zenith digital number.
 }
 \details{
-To estimate the zenith digital number (zenith DN), the search for near-zenith
-points starts in the region  region ranged between \code{0} and \code{z_thr}.
-If the number of near zenith points is less than \code{no_of_points}, the
-region increase by \code{2} degrees of zenith angle till the required number
-of points is reached
+The search for near-zenith points starts in the region  ranged between
+\code{0} and \code{z_thr}. If the number of near zenith points is less than
+\code{no_of_points}, the region increase by steps of \code{2} degrees of
+zenith angle till the required number of points is reached.
 }
 \examples{
 \dontrun{

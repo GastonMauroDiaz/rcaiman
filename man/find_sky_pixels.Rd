@@ -15,9 +15,9 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
-\item{sample_size_pct}{Numeric vector of length one. Minimum sample size
-percentage required. The population is comprised of 1296 cells of \eqn{5
-\times 5} degrees.}
+\item{sample_size_pct}{Numeric vector of length one. Minimum percentage of
+cells to sample. The population is comprised of 1296 cells of \eqn{5 \times
+5} degrees.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
@@ -44,8 +44,8 @@ use it as a threshold to select the pure sky pixels from the given cell. As a
 result, a binarized image is produced in a regional binarization fashion
 (\code{\link{regional_thresholding}}). This process start with a quantile
 probability of 0.99. After producing the binarized image, this function use a
-search grid with cells of \eqn{5 \times 5} degrees to count in how many of
-these cells are at least one sky pixel (pixels equal to one in the binarized
+search grid with cells of \eqn{5 \times 5} degrees to count how many of
+these cells have at least one sky pixel (pixels equal to one in the binarized
 image). If the percentage of  cells with sky pixels does not reach argument
 \code{sample_size_pct}, it goes back to the binarization step but decreasing
 the probability by 0.01 points.

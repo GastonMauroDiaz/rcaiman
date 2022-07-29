@@ -97,6 +97,9 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' canceled. Please, see \code{\link{interpolate_sky_points}} for further
 #' considerations.
 #'
+#' If you use this function in your research, please cite
+#' \insertCite{Lang2010;textual}{rcaiman} in addition to this package.
+#'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #' @param zenith_dn Numeric vector of length 1. Zenith digital number, see
@@ -117,18 +120,18 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   disk.
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
 #'   for selecting the best sky model is to choose the one with lest root mean
-#'   square error calculated from the sample (sky marks). Otherwise, the
-#'   criteria is to evaluate the whole hemisphere by calculating the product
-#'   between the square ratio of \code{r} to the sky model and the fraction of
-#'   pixels from this new layer that are above one or below zero, and selecting
-#'   the sky model that produce the least value.
+#'   square error calculated by using \code{sky_points} as reference values.
+#'   Otherwise, the criteria is to evaluate the whole hemisphere by calculating
+#'   the product between the square ratio of \code{r} to the sky model and the
+#'   fraction of pixels from this new layer that are above one or below zero,
+#'   and selecting the sky model that produce the least value.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertAllCited{}
 #'
 #' @return The result include the output produced by \code{\link[bbmle]{mle2}},
-#'   the 5 model coefficients, observed and predicted values, the sun
-#'   coordinates (zenith and azimuth angle in degrees), the relative luminance
+#'   the 5 coefficients, observed and predicted values, the sun coordinates
+#'   (zenith and azimuth angle in degrees), the relative luminance image
 #'   calculated for every pixel using the estimated coefficients and
 #'   corresponding sun coordinate, the digital number at the zenith, and the
 #'   description of the standard sky from which the initial coefficients were

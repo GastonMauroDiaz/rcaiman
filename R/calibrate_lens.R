@@ -1,13 +1,12 @@
 #' Calibrate lens
 #'
 #' Calibrate a fisheye lens. This type of lens has wide field of view and a
-#' consistent azimuthal distortion so a precise mathematical relation can be fit
-#' between the distance to the zenith on the image space and the zenith angle on
-#' the hemispherical space.
+#' consistent azimuthal distortion. The latter property allows fitting a precise
+#' mathematical relation between the distance to the zenith on the image space
+#' and the zenith angle on the hemispherical space.
 #'
-#' If you cannot find the coefficient of your lens on the literature, you may
-#' want to try the solution offered here. It requires, in addition to this
-#' package and the open-source
+#' These are the instructions to produce the CSV file required by this function.
+#' The method requires, in addition to this package and the open-source
 #' \href{https://imagej.nih.gov/ij/download.html}{ImageJ software package}, the
 #' following materials:
 #'
@@ -30,16 +29,16 @@
 #'
 #' Cut the sheet by the dashed line. Place the yoga mat extended on top of the
 #' table. Place the sheet on top of the yoga mat. Align the dashed line with the
-#' yoga mat border closest to you, and place push pins on each cross. If you are
+#' yoga mat border closest to you. Place push pins on each cross. If you are
 #' gentle, the yoga mat will allows you to do that without damaging the table.
 #' Of course, other materials could be used to obtain the same result, such as
 #' cardboard, foam, nails, etc.
 #'
-#' Place the camera on the tripod, align its optical axis with the table while
+#' Place the camera on the tripod. Align its optical axis with the table while
 #' looking for getting an image showing the overlapping of the three pairs of
-#' push pins as instructed in the print. To take care of the line of pins at 90º
-#' relative to the optical axis it is better to use the naked eye to alight the
-#' front of the lens with the pins.
+#' push pins as instructed in the print. In order to take care of the line of
+#' pins at 90º relative to the optical axis, it may be better to use the naked
+#' eye to align the front of the lens with the pins.
 #'
 #' Transfer the photograph to the computer, open it with ImageJ, and use the
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
@@ -49,7 +48,7 @@
 #' This method was inspired by the calibration board from
 #' \insertCite{Clark1988;textual}{rcaiman}.
 #'
-#' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficient are OK.
+#' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are OK.
 #' If not, try moving the last points a little bit. Putting the last one a few
 #' pixels farther from the zenith is usually enough.
 #'

@@ -19,6 +19,12 @@ hemispherical image (i.e., the output).}
 \description{
 Fisheye to equidistant projection (also known as polar projection).
 }
+\details{
+There is no interpolation, so, depending on \code{radius} and how much
+different from the polar projection is the lens projection, \code{NA} values
+will be generated. As a rule of thumb, make the \code{radius} larger as long
+as it does not produce \code{NA} values on the regions to be analyzed.
+}
 \examples{
 \dontrun{
 caim <- read_caim()

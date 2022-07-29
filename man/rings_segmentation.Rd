@@ -21,8 +21,8 @@ An object from the class \linkS4class{SpatRaster} with segments
   shaped like concentric rings.
 }
 \description{
-Segmenting an hemispherical view by slicing the zenith angle from \code{0} to
-\code{90º} in equals intervals.
+Segmenting an hemispherical view by slicing the zenith angle from zero to 90º
+in equals intervals.
 }
 \examples{
 z <- zenith_image(1490, lens())

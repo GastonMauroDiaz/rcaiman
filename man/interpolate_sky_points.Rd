@@ -7,7 +7,7 @@
 interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
 }
 \arguments{
-\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
+\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
 or a \emph{data.frame} with the same structure and names.}
 
 \item{g}{\linkS4class{SpatRaster} built with

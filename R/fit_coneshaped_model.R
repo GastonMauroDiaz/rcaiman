@@ -1,6 +1,6 @@
 #' Fit cone-shaped model
 #'
-#' Statistical modelling to predict the digital numbers from spherical
+#' Statistical modeling to predict the digital numbers from spherical
 #' coordinates.
 #'
 #' An explanation of this model can be found on
@@ -8,9 +8,9 @@
 #' the sky DN as a previous step for our method}.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2018;textual}{rcaiman}.
+#' \insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 #'
-#' @param sky_points The \emph{data.frame} returned by \code{\link{extract_rl}},
+#' @param sky_points The \emph{data.frame} returned by \code{\link{extract_rl}}
 #'   or a \emph{data.frame} with the same structure and names.
 #' @param use_azimuth_angle Logical vector of length one. If \code{TRUE}, the
 #'   Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is used: \eqn{sDN =

@@ -34,14 +34,15 @@ delimited by \code{bin}. The density and distribution of the sampling points
 is controlled by the arguments \code{g}, \code{dist_to_plant}, and
 \code{min_raster_dist}.
 
-As first step, digital numbers from \code{r} covered by pixels values equal
-to one on the \code{bin} layer-- are evaluated to extract its maximum value
-per cell of \code{g}. The argument \code{dist_to_plant} allows users to
-establish a buffer zone for \code{bin}.
+As the first step, digital numbers from \code{r} covered by pixels values
+equal to one on the \code{bin} layer are evaluated to extract its maximum
+value per cell of \code{g}. The argument \code{dist_to_plant} allows users to
+establish a buffer zone for \code{bin}, meaning a size reduction of areas
+with pixels values equal to one.
 
-The final step filters these local maximum using the \code{min_raster_dist}
-argument as a minimum distance threshold between points that is applied in
-the raster space.
+The final step filters these local maximum values using the
+\code{min_raster_dist} argument as a minimum distance threshold between
+points that is applied in the raster space.
 
 Using code \code{NULL} as argument skip the filtering step in question.
 }

@@ -75,8 +75,6 @@ plot(bin)
 \insertAllCited{}
 }
 \seealso{
-\code{\link{thr_image}}
-
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
 \code{\link{find_sky_pixels_nonnull}()},

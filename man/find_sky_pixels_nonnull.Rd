@@ -18,7 +18,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
 
-\item{slope}{Numeric vector of length one. Please, see the Details section of
+\item{slope}{Numeric vector of length one. See section Details in
 \code{\link{thr_image}}.}
 }
 \value{
@@ -26,14 +26,14 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
-Find sky pixels by using the increase in the number of cells having no sky
-pixels (the so-called null cells) as an stopping criteria.
+Find sky pixels using the increase in the number of cells having no sky
+pixels (the so-called null cells) as stopping criteria.
 }
 \details{
 The arguments \code{sky} and \code{slope} is passed to
-\code{\link{thr_image}}, which result is in turn passed to
+\code{\link{thr_image}}, which output is in turn passed to
 \code{\link{apply_thr}} along with \code{r}. As a result, \code{r} is
-binarized and used along with \code{g}, to compute the number of null cells.
+binarized and used along with \code{g} to compute the number of null cells.
 The process is repeated but increasing \code{slope} in steps of 0.05 as long
 as the number of null cells remains constant.
 }

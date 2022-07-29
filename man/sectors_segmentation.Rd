@@ -21,8 +21,8 @@ An object from the class \linkS4class{SpatRaster} with segments
   shaped like pizza slices.
 }
 \description{
-Segmenting an hemispherical view by slicing the azimuth angle from \code{0}
-to \code{360º} in equals intervals.
+Segmenting an hemispherical view by slicing the azimuth angle from zero
+to 360º in equals intervals.
 }
 \examples{
 z <- zenith_image(1490, lens())

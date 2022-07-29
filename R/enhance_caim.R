@@ -19,6 +19,10 @@
 #' The argument \code{sky_blue} is the \code{target_color} of the former
 #' function, which output is the argument \code{mem} of the latter function.
 #'
+#' The argument \code{sky_blue} can be obtained from a photograph that clearly
+#' shows the sky. Then, it can be used to process all the others from the same
+#' equipment and data format.
+#'
 #' The \code{gamma} argument, along with \code{\link{gbc}}, is used to
 #' back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
 #'

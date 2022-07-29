@@ -36,7 +36,7 @@ Extract features from raster images.
 }
 \details{
 Given a single layer raster, a segmentation, and a function,
-\code{extract_features} will returns a numeric vector or a
+\code{extract_features} will return a numeric vector or a
 \linkS4class{SpatRaster} depending on whether the parameter
 \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each
 pixel of each segment will adopt the respective extracted feature value. For

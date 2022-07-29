@@ -7,7 +7,7 @@
 fit_coneshaped_model(sky_points, use_azimuth_angle = TRUE)
 }
 \arguments{
-\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}},
+\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
 or a \emph{data.frame} with the same structure and names.}
 
 \item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE}, the
@@ -26,7 +26,7 @@ A list of two objects, one of class \code{function} and the other of
   azimuth in degrees-- to return relative luminance.
 }
 \description{
-Statistical modelling to predict the digital numbers from spherical
+Statistical modeling to predict the digital numbers from spherical
 coordinates.
 }
 \details{
@@ -35,7 +35,7 @@ An explanation of this model can be found on
 the sky DN as a previous step for our method}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2018;textual}{rcaiman}.
+\insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{

@@ -31,12 +31,11 @@ blue is the complement of \code{w_red}.}
 
 \item{thr}{Numeric vector of length one. Location parameter of the logistic
 membership function. Use \code{NULL} to estimate it automatically with the
-function \code{\link[autothresholdr]{auto_thresh}}, method
-"IsoData".}
+function \code{\link[autothresholdr]{auto_thresh}}, method "IsoData".}
 
-\item{fuzziness}{Numeric vector of length one. This number is a constant that
-scale \code{mem}. Use \code{NULL} to estimate it automatically as the
-midpoint between the maximum and minimum values of \code{lightness}.}
+\item{fuzziness}{Numeric vector of length one. This number is a constant
+value that scales \code{mem}. Use \code{NULL} to estimate it automatically
+as the midpoint between the maximum and minimum values of \code{lightness}.}
 
 \item{gamma}{Numeric vector of length one. This is for applying a gamma back
 correction to the lightness information (see Details and argument
@@ -67,6 +66,10 @@ membership to values above \code{thr}. The algorithm internally uses
 \code{\link{membership_to_color}} and \code{\link{local_fuzzy_thresholding}}.
 The argument \code{sky_blue} is the \code{target_color} of the former
 function, which output is the argument \code{mem} of the latter function.
+
+The argument \code{sky_blue} can be obtained from a photograph that clearly
+shows the sky. Then, it can be used to process all the others from the same
+equipment and data format.
 
 The \code{gamma} argument, along with \code{\link{gbc}}, is used to
 back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
