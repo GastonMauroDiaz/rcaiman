@@ -4,20 +4,22 @@
 \alias{write_sun_coord}
 \title{Write sun coordinates}
 \usage{
-write_sun_coord(x, path_to_HSP_project, img_name)
+write_sun_coord(sun_coord, path_to_HSP_project, img_name)
 }
 \arguments{
-\item{x}{Numeric vector of length two. Raster coordinates of the solar disk
-that can be obtained by calling to \code{\link{extract_sun_coord}}.
-\strong{TIP}: if the output of \code{extrac_sun_coord()} is
-\code{sun_coord}, then you should provide to \code{write_sun_coord()} this:
-\code{sun_coord$row_col}. See also
+\item{sun_coord}{Numeric vector of length two. Raster coordinates of the
+solar disk that can be obtained by calling to
+\code{\link{extract_sun_coord}}. \strong{TIP}: if the output of
+\code{extrac_sun_coord()} is \code{sun_coord}, then you should provide to
+\code{write_sun_coord()} this: \code{sun_coord$row_col}. See also
 \code{\link{row_col_from_zenith_azimuth}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
-project folder.}
+project folder. For instance,
+"C:/Users/johndoe/Documents/HSP/Projects/my_prj/".}
 
-\item{img_name}{Character vector of length one. See details.}
+\item{img_name}{Character vector of length one. For instance, "DSCN6342.pgm"
+or "DSCN6342". See details.}
 }
 \value{
 None. A file will be written in the HSP project folder.
@@ -26,8 +28,7 @@ None. A file will be written in the HSP project folder.
 Create a special file to interface with the HSP software.
 }
 \details{
-Refer to the Details section of this function:
-\code{\link{write_sky_points}}.
+Refer to the Details section of function \code{\link{write_sky_points}}.
 }
 \seealso{
 Other HSP Functions: 

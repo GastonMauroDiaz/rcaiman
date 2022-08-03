@@ -4,16 +4,18 @@
 \alias{write_sky_points}
 \title{Write sky points}
 \usage{
-write_sky_points(x, path_to_HSP_project, img_name)
+write_sky_points(sky_points, path_to_HSP_project, img_name)
 }
 \arguments{
-\item{x}{An object of the class \emph{data.frame}. The result of a calling to
-\code{\link{extract_sky_points}}.}
+\item{sky_points}{An object of the class \emph{data.frame}. The result of a
+calling to \code{\link{extract_sky_points}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
-project folder.}
+project folder. For instance,
+"C:/Users/johndoe/Documents/HSP/Projects/my_prj/".}
 
-\item{img_name}{Character vector of length one. See details.}
+\item{img_name}{Character vector of length one. For instance, "DSCN6342.pgm"
+or "DSCN6342". See details.}
 }
 \value{
 None. A file will be written in the HSP project folder.
@@ -26,19 +28,23 @@ This function is part of a workflow that connects this package with the HSP
 software package \insertCite{Lang2013}{rcaiman}.
 
 This function was designed to be called after
-\code{\link{extract_sky_points}}, and is part of a workflow that connects the
-MBLT algorithm with the HSP software package. In such a workflow, the
-\code{r} argument provided to \code{\link{extract_sky_points}} should be an
-image pre-processed by the HSP software. Those images are stored as PGM files
-by HSP in the subfolder "manipulate" of the project folder (which will be in
-turn a subfolder of the "project\strong{s}" folder). Those PGM files can be
-read with \code{\link[terra]{rast}}. For instance: \code{r <-
-rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")}.
-Then, they will be ready for use as input after running
-\code{normalize(r)}.
+\code{\link{extract_sky_points}}. The \code{r} argument provided to
+\code{\link{extract_sky_points}} should be an image pre-processed by the HSP
+software. Those images are stored as PGM files in the subfolder "manipulate"
+of the project folder (which will be in turn a subfolder of the
+"project\strong{s}" folder). Those PGM files can be read with
+\code{\link[terra]{rast}}, as it is shown below.
+
+\preformatted{
+r <- rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")
+ext(r) <- ext(0,ncol(r),0,nrow(r))
+crs(r) <- crs(read_caim())
+r <- normalize(r)
+}
 
 The \code{img_name} argument of \code{write_sky_points()} should be the name
-of the file associated to the aforementioned \code{r} argument.
+of the file associated to the aforementioned \code{r} argument. Following the
+example, it should be "img01.pgm".
 }
 \references{
 \insertAllCited{}

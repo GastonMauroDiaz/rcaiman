@@ -22,8 +22,9 @@ pure sky pixels.}
 \item{segmentation}{\linkS4class{SpatRaster} built with
 \code{\link{polar_qtree}}.}
 
-\item{gf_mn, gf_mx}{Numeric vector of length one. The minimum/maximum gap fraction that a
-segment should have to be considered as one containing foliage.}
+\item{gf_mn, gf_mx}{Numeric vector of length one. The minimum/maximum gap
+fraction that a segment should comply with to be considered as one
+containing foliage.}
 }
 \value{
 \linkS4class{SpatRaster}. An improved version of \code{bin}.
@@ -32,22 +33,23 @@ segment should have to be considered as one containing foliage.}
 This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 This version is simpler since it relies on a better working binarized image.
 The version from 2015 uses an automatic selection of samples followed by a
-knn classification of segments containing foliage. This version uses de gap
-fraction extracted from \code{bin} to classify \emph{foliage} by defining
-upper and lower limits through the arguments \code{gf_mx} and \code{gf_mn}.
+\emph{knn} classification of segments containing foliage. This version uses
+de gap fraction extracted from \code{bin} to classify \emph{foliage} by
+defining upper and lower limits through the arguments \code{gf_mx} and
+\code{gf_mn}.
 }
 \details{
-This method produce a synthetic layer by computing the ratio of \code{r} to
+This method produces a synthetic layer by computing the ratio of \code{r} to
 the maximum value of \code{r} at the segment level. This process is carried
-out only on the pixels covered by the classes \emph{foliage} and \emph{sky}
---\code{bin} equal to one. To avoid spurious values, the quantile
-\code{0.9} is computed instead of the maximum. Pixels from the synthetic
-layer comprised between \code{0} an \code{1} are binarized following two
-criteria in such a way that to be turned plant on \code{bin} (i.e, to be
-assigned as \code{0}) it have to be \code{0} under both criteria. Those
-criteria are \code{defuzzify} with a sky grid segmentation of \code{10}
-degrees and \code{apply_thr} with a threshold equal to \code{0.5}. In
-addition, it cannot be exclusively surrounded by sky pixels.
+out only on the pixels covered by the classes \emph{foliage} and \emph{sky};
+the latter is defined by bin equal to one. To avoid spurious values, the
+quantile \code{0.9} is computed instead of the maximum. Pixels from the
+synthetic layer between \code{0} and \code{1} are binarized by following two
+criteria, i.e., to assign a pixel to the class \emph{plant} it has to be
+\code{0} under both criteria. Those criteria are (1) \code{defuzzify} with a
+sky grid segmentation of \code{10} degrees and (2) \code{apply_thr} with a
+threshold of \code{0.5}. In addition, to be \emph{plant}, the pixel cannot be
+exclusively surrounded by sky pixels.
 }
 \examples{
 \dontrun{

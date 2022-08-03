@@ -17,7 +17,8 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
-Given a zenith or azimuth image and angle restrictions, it produces a mask.
+Given a zenith or azimuth image and angle restrictions, this function
+produces a mask.
 }
 \examples{
 \dontrun{

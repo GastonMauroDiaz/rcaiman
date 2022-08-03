@@ -20,7 +20,7 @@
 #' calculations.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015;textual}{rcaiman}.
+#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 #'
 #' @inheritParams expand_noncircular
 #' @param target_color \linkS4class{color}.

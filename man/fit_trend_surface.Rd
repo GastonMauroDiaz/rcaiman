@@ -22,12 +22,12 @@ pure sky pixels.}
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
 of \code{r}. If an incomplete above-canopy image is available, non-sky
-pixels should be turned \code{NA} or they will be erroneously considered as
-sky pixels. A photograph taken immediately after or before taking \code{r}
+pixels should be turned \code{NA} or they will be considered as sky pixels
+erroneously. A photograph taken immediately after or before taking \code{r}
 under the open sky with the same equipment and configuration is a very good
 option but not recommended under fleeting clouds. The orientation relative
-to the North must be the same than for \code{r}. If it is set to
-\code{NULL} (default), only sky pixels from \code{r} will be used as input.}
+to the North must be the same as for \code{r}. If it is set to \code{NULL}
+(default), only sky pixels from \code{r} will be used as input.}
 
 \item{np}{
 degree of polynomial surface
@@ -50,7 +50,7 @@ the sky DN as a previous step for our method}, after the explanation of the
 \code{\link{fit_coneshaped_model}}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2018;textual}{rcaiman}.
+\insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{
@@ -81,6 +81,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fix_reconstructed_sky}()},
-\code{\link{interpolate_sky_points}()}
+\code{\link{interpolate_sky_points}()},
+\code{\link{ootb_sky_reconstruction}()}
 }
 \concept{Sky Reconstruction Functions}

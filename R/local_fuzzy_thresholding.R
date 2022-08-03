@@ -14,7 +14,7 @@
 #' \code{thr} and \code{fuzziness}.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015;textual}{rcaiman}.
+#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 #'
 #'
 #' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image (see

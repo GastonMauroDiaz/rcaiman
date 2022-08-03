@@ -7,7 +7,7 @@
 read_bin(path)
 }
 \arguments{
-\item{path}{One-length character vector. Path to a binarized image.}
+\item{path}{Character vector of length one. Path to a binarized image.}
 }
 \value{
 An object from class \linkS4class{SpatRaster}.

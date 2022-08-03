@@ -37,6 +37,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{fix_reconstructed_sky}()},
-\code{\link{interpolate_sky_points}()}
+\code{\link{interpolate_sky_points}()},
+\code{\link{ootb_sky_reconstruction}()}
 }
 \concept{Sky Reconstruction Functions}

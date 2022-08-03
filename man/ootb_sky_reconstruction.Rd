@@ -4,7 +4,7 @@
 \alias{ootb_sky_reconstruction}
 \title{Out-of-the-box sky reconstruction}
 \usage{
-ootb_sky_reconstruction(r, z, a, bin = NULL, filling_source = NULL)
+ootb_sky_reconstruction(r, z, a, bin, filling_source = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -22,32 +22,25 @@ pure sky pixels.}
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
 of \code{r}. If an incomplete above-canopy image is available, non-sky
-pixels should be turned \code{NA} or they will be erroneously considered as
-sky pixels. A photograph taken immediately after or before taking \code{r}
+pixels should be turned \code{NA} or they will be considered as sky pixels
+erroneously. A photograph taken immediately after or before taking \code{r}
 under the open sky with the same equipment and configuration is a very good
 option but not recommended under fleeting clouds. The orientation relative
-to the North must be the same than for \code{r}. If it is set to
-\code{NULL} (default), only sky pixels from \code{r} will be used as input.}
+to the North must be the same as for \code{r}. If it is set to \code{NULL}
+(default), only sky pixels from \code{r} will be used as input.}
 }
 \description{
 Build an above canopy image from a single below canopy image.
 }
 \details{
 This function is a hard-coded version of a pipeline that uses these main
-functions: \code{\link{ootb_mblt}}, \code{\link{fit_cie_sky_model}}, and
+functions, \code{\link{fit_cie_sky_model}} and
 \code{\link{interpolate_sky_points}}. The code can be easily inspected by
 calling \code{ootb_sky_reconstruction} --no parenthesis. Advanced users could
 use that code as a template.
 
-This pipeline is based on these two studies:
-\insertCite{Lang2010;textual}{rcaiman} and
-\insertCite{Diaz2018;textual}{rcaiman}.
-
-Details about how the original method by
-\insertCite{Diaz2018;textual}{rcaiman} was adapted can be read here
-\code{\link{ootb_mblt}}.
-
-The main differences between the original method by
+This pipeline is based on \insertCite{Lang2010;textual}{rcaiman}. The main
+differences between the original method by
 \insertCite{Lang2010;textual}{rcaiman} and the one implemented here are:
 
 \itemize{
@@ -65,33 +58,62 @@ weighted average parameterized by the user.
 
 The recommended input for this function is data pre-processed with the HSP
 software package \insertCite{Lang2013}{rcaiman}. Please, refer to
-\code{link{write_sky_points}} for additional details about HSP and refer to
+\code{\link{write_sky_points}} for additional details about HSP and refer to
 \code{\link{fit_cie_sky_model}} and \code{\link{interpolate_sky_points}} to
 know why the HSP pre-processing is convenient.
 
-A binarized image can be provided trough the \code{bin} argument. In that
-case, \code{\link{ootb_mblt}} will not be used.
 
-Providing a \code{filling source} trigger an alternative pipeline in which
+Providing a \code{filling source} triggers an alternative pipeline in which
 the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
-after a dense sampling (\eqn{1 \times 1} degree cells) supported by the fact
-that sky digital numbers wil be available for every pixel, either from
-\code{r} gaps or from the filling source --an exception is a filling source
-with plenty of \code{NA} values.
+after a dense sampling (\eqn{1 \times 1} degree cells), which is supported by
+the fact that sky digital numbers will be available for almost every pixel,
+either from \code{r} gaps or from the filling source --an exception is a
+filling source with plenty of \code{NA} values.
 }
 \examples{
 \dontrun{
+#JPEG file
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-sky <- ootb_sky_reconstruction(r, z, a)
+bin <- ootb_mblt(r, z, a)
+bin <- bin$bin & mask_hs(z, 0, 80)
+sky <- ootb_sky_reconstruction(r, z, a, bin)
 plot(sky)
-ratio <- r / sky
+ratio <- r/sky
 plot(ratio)
 hist(ratio)
+
+#preprocessed with HSP
+path <- system.file("external/DSCN6342.pgm", package = "rcaiman")
+r <- rast(path)
+ext(r) <- ext(0,ncol(r),0,nrow(r))
+crs(r) <- crs(read_caim())
+r <- normalize(r)
+z <- zenith_image(ncol(r), lens())
+a <- azimuth_image(z)
+bin <- find_sky_pixels(r, z, a)
+sky <- ootb_sky_reconstruction(r, z, a, bin)
+sky <- ootb_sky_reconstruction(r, z, a, bin, sky)
+ratio <- r/sky
+ratio[is.na(ratio)] <- 0
+ratio <- normalize(ratio, force_range = TRUE)
+plot(ratio)
+g <- sky_grid_segmentation(z, a, 15)
+plot(defuzzify(ratio, g))
 }
 }
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other Sky Reconstruction Functions: 
+\code{\link{cie_sky_model_raster}()},
+\code{\link{fit_cie_sky_model}()},
+\code{\link{fit_coneshaped_model}()},
+\code{\link{fit_trend_surface}()},
+\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_sky_points}()}
+}
+\concept{Sky Reconstruction Functions}

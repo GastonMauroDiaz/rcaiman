@@ -22,7 +22,7 @@ An object of class \linkS4class{SpatRaster} of zenith angles in
   center.
 }
 \description{
-Built a single layer image with zenith angles values.
+Built a single layer image with zenith angle values.
 }
 \examples{
 z <- zenith_image(1490, lens("Nikon_FCE9"))

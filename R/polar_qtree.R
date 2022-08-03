@@ -1,12 +1,13 @@
-#' Quad-tree segmentation in a polar space
+#' Quad-tree segmentation in the polar space
 #'
 #' The quad-tree segmentation algorithm is a top-down process that makes
 #' recursive divisions in four equal parts until a condition is satisfied and
 #' then stops locally. The usual implementation of the quad-tree algorithm is
 #' based on the raster structure and this is why the result are squares of
 #' different sizes. This method implements the quad-tree segmentation in a polar
-#' space, so the segments are shaped like windshields (please see
-#' \code{\link{sky_grid_segmentation}}).
+#' space, so the segments are shaped like windshields, though some of them will
+#' look elongated in height. The pattern is two opposite and converging straight
+#' sides and two opposite and parallel curvy sides.
 #'
 #' The algorithm splits segments of 30 degrees resolution into four sub-segments
 #' and calculates the standard deviation of the pixels from \code{r} delimited
@@ -21,9 +22,8 @@
 #' @inheritParams ootb_mblt
 #' @param scale_parameter Numeric vector of length one. Quad-tree is a top-down
 #'   method. This parameter controls the stopping condition. Therefore, it
-#'   allows the user to controls the size of the resulting segments. Ultimately,
-#'   segments sizes will depend on the heterogeneity of \code{r} and this
-#'   parameter.
+#'   allows controlling the size of the resulting segments. Ultimately, segments
+#'   sizes will depend on both this parameter and the heterogeneity of \code{r}.
 #'
 #' @export polar_qtree
 #'

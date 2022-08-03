@@ -29,7 +29,7 @@
 #' fitting (\code{\link{fit_trend_surface}}).
 #'
 #' \item  \code{\link{find_sky_pixels_nonnull}} is used to update the first
-#' working binarized image.
+#' working binarized image, after \code{\link{fit_coneshaped_model}}.
 #'
 #' }
 #'
@@ -46,7 +46,7 @@
 #' open forests for the same working principle.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2018;textual}{rcaiman}.
+#' \insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 #'
 #' @param r \linkS4class{SpatRaster}. A normalized greyscale image. Typically,
 #'   the blue channel extracted from an hemispherical photograph. Please see
@@ -59,7 +59,7 @@
 #'
 #' @export
 #' @family Binarization Functions
-#' @seealso thr_image
+#' @seealso \code{\link{thr_image}}
 #'
 #' @return Object from class list containing the binarized image (named
 #'   \emph{bin}) and the reconstructed skies (named \emph{sky_cs} and
@@ -83,13 +83,17 @@ ootb_mblt <- function(r, z, a, bin = NULL) {
   if (is.null(bin)) {
     bin <- find_sky_pixels(r, z, a)
   }
-
   g <- sky_grid_segmentation(z, a, 10)
   sky_points <- extract_sky_points(r, bin, g)
   sky_points <- extract_rl(r, z, a, sky_points, NULL)
   model <- fit_coneshaped_model(sky_points$sky_points)
-  sky_cs <- model$fun(z, a)
-  bin <- find_sky_pixels_nonnull(r, sky_cs, g)
+  if (is.null(model)) {
+    sky_cs <- z
+    terra::values(sky_cs) <- median(sky_points$sky_points$dn)
+  } else {
+    sky_cs <- model$fun(z, a)
+    bin <- find_sky_pixels_nonnull(r, sky_cs, g)
+  }
 
   sky_s <- fit_trend_surface(r, z, a, bin,
                              filling_source = sky_cs,

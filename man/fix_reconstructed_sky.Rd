@@ -16,7 +16,7 @@ fix_reconstructed_sky(sky, z, r, bin)
 \code{sky}.}
 
 \item{bin}{\linkS4class{SpatRaster}. The binarization of \code{r} used to
-select the sky DNs for building \code{sky}.}
+select the sky DNs for building the \code{sky} argument.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}. The argument \code{sky}
@@ -32,11 +32,11 @@ The predicted sky DNs are usually erroneous near the horizon because either
 they are a misleading extrapolation or are based on corrupted data (non-pure
 sky DNs).
 
-This automatic edition consists of (1) flattening values below the minimum
-input data (2) and forcing the values toward the horizon to gradually become
-the median input data. The latter is achieved by calculating the weighted
-average of the median value and the predicted sky DNs --the ratio of \code{z}
-to \code{90} is used to determine the weights.
+The proposed automatic edition consists of (1) flattening the values below
+the minimum input data (2) and forcing the values toward the horizon to
+become gradually the median input data. The latter is achieved by calculating
+the weighted average of the median value and the predicted sky DNs, using the
+ratio of \code{z} to \code{90} to determine the weights.
 }
 \examples{
 \dontrun{
@@ -61,6 +61,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{interpolate_sky_points}()}
+\code{\link{interpolate_sky_points}()},
+\code{\link{ootb_sky_reconstruction}()}
 }
 \concept{Sky Reconstruction Functions}

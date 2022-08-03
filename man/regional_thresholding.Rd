@@ -26,8 +26,7 @@ for fisheye images.}
 options.}
 
 \item{intercept, slope}{Numeric vector of length one. These are linear
-function coefficients. Please, see the Details section of
-\code{\link{thr_image}}.}
+function coefficients --see section Details in \code{\link{thr_image}}.}
 
 \item{prob}{Numeric vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation.}

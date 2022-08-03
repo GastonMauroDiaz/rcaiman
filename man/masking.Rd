@@ -18,7 +18,7 @@ color.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that essentially is
-  \code{r} with the areas delimited by \code{m} painted in a solid color. If
+  \code{r} with areas delimited by \code{m} painted in a solid color. If
   \code{r} is a single layer image, then the layer is triplicated to allow
   the use of color.
 }

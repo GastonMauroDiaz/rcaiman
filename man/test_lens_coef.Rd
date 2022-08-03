@@ -15,7 +15,7 @@ Returns \code{invisible(TRUE)} and print "Test passed" if all tests
   pass, otherwise throws an error.
 }
 \description{
-Test that lens projection function works between the 0-to-1 range.
+Test if a lens projection function will work between the 0-to-1 range.
 }
 \examples{
 test_lens_coef(lens("Nikon_FCE9"))

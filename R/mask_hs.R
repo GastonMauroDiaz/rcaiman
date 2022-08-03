@@ -1,6 +1,7 @@
 #' Mask hemisphere
 #'
-#' Given a zenith or azimuth image and angle restrictions, it produces a mask.
+#' Given a zenith or azimuth image and angle restrictions, this function
+#' produces a mask.
 #'
 #' @param r \linkS4class{SpatRaster} built with \code{\link{zenith_image}} or
 #'   \code{\link{azimuth_image}}.

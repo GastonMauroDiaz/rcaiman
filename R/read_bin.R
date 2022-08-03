@@ -2,7 +2,7 @@
 #'
 #' Wrapper functions for \code{\link[terra]{rast}}.
 #'
-#' @param path One-length character vector. Path to a binarized image.
+#' @param path Character vector of length one. Path to a binarized image.
 #'
 #' @export
 #'

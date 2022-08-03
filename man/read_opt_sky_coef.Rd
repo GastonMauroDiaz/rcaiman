@@ -8,9 +8,11 @@ read_opt_sky_coef(path_to_HSP_project, img_name)
 }
 \arguments{
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
-project folder.}
+project folder. For instance,
+"C:/Users/johndoe/Documents/HSP/Projects/my_prj/".}
 
-\item{img_name}{Character vector of length one. See details.}
+\item{img_name}{Character vector of length one. For instance, "DSCN6342.pgm"
+or "DSCN6342". See details.}
 }
 \value{
 Numeric vector of length five.
@@ -19,7 +21,7 @@ Numeric vector of length five.
 Read optimized CIE sky coefficients stored in an HSP project.
 }
 \details{
-Refer to the Details section of this function:
+Refer to the Details section of function
 \code{\link{write_sky_points}}.
 }
 \seealso{

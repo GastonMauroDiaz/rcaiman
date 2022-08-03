@@ -3,15 +3,15 @@
 #' Transform background digital number into threshold values.
 #'
 #' This function transforms background digital number into threshold values by
-#' means of the Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman},
-#' which is a linear function with the slope modified by a weighting parameter.
-#' This simple function was found by studying canopy models, also known as
-#' targets, which are planes with holes made of a rigid and dark material. These
-#' models were backlighted with homogeneous lighting, photographed with a Nikon
-#' Coolpix 5700 set to acquire in JPEG format, and those images were gamma back
+#' means of the Equation 1 from \insertCite{Diaz2018;textual}{rcaiman}, which is
+#' a linear function with the slope modified by a weighting parameter. This
+#' simple function was found by studying canopy models, also known as targets,
+#' which are perforated surfaces made of a rigid and dark material. These models
+#' were backlighted with homogeneous lighting, photographed with a Nikon Coolpix
+#' 5700 set to acquire in JPEG format, and those images were gamma back
 #' corrected with a default gamma value equal to 2.2 (see \code{\link{gbc}}).
 #' Results clearly shown that the optimal threshold value was linearly related
-#' with the background digital number. Therefore, that shifts the aim from
+#' with the background digital number; and so, therefore, shifting the aim from
 #' finding the optimal threshold to obtaining the background DN as if the canopy
 #' was not there. Functions \code{\link{fit_coneshaped_model}} and
 #' \code{\link{fit_trend_surface}} address that topic.
@@ -32,8 +32,7 @@
 #'   background. These values should be normalized and, if they are extracted
 #'   from JPEG image, gamma back corrected.
 #' @param intercept,slope Numeric vector of length one. These are linear
-#'   function coefficients. Please, see the Details section of
-#'   \code{\link{thr_image}}.
+#'   function coefficients --see section Details in \code{\link{thr_image}}.
 #'
 #' @export
 #'

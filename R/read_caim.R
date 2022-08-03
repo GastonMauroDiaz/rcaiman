@@ -28,7 +28,7 @@
 #' @param width,height An integer vector of length one.
 #'
 #' @return An object from class \linkS4class{SpatRaster} with its layers named
-#'   Red, Green, and Blue.
+#'   \emph{Red}, \emph{Green}, and \emph{Blue}.
 #' @export
 #' @family Tools Functions
 #'

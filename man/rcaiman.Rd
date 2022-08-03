@@ -6,8 +6,8 @@
 \title{rcaiman: An R package for CAnopy IMage ANalysis}
 \description{
 Solutions for binarizing canopy images, particularly hemispherical
-photographs, including non-circular ones, such as the ones from
-Smartphone-based hemispherical photography.
+photographs, including non-circular ones, such as certain pictures taken with
+auxiliary fisheye lens attached to smartphones.
 }
 \section{Binarization}{
  \code{\link{apply_thr}}, \code{\link{defuzzify}},

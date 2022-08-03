@@ -23,7 +23,7 @@ are provided.}
 }
 \value{
 An object from class \linkS4class{SpatRaster} with its layers named
-  Red, Green, and Blue.
+  \emph{Red}, \emph{Green}, and \emph{Blue}.
 }
 \description{
 Wrapper function for \code{\link[terra]{rast}}.

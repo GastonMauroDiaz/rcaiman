@@ -8,11 +8,11 @@
 #' they are a misleading extrapolation or are based on corrupted data (non-pure
 #' sky DNs).
 #'
-#' This automatic edition consists of (1) flattening values below the minimum
-#' input data (2) and forcing the values toward the horizon to gradually become
-#' the median input data. The latter is achieved by calculating the weighted
-#' average of the median value and the predicted sky DNs --the ratio of \code{z}
-#' to \code{90} is used to determine the weights.
+#' The proposed automatic edition consists of (1) flattening the values below
+#' the minimum input data (2) and forcing the values toward the horizon to
+#' become gradually the median input data. The latter is achieved by calculating
+#' the weighted average of the median value and the predicted sky DNs, using the
+#' ratio of \code{z} to \code{90} to determine the weights.
 #'
 #' @param sky \linkS4class{SpatRaster}. Sky DNs predicted with functions such as
 #'   \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
@@ -20,7 +20,7 @@
 #' @param r \linkS4class{SpatRaster}. The source of the sky DNs used to build
 #'   \code{sky}.
 #' @param bin \linkS4class{SpatRaster}. The binarization of \code{r} used to
-#'   select the sky DNs for building \code{sky}.
+#'   select the sky DNs for building the \code{sky} argument.
 #'
 #' @family Sky Reconstruction Functions
 #'

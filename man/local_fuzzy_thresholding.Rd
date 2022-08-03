@@ -48,7 +48,7 @@ Argument \code{m} can be used to affect the automatic estimation of
 \code{thr} and \code{fuzziness}.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2015;textual}{rcaiman}.
+\insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{

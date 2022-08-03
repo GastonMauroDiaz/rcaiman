@@ -1,8 +1,8 @@
 #' rcaiman: An R package for CAnopy IMage ANalysis
 #'
 #' Solutions for binarizing canopy images, particularly hemispherical
-#' photographs, including non-circular ones, such as the ones from
-#' Smartphone-based hemispherical photography.
+#' photographs, including non-circular ones, such as certain pictures taken with
+#' auxiliary fisheye lens attached to smartphones.
 #'
 #' @section Binarization: \code{\link{apply_thr}}, \code{\link{defuzzify}},
 #'   \code{\link{find_sky_pixels_nonnull}}, \code{\link{find_sky_pixels}},

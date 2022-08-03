@@ -76,7 +76,7 @@ calc_relative_radius <- function(angle, lens_coef) {
 
 #' Zenith image
 #'
-#' Built a single layer image with zenith angles values.
+#' Built a single layer image with zenith angle values.
 #'
 #'
 #' @param diameter Numeric vector of length one. Diameter in pixels expressed as

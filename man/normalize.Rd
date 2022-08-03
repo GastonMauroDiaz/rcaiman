@@ -16,19 +16,19 @@ equivalent to the minimum value from \code{r}.}
 equivalent to the maximum value from \code{r}.}
 
 \item{force_range}{Logical vector of length one. If it is \code{TRUE}, the
-range is forced to be between zero and one by flattening below and above
-those limits.}
+range is forced to be between zero and one by flattening the value find
+below and above those limits.}
 }
 \value{
-An object from the same class than \code{r} with values from \code{r}
+An object from the same class as \code{r} with values from \code{r}
   linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
-  one. Therefore, if \code{mn} and \code{mx} do not match with the actual
-  minimum and maximum from \code{r}, the output will not cover the 0-to-1
-  range, and it may be outside that range if \code{force_range} is set to
+  one. Therefore, if \code{mn} and \code{mx} do not match the actual minimum
+  and maximum from \code{r}, then the output will not cover the 0-to-1 range
+  and may be outside that range if \code{force_range} is set to
   \code{FALSE}.
 }
 \description{
-Normalize data laying between \code{mn} and \code{mx} in the range \code{0}
+Normalize data laying between \code{mn} and \code{mx} to the range \code{0}
 to \code{1}. Data greater than \code{mx} get values greater than \code{1} in
 a proportional fashion. Conversely, data less than \code{mn} get values less
 than \code{0}.This function can be used for linear stretching of the

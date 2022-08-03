@@ -6,26 +6,32 @@
 #' software package \insertCite{Lang2013}{rcaiman}.
 #'
 #' This function was designed to be called after
-#' \code{\link{extract_sky_points}}, and is part of a workflow that connects the
-#' MBLT algorithm with the HSP software package. In such a workflow, the
-#' \code{r} argument provided to \code{\link{extract_sky_points}} should be an
-#' image pre-processed by the HSP software. Those images are stored as PGM files
-#' by HSP in the subfolder "manipulate" of the project folder (which will be in
-#' turn a subfolder of the "project\strong{s}" folder). Those PGM files can be
-#' read with \code{\link[terra]{rast}}. For instance: \code{r <-
-#' rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")}.
-#' Then, they will be ready for use as input after running
-#' \code{normalize(r)}.
+#' \code{\link{extract_sky_points}}. The \code{r} argument provided to
+#' \code{\link{extract_sky_points}} should be an image pre-processed by the HSP
+#' software. Those images are stored as PGM files in the subfolder "manipulate"
+#' of the project folder (which will be in turn a subfolder of the
+#' "project\strong{s}" folder). Those PGM files can be read with
+#' \code{\link[terra]{rast}}, as it is shown below.
+#'
+#' \preformatted{
+#' r <- rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")
+#' ext(r) <- ext(0,ncol(r),0,nrow(r))
+#' crs(r) <- crs(read_caim())
+#' r <- normalize(r)
+#' }
 #'
 #' The \code{img_name} argument of \code{write_sky_points()} should be the name
-#' of the file associated to the aforementioned \code{r} argument.
+#' of the file associated to the aforementioned \code{r} argument. Following the
+#' example, it should be "img01.pgm".
 #'
 #'
-#' @param x An object of the class \emph{data.frame}. The result of a calling to
-#'   \code{\link{extract_sky_points}}.
+#' @param sky_points An object of the class \emph{data.frame}. The result of a
+#'   calling to \code{\link{extract_sky_points}}.
 #' @param path_to_HSP_project Character vector of length one. Path to the HSP
-#'   project folder.
-#' @param img_name Character vector of length one. See details.
+#'   project folder. For instance,
+#'   "C:/Users/johndoe/Documents/HSP/Projects/my_prj/".
+#' @param img_name Character vector of length one. For instance, "DSCN6342.pgm"
+#'   or "DSCN6342". See details.
 #'
 #' @family HSP Functions
 #'
@@ -34,19 +40,21 @@
 #' @return None. A file will be written in the HSP project folder.
 #'
 #' @export
-write_sky_points <- function(x, path_to_HSP_project, img_name) {
-  no <- nrow(ds)
+write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
+  no <- nrow(sky_points)
 
-  col.row_coordinates <- paste(ds$col, ds$row, "3", sep = ".")
+  col.row_coordinates <- paste(sky_points$col, sky_points$row, "3", sep = ".")
   col.row_coordinates <- paste(col.row_coordinates, collapse = " ")
 
-  ds <- c(no, col.row_coordinates)
-  ds <- data.frame(ds)
+  sky_points <- c(no, col.row_coordinates)
+  sky_points <- data.frame(sky_points)
 
-  img_name <-  .extension(img_name, "")
-  utils::write.table(ds, file.path(path_to_HSP_project,
-                            "manipulate",
-                            paste0(img_name, "_points.conf")),
+  img_name <- filenamer::as.filename(img_name)
+  img_name <- filenamer::trim_ext(img_name) %>% as.character()
+
+  utils::write.table(sky_points, file.path(path_to_HSP_project,
+                                           "manipulate",
+                                           paste0(img_name, "_points.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
               fileEncoding = "UTF-8", eol = "\n")
 }
@@ -56,14 +64,13 @@ write_sky_points <- function(x, path_to_HSP_project, img_name) {
 #'
 #' Create a special file to interface with the HSP software.
 #'
-#' Refer to the Details section of this function:
-#' \code{\link{write_sky_points}}.
+#' Refer to the Details section of function \code{\link{write_sky_points}}.
 #'
-#' @param x Numeric vector of length two. Raster coordinates of the solar disk
-#'   that can be obtained by calling to \code{\link{extract_sun_coord}}.
-#'   \strong{TIP}: if the output of \code{extrac_sun_coord()} is
-#'   \code{sun_coord}, then you should provide to \code{write_sun_coord()} this:
-#'   \code{sun_coord$row_col}. See also
+#' @param sun_coord Numeric vector of length two. Raster coordinates of the
+#'   solar disk that can be obtained by calling to
+#'   \code{\link{extract_sun_coord}}. \strong{TIP}: if the output of
+#'   \code{extrac_sun_coord()} is \code{sun_coord}, then you should provide to
+#'   \code{write_sun_coord()} this: \code{sun_coord$row_col}. See also
 #'   \code{\link{row_col_from_zenith_azimuth}}.
 #' @inheritParams write_sky_points
 #'
@@ -73,12 +80,15 @@ write_sky_points <- function(x, path_to_HSP_project, img_name) {
 #' @return None. A file will be written in the HSP project folder.
 #'
 #' @export
-write_sun_coord <- function(x, path_to_HSP_project, img_name) {
-  sun <- paste(x[c(2,1)], collapse = ".")
-  img_name <-  .extension(img_name, "")
-  utils::write.table(sun, file.path(path_to_HSP_project,
-                                    "manipulate",
-                                    paste0(img_name, "_sun.conf")),
+write_sun_coord <- function(sun_coord, path_to_HSP_project, img_name) {
+  sun_coord <- paste(sun_coord[c(2,1)], collapse = ".")
+
+  img_name <- filenamer::as.filename(img_name)
+  img_name <- filenamer::trim_ext(img_name) %>% as.character()
+
+  utils::write.table(sun_coord, file.path(path_to_HSP_project,
+                                         "manipulate",
+                                         paste0(img_name, "_sun.conf")),
               quote = FALSE, row.names = FALSE, col.names = FALSE,
               fileEncoding = "UTF-8", eol = "\n")
 }
@@ -87,13 +97,13 @@ write_sun_coord <- function(x, path_to_HSP_project, img_name) {
 #'
 #' Read manual input stored in an HSP project.
 #'
-#' Refer to the Details section of this function:
+#' Refer to the Details section of function
 #' \code{\link{write_sky_points}}.
 #'
 #' @inheritParams write_sky_points
 #' @family HSP Functions
 #'
-#' @return A list of numeric vectors named as \emph{weight}, \emph{max_points},
+#' @return A list of numeric vectors named \emph{weight}, \emph{max_points},
 #'   \emph{angle}, \emph{point_radius}, \emph{sun_mark}, \emph{sky_marks} and
 #'   \emph{zenith_dn.}
 #'
@@ -149,7 +159,7 @@ read_manual_input <- function(path_to_HSP_project, img_name) {
 #'
 #' Read optimized CIE sky coefficients stored in an HSP project.
 #'
-#' Refer to the Details section of this function:
+#' Refer to the Details section of function
 #' \code{\link{write_sky_points}}.
 #'
 #' @inheritParams write_sky_points

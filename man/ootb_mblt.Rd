@@ -55,7 +55,7 @@ source, but the result of it is used as filling source for trend surface
 fitting (\code{\link{fit_trend_surface}}).
 
 \item  \code{\link{find_sky_pixels_nonnull}} is used to update the first
-working binarized image.
+working binarized image, after \code{\link{fit_coneshaped_model}}.
 
 }
 
@@ -72,7 +72,7 @@ in the picture itself. This kind of error could be find in photographs of
 open forests for the same working principle.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2018;textual}{rcaiman}.
+\insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{
@@ -90,7 +90,7 @@ plot(bin$bin)
 \insertAllCited{}
 }
 \seealso{
-thr_image
+\code{\link{thr_image}}
 
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
