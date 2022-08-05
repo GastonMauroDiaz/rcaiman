@@ -80,6 +80,7 @@ Other Binarization Functions:
 \code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
+\code{\link{ootb_obia}()},
 \code{\link{thr_image}()}
 }
 \concept{Binarization Functions}

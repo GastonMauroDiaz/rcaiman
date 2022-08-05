@@ -22,19 +22,18 @@ Transform background digital number into threshold values.
 }
 \details{
 This function transforms background digital number into threshold values by
-means of the Equation 1 presented in \insertCite{Diaz2018;textual}{rcaiman},
-which is a linear function with the slope modified by a weighting parameter.
-This simple function was found by studying canopy models, also known as
-targets, which are perforated surfaces made of a rigid and dark material.
-These models were backlighted with homogeneous lighting, photographed with a
-Nikon Coolpix 5700 set to acquire in JPEG format, and those images were gamma
-back corrected with a default gamma value equal to 2.2 (see
-\code{\link{gbc}}). Results clearly shown that the optimal threshold value
-was linearly related with the background digital number. Therefore, that
-shifts the aim from finding the optimal threshold to obtaining the background
-DN as if the canopy was not there. Functions
-\code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}
-address that topic.
+means of the Equation 1 from \insertCite{Diaz2018;textual}{rcaiman}, which is
+a linear function with the slope modified by a weighting parameter. This
+simple function was found by studying canopy models, also known as targets,
+which are perforated surfaces made of a rigid and dark material. These models
+were backlighted with homogeneous lighting, photographed with a Nikon Coolpix
+5700 set to acquire in JPEG format, and those images were gamma back
+corrected with a default gamma value equal to 2.2 (see \code{\link{gbc}}).
+Results clearly shown that the optimal threshold value was linearly related
+with the background digital number; and so, therefore, shifting the aim from
+finding the optimal threshold to obtaining the background DN as if the canopy
+was not there. Functions \code{\link{fit_coneshaped_model}} and
+\code{\link{fit_trend_surface}} address that topic.
 
 It is worth noting that Equation 1 was developed with 8-bit images, so
 calibration of new coefficient should be done in the 0 to 255 domain since
@@ -64,6 +63,7 @@ Other Binarization Functions:
 \code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
+\code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()}
 }
 \concept{Binarization Functions}

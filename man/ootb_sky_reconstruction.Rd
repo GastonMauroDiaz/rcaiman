@@ -95,12 +95,13 @@ z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 bin <- find_sky_pixels(r, z, a)
 sky <- ootb_sky_reconstruction(r, z, a, bin)
+bin <- apply_thr(r/sky, 0.5)
 sky <- ootb_sky_reconstruction(r, z, a, bin, sky)
 ratio <- r/sky
 ratio[is.na(ratio)] <- 0
-ratio <- normalize(ratio, force_range = TRUE)
+ratio <- normalize(ratio, 0, 1, force_range = TRUE)
 plot(ratio)
-g <- sky_grid_segmentation(z, a, 15)
+g <- sky_grid_segmentation(z, a, 10)
 plot(defuzzify(ratio, g))
 }
 }

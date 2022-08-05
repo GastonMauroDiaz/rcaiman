@@ -97,6 +97,7 @@ Other Binarization Functions:
 \code{\link{find_sky_pixels_nonnull}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
+\code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
 \code{\link{thr_image}()}
 }

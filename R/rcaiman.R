@@ -6,9 +6,8 @@
 #'
 #' @section Binarization: \code{\link{apply_thr}}, \code{\link{defuzzify}},
 #'   \code{\link{find_sky_pixels_nonnull}}, \code{\link{find_sky_pixels}},
-#'   \code{\link{obia}}, \code{\link{ootb_mblt}},
-#'   \code{\link{ootb_sky_reconstruction}}, \code{\link{regional_thresholding}},
-#'   and \code{\link{thr_image}}.
+#'   \code{\link{obia}}, \code{\link{ootb_mblt}}, \code{\link{ootb_obia}},
+#'   \code{\link{regional_thresholding}}, and \code{\link{thr_image}}.
 #'
 #' @section HSP: \code{\link{extract_sun_coord}},
 #'   \code{\link{read_manual_input}}, \code{\link{read_opt_sky_coef}},
@@ -33,8 +32,8 @@
 #'
 #' @section Sky reconstruction: \code{\link{fit_cie_sky_model}},
 #'   \code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
-#'   \code{\link{fix_reconstructed_sky}}, and
-#'   \code{\link{interpolate_sky_points}}.
+#'   \code{\link{fix_reconstructed_sky}}, \code{\link{interpolate_sky_points}},
+#'   and \code{\link{ootb_sky_reconstruction}}.
 #'
 #' @section Tools: \code{\link{extract_feature}}, \code{\link{extract_rl}},
 #'   \code{\link{extract_sky_points}}, \code{\link{masking}},
