@@ -7,12 +7,12 @@
 #' histogram.
 #'
 #' @param r \code{\linkS4class{SpatRaster}} or numeric vector.
-#' @param mn Numeric vector of length one. Minimum expected value. Defaults is
+#' @param mn Numeric vector of length one. Minimum expected value. Default is
 #'   equivalent to the minimum value from \code{r}.
-#' @param mx Numeric vector of length one. Maximum expected value. Defaults is
+#' @param mx Numeric vector of length one. Maximum expected value. Default is
 #'   equivalent to the maximum value from \code{r}.
 #' @param force_range Logical vector of length one. If it is \code{TRUE}, the
-#'   range is forced to be between zero and one by flattening the value find
+#'   range is forced to be between zero and one by flattening the value found
 #'   below and above those limits.
 #'
 #' @export

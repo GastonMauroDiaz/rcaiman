@@ -44,8 +44,8 @@
 #' @export
 #' @references \insertAllCited{}
 #' @family Pre-processing Functions
-#' @return An object of class \linkS4class{SpatRaster} --with same pixel
-#'   dimensions than \code{caim}-- that should show more contrast between the
+#' @return An object of class \linkS4class{SpatRaster}--with same pixel
+#'   dimensions than \code{caim}--that should show more contrast between the
 #'   sky and plant pixels than any of the individual bands from \code{caim}.
 #'
 #' @examples

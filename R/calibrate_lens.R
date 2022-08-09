@@ -16,7 +16,7 @@
 #'
 #' \item standard yoga mat
 #'
-#' \item table of width about two times larger than the yoga mat width
+#' \item table about two times wider than the yoga mat
 #'
 #' \item twenty two push pins of different colors
 #'

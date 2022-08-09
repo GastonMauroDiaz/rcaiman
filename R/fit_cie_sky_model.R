@@ -83,16 +83,16 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Fit CIE sky model
 #'
 #' Use maximum likelihood to estimate the coefficients of the CIE sky model that
-#' fit best to data sampled from a real scene.
+#' best fit to data sampled from a real scene.
 #'
 #' This function assumes an hemispherical image as input. It is based on
-#' \insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
+#' \insertCite{Lang2010;textual}{rcaiman}. In theory, the best result would be
 #' obtained with data showing a linear relation between digital numbers and the
 #' amount of light reaching the sensor. However, because the CIE sky model is
-#' indeed the adjoin of two mathematical model, it is capable of cope with any
+#' indeed the adjoin of two mathematical model, it is capable of handling any
 #' non-linearity since it is not a physical model with strict assumptions.
 #'
-#' Ultimately, if the goal is to calculate the ratio of canopy to sky digital
+#' Ultimately, when the goal is to calculate the ratio of canopy to sky digital
 #' numbers, if the latter is accurately constructed, any non-linearity will be
 #' canceled. Please, see \code{\link{interpolate_sky_points}} for further
 #' considerations.
@@ -119,7 +119,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   recognize the center of what can be seen of the solar corona as the solar
 #'   disk.
 #' @param rmse Logical vector of length one. If it is \code{TRUE}, the criteria
-#'   for selecting the best sky model is to choose the one with lest root mean
+#'   for selecting the best sky model is to choose the one with less root mean
 #'   square error calculated by using \code{sky_points} as reference values.
 #'   Otherwise, the criteria is to evaluate the whole hemisphere by calculating
 #'   the product between the square ratio of \code{r} to the sky model and the
@@ -129,13 +129,13 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'
 #' @references \insertAllCited{}
 #'
-#' @return The result include the output produced by \code{\link[bbmle]{mle2}},
+#' @return The result includes the output produced by \code{\link[bbmle]{mle2}},
 #'   the 5 coefficients, observed and predicted values, the sun coordinates
 #'   (zenith and azimuth angle in degrees), the relative luminance image
 #'   calculated for every pixel using the estimated coefficients and
 #'   corresponding sun coordinate, the digital number at the zenith, and the
 #'   description of the standard sky from which the initial coefficients were
-#'   drawn. See \insertCite{Li2016;textual}{rcaiman} to known more about these
+#'   drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
 #'   coefficients.
 #'
 #' @family  Sky Reconstruction Functions

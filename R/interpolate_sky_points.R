@@ -18,7 +18,7 @@
 #'
 #' The use of \code{k = 1} solves the linear dilemma from the theoretical point
 #' of view since no averaging is taking place in the calculations. However,
-#' probably is best to use \code{k} greater than 1.
+#' probably, it is best to use \code{k} greater than 1.
 #'
 #' Default parameters are the ones used by
 #' \insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should

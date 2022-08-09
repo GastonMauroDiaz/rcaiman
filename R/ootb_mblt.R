@@ -5,10 +5,10 @@
 #'
 #' This function is a hard-coded version of a MBLT pipeline that starts
 #' producing a working binarized image and ends with a refined binarized image.
-#' The pipeline combines these main functions \code{\link{find_sky_pixels}} --if
+#' The pipeline combines these main functions \code{\link{find_sky_pixels}}--if
 #' \code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
 #' \code{\link{find_sky_pixels_nonnull}}, and \code{\link{fit_trend_surface}}.
-#' The code can be easily inspected by calling \code{ootb_mblt} --no
+#' The code can be easily inspected by calling \code{ootb_mblt}--no
 #' parenthesis. Advanced users can use that code as a template.
 #'
 #' The MBLT algorithm was first presented in
@@ -20,8 +20,8 @@
 #' \item \code{intercept} is set to \code{0}, \code{slope} to \code{1}, and
 #' \code{w} to \code{0.5}
 #'
-#' \item This version implements a regional thresholding approach as first step
-#' instead of a global one. Please refer to \code{\link{find_sky_pixels}}.
+#' \item This version implements a regional thresholding approach as the first
+#' step instead of a global one. Please refer to \code{\link{find_sky_pixels}}.
 #'
 #' \item It does not use asynchronous acquisition under the open sky. So, the
 #' cone-shaped model (\code{\link{fit_coneshaped_model}}) run without a filling
@@ -36,26 +36,26 @@
 #' This function searches for black objects against a light background. When
 #' regular canopy hemispherical images are provided as input, the algorithm will
 #' find dark canopy elements against a bright sky almost everywhere in the
-#' picture and, therefore, the result will fit user expectations. However, if an
+#' picture and, therefore, the result will fit user expectations. However, if a
 #' hemispherical photograph taken under the open sky is provided, this algorithm
 #' would be still searching black objects against a light background, so the
 #' darker portions of the sky will be taken as objects, i.e., canopy. As a
 #' consequence, this will not fit users expectations since they are looking for
 #' the classes \emph{Gap} and \emph{No-gap}, no matter if one of those are not
-#' in the picture itself. This kind of error could be find in photographs of
+#' in the picture itself. This kind of error could happen with photographs of
 #' open forests for the same working principle.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 #'
 #' @param r \linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-#'   the blue channel extracted from an hemispherical photograph. Please see
+#'   the blue channel extracted from a hemispherical photograph. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.
 #' @param z \linkS4class{SpatRaster} built with \code{\link{zenith_image}}.
 #' @param a \linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.
 #' @param bin \linkS4class{SpatRaster}. This should be a preliminary
 #'   binarization of \code{r} useful for masking pixels that are very likely
-#'   pure sky pixels.
+#'   to be pure sky pixels.
 #'
 #' @export
 #' @family Binarization Functions

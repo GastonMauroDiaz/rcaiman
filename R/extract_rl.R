@@ -3,8 +3,8 @@
 #' Extract the luminance relative to the zenith digital number.
 #'
 #' The search for near-zenith points starts in the region  ranged between
-#' \code{0} and \code{z_thr}. If the number of near zenith points is less than
-#' \code{no_of_points}, the region increase by steps of \code{2} degrees of
+#' \code{0} and \code{z_thr}. If the number of near-zenith points is less than
+#' \code{no_of_points}, the region increases by steps of \code{2} degrees of
 #' zenith angle till the required number of points is reached.
 #'
 #' @inheritParams ootb_mblt
@@ -13,7 +13,7 @@
 #' @param no_of_points Numeric vector on length one. The number of near-zenith
 #'   points required for the estimation of the zenith DN.
 #' @param z_thr Numeric vector on length one. The starting maximum zenith angle
-#'   used to search for near zenith points.
+#'   used to search for near-zenith points.
 #' @param use_window Logical vector of length one. If \code{TRUE}, a \eqn{3
 #'   \times 3} window will be used to extract the sky digital number from
 #'   \code{r}.

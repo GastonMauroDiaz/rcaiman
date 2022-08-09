@@ -4,8 +4,8 @@
 #' regional approach. The result will ensure that the fuzzy and Boolean version
 #' will agree at the chosen level of aggregation (controlled by the argument
 #' \code{segmentation}). This method makes perfect sense to translate a subpixel
-#' classification of gap fraction --or a linear ratio
-#' \insertCite{Lang2013}{rcaiman}-- into a binary product.
+#' classification of gap fraction--or a linear ratio
+#' \insertCite{Lang2013}{rcaiman}--into a binary product.
 #'
 #' @param mem An object of the class \linkS4class{SpatRaster}. Degree of
 #'   membership.

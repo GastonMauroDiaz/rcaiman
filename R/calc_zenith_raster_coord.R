@@ -14,17 +14,17 @@
 #' in drilling a small hole in the cap of the fisheye lens (it must be away from
 #' the center of the cap), and taking about ten photographs without removing the
 #' cap. The cap must be rotated about 30º before taking each photograph.
-#' \strong{The method implemented here do not support multiple holes}.
+#' \strong{The method implemented here does not support multiple holes}.
 #'
 #' The
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 #' selection tool of ‘ImageJ’ software} should be used to manually digitize the
 #' white dots and create a CSV file to feed this function.
 #'
-#' Another method --only valid for circular hemispherical photographs-- is
+#' Another method--only valid for circular hemispherical photographs-- is
 #' taking a very bright picture (for example, a picture of a room with walls
 #' painted in light colors) with the lens completely free (do not use any
-#' mount). Then, digitize points over the perimeter of the circle. This was the
+#' mount). Then, digitize points over the circle perimeter. This was the
 #' method used for producing the example file (see Examples). It is worth noting
 #' that the perimeter of the circle depicted in a circular hemispherical
 #' photograph is not necessarily the horizon.

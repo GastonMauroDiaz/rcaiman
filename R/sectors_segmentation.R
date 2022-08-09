@@ -1,6 +1,6 @@
 #' Sectors segmentation
 #'
-#' Segmenting an hemispherical view by slicing the azimuth angle from zero
+#' Segmenting a hemispherical view by slicing the azimuth angle from zero
 #' to 360º in equals intervals.
 #'
 #' @inheritParams ootb_mblt

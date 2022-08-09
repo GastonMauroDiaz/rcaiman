@@ -15,10 +15,10 @@
 #' which works like a spreadsheet, i.e, when you go down through the vertical
 #' axis, the \emph{row} number increases (\strong{IMPORTANT: column and row must
 #' be provided instead of row and column as in objects from the class data.frame
-#' and others alike}). The \code{width}, and \code{height} parameters indicate
+#' and others alike}). The \code{width} and \code{height} parameters indicate
 #' the size of the boxy ROI. I recommend using
-#' \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain this parameters, but
-#' any image editor can be used, such as ‘GIMP’ and ‘Adobe Photoshop’.
+#' \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain these parameters, but
+#' any image editor can be used, such as ‘GIMP’ or ‘Adobe Photoshop’.
 #'
 #'
 #' @param path_to_file Character vector of length one. Path to a JPEG or TIFF
