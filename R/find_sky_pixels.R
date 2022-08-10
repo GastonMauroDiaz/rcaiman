@@ -54,7 +54,9 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   .check_if_r_z_and_a_are_ok(r, z, a)
   stopifnot(length(sample_size_pct) == 1)
 
-  if (sample_size_pct > 30) sample_size_pct <- 31
+  if (sample_size_pct > 60) {
+    warning("A high sample_size_pct could lead to a very long processing time")
+  }
 
   cells_number <- (360/5) * (90/5)
 
