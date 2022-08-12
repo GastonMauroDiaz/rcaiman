@@ -37,18 +37,18 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   stopifnot(length(zenith_colrow) == 2)
 
   zenith_xy <- c(zenith_colrow[1], nrow(caim) - zenith_colrow[2])
-  delta_x <-  (ncol(caim) / 2) - zenith_xy[1]
-  delta_y <-  (nrow(caim) / 2) - zenith_xy[2]
+  delta_x <-  zenith_xy[1] - (ncol(caim) / 2)
+  delta_y <-  zenith_xy[2] - (nrow(caim) / 2)
+  #In which quadrant is the zenith?
+  # (-)(+)|(+)(+)
+  #----------------
+  # (-)(-)|(+)(-)
+  #
   center <- ncol(z) / 2
-  if (ncol(caim) > nrow(caim)) {
-    xmn <- center - (ncol(caim)/2) - delta_x
-    xmx <- center + (ncol(caim)/2) - delta_x
-  } else {
-    xmn <- center - (ncol(caim)/2) + delta_x
-    xmx <- center + (ncol(caim)/2) + delta_x
-  }
-  ymn <- center - (nrow(caim) / 2) + delta_y
-  ymx <- center + (nrow(caim) / 2) + delta_y
+  xmn <- center - ((ncol(caim)/2) + delta_x)
+  xmx <- center + ((ncol(caim)/2) - delta_x)
+  ymn <- center - ((nrow(caim)/2) + delta_y)
+  ymx <- center + ((nrow(caim)/2) - delta_y)
   e <- terra::ext(xmn, xmx, ymn, ymx)
   terra::ext(caim) <- e
 
@@ -57,6 +57,5 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   terra::ext(r) <- terra::align(terra::ext(r), z)
   r <- terra::crop(r, z)
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
-  # names(r) <- "Expanded non-circular image"
   r
 }
