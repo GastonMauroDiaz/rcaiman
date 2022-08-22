@@ -3,6 +3,9 @@
 #' Build a single layer image with azimuth angles as pixel values.
 #'
 #' @inheritParams ootb_mblt
+#' @param orientation The azimuthal angle at which the top of the image is
+#'   facing, in degrees. Generally, it corresponds to the angle at which the top
+#'   of the camera was facing at the moment of acquisition.
 #'
 #' @return An object of class \linkS4class{SpatRaster} with azimuth angles in
 #'   degrees. North (0º) is pointing up as in maps, but East (90º) and West
@@ -10,9 +13,10 @@
 #'   flash-card size pieces of paper. Put one on a table in front of you and
 #'   draw on it a compass rose. Take the other and hold it with your arms
 #'   extended over your head and, following the directions of the compass rose
-#'   in front of you, draw another one in the paper side that face down--as if
-#'   you were taking an upward-looking photo with a mobile device. Then, put it
-#'   down and compare both compass roses.
+#'   in front of you, draw another one in the paper side that face down--It will
+#'   be an awkward position, like if you were taking an upward-looking photo
+#'   with a mobile device while looking at the screen. Then, put it down and
+#'   compare both compass roses.
 #' @export
 #'
 #' @family Lens Functions
@@ -21,7 +25,7 @@
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' plot(a)
-azimuth_image <- function (z)
+azimuth_image <- function (z, orientation = 0)
 {
   .is_single_layer_raster(z, "z")
   mask <- is.na(z)
@@ -36,6 +40,23 @@ azimuth_image <- function (z)
   values(z) <- sph[, 1] * 180 / pi
   values(z) <- terra::values(abs(terra::trans(z) - 180))
   # above line is to orient North up and West left
+
+  if (orientation != 0) {
+    if (orientation < 0 | orientation >= 360) {
+      stop(paste0("The argument \"orientation\" should be",
+                  "a positive value lower than 360."))
+    }
+    if (!requireNamespace("imager", quietly = TRUE)) {
+      stop(paste("Package \"imager\" needed for this function to work.",
+                 "Please install it."),
+           call. = FALSE)
+    }
+    picture_cw_rotation <- orientation
+    v <- imager::as.cimg(as.array(z)) %>% suppressWarnings()
+    v <- imager::rotate_xy(v, -picture_cw_rotation,
+                           ncol(z) / 2, nrow(z) / 2, interpolation = 0)
+    terra::values(z) <- as.matrix(v)
+  }
 
   z[mask] <- NA
   names(z) <- "Azimuth image"

@@ -35,7 +35,7 @@ If \code{return_raster} is set to \code{TRUE}, then an object of
 Extract features from raster images.
 }
 \details{
-Given a single layer raster, a segmentation, and a function,
+Given a single-layer raster, a segmentation, and a function,
 \code{extract_features} will return a numeric vector or a
 \linkS4class{SpatRaster} depending on whether the parameter
 \code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each

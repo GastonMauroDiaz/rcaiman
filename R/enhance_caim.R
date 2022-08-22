@@ -50,6 +50,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' #hemispherical photo
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

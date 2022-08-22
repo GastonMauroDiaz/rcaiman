@@ -8,7 +8,7 @@ extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -17,7 +17,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
-pure sky pixels.}
+to be pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
@@ -27,21 +27,20 @@ establish the maximum size of the sun corona.}
 }
 \value{
 Object of class \emph{list} with two numeric vectors of length two
-  named \emph{row_col} and \emph{zenith_azimuth}. The former is raster
-  coordinates of the solar disk (row and column), and the other is angular
-  coordinates (zenith and azimuth angles in degrees).
+  named \emph{row_col} and \emph{zenith_azimuth}. The former is the raster
+  coordinates of the solar disk (row and column), and the other is the
+  angular coordinates (zenith and azimuth angles in degrees).
 }
 \description{
 Extract the sun coordinates for CIE sky model fitting.
 }
 \details{
-This function uses an object-based image analyze theoretical framework. The
-segmentation are given by \code{g} and \code{bin}. For every cell of
-\code{g}, the pixels from \code{r} that are equal to one on \code{bin} are
-selected, and its maximum value is calculated. Then, the 95th percentile of
-these maximum values is computed and it is used to filter out cells below
-that threshold; i.e, only the cells with at least one extremely bright sky
-pixel is selected.
+This function uses an object-based image analyze framework. The segmentation
+is given by \code{g} and \code{bin}. For every cell of \code{g}, the pixels
+from \code{r} that are equal to one on \code{bin} are selected, and its
+maximum value is calculated. Then, the 95th percentile of these maximum
+values is computed and used to filter out cells below that threshold; i.e,
+only the cells with at least one extremely bright sky pixel is selected.
 
 The selected cells are grouped based on adjacency, and new bigger segments
 are created from the groups. The degree of membership to the class \emph{Sun}

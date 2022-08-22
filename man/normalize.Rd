@@ -9,14 +9,14 @@ normalize(r, mn = NULL, mx = NULL, force_range = FALSE)
 \arguments{
 \item{r}{\code{\linkS4class{SpatRaster}} or numeric vector.}
 
-\item{mn}{Numeric vector of length one. Minimum expected value. Defaults is
+\item{mn}{Numeric vector of length one. Minimum expected value. Default is
 equivalent to the minimum value from \code{r}.}
 
-\item{mx}{Numeric vector of length one. Maximum expected value. Defaults is
+\item{mx}{Numeric vector of length one. Maximum expected value. Default is
 equivalent to the maximum value from \code{r}.}
 
 \item{force_range}{Logical vector of length one. If it is \code{TRUE}, the
-range is forced to be between zero and one by flattening the value find
+range is forced to be between zero and one by flattening the value found
 below and above those limits.}
 }
 \value{

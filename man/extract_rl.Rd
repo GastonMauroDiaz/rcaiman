@@ -16,7 +16,7 @@ extract_rl(
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -30,7 +30,7 @@ to \code{\link{extract_sky_points}}.}
 points required for the estimation of the zenith DN.}
 
 \item{z_thr}{Numeric vector on length one. The starting maximum zenith angle
-used to search for near zenith points.}
+used to search for near-zenith points.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
 \times 3} window will be used to extract the sky digital number from
@@ -53,8 +53,8 @@ Extract the luminance relative to the zenith digital number.
 }
 \details{
 The search for near-zenith points starts in the region  ranged between
-\code{0} and \code{z_thr}. If the number of near zenith points is less than
-\code{no_of_points}, the region increase by steps of \code{2} degrees of
+\code{0} and \code{z_thr}. If the number of near-zenith points is less than
+\code{no_of_points}, the region increases by steps of \code{2} degrees of
 zenith angle till the required number of points is reached.
 }
 \examples{

@@ -46,7 +46,7 @@ meter of spacing and following a horizontal line. This will create marks for
 forget to align the zenith coordinates with the 0º \eqn{\theta} mark and
 check if the optical axis is leveled.
 
-For obtaining the lens projection of a new lens, refer to
+For obtaining the projection of a new lens, refer to
 \code{\link{calibrate_lens}}.
 }
 \examples{

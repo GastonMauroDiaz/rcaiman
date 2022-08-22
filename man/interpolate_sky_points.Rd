@@ -8,7 +8,7 @@ interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
 }
 \arguments{
 \item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
-or a \emph{data.frame} with the same structure and names.}
+or a \emph{data.frame} with same structure and names.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
@@ -42,7 +42,7 @@ effect.
 
 The use of \code{k = 1} solves the linear dilemma from the theoretical point
 of view since no averaging is taking place in the calculations. However,
-probably is best to use \code{k} greater than 1.
+probably, it is best to use \code{k} greater than 1.
 
 Default parameters are the ones used by
 \insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should

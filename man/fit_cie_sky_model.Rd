@@ -20,7 +20,7 @@ fit_cie_sky_model(
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -28,7 +28,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
-or a \emph{data.frame} with the same structure and names.}
+or a \emph{data.frame} with same structure and names.}
 
 \item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
 \code{\link{extract_rl}} for how to obtain it.}
@@ -51,7 +51,7 @@ recognize the center of what can be seen of the solar corona as the solar
 disk.}
 
 \item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
-for selecting the best sky model is to choose the one with lest root mean
+for selecting the best sky model is to choose the one with less root mean
 square error calculated by using \code{sky_points} as reference values.
 Otherwise, the criteria is to evaluate the whole hemisphere by calculating
 the product between the square ratio of \code{r} to the sky model and the
@@ -61,28 +61,28 @@ and selecting the sky model that produce the least value.}
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \value{
-The result include the output produced by \code{\link[bbmle]{mle2}},
+The result includes the output produced by \code{\link[bbmle]{mle2}},
   the 5 coefficients, observed and predicted values, the sun coordinates
   (zenith and azimuth angle in degrees), the relative luminance image
   calculated for every pixel using the estimated coefficients and
   corresponding sun coordinate, the digital number at the zenith, and the
   description of the standard sky from which the initial coefficients were
-  drawn. See \insertCite{Li2016;textual}{rcaiman} to known more about these
+  drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
   coefficients.
 }
 \description{
 Use maximum likelihood to estimate the coefficients of the CIE sky model that
-fit best to data sampled from a real scene.
+best fit to data sampled from a real scene.
 }
 \details{
 This function assumes an hemispherical image as input. It is based on
-\insertCite{Lang2010;textual}{rcaiman}. In theory, the better result would be
+\insertCite{Lang2010;textual}{rcaiman}. In theory, the best result would be
 obtained with data showing a linear relation between digital numbers and the
 amount of light reaching the sensor. However, because the CIE sky model is
-indeed the adjoin of two mathematical model, it is capable of cope with any
+indeed the adjoin of two mathematical model, it is capable of handling any
 non-linearity since it is not a physical model with strict assumptions.
 
-Ultimately, if the goal is to calculate the ratio of canopy to sky digital
+Ultimately, when the goal is to calculate the ratio of canopy to sky digital
 numbers, if the latter is accurately constructed, any non-linearity will be
 canceled. Please, see \code{\link{interpolate_sky_points}} for further
 considerations.

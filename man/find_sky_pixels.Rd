@@ -8,7 +8,7 @@ find_sky_pixels(r, z, a, sample_size_pct = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -40,11 +40,11 @@ This function assumes that:
 
 
 For each \eqn{30 \times 30} cell, this method computes a quantile value and
-use it as a threshold to select the pure sky pixels from the given cell. As a
-result, a binarized image is produced in a regional binarization fashion
-(\code{\link{regional_thresholding}}). This process start with a quantile
-probability of 0.99. After producing the binarized image, this function use a
-search grid with cells of \eqn{5 \times 5} degrees to count how many of
+uses it as a threshold to select the pure sky pixels from the given cell. As
+a result, a binarized image is produced in a regional binarization fashion
+(\code{\link{regional_thresholding}}). This process starts with a quantile
+probability of 0.99. After producing the binarized image, this function uses
+a search grid with cells of \eqn{5 \times 5} degrees to count how many of
 these cells have at least one sky pixel (pixels equal to one in the binarized
 image). If the percentage of  cells with sky pixels does not reach argument
 \code{sample_size_pct}, it goes back to the binarization step but decreasing
@@ -52,7 +52,7 @@ the probability by 0.01 points.
 
 If probability reach 0.9 and the \code{sample_size_pct} criterion were not
 yet satisfied, the \code{sample_size_pct} is decreased one percent and the
-process start all over again.
+process starts all over again.
 }
 \examples{
 \dontrun{

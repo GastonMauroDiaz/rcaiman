@@ -42,8 +42,8 @@ correction to the lightness information (see Details and argument
 \code{w_red}).}
 }
 \value{
-An object of class \linkS4class{SpatRaster} --with same pixel
-  dimensions than \code{caim}-- that should show more contrast between the
+An object of class \linkS4class{SpatRaster}--with same pixel
+  dimensions than \code{caim}--that should show more contrast between the
   sky and plant pixels than any of the individual bands from \code{caim}.
 }
 \description{
@@ -79,6 +79,7 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
+#hemispherical photo
 caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

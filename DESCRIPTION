@@ -1,7 +1,7 @@
 Package: rcaiman
 Type: Package
 Title: An R Package for CAnopy IMage ANalysis
-Version: 1.0.4.9000
+Version: 1.0.5.9000
 Date: 2022-07-14
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
@@ -16,7 +16,7 @@ License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 Depends:
     filenamer,
     magrittr,
@@ -36,5 +36,6 @@ Suggests:
     autothresholdr,
     conicfit,
     EBImage,
-    bbmle
+    bbmle,
+    imager
 RdMacros: Rdpack

@@ -8,7 +8,7 @@ row_col_from_zenith_azimuth(r, za, lens_coef)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{za}{Numeric vector of length two. Zenith and azimuth angles in degrees.}

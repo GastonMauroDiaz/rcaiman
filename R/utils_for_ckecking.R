@@ -8,7 +8,6 @@
 }
 
 .is_single_layer_raster <- function(r, name = "r") {
-  # if (!(class(r) == "SpatRaster" & terra::nlyr(r) == 1))
   msn <- paste0("The argument \"", name,
                "\" should be a single-layer object",
                "from the SpatRaster class.")

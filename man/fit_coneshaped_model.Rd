@@ -8,7 +8,7 @@ fit_coneshaped_model(sky_points, use_azimuth_angle = TRUE)
 }
 \arguments{
 \item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
-or a \emph{data.frame} with the same structure and names.}
+or a \emph{data.frame} with same structure and names.}
 
 \item{use_azimuth_angle}{Logical vector of length one. If \code{TRUE}, the
 Equation 4 from \insertCite{Diaz2018;textual}{rcaiman}) is used: \eqn{sDN =
@@ -22,8 +22,8 @@ azimuth angle. If \code{FALSE}, the next simplified version based on
 \value{
 A list of two objects, one of class \code{function} and the other of
   class \code{lm} (see \code{\link[stats]{lm}}). If the fitting fails, it
-  returns \code{NULL}. The function requires two arguments --zenith and
-  azimuth in degrees-- to return relative luminance.
+  returns \code{NULL}. The function requires two arguments--zenith and
+  azimuth in degrees--to return relative luminance.
 }
 \description{
 Statistical modeling to predict the digital numbers from spherical

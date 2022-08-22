@@ -41,20 +41,20 @@ interest (ROI). These coordinates should be in the raster coordinates system,
 which works like a spreadsheet, i.e, when you go down through the vertical
 axis, the \emph{row} number increases (\strong{IMPORTANT: column and row must
 be provided instead of row and column as in objects from the class data.frame
-and others alike}). The \code{width}, and \code{height} parameters indicate
+and others alike}). The \code{width} and \code{height} parameters indicate
 the size of the boxy ROI. I recommend using
-\href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain this parameters, but
-any image editor can be used, such as ‘GIMP’ and ‘Adobe Photoshop’.
+\href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain these parameters, but
+any image editor can be used, such as ‘GIMP’ or ‘Adobe Photoshop’.
 }
 \section{Functions}{
 \itemize{
-\item \code{read_caim,character-method}: Provide the path to a file. If The file is stored in
+\item \code{read_caim(character)}: Provide the path to a file. If The file is stored in
 the working directory, just provide the file name. File extension should be
 included in the file name.
 
-\item \code{read_caim,missing-method}: It returns an example (see details).
-}}
+\item \code{read_caim(missing)}: It returns an example (see details).
 
+}}
 \examples{
 # This is the example image
 r <- read_caim()

@@ -15,7 +15,7 @@ regional_thresholding(
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting
@@ -26,7 +26,7 @@ for fisheye images.}
 options.}
 
 \item{intercept, slope}{Numeric vector of length one. These are linear
-function coefficients --see section Details in \code{\link{thr_image}}.}
+function coefficients--see section Details in \code{\link{thr_image}}.}
 
 \item{prob}{Numeric vector of length one. Probability for
 \code{\link[stats]{quantile}} calculation.}

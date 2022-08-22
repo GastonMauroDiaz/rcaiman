@@ -8,7 +8,7 @@ find_sky_pixels_nonnull(r, sky, g, slope = 0.5)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{sky}{An object of class \linkS4class{SpatRaster} produced with
@@ -30,7 +30,7 @@ Find sky pixels using the increase in the number of cells having no sky
 pixels (the so-called null cells) as stopping criteria.
 }
 \details{
-The arguments \code{sky} and \code{slope} is passed to
+The arguments \code{sky} and \code{slope} are passed to
 \code{\link{thr_image}}, which output is in turn passed to
 \code{\link{apply_thr}} along with \code{r}. As a result, \code{r} is
 binarized and used along with \code{g} to compute the number of null cells.

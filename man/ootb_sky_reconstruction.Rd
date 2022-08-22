@@ -8,7 +8,7 @@ ootb_sky_reconstruction(r, z, a, bin, filling_source = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from an hemispherical photograph. Please see
+the blue channel extracted from a hemispherical photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -17,7 +17,7 @@ the blue channel extracted from an hemispherical photograph. Please see
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
-pure sky pixels.}
+to be pure sky pixels.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
@@ -36,7 +36,7 @@ Build an above canopy image from a single below canopy image.
 This function is a hard-coded version of a pipeline that uses these main
 functions, \code{\link{fit_cie_sky_model}} and
 \code{\link{interpolate_sky_points}}. The code can be easily inspected by
-calling \code{ootb_sky_reconstruction} --no parenthesis. Advanced users could
+calling \code{ootb_sky_reconstruction}--no parenthesis. Advanced users could
 use that code as a template.
 
 This pipeline is based on \insertCite{Lang2010;textual}{rcaiman}. The main
@@ -67,7 +67,7 @@ Providing a \code{filling source} triggers an alternative pipeline in which
 the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
 after a dense sampling (\eqn{1 \times 1} degree cells), which is supported by
 the fact that sky digital numbers will be available for almost every pixel,
-either from \code{r} gaps or from the filling source --an exception is a
+either from \code{r} gaps or from the filling source--an exception is a
 filling source with plenty of \code{NA} values.
 }
 \examples{
