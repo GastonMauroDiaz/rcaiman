@@ -2,10 +2,10 @@
 #'
 #' Fisheye to equidistant projection (also known as polar projection).
 #'
-#' There is no interpolation, so, depending on \code{radius} and how much
-#' different from the polar projection is the lens projection, \code{NA} values
-#' will be generated. As a rule of thumb, make the \code{radius} larger as long
-#' as it does not produce \code{NA} values on the regions to be analyzed.
+#' There is no interpolation, so \code{NA} values may be generated depending on
+#' both the \code{radius} argument and how much the lens projection differs from
+#' the polar one. As a rule of thumb, increase \code{radius} as long as it does
+#' not produce \code{NA} values on the regions to be analyzed.
 #'
 #' @param r \linkS4class{SpatRaster}.
 #' @inheritParams ootb_mblt

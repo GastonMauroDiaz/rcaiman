@@ -12,7 +12,6 @@
 #'   values rescaled between \code{0} and \code{1} in a non-linear fashion.
 #' @export
 #'
-#' @seealso \code{\link{normalize}}
 #' @family Pre-processing Functions
 #'
 #'

@@ -69,9 +69,10 @@ write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
 #' @param sun_coord Numeric vector of length two. Raster coordinates of the
 #'   solar disk that can be obtained by calling to
 #'   \code{\link{extract_sun_coord}}. \strong{TIP}: if the output of
-#'   \code{extrac_sun_coord()} is \code{sun_coord}, then you should provide to
-#'   \code{write_sun_coord()} this: \code{sun_coord$row_col}. See also
-#'   \code{\link{row_col_from_zenith_azimuth}}.
+#'   \code{extrac_sun_coord()} is \code{sun_coord}, then you should provide here
+#'   this: \code{sun_coord$row_col}. See also
+#'   \code{\link{row_col_from_zenith_azimuth}} in case you want to provide
+#'   values based on date and time of acquisition and the R package 'suncalc'.
 #' @inheritParams write_sky_points
 #'
 #'
@@ -165,7 +166,7 @@ read_manual_input <- function(path_to_HSP_project, img_name) {
 #' @inheritParams write_sky_points
 #' @family HSP Functions
 #' @return Numeric vector of length five.
-#' @seealso cie_sky_model_raster
+#' @seealso \code{\link{cie_sky_model_raster}}
 #'
 #' @export
 read_opt_sky_coef <- function(path_to_HSP_project, img_name) {

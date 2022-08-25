@@ -32,7 +32,6 @@
 #' @export
 #' @family Tools Functions
 #'
-#' @seealso \code{\link{write_caim}}
 #'
 #' @examples
 #' # This is the example image
@@ -55,9 +54,9 @@ setGeneric("read_caim", function(path_to_file, upper_left = NULL, width = NULL,
   standardGeneric("read_caim")
 })
 
-#' @describeIn read_caim Provide the path to a file. If The file is stored in
-#'   the working directory, just provide the file name. File extension should be
-#'   included in the file name.
+#' @describeIn read_caim Provide the path to a file. If the file is stored in
+#'   the working directory, providing the file name is enough. File extension
+#'   should be included in the file name.
 setMethod(
   "read_caim",
   signature(path_to_file = "character"),

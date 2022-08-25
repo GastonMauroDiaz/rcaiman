@@ -10,11 +10,11 @@
 #' only the cells with at least one extremely bright sky pixel is selected.
 #'
 #' The selected cells are grouped based on adjacency, and new bigger segments
-#' are created from the groups. The degree of membership to the class \emph{Sun}
-#' is calculated for every new segment by computing the number of cells that
-#' constitute the segment and its mean digital number (values taken from
-#' \code{r}). In other words, the brightest and largest segments are the ones
-#' that score higher. The one with the highest score is selected as the
+#' are created from these groups. The degree of membership to the class
+#' \emph{Sun} is calculated for every new segment by computing the number of
+#' cells that constitute the segment and its mean digital number (values taken
+#' from \code{r}). In other words, the  largest and brightest segments are the
+#' ones that score higher. The one with the highest score is selected as the
 #' \emph{sun seed}.
 #'
 #' The angular distance from the sun seed to every other segments are computed,
@@ -25,8 +25,8 @@
 #'
 #' @inheritParams extract_sky_points
 #' @inheritParams sky_grid_segmentation
-#' @param max_angular_dist Numeric vector of length one. Angle in degree to
-#'   establish the maximum size of the sun corona.
+#' @param max_angular_dist Numeric vector of length one. Angle in degrees to
+#'   control the maximum potential size of the solar corona.
 #'
 #' @return Object of class \emph{list} with two numeric vectors of length two
 #'   named \emph{row_col} and \emph{zenith_azimuth}. The former is the raster
@@ -34,7 +34,7 @@
 #'   angular coordinates (zenith and azimuth angles in degrees).
 #'
 #' @family HSP Functions
-#' @seealso fit_cie_sky_model
+#' @seealso \code{\link{fit_cie_sky_model}}
 #'
 #' @export
 #'

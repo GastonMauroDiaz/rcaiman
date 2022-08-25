@@ -9,8 +9,9 @@
 #' sky DNs).
 #'
 #' The proposed automatic edition consists of (1) flattening the values below
-#' the minimum input data (2) and forcing the values toward the horizon to
-#' become gradually the median input data. The latter is achieved by calculating
+#' the minimum value from the data source--defined by \code{r} and
+#' \code{bin}--(2) and forcing the values toward the horizon to become gradually
+#' the median value from the data source. The latter is achieved by calculating
 #' the weighted average of the median value and the predicted sky DNs, using the
 #' ratio of \code{z} to \code{90} to determine the weights.
 #'
@@ -18,7 +19,7 @@
 #'   \code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.
 #' @inheritParams ootb_mblt
 #' @param r \linkS4class{SpatRaster}. The source of the sky DNs used to build
-#'   \code{sky}.
+#'   \code{sky} (the data source).
 #' @param bin \linkS4class{SpatRaster}. The binarization of \code{r} used to
 #'   select the sky DNs for building the \code{sky} argument.
 #'

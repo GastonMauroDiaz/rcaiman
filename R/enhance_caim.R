@@ -2,14 +2,12 @@
 #'
 #' This function was proposed in \insertCite{Diaz2015;textual}{rcaiman}. It uses
 #' the color perceptual attributes (hue, lightness, and chroma) to enhance the
-#' contrast between the sky and plants through fuzzy classification. The
-#' algorithm was developed following this premise: the color of the sky is
-#' different from the color of plants. It performs the next classification
-#' rules, here expressed in natural language: clear sky is blue and clouds
-#' decrease its chroma; if clouds are highly dense, then the sky is achromatic,
-#' and, in such cases, it can be light or dark; everything that does not match
-#' this description is not sky. These linguistic rules were translated to math
-#' language by means of fuzzy logic.
+#' contrast between the sky and plants through fuzzy classification. It performs
+#' the next classification rules, here expressed in natural language: clear sky
+#' is blue and clouds decrease its chroma; if clouds are highly dense, then the
+#' sky is achromatic, and, in such cases, it can be light or dark; everything
+#' that does not match this description is not sky. These linguistic rules were
+#' translated to math language by means of fuzzy logic.
 #'
 #' This is a pixel-wise methodology that evaluates the possibility for a pixel
 #' to be member of the class \emph{Gap}. High score could mean either high
@@ -20,8 +18,8 @@
 #' function, which output is the argument \code{mem} of the latter function.
 #'
 #' The argument \code{sky_blue} can be obtained from a photograph that clearly
-#' shows the sky. Then, it can be used to process all the others from the same
-#' equipment and data format.
+#' shows the sky. Then, it can be used to process all the others taken with the
+#' same equipment, configuration, and protocol.
 #'
 #' The \code{gamma} argument, along with \code{\link{gbc}}, is used to
 #' back-correct the values passed to \code{\link{local_fuzzy_thresholding}}.
@@ -45,8 +43,8 @@
 #' @references \insertAllCited{}
 #' @family Pre-processing Functions
 #' @return An object of class \linkS4class{SpatRaster}--with same pixel
-#'   dimensions than \code{caim}--that should show more contrast between the
-#'   sky and plant pixels than any of the individual bands from \code{caim}.
+#'   dimensions than \code{caim}--that should show more contrast between the sky
+#'   and plant pixels than any of the individual bands from \code{caim}.
 #'
 #' @examples
 #' \dontrun{

@@ -6,11 +6,11 @@
 #' and the zenith angle on the hemispherical space.
 #'
 #' These are the instructions to produce the CSV file required by this function.
-#' The method requires, in addition to this package and the open-source
-#' \href{https://imagej.nih.gov/ij/download.html}{ImageJ software package}, the
-#' following materials:
+#' The following materials are required:
 #'
 #' \itemize{ \item camera and lens
+#'
+#' \item this package and \href{https://imagej.nih.gov/ij/download.html}{ImageJ}
 #'
 #' \item tripod
 #'
@@ -48,9 +48,9 @@
 #' This method was inspired by the calibration board from
 #' \insertCite{Clark1988;textual}{rcaiman}.
 #'
-#' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are OK.
-#' If not, try moving the last points a little bit. Putting the last one a few
-#' pixels farther from the zenith is usually enough.
+#' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are
+#' OK. If not, try moving the last points a little bit. Putting the last one a
+#' few pixels farther from the zenith is usually enough.
 #'
 #' @param path_to_csv Character vector of length one. Path to a CSV file created
 #'   with the
@@ -61,7 +61,9 @@
 #' @return An object of class \emph{list} with named elements. \emph{lens_coef}
 #'   stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
 #'   degrees, and \emph{max_theta_px} for distance in pixels between the zenith
-#'   and the maximum zenith angle in pixels units.
+#'   and the maximum zenith angle in pixels units. The latter should be double
+#'   checked, particularly if the zenith push pin is not exactly on the zenith
+#'   pixel.
 #'
 #' @family Lens Functions
 #'

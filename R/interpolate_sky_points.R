@@ -22,9 +22,9 @@
 #'
 #' Default parameters are the ones used by
 #' \insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should
-#' account for between 15 to 20 degrees, but it is expressed in pixels units. So,
-#' image resolution and lens projections should be taken into account to
-#' set this argument properly.
+#' account for between 15 to 20 degrees, but it is expressed in pixels units.
+#' So, image resolution and lens projections should be taken into account to set
+#' this argument properly.
 #'
 #' The argument \code{g} should be the same used to obtain \code{sky_points}.
 #' The result will be limited to the cells with at least one pixel covered by
@@ -32,7 +32,10 @@
 #'
 #' @inheritParams fit_cie_sky_model
 #' @inheritParams extract_sky_points
-#' @inheritParams lidR::knnidw
+#' @param k Numeric vector of length one. Number of k-nearest neighbors.
+#' @param p Numeric vector of length one. Power for inverse-distance weighting.
+#' @param rmax Numeric vector of length one. Maximum radius where to search for
+#'   knn.
 #'
 #' @references \insertAllCited{}
 #'

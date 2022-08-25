@@ -10,7 +10,6 @@
 #'
 #' @return No return value. Called for side effects.
 #'
-#' @seealso \code{\link{write_bin}}
 #' @family Tools Functions
 #'
 #' @examples

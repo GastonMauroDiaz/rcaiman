@@ -9,7 +9,6 @@
 #'
 #' @return No return value. Called for side effects.
 #'
-#' @seealso \code{\link{read_bin}}
 #' @family Tools Functions
 #'
 #' @examples

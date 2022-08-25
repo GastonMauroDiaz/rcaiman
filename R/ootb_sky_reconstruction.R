@@ -3,7 +3,7 @@
 #' Build an above canopy image from a single below canopy image.
 #'
 #' This function is a hard-coded version of a pipeline that uses these main
-#' functions, \code{\link{fit_cie_sky_model}} and
+#' functions \code{\link{fit_cie_sky_model}} and
 #' \code{\link{interpolate_sky_points}}. The code can be easily inspected by
 #' calling \code{ootb_sky_reconstruction}--no parenthesis. Advanced users could
 #' use that code as a template.
@@ -37,7 +37,7 @@
 #' after a dense sampling (\eqn{1 \times 1} degree cells), which is supported by
 #' the fact that sky digital numbers will be available for almost every pixel,
 #' either from \code{r} gaps or from the filling source--an exception is a
-#' filling source with plenty of \code{NA} values.
+#' filling source with plenty of \code{NA} values, which should not be provided.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface

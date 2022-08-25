@@ -4,7 +4,7 @@
 #' \insertCite{Diaz2015;textual}{rcaiman}.
 #'
 #' This function is a hard-coded version of a pipeline that combines these main
-#' functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}},
+#' functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}}, and
 #' \code{\link{obia}}. The code can be easily inspected by calling
 #' \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
 #' template.

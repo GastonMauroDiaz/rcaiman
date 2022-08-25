@@ -8,7 +8,6 @@
 #'
 #' @return An object from class \linkS4class{SpatRaster}.
 #'
-#' @seealso \code{\link{write_bin}}
 #' @family Tools Functions
 #'
 #' @examples

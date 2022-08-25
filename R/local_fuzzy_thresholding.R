@@ -35,7 +35,7 @@
 #'
 #' @return An object of class \linkS4class{SpatRaster} with same pixel
 #'   dimensions than \code{caim}. Depending on \code{mem}, changes could be
-#'   subtle. However, they should be in the direction of showing more contrast
+#'   subtle; however, they should be in the direction of showing more contrast
 #'   between the sky and plant pixels than any of the individual bands from
 #'   \code{caim}.
 #'

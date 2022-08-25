@@ -2,22 +2,25 @@
 #'
 #' Extract sky points for model fitting.
 #'
-#' This function will automatically sample sky pixels from the sky region
+#' This function will automatically sample sky pixels from the sky regions
 #' delimited by \code{bin}. The density and distribution of the sampling points
 #' is controlled by the arguments \code{g}, \code{dist_to_plant}, and
 #' \code{min_raster_dist}.
 #'
-#' As the first step, digital numbers from \code{r} covered by pixels values
-#' equal to one on the \code{bin} layer are evaluated to extract its maximum
-#' value per cell of \code{g}. The argument \code{dist_to_plant} allows users to
-#' establish a buffer zone for \code{bin}, meaning a size reduction of areas
-#' with pixels values equal to one.
+#' As the first step, sky pixels from \code{r} are evaluated to find, for each
+#' cell of \code{g}, the pixel with maximum digital value (local maximum). The
+#' argument \code{dist_to_plant} allows users to establish a buffer zone for
+#' \code{bin}, meaning a size reduction of original sky regions.
 #'
-#' The final step filters these local maximum values using the
-#' \code{min_raster_dist} argument as a minimum distance threshold between
-#' points that is applied in the raster space.
+#' The final step filters these local maximum values by calculating distances
+#' between points on the raster space. It discards new points that have a
+#' distance from existing points minor than \code{min_raster_dist}. Cell labels
+#' determine the order in which the points are evaluated.
 #'
-#' Using code \code{NULL} as argument skip the filtering step in question.
+#' To skip a given filtering step, use code \code{NULL} as argument input. For
+#' instance, to provide \code{min_raster_dist = NULL} will return points
+#' omitting raster distance calculation, which means a faster output in
+#' comparison with using \code{min_raster_dist = 1}.
 #'
 #' @inheritParams fit_trend_surface
 #' @param g \linkS4class{SpatRaster} built with
@@ -27,6 +30,7 @@
 #'
 #'
 #' @family Tools Functions
+#' @seealso \code{\link{fit_cie_sky_model}}
 #'
 #' @return An object of the class \emph{data.frame} with two columns named
 #'   \emph{col} and \emph{row}.

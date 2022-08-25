@@ -8,15 +8,16 @@
 #'   of the camera was facing at the moment of acquisition.
 #'
 #' @return An object of class \linkS4class{SpatRaster} with azimuth angles in
-#'   degrees. North (0º) is pointing up as in maps, but East (90º) and West
-#'   (270º) are flipped respecting to maps. To understand why is that, take two
-#'   flash-card size pieces of paper. Put one on a table in front of you and
-#'   draw on it a compass rose. Take the other and hold it with your arms
-#'   extended over your head and, following the directions of the compass rose
-#'   in front of you, draw another one in the paper side that face down--It will
-#'   be an awkward position, like if you were taking an upward-looking photo
-#'   with a mobile device while looking at the screen. Then, put it down and
-#'   compare both compass roses.
+#'   degrees. If the \code{orientation} argument is zero, North (0º) is pointing
+#'   up as in maps, but East (90º) and West (270º) are flipped respecting to
+#'   maps. To understand why is that, do the following: take two flash-card size
+#'   pieces of paper; put one on a table in front of you and draw on it a
+#'   compass rose; take the other and hold it with your arms extended over your
+#'   head and, following the directions of the compass rose in front of you,
+#'   draw another one in the paper side that face down--It will be an awkward
+#'   position, like if you were taking an upward-looking photo with a mobile
+#'   device while looking at the screen--; finally, put it down and compare both
+#'   compass roses.
 #' @export
 #'
 #' @family Lens Functions
@@ -42,10 +43,6 @@ azimuth_image <- function (z, orientation = 0)
   # above line is to orient North up and West left
 
   if (orientation != 0) {
-    if (orientation < 0 | orientation >= 360) {
-      stop(paste0("The argument \"orientation\" should be",
-                  "a positive value lower than 360."))
-    }
     if (!requireNamespace("imager", quietly = TRUE)) {
       stop(paste("Package \"imager\" needed for this function to work.",
                  "Please install it."),

@@ -133,7 +133,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   the 5 coefficients, observed and predicted values, the sun coordinates
 #'   (zenith and azimuth angle in degrees), the relative luminance image
 #'   calculated for every pixel using the estimated coefficients and
-#'   corresponding sun coordinate, the digital number at the zenith, and the
+#'   corresponding sun coordinates, the digital number at the zenith, and the
 #'   description of the standard sky from which the initial coefficients were
 #'   drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
 #'   coefficients.
