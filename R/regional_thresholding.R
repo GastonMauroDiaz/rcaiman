@@ -17,8 +17,11 @@
 #'
 #' \item \strong{Methods from autothresholdr package}: this function can call
 #' methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-#' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the
-#' one recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+#' to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which was
+#' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+#'
+#' \item \strong{Method isodata from this package}: Use \code{"thr_isodata"} to
+#' use \code{\link{thr_isodata}}.
 #'
 #' }
 #'
@@ -51,6 +54,8 @@
 #' rings <- rings_segmentation(z, 10)
 #' bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 1)
 #' plot(bin)
+#' bin <- regional_thresholding(blue, rings, "thr_isodata")
+#' plot(bin)
 #' }
 regional_thresholding <- function(r,
                                   segmentation,
@@ -77,7 +82,8 @@ regional_thresholding <- function(r,
     Diaz2018 = function(dns) {
       dn <- quantile(dns, prob)
       thr_image(dn, intercept, slope)
-    }
+    },
+    thr_isodata = thr_isodata
   )
 
   if (is.null(fun)) {

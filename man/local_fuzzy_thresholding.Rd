@@ -10,16 +10,16 @@ local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 \item{lightness}{\linkS4class{SpatRaster}. A normalized greyscale image (see
 \code{\link{normalize}}).}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. Usually, built with
-\code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link{mask_hs}}.}
 
 \item{mem}{\linkS4class{SpatRaster}. It is the scale parameter of the
 logistic membership function. Typically it is obtained with
 \code{\link{membership_to_color}}.}
 
 \item{thr}{Numeric vector of length one. Location parameter of the logistic
-membership function. Use \code{NULL} to estimate it automatically with the
-function \code{\link[autothresholdr]{auto_thresh}}, method "IsoData".}
+membership function. Use \code{NULL} to estimate it automatically with
+\code{\link{thr_isodata}}.}
 
 \item{fuzziness}{Numeric vector of length one. This number is a constant
 value that scales \code{mem}. Use \code{NULL} to estimate it automatically
@@ -28,7 +28,7 @@ as the midpoint between the maximum and minimum values of \code{lightness}.}
 \value{
 An object of class \linkS4class{SpatRaster} with same pixel
   dimensions than \code{caim}. Depending on \code{mem}, changes could be
-  subtle. However, they should be in the direction of showing more contrast
+  subtle; however, they should be in the direction of showing more contrast
   between the sky and plant pixels than any of the individual bands from
   \code{caim}.
 }

@@ -28,6 +28,8 @@
 #' \item \strong{Nikkor_10.5_mm}: AF DX Fisheye-Nikkor 10.5mm f/2.8G ED
 #' \insertCite{Pekin2009}{rcaiman}
 #'
+#' \item \strong{Olloclip}: Auxiliary lens. Unpublished
+#'
 #' }
 #'
 #' @param type Character vector of length one. The name of the lens.

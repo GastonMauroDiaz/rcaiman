@@ -24,21 +24,21 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize()
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' z <- zenith_image(2132/2, lens("Olloclip"))
 #' a <- azimuth_image(z)
-#' sky_blue_sample <- crop(caim, ext(610,643,760,806))
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   as.numeric() %>%
-#'   matrix(., ncol = 3) %>%
-#'   sRGB()
-#' bin <- ootb_obia(caim, z, a, !is.na(z), sky_blue)
-#' plot(bin)
+#' zenith_colrow <- c(1063, 771)/2
+#' caim <- expand_noncircular(caim, z, zenith_colrow) %>% normalize()
+#' m <- !is.na(caim$Red) & !is.na(z)
+#' caim[!m] <- 0
+#' bin <- ootb_obia(caim, z, a)
 #' }
-ootb_obia <- function(caim, z, a, m, sky_blue) {
+ootb_obia <- function(caim, z, a, m = NULL, sky_blue = NULL) {
   ecaim <- enhance_caim(caim, m, sky_blue = sky_blue,
                         w_red = 0, gamma = 2.2, thr = 0.5,
                         fuzziness = 100)
+  if (is.null(m)) m <- !is.na(z)
   sunlit_canopy <- mask_sunlit_canopy(caim, m)
   ecaim[sunlit_canopy] <- 0
   mx <- quantile(ecaim[], 0.9)
@@ -54,6 +54,6 @@ ootb_obia <- function(caim, z, a, m, sky_blue) {
   bin <- find_sky_pixels_nonnull(ecaim, sky_flat, g)
 
   seg <- polar_qtree(caim, z, a, scale_parameter = 0.2)
-  r <- gbc(caim$Blue*255)
+  r <- gbc(caim$Blue*255, gamma = 2.2)
   obia(r, z, a, bin, seg)
 }

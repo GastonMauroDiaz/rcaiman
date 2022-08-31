@@ -34,7 +34,7 @@ Build an above canopy image from a single below canopy image.
 }
 \details{
 This function is a hard-coded version of a pipeline that uses these main
-functions, \code{\link{fit_cie_sky_model}} and
+functions \code{\link{fit_cie_sky_model}} and
 \code{\link{interpolate_sky_points}}. The code can be easily inspected by
 calling \code{ootb_sky_reconstruction}--no parenthesis. Advanced users could
 use that code as a template.
@@ -68,7 +68,7 @@ the sky is fully reconstructed with \code{\link{interpolate_sky_points}}
 after a dense sampling (\eqn{1 \times 1} degree cells), which is supported by
 the fact that sky digital numbers will be available for almost every pixel,
 either from \code{r} gaps or from the filling source--an exception is a
-filling source with plenty of \code{NA} values.
+filling source with plenty of \code{NA} values, which should not be provided.
 }
 \examples{
 \dontrun{
@@ -87,10 +87,7 @@ hist(ratio)
 
 #preprocessed with HSP
 path <- system.file("external/DSCN6342.pgm", package = "rcaiman")
-r <- rast(path)
-ext(r) <- ext(0,ncol(r),0,nrow(r))
-crs(r) <- crs(read_caim())
-r <- normalize(r)
+r <- read_caim(path) \%>\% normalize()
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 bin <- find_sky_pixels(r, z, a)

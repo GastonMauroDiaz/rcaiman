@@ -2,20 +2,14 @@
 % Please edit documentation in R/read_caim.R
 \name{read_caim}
 \alias{read_caim}
-\alias{read_caim,character-method}
-\alias{read_caim,missing-method}
 \title{Read a canopy image from a file}
 \usage{
-read_caim(path_to_file, upper_left = NULL, width = NULL, height = NULL)
-
-\S4method{read_caim}{character}(path_to_file, upper_left = NULL, width = NULL, height = NULL)
-
-\S4method{read_caim}{missing}(path_to_file)
+read_caim(path = NULL, upper_left = NULL, width = NULL, height = NULL)
 }
 \arguments{
-\item{path_to_file}{Character vector of length one. Path to a JPEG or TIFF
-file. The function will return a data example if no arguments
-are provided.}
+\item{path}{Character vector of length one. Path to an image, including file
+extension. The function will return a data example if no arguments are
+provided.}
 
 \item{upper_left}{An integer vector of length two.}
 
@@ -45,16 +39,12 @@ and others alike}). The \code{width} and \code{height} parameters indicate
 the size of the boxy ROI. I recommend using
 \href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain these parameters, but
 any image editor can be used, such as ‘GIMP’ or ‘Adobe Photoshop’.
+
+\strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
+\code{height}, open the image on the Fiji distro of ImageJ, draw a
+rectangular selection, and go to Edit>Selection>Add to
+Manager>More...>Specify. The same workflow may work with other distros.
 }
-\section{Functions}{
-\itemize{
-\item \code{read_caim(character)}: Provide the path to a file. If The file is stored in
-the working directory, just provide the file name. File extension should be
-included in the file name.
-
-\item \code{read_caim(missing)}: It returns an example (see details).
-
-}}
 \examples{
 # This is the example image
 r <- read_caim()
@@ -71,11 +61,15 @@ r <- read_caim(path,
                width = diameter_px,
                height = diameter_px)
 plotRGB(r)
+
+# A pre-processed image
+path <- system.file("external/DSCN6342.pgm", package = "rcaiman")
+r <- read_caim(path)
+plot(r)
 }
 \seealso{
-\code{\link{write_caim}}
-
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},

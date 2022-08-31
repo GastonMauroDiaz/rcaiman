@@ -31,9 +31,8 @@ plot(m - m_from_disk)
 }
 }
 \seealso{
-\code{\link{read_bin}}
-
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},

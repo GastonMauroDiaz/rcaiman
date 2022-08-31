@@ -18,7 +18,9 @@ with the
 An object of class \emph{list} with named elements. \emph{lens_coef}
   stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
   degrees, and \emph{max_theta_px} for distance in pixels between the zenith
-  and the maximum zenith angle in pixels units.
+  and the maximum zenith angle in pixels units. The latter should be double
+  checked, particularly if the zenith push pin is not exactly on the zenith
+  pixel.
 }
 \description{
 Calibrate a fisheye lens. This type of lens has wide field of view and a
@@ -28,11 +30,13 @@ and the zenith angle on the hemispherical space.
 }
 \details{
 These are the instructions to produce the CSV file required by this function.
-The method requires, in addition to this package and the open-source
-\href{https://imagej.nih.gov/ij/download.html}{ImageJ software package}, the
-following materials:
+The following materials are required:
 
-\itemize{ \item camera and lens
+\itemize{
+
+\item this package and \href{https://imagej.nih.gov/ij/download.html}{ImageJ}
+
+\item camera and lens
 
 \item tripod
 
@@ -70,9 +74,9 @@ and not skipping any showed push pin.
 This method was inspired by the calibration board from
 \insertCite{Clark1988;textual}{rcaiman}.
 
-\strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are OK.
-If not, try moving the last points a little bit. Putting the last one a few
-pixels farther from the zenith is usually enough.
+\strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are
+OK. If not, try moving the last points a little bit. Putting the last one a
+few pixels farther from the zenith is usually enough.
 }
 \examples{
 path <- system.file("external/Results_calibration.csv", package = "rcaiman")

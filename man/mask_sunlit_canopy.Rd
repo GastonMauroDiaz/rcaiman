@@ -10,8 +10,11 @@ mask_sunlit_canopy(caim, m)
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
 \code{\link{read_caim}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. Usually, built with
-\code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
+enter \code{!is.na(caim$Red)}. See the Details section in
+\code{\link{local_fuzzy_thresholding}} to understand how this argument can
+modify the output.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and

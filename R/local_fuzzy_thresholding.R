@@ -19,14 +19,14 @@
 #'
 #' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image (see
 #'   \code{\link{normalize}}).
-#' @param m \linkS4class{SpatRaster}. A mask. Usually, built with
-#'   \code{\link{mask_hs}}.
+#' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+#'   check \code{\link{mask_hs}}.
 #' @param mem \linkS4class{SpatRaster}. It is the scale parameter of the
 #'   logistic membership function. Typically it is obtained with
 #'   \code{\link{membership_to_color}}.
 #' @param thr Numeric vector of length one. Location parameter of the logistic
-#'   membership function. Use \code{NULL} to estimate it automatically with the
-#'   function \code{\link[autothresholdr]{auto_thresh}}, method "IsoData".
+#'   membership function. Use \code{NULL} to estimate it automatically with
+#'   \code{\link{thr_isodata}}.
 #' @param fuzziness Numeric vector of length one. This number is a constant
 #'   value that scales \code{mem}. Use \code{NULL} to estimate it automatically
 #'   as the midpoint between the maximum and minimum values of \code{lightness}.
@@ -67,16 +67,7 @@ local_fuzzy_thresholding <- function (lightness,
   terra::compareGeom(lightness, mem)
 
   if (is.null(thr)) {
-    if (!requireNamespace("autothresholdr", quietly = TRUE)) {
-      stop(paste(
-        "Package \"autothresholdr\" needed for this function to work.",
-        "Please install it."
-      ),
-      call. = FALSE
-      )
-    }
-    dns <- lightness[m]
-    thr <- autothresholdr::auto_thresh(round(dns * 255), "IsoData")[1] / 255
+    thr <- thr_isodata(lightness[m] %>% as.numeric())
   }
   if (is.null(fuzziness)) {
     fuzziness <- (max(lightness[m]) - min(lightness[m])) / 2

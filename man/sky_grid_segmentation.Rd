@@ -32,7 +32,7 @@ Segmenting the hemisphere view into segments of equal angular resolution for
 both zenith and azimuth angles.
 }
 \details{
-Intersecting rings with sectors makes a grid in which each segment is a
+Intersecting rings with sectors makes a grid in which each cell is a
 portion of the hemisphere. Each pixel of the grid is labeled with an ID that
 codify both ring and sector IDs. For example, a grid with a regular interval
 of one degree has segment from \code{1001} to \code{360090}. This numbers are

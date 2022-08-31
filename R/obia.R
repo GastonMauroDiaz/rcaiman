@@ -39,19 +39,18 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' caim <- normalize(caim, 0, 255)
+#' r <- caim$Blue %>% gbc()
+#' caim <- normalize(caim)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' sky_blue_sample <- crop(caim, ext(610,643,760,806))
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   as.numeric() %>%
-#'   matrix(., ncol = 3) %>%
-#'   sRGB()
-#' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
-#' bin <- apply_thr(ecaim, 0.5)
 #' seg <- polar_qtree(caim, z, a)
-#' bin_obia <- obia(gbc(caim$Blue), z, a, bin, seg)
+#' ecaim <- enhance_caim(caim, !is.na(z))
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
+#' bin_obia <- obia(r, z, a, bin, seg)
 #' plot(bin - bin_obia)
+#' plot(bin_obia)
+#' # This is the closest version to the workflow presented in Diaz and lencinas
+#' # (2015) that this package allows.
 #' }
 obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
   .is_single_layer_raster(bin, "bin")

@@ -15,15 +15,16 @@ of the camera was facing at the moment of acquisition.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with azimuth angles in
-  degrees. North (0º) is pointing up as in maps, but East (90º) and West
-  (270º) are flipped respecting to maps. To understand why is that, take two
-  flash-card size pieces of paper. Put one on a table in front of you and
-  draw on it a compass rose. Take the other and hold it with your arms
-  extended over your head and, following the directions of the compass rose
-  in front of you, draw another one in the paper side that face down--It will
-  be an awkward position, like if you were taking an upward-looking photo
-  with a mobile device while looking at the screen. Then, put it down and
-  compare both compass roses.
+  degrees. If the \code{orientation} argument is zero, North (0º) is pointing
+  up as in maps, but East (90º) and West (270º) are flipped respecting to
+  maps. To understand why is that, do the following: take two flash-card size
+  pieces of paper; put one on a table in front of you and draw on it a
+  compass rose; take the other and hold it with your arms extended over your
+  head and, following the directions of the compass rose in front of you,
+  draw another one in the paper side that face down--It will be an awkward
+  position, like if you were taking an upward-looking photo with a mobile
+  device while looking at the screen--; finally, put it down and compare both
+  compass roses.
 }
 \description{
 Build a single layer image with azimuth angles as pixel values.

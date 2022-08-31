@@ -57,6 +57,7 @@ plot(extract_feature(r$Blue, g, return_raster = TRUE))
 }
 \seealso{
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},

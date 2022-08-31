@@ -65,10 +65,7 @@
 #'
 #' #preprocessed with HSP
 #' path <- system.file("external/DSCN6342.pgm", package = "rcaiman")
-#' r <- rast(path)
-#' ext(r) <- ext(0,ncol(r),0,nrow(r))
-#' crs(r) <- crs(read_caim())
-#' r <- normalize(r)
+#' r <- read_caim(path) %>% normalize()
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)
 #' bin <- find_sky_pixels(r, z, a)

@@ -99,6 +99,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()}
+\code{\link{thr_image}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

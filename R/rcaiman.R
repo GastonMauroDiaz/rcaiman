@@ -35,10 +35,10 @@
 #'   \code{\link{fix_reconstructed_sky}}, \code{\link{interpolate_sky_points}},
 #'   and \code{\link{ootb_sky_reconstruction}}.
 #'
-#' @section Tools: \code{\link{extract_feature}}, \code{\link{extract_rl}},
-#'   \code{\link{extract_sky_points}}, \code{\link{masking}},
-#'   \code{\link{read_bin}}, \code{\link{read_caim}}, \code{\link{write_bin}},
-#'   and \code{\link{write_caim}}.
+#' @section Tools: \code{\link{colorfulness}}, \code{\link{extract_feature}},
+#'   \code{\link{extract_rl}}, \code{\link{extract_sky_points}},
+#'   \code{\link{masking}}, \code{\link{read_bin}}, \code{\link{read_caim}},
+#'   \code{\link{write_bin}}, and \code{\link{write_caim}}.
 #'
 #'
 #' @docType package

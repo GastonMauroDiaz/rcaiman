@@ -11,14 +11,7 @@
 #' software. Those images are stored as PGM files in the subfolder "manipulate"
 #' of the project folder (which will be in turn a subfolder of the
 #' "project\strong{s}" folder). Those PGM files can be read with
-#' \code{\link[terra]{rast}}, as it is shown below.
-#'
-#' \preformatted{
-#' r <- rast("C:/Users/johndoe/Documents/HSP/Projects/my_prj/manipulate/img01.pgm")
-#' ext(r) <- ext(0,ncol(r),0,nrow(r))
-#' crs(r) <- crs(read_caim())
-#' r <- normalize(r)
-#' }
+#' \code{\link{read_caim}}.
 #'
 #' The \code{img_name} argument of \code{write_sky_points()} should be the name
 #' of the file associated to the aforementioned \code{r} argument. Following the

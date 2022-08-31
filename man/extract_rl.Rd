@@ -72,6 +72,7 @@ rl <- extract_rl(r, z, a, sky_points, 1)
 }
 \seealso{
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_sky_points}()},

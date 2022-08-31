@@ -1,7 +1,7 @@
-#' Fix predicted sky
+#' Fix reconstructed sky
 #'
-#' Automatically edit a raster image of sky digital numbers (DNs) predicted with
-#' functions such as \code{\link{fit_coneshaped_model}} and
+#' Automatically edit a raster image of sky digital numbers (DNs) reconstructed
+#' with functions such as \code{\link{fit_coneshaped_model}} and
 #' \code{\link{fit_trend_surface}}.
 #'
 #' The predicted sky DNs are usually erroneous near the horizon because either
@@ -10,7 +10,7 @@
 #'
 #' The proposed automatic edition consists of (1) flattening the values below
 #' the minimum value from the data source--defined by \code{r} and
-#' \code{bin}--(2) and forcing the values toward the horizon to become gradually
+#' \code{bin}--and (2) forcing the values toward the horizon to become gradually
 #' the median value from the data source. The latter is achieved by calculating
 #' the weighted average of the median value and the predicted sky DNs, using the
 #' ratio of \code{z} to \code{90} to determine the weights.

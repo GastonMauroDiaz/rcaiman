@@ -8,9 +8,11 @@
 #' These are the instructions to produce the CSV file required by this function.
 #' The following materials are required:
 #'
-#' \itemize{ \item camera and lens
+#' \itemize{
 #'
 #' \item this package and \href{https://imagej.nih.gov/ij/download.html}{ImageJ}
+#'
+#' \item camera and lens
 #'
 #' \item tripod
 #'

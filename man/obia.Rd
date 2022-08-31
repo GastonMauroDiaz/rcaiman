@@ -15,9 +15,8 @@ the blue channel extracted from a hemispherical photograph. Please see
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely
-to be pure sky pixels.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a working binarization
+of \code{r} without gross errors.}
 
 \item{segmentation}{\linkS4class{SpatRaster} built with
 \code{\link{polar_qtree}}.}
@@ -41,15 +40,15 @@ defining upper and lower limits through the arguments \code{gf_mx} and
 \details{
 This method produces a synthetic layer by computing the ratio of \code{r} to
 the maximum value of \code{r} at the segment level. This process is carried
-out only on the pixels covered by the classes \emph{foliage} and \emph{sky};
+out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
 the latter is defined by bin equal to one. To avoid spurious values, the
-quantile \code{0.9} is computed instead of the maximum. Pixels from the
-synthetic layer between \code{0} and \code{1} are binarized by following two
-criteria, i.e., to assign a pixel to the class \emph{plant} it has to be
-\code{0} under both criteria. Those criteria are (1) \code{defuzzify} with a
-sky grid segmentation of \code{10} degrees and (2) \code{apply_thr} with a
-threshold of \code{0.5}. In addition, to be \emph{plant}, the pixel cannot be
-exclusively surrounded by sky pixels.
+quantile \code{0.9} is computed instead of the maximum. Pixels from this
+synthetic layer that lay between \code{0} and \code{1} are assigned to the
+class \emph{plant} only if they comply with the following criteria: (1) are
+\code{0} after \code{\link{defuzzify}} with a sky grid segmentation of
+\code{10} degrees, (2) are \code{0} after \code{\link{apply_thr}} with a
+threshold of \code{0.5}, and (3) are not exclusively surrounded by sky
+pixels.
 }
 \examples{
 \dontrun{
@@ -80,6 +79,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()}
+\code{\link{thr_image}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

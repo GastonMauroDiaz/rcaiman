@@ -4,7 +4,7 @@
 \alias{ootb_obia}
 \title{Out-of-the-box object-based image analysis of hemispherical photographs}
 \usage{
-ootb_obia(caim, z, a, m, sky_blue)
+ootb_obia(caim, z, a, m = NULL, sky_blue = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
@@ -14,11 +14,17 @@ ootb_obia(caim, z, a, m, sky_blue)
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. Usually, built with
-\code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
+enter \code{!is.na(caim$Red)}. See the Details section in
+\code{\link{local_fuzzy_thresholding}} to understand how this argument can
+modify the output.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
-be passed to \code{\link{membership_to_color}}.}
+be passed to \code{\link{membership_to_color}}. Default (\code{NULL}) is
+the equivalent to enter \code{sRGB(0.1, 0.4, 0.8)}--the HEX color code is
+#1A66CC, it can be entered into a search engine (such as Mozilla Firefox)
+to see a color swatch.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
@@ -30,7 +36,7 @@ Out-of-the-box version of methods first presented in
 }
 \details{
 This function is a hard-coded version of a pipeline that combines these main
-functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}},
+functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}}, and
 \code{\link{obia}}. The code can be easily inspected by calling
 \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
 template.
@@ -40,16 +46,15 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+caim <- read_caim(path)
+z <- zenith_image(2132/2, lens("Olloclip"))
 a <- azimuth_image(z)
-sky_blue_sample <- crop(caim, ext(610,643,760,806))
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
-  as.numeric() \%>\%
-  matrix(., ncol = 3) \%>\%
-  sRGB()
-bin <- ootb_obia(caim, z, a, !is.na(z), sky_blue)
-plot(bin)
+zenith_colrow <- c(1063, 771)/2
+caim <- expand_noncircular(caim, z, zenith_colrow) \%>\% normalize()
+m <- !is.na(caim$Red) & !is.na(z)
+caim[!m] <- 0
+bin <- ootb_obia(caim, z, a)
 }
 }
 \seealso{
@@ -60,6 +65,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()}
+\code{\link{thr_image}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

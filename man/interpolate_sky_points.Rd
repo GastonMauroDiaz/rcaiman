@@ -13,11 +13,12 @@ or a \emph{data.frame} with same structure and names.}
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
 
-\item{k}{integer. Number of k-nearest neighbours. Default 10.}
+\item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
-\item{p}{numeric. Power for inverse-distance weighting. Default 2.}
+\item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
 
-\item{rmax}{numeric. Maximum radius where to search for knn. Default 50.}
+\item{rmax}{Numeric vector of length one. Maximum radius where to search for
+knn.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}.
@@ -46,9 +47,9 @@ probably, it is best to use \code{k} greater than 1.
 
 Default parameters are the ones used by
 \insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should
-account for between 15 to 20 degrees, but it is expressed in pixels units. So,
-image resolution and lens projections should be taken into account to
-set this argument properly.
+account for between 15 to 20 degrees, but it is expressed in pixels units.
+So, image resolution and lens projections should be taken into account to set
+this argument properly.
 
 The argument \code{g} should be the same used to obtain \code{sky_points}.
 The result will be limited to the cells with at least one pixel covered by

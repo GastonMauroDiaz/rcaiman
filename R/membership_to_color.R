@@ -50,6 +50,7 @@
 membership_to_color <- function(caim, target_color, sigma = NULL) {
   .is_class_from_colorspace(target_color)
   stopifnot(class(caim) == "SpatRaster")
+  stopifnot(all(names(caim) == c("Red", "Green", "Blue")))
   .was_normalized(caim, "caim")
   stopifnot(names(caim) == c("Red", "Green", "Blue"))
   if (!is.null(sigma)) stopifnot(length(sigma) == 1)

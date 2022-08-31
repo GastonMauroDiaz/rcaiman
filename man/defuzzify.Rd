@@ -49,6 +49,7 @@ plot(bin$bin - bin2)
 }
 \seealso{
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},

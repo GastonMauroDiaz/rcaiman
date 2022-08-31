@@ -21,9 +21,9 @@ Global or local thresholding of images.
 }
 \details{
 It is a wrapper function around the operator \code{>} from the ‘terra’
-package. If a single threshold value is provided as \code{thr} argument, it
-is applied to every pixel of the object \code{r}. If, instead, a
-\linkS4class{SpatRaster} is provided as \code{thr} argument, then a
+package. If a single threshold value is provided as the \code{thr} argument,
+it is applied to every pixel of the object \code{r}. If, instead, a
+\linkS4class{SpatRaster} is provided as the \code{thr} argument, then a
 particular threshold is applied to each particular pixel.
 }
 \examples{
@@ -46,6 +46,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()}
+\code{\link{thr_image}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

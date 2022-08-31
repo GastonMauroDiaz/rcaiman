@@ -18,18 +18,30 @@
 #'
 #' @examples
 #' \dontrun{
-#'    my_file <- file.path(tempdir(), "DSC_2881.JPG")
-#'    download.file("https://osf.io/x8urg/download", my_file,
-#'                method = "auto", mode = "wb"
-#'    )
+#'  #noncircular fisheye from a DSLR camera
+#'  my_file <- file.path(tempdir(), "DSC_2881.JPG")
+#'  download.file("https://osf.io/x8urg/download", my_file,
+#'              method = "auto", mode = "wb"
+#'  )
 #'
-#'    r <- read_caim(my_file)
-#'    diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
-#'    zenith_colrow <- c(1503, 998)
-#'    z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
-#'    r <- expand_noncircular(r, z, zenith_colrow)
-#'    plot(r)
-#'    plot(is.na(r$Red), add = TRUE, alpha = 0.5)
+#'  r <- read_caim(my_file)
+#'  diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+#'  zenith_colrow <- c(1503, 998)
+#'  z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
+#'  r <- expand_noncircular(r, z, zenith_colrow)
+#'  plot(r, col = grey(seq(0,1, 1/255)))
+#'  plot(is.na(r$Red), add = TRUE, alpha = 0.3,legend = FALSE)
+#'
+#'  #noncircular fisheye from a smartphone with an auxiliary lens
+#'  path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#'  caim <- read_caim(path)
+#'  z <- zenith_image(2132/2, lens("Olloclip"))
+#'  a <- azimuth_image(z)
+#'  zenith_colrow <- c(1063, 771)/2
+#'  caim <- expand_noncircular(caim, z, zenith_colrow)
+#'  plot(caim$Blue, col = grey(seq(0,1, 1/255)))
+#'  m <- !is.na(caim$Red) & !is.na(z)
+#'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 #' }
 expand_noncircular <-  function (caim, z, zenith_colrow) {
   .is_single_layer_raster(z, "z")
@@ -55,7 +67,7 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   ze <- terra::ext(z) * 1.5
   r <- terra::extend(caim, z)
   terra::ext(r) <- terra::align(terra::ext(r), z)
-  r <- terra::crop(r, z)
+  r <- terra::resample(r, z)
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
   r
 }

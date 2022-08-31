@@ -11,16 +11,17 @@ masking(r, m, RGB = c(1, 0, 0))
 see \code{\link{normalize}}. Only methods for images with one or three
 layers have been implemented.}
 
-\item{m}{\linkS4class{SpatRaster}. The mask, see \code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link{mask_hs}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that essentially is
-  \code{r} with areas delimited by \code{m} painted in a solid color. If
-  \code{r} is a single layer image, then the layer is triplicated to allow
-  the use of color.
+  \code{r} with areas where \code{m} is equal to zero painted in a solid
+  color. If \code{r} is a single layer image, then the layer is triplicated
+  to allow the use of color.
 }
 \description{
 Image masking
@@ -45,6 +46,7 @@ Image masking
 \code{\link{mask_hs}}
 
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},

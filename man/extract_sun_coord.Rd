@@ -22,8 +22,8 @@ to be pure sky pixels.}
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
 
-\item{max_angular_dist}{Numeric vector of length one. Angle in degree to
-establish the maximum size of the sun corona.}
+\item{max_angular_dist}{Numeric vector of length one. Angle in degrees to
+control the maximum potential size of the solar corona.}
 }
 \value{
 Object of class \emph{list} with two numeric vectors of length two
@@ -43,11 +43,11 @@ values is computed and used to filter out cells below that threshold; i.e,
 only the cells with at least one extremely bright sky pixel is selected.
 
 The selected cells are grouped based on adjacency, and new bigger segments
-are created from the groups. The degree of membership to the class \emph{Sun}
-is calculated for every new segment by computing the number of cells that
-constitute the segment and its mean digital number (values taken from
-\code{r}). In other words, the brightest and largest segments are the ones
-that score higher. The one with the highest score is selected as the
+are created from these groups. The degree of membership to the class
+\emph{Sun} is calculated for every new segment by computing the number of
+cells that constitute the segment and its mean digital number (values taken
+from \code{r}). In other words, the  largest and brightest segments are the
+ones that score higher. The one with the highest score is selected as the
 \emph{sun seed}.
 
 The angular distance from the sun seed to every other segments are computed,
@@ -78,7 +78,7 @@ plot(vect(xy), add = TRUE, col = 2)
 }
 }
 \seealso{
-fit_cie_sky_model
+\code{\link{fit_cie_sky_model}}
 
 Other HSP Functions: 
 \code{\link{read_manual_input}()},

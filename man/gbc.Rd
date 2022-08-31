@@ -30,8 +30,6 @@ gbc(r)
 \insertAllCited{}
 }
 \seealso{
-\code{\link{normalize}}
-
 Other Pre-processing Functions: 
 \code{\link{enhance_caim}()},
 \code{\link{local_fuzzy_thresholding}()},

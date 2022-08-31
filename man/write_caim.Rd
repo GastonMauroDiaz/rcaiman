@@ -27,9 +27,8 @@ write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
 }
 }
 \seealso{
-\code{\link{write_bin}}
-
 Other Tools Functions: 
+\code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},

@@ -38,8 +38,8 @@ was not there. Functions \code{\link{fit_coneshaped_model}} and
 It is worth noting that Equation 1 was developed with 8-bit images, so
 calibration of new coefficient should be done in the 0 to 255 domain since
 that is what \code{\link{thr_image}} expect, although the input \code{dn}
-should be normalized. The latter--that might sound counter intuitive--was a
-design decision aiming to harmonize the whole package.
+should be normalized. The latter was a design decision aiming to harmonize
+the whole package, although it might sound counter intuitive.
 
 To apply the weighting parameter (w) from Equation 1, just provide the
 argument \code{slope} as \eqn{slope \times w}.
@@ -64,6 +64,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
-\code{\link{regional_thresholding}()}
+\code{\link{regional_thresholding}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

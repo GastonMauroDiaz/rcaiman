@@ -21,6 +21,9 @@
 #' }
 read_bin <- function(path) {
   r <- rast(path)
+  terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
+  # https://spatialreference.org/ref/sr-org/7589/
+  terra::crs(r) <- "epsg:7589"
   r <- is.na(r)
   if (stats::sd(r[]) == 0) r <- rast(path)
   as.logical(r)

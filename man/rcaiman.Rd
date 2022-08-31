@@ -53,9 +53,9 @@ auxiliary fisheye lens attached to smartphones.
 }
 
 \section{Tools}{
- \code{\link{extract_feature}}, \code{\link{extract_rl}},
-  \code{\link{extract_sky_points}}, \code{\link{masking}},
-  \code{\link{read_bin}}, \code{\link{read_caim}}, \code{\link{write_bin}},
-  and \code{\link{write_caim}}.
+ \code{\link{colorfulness}}, \code{\link{extract_feature}},
+  \code{\link{extract_rl}}, \code{\link{extract_sky_points}},
+  \code{\link{masking}}, \code{\link{read_bin}}, \code{\link{read_caim}},
+  \code{\link{write_bin}}, and \code{\link{write_caim}}.
 }
 

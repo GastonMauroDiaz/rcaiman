@@ -25,7 +25,7 @@ Refer to the Details section of function
 \code{\link{write_sky_points}}.
 }
 \seealso{
-cie_sky_model_raster
+\code{\link{cie_sky_model_raster}}
 
 Other HSP Functions: 
 \code{\link{extract_sun_coord}()},

@@ -54,8 +54,11 @@ binarized image.
 
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
-to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which is the
-one recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which was
+recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
+
+\item \strong{Method isodata from this package}: Use \code{"thr_isodata"} to
+use \code{\link{thr_isodata}}.
 
 }
 }
@@ -67,6 +70,8 @@ blue <- gbc(r$Blue)
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 rings <- rings_segmentation(z, 10)
 bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 1)
+plot(bin)
+bin <- regional_thresholding(blue, rings, "thr_isodata")
 plot(bin)
 }
 }
@@ -81,6 +86,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
-\code{\link{thr_image}()}
+\code{\link{thr_image}()},
+\code{\link{thr_isodata}()}
 }
 \concept{Binarization Functions}

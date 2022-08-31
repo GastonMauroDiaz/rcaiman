@@ -3,7 +3,8 @@
 #' @param r \linkS4class{SpatRaster}. The image. Values should be normalized,
 #'   see \code{\link{normalize}}. Only methods for images with one or three
 #'   layers have been implemented.
-#' @param m \linkS4class{SpatRaster}. The mask, see \code{\link{mask_hs}}.
+#' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+#'   check \code{\link{mask_hs}}.
 #' @param RGB Numeric vector of length three. RGB color code. Red is the default
 #'   color.
 #'
