@@ -22,8 +22,8 @@
 #'
 #' \strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
 #' \code{height}, open the image on the Fiji distro of ImageJ, draw a
-#' rectangular selection, and go to Edit>Selection>Add to
-#' Manager>More...>Specify. The same workflow may work with other distros.
+#' rectangular selection, and go to Edit>Selection>Specify. The same workflow
+#' may work with other distros.
 #'
 #' @param path Character vector of length one. Path to an image, including file
 #'   extension. The function will return a data example if no arguments are

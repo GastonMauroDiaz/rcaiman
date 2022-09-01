@@ -41,15 +41,17 @@ cap. The cap must be rotated about 30º before taking each photograph.
 The
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 selection tool of ‘ImageJ’ software} should be used to manually digitize the
-white dots and create a CSV file to feed this function.
+white dots and create a CSV file to feed this function. After digitizing the
+points on the image, use the dropdown menu Analyze>Measure to open the window
+Results. To obtain the CSV, use File>Save As...
 
-Another method--only valid for circular hemispherical photographs-- is
-taking a very bright picture (for example, a picture of a room with walls
-painted in light colors) with the lens completely free (do not use any
-mount). Then, digitize points over the circle perimeter. This was the
-method used for producing the example file (see Examples). It is worth noting
-that the perimeter of the circle depicted in a circular hemispherical
-photograph is not necessarily the horizon.
+Another method--only valid for circular hemispherical photographs-- is taking
+a very bright picture (for example, a picture of a room with walls painted in
+light colors) with the lens completely free (do not use any mount). Then,
+digitize points over the circle perimeter. This was the method used for
+producing the example file (see Examples). It is worth noting that the
+perimeter of the circle depicted in a circular hemispherical photograph is
+not necessarily the horizon.
 }
 \examples{
 \dontrun{

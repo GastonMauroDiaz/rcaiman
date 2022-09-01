@@ -36,8 +36,8 @@ Expand a non-circular hemispherical photograph.
  zenith_colrow <- c(1503, 998)
  z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
  r <- expand_noncircular(r, z, zenith_colrow)
- plot(r)
- plot(is.na(r$Red), add = TRUE, alpha = 0.5)
+ plot(r, col = grey(seq(0,1, 1/255)))
+ plot(is.na(r$Red), add = TRUE, alpha = 0.3,legend = FALSE)
 
  #noncircular fisheye from a smartphone with an auxiliary lens
  path <- system.file("external/APC_0581.jpg", package = "rcaiman")

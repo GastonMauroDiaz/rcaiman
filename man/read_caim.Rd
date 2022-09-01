@@ -42,8 +42,8 @@ any image editor can be used, such as ‘GIMP’ or ‘Adobe Photoshop’.
 
 \strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
 \code{height}, open the image on the Fiji distro of ImageJ, draw a
-rectangular selection, and go to Edit>Selection>Add to
-Manager>More...>Specify. The same workflow may work with other distros.
+rectangular selection, and go to Edit>Selection>Specify. The same workflow
+may work with other distros.
 }
 \examples{
 # This is the example image

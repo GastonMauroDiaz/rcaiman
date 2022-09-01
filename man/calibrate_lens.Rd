@@ -69,7 +69,9 @@ eye to align the front of the lens with the pins.
 Transfer the photograph to the computer, open it with ImageJ, and use the
 \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 selection tool} to digitize the push pins, starting from the zenith push pin
-and not skipping any showed push pin.
+and not skipping any showed push pin. Then, use the dropdown menu
+Analyze>Measure to open the window Results. To obtain the CSV, use File>Save
+As...
 
 This method was inspired by the calibration board from
 \insertCite{Clark1988;textual}{rcaiman}.

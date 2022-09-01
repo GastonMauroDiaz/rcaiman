@@ -17,6 +17,26 @@
 #' of the file associated to the aforementioned \code{r} argument. Following the
 #' example, it should be "img01.pgm".
 #'
+#' The following code exemplifies how this package can be used in conjunction
+#' with HSP software.  The code assumes that the user is working within an
+#' RStudio project located in the HSP project folder.
+#'
+#' \preformatted{
+#' r <- read_caim("manipulate/IMG_1014.pgm") %>% normalize()
+#' plot(r)
+#' z <- zenith_image(ncol(r), lens())
+#' a <- azimuth_image(z)
+#' g <- sky_grid_segmentation(z, a, 10)
+#' mblt <- ootb_mblt(r, z, a)
+#' bin <- find_sky_pixels_nonnull(r, mblt$sky_s, g)
+#' bin <- mask_hs(z, 0,85) & bin
+#'
+#' sun_coord <- extract_sun_coord(r, z, a, bin, g)
+#' write_sun_coord(sun_coord$row_col, ".", "IMG_1014")
+#'
+#' sky_points <- extract_sky_points(r, bin, g)
+#' write_sky_points(sky_points, ".", "IMG_1014")
+#' }
 #'
 #' @param sky_points An object of the class \emph{data.frame}. The result of a
 #'   calling to \code{\link{extract_sky_points}}.
@@ -187,7 +207,7 @@ read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
 #'
 #' @examples
 #' z <- zenith_image(1000, lens())
-#' row_col <- row_col_from_zenith_azimuth(z, c(45, 270), lens())
+#' row_col_from_zenith_azimuth(z, c(45, 270), lens())
 row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
   .is_single_layer_raster(r, "r")
   stopifnot(ncol(r) == nrow(r))
@@ -205,9 +225,10 @@ row_col_from_zenith_azimuth <- function(r, za, lens_coef) {
   e <- terra::ext(r)
   terra::ext(r) <- terra::ext(-pi/2,pi/2,-pi/2,pi/2)
   ir <- terra::rasterize(p, r)
-  terra::cells(r, terra::ext(p)) %>%
-    terra::rowColFromCell(r, .) %>%
-    as.numeric()
+  l <- list(za, terra::cells(r, terra::ext(p)) %>%
+                   terra::rowColFromCell(r, .) %>% as.numeric())
+  names(l) <- c("zenith_azimuth", "row_col")
+  l
 }
 
 
@@ -245,7 +266,9 @@ zenith_azimuth_from_row_col <- function(r, row_col, lens_coef) {
   rrs <- calc_relative_radius(zs, lens_coef)
   z_from_rr <- suppressWarnings(splinefun(rrs, zs))
   zenith <- z_from_rr(rr)
-  c(zenith, azimuth)
+  l <- list(c(zenith, azimuth), row_col)
+  names(l) <- c("zenith_azimuth", "row_col")
+  l
 }
 
 

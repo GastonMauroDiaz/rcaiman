@@ -97,8 +97,39 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' canceled. Please, see \code{\link{interpolate_sky_points}} for further
 #' considerations.
 #'
+#' Nevertheless, the recommended input for this function is data pre-processed
+#' with the HSP software package \insertCite{Lang2013}{rcaiman}. Please, refer
+#' to \code{\link{write_sky_points}} for additional details about HSP.
+#'
+#' The following code exemplifies how this package can be used to compare the
+#' manually-guided fitting provided by HSP against the automatic fitting
+#' provided by this package. The code assumes that the user is working within an
+#' RStudio project located in the HSP project folder.
+#'
+#' \preformatted{
+#' r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize()
+#' plot(r)
+#' z <- zenith_image(ncol(r), lens())
+#' a <- azimuth_image(z)
+#' manual_input <- read_manual_input(".", "IMG_1013" )
+#' sun_coord <- manual_input$sun_mark$row_col
+#' sun_coord <- zenith_azimuth_from_row_col(r, sun_coord, lens())
+#' sky_points <- manual_input$sky_marks
+#' rl <- extract_rl(r, z, a, sky_points)
+#' model <- fit_cie_sky_model(r, z, a, rl$sky_points, rl$zenith_dn, sun_coord)
+#' cie_sky <- model$relative_luminance * model$zenith_dn
+#' plot(r/cie_sky)
+#'
+#' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
+#' cie_sky_manual <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
+#' img <- read_caim("manipulate/IMG_1013.pgm")
+#' cie_sky_manual <- cie_sky_manual * manual_input$zenith_dn
+#' plot(img/cie_sky_manual)
+#' }
+#'
 #' If you use this function in your research, please cite
 #' \insertCite{Lang2010;textual}{rcaiman} in addition to this package.
+#'
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
@@ -129,14 +160,14 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'
 #' @references \insertAllCited{}
 #'
-#' @return The result includes the output produced by \code{\link[bbmle]{mle2}},
-#'   the 5 coefficients, observed and predicted values, the sun coordinates
-#'   (zenith and azimuth angle in degrees), the relative luminance image
-#'   calculated for every pixel using the estimated coefficients and
-#'   corresponding sun coordinates, the digital number at the zenith, and the
-#'   description of the standard sky from which the initial coefficients were
-#'   drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
-#'   coefficients.
+#' @return The result includes the following: (1) the output produced by
+#'   \code{\link[bbmle]{mle2}}, (2) the 5 coefficients, (3) observed and
+#'   predicted values, the sun coordinates --zenith and azimuth angle in
+#'   degrees--, (4) the relative luminance image calculated for every pixel
+#'   using the estimated coefficients and corresponding sun coordinates, (4) the
+#'   digital number at the zenith, and (5) the description of the standard sky
+#'   from which the initial coefficients were drawn. See
+#'   \insertCite{Li2016;textual}{rcaiman} to know more about these coefficients.
 #'
 #' @family  Sky Reconstruction Functions
 #'

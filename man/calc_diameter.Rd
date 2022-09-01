@@ -53,11 +53,17 @@ the camera-vertex. Make four more marks with one meter of spacing and
 following a horizontal line. This will create marks for 0º, 18º, 34º, 45º,
 and 54º \eqn{\theta}.
 
-\item Before taking the photograph, don not forget to align the
-zenith coordinates with the 0º \eqn{\theta} mark and check if the optical
-axis is leveled.
+\item Before taking the photograph, don not forget to align the zenith
+coordinates with the 0º \eqn{\theta} mark and check if the optical axis is
+leveled.
 
 }
+
+The
+\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2}{line
+selection tool} of \href{https://imagej.nih.gov/ij/download.html}{ImageJ} can
+be used to measure the distance in pixels between points on the image. Draw a
+line, and use the dropdown menu Analyze>Measure to obtain its length.
 
 For obtaining the projection of a new lens, refer to
 \code{\link{calibrate_lens}}.
