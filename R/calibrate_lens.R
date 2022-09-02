@@ -67,7 +67,18 @@
 #'   degrees, and \emph{max_theta_px} for distance in pixels between the zenith
 #'   and the maximum zenith angle in pixels units. The latter should be double
 #'   checked, particularly if the zenith push pin is not exactly on the zenith
-#'   pixel.
+#'   pixel. To that end, do the following on ImageJ: use the
+#'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.1}{rectangular
+#'    selection tool} to create a small rectangle, open the Specify window by
+#'   going to the dropdown menu Edit>Selection>Specify..., insert the zenith
+#'   coordinates (obtained with \code{\link{calc_zenith_raster_coord}}) into the
+#'   respective X and Y fields in order to align the upper-left corner of the
+#'   rectangle with the zenith, mark it with the
+#'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.14}{brush},
+#'    use the
+#'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2}{straight
+#'   selection tool} to find the length within the zenith and the maximum zenith
+#'   angle showed in the image.
 #'
 #' @family Lens Functions
 #'

@@ -51,10 +51,7 @@ polar_qtree <- function(r, z, a,
 
   # mnSize <- 1000
   angle.wds <- c(15, 7.5, 3.75, 1.875)
-
-  zes <- Map(function(i) z, seq_along(angle.wds))
-  aes <- Map(function(i) a, seq_along(angle.wds))
-  ges <- Map(sky_grid_segmentation, zes, aes, angle.wds)
+  ges <- Map(sky_grid_segmentation, z, a, angle.wds)
 
   .calc_delta_single_layer <- function(r) {
     sd_now <- Map(function(g) extract_feature(r, g, sd,
