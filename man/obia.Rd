@@ -4,7 +4,7 @@
 \alias{obia}
 \title{Object-based image analysis of canopy photographs}
 \usage{
-obia(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
+obia(r, z = NULL, a = NULL, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -47,6 +47,7 @@ to the class \emph{foliage} return as \code{NA}.
 }
 \examples{
 \dontrun{
+#hemispherical photo from a smartphone
 caim <- read_caim()
 r <- caim$Blue \%>\% gbc()
 caim <- normalize(caim)
@@ -64,8 +65,30 @@ plot(synth)
 bin_obia <- apply_thr(synth, thr_isodata(synth[]))
 plot(bin - bin_obia)
 plot(bin_obia)
-# This is the closest to the workflow presented in Diaz and lencinas
-# (2015) that this package allows.
+## This is the closest to the workflow presented in Diaz and Lencinas
+## (2015) that this package allows.
+
+#restricted view canopy photo
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+caim <- read_caim(path)
+plot(caim)
+blue <- gbc(caim$Blue)
+caim <- normalize(caim)
+
+ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
+plot(ecaim)
+bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
+
+seg <- qtree(caim)
+synth <- obia(blue, NULL, NULL, bin, seg)
+plot(synth)
+synth <- terra::cover(synth, bin)
+plot(synth)
+synth[!bin] <- 0
+plot(synth)
+bin_obia <- apply_thr(synth, thr_isodata(synth[]))
+plot(bin - bin_obia)
+plot(bin_obia)
 }
 }
 \references{

@@ -80,6 +80,25 @@ plot(sky)
 g <- !is.na(z)
 sky <- interpolate_sky_points(sky_points$sky_points, g)
 plot(sky)
+
+#restricted view canopy photo
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+caim <- read_caim(path)
+plot(caim)
+r <- gbc(caim$Blue)
+caim <- normalize(caim)
+
+ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
+bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+
+g <- chessboard(caim, 100)
+plot(g)
+sky_points <- extract_sky_points(r, bin, g)
+sky_points <- extract_dn(r, sky_points)
+head(sky_points)
+sky <- interpolate_sky_points(sky_points, !is.na(r), col_id = 3)
+plot(sky)
+plot(r/sky)
 }
 }
 \references{

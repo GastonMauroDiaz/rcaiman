@@ -86,7 +86,7 @@ qtree <- function(r, scale_parameter = 0.2) {
   seg <- .it_should_be_splited(delta)
   m <- seg == 0
   foo <- terra::rast(ges) * m
-  cte <- paste0(c(1, rep(0, nchar(max(foo[])))), collapse = "") %>% as.numeric()
+  # cte <- paste0(c(1, rep(0, nchar(max(foo[])))), collapse = "") %>% as.numeric()
   foo <- Map(function(i) {
                m <- extract_feature(foo[[i]], foo[[i]], length) == wds[[i]]^2
                m * (length(wds) - i)
@@ -94,6 +94,17 @@ qtree <- function(r, scale_parameter = 0.2) {
              seq_along(wds))
   foo <- length(ges) - max(terra::rast(foo), na.rm = TRUE)
   foo[is.na(foo)] <- 0
+  # for (i in seq_along(ges)){
+  #   indices <- foo == i
+  #   if (any(indices[] %>% as.logical())) {
+  #     if (i == 1) {
+  #       foo[indices] <- ges[[1]][indices] + length(ges)
+  #     } else {
+  #       foo[indices] <- ges[[i]][indices] + fact
+  #     }
+  #     fact <- max(ges[[i]][indices])
+  #   }
+  # }
   for (i in seq_along(ges)){
     indices <- foo == i
     if (any(indices[] %>% as.logical())) {
@@ -103,6 +114,8 @@ qtree <- function(r, scale_parameter = 0.2) {
         foo[indices] <- ges[[i]][indices] + fact
       }
       fact <- max(ges[[i]][indices])
+    } else {
+      if (i == 1) fact <- 1
     }
   }
   foo <- foo + max(seg[])

@@ -211,6 +211,35 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'                  rl$zenith_dn, sun_coord,
 #'                  rmse = TRUE,
 #'                  custom_sky_coef = sky_coef)
+#'
+#' #restricted view canopy photo
+#' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' plot(caim)
+#' caim <- normalize(caim)
+#' diameter <- calc_diameter(lens(), sqrt(nrow(caim)^2 + ncol(caim)^2)/2, 90)
+#' z <- zenith_image(diameter, lens())
+#' caim <- expand_noncircular(caim, z, c(ncol(caim)/2, nrow(caim)/2))
+#' m <- !is.na(caim$Red)
+#' a <- azimuth_image(z)
+#' caim[!m] <- 0
+#' z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees
+#'
+#' ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+#'
+#' g <- sky_grid_segmentation(z, a, 5, sequential = TRUE)
+#' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
+#' plot(g, col = col)
+#' r <- gbc(caim$Blue*255)
+#' sun_coord <- extract_sun_coord(r, z, a, bin, g)
+#' sky_points <- extract_sky_points(r, bin, g)
+#' rl <- extract_rl(r, z, a, sky_points)
+#' model <- fit_cie_sky_model(r, z, a, rl$sky_points,
+#'                            rl$zenith_dn, sun_coord)
+#' sky_cie <- model$relative_luminance * model$zenith_dn
+#' plot(sky_cie)
+#' plot(r/sky_cie)
 #' }
 fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
                               custom_sky_coef = NULL,

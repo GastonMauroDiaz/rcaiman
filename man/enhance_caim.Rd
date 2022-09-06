@@ -112,6 +112,20 @@ hist(blue[m])
 
 plot(apply_thr(ecaim, thr_isodata(ecaim[])))
 plot(apply_thr(blue, thr_isodata(values(blue))))
+
+#restricted view canopy photo
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+caim <- read_caim(path)
+plot(caim)
+ecaim <- enhance_caim(caim \%>\% normalize(), thr = 1, fuzziness = 1)
+plot(ecaim)
+
+blue <- gbc(caim$Blue)
+plot(blue)
+
+plot(apply_thr(ecaim, thr_isodata(ecaim[])))
+plot(apply_thr(blue, thr_isodata(values(blue))))
+
 }
 }
 \references{

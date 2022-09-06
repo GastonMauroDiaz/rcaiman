@@ -42,6 +42,22 @@
 #'  plot(caim$Blue, col = grey(seq(0,1, 1/255)))
 #'  m <- !is.na(caim$Red) & !is.na(z)
 #'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
+#'
+#'  #restricted view canopy photo
+#'  path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+#'  caim <- read_caim(path)
+#'  plot(caim)
+#'  caim <- normalize(caim)
+#'  diameter <- calc_diameter(lens(), sqrt(nrow(caim)^2 + ncol(caim)^2)/2, 90)
+#'  z <- zenith_image(diameter, lens())
+#'  caim <- expand_noncircular(caim, z, c(ncol(caim)/2, nrow(caim)/2))
+#'  m <- !is.na(caim$Red)
+#'  a <- azimuth_image(z)
+#'  caim[!m] <- 0
+#'  z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees
+#'  plot(caim$Blue, col = grey(seq(0,1, 1/255)))
+#'  m <- !is.na(caim$Red) & !is.na(z)
+#'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 #' }
 expand_noncircular <-  function (caim, z, zenith_colrow) {
   .is_single_layer_raster(z, "z")

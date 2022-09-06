@@ -15,6 +15,8 @@
 #' quantile \code{0.9} is computed instead of the maximum. Pixels not belonging
 #' to the class \emph{foliage} return as \code{NA}.
 #'
+#'
+#'
 #' @inheritParams ootb_mblt
 #' @param bin  \linkS4class{SpatRaster}. This should be a working binarization
 #'   of \code{r} without gross errors.
@@ -33,6 +35,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' #hemispherical photo from a smartphone
 #' caim <- read_caim()
 #' r <- caim$Blue %>% gbc()
 #' caim <- normalize(caim)
@@ -50,14 +53,45 @@
 #' bin_obia <- apply_thr(synth, thr_isodata(synth[]))
 #' plot(bin - bin_obia)
 #' plot(bin_obia)
-#' # This is the closest to the workflow presented in Diaz and lencinas
-#' # (2015) that this package allows.
+#' ## This is the closest to the workflow presented in Diaz and Lencinas
+#' ## (2015) that this package allows.
+#'
+#' #restricted view canopy photo
+#' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' plot(caim)
+#' blue <- gbc(caim$Blue)
+#' caim <- normalize(caim)
+#'
+#' ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
+#' plot(ecaim)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
+#'
+#' seg <- qtree(caim)
+#' synth <- obia(blue, NULL, NULL, bin, seg)
+#' plot(synth)
+#' synth <- terra::cover(synth, bin)
+#' plot(synth)
+#' synth[!bin] <- 0
+#' plot(synth)
+#' bin_obia <- apply_thr(synth, thr_isodata(synth[]))
+#' plot(bin - bin_obia)
+#' plot(bin_obia)
 #' }
-obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
+obia <- function(r, z = NULL, a = NULL, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
+  .is_single_layer_raster(r, "r")
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
+
+  if (is.null(z)) {
+    size <- round(max(c(ncol(r), nrow(r)))/250)
+    if (size < 2) size <- 2
+    g1 <- chessboard(r, size)
+  } else {
+    g1 <- sky_grid_segmentation(z, a, 1)
+  }
+  gf1 <- extract_feature(bin, g1)
   gf <- extract_feature(bin, segmentation)
-  gf1 <- extract_feature(bin, sky_grid_segmentation(z, a, 1))
   foliage <- (gf > gf_mn & gf < gf_mx)
   foliage[gf1 == 0] <- 0
   segmentation <- segmentation * foliage
