@@ -1,4 +1,4 @@
-#' Out-of-the-box object-based image analysis of hemispherical photographs
+#' Out-of-the-box object-based image analysis of canopy photographs
 #'
 #' Out-of-the-box version of methods first presented in
 #' \insertCite{Diaz2015;textual}{rcaiman}.
@@ -8,6 +8,13 @@
 #' \code{\link{obia}}. The code can be easily inspected by calling
 #' \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
 #' template.
+#'
+#' Pixels from the synthetic layer returned by \code{\link{obia}} that lay
+#' between \code{0} and \code{1} are assigned to the class \emph{plant} only if
+#' they comply with the following criteria: (1) are \code{0} after
+#' \code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees,
+#' (2) are \code{0} after \code{\link{apply_thr}} with a threshold of
+#' \code{0.5}, and (3) are not exclusively surrounded by sky pixels.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
@@ -33,6 +40,7 @@
 #' m <- !is.na(caim$Red) & !is.na(z)
 #' caim[!m] <- 0
 #' bin <- ootb_obia(caim, z, a)
+#' plot(bin)
 #' }
 ootb_obia <- function(caim, z, a, m = NULL, sky_blue = NULL) {
   ecaim <- enhance_caim(caim, m, sky_blue = sky_blue,
@@ -55,5 +63,14 @@ ootb_obia <- function(caim, z, a, m = NULL, sky_blue = NULL) {
 
   seg <- polar_qtree(caim, z, a, scale_parameter = 0.2)
   r <- gbc(caim$Blue*255, gamma = 2.2)
-  obia(r, z, a, bin, seg)
+  synth <- obia(r, z, a, bin, seg)
+  synth <- terra::cover(synth, bin)
+  synth[!bin] <- 0
+
+  g <- sky_grid_segmentation(z, a, 10)
+  bin_obia <- defuzzify(synth, g) | apply_thr(synth, 0.5)
+  ma <- matrix(c(1,1,1,1,-8,1,1,1,1), ncol = 3, nrow = 3)
+  bin_obia[terra::focal(bin_obia, ma) == 8] <- 1
+  bin_obia[!bin] <- 0
+  as.logical(bin_obia)
 }

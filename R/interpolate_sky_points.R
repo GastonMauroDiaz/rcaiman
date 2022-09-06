@@ -1,6 +1,6 @@
 #' Interpolate sky points
 #'
-#' Interpolate values from hemispherical photographs.
+#' Interpolate values from canopy photographs.
 #'
 #' This function use \code{\link[lidR]{knnidw}} as workhorse function, so
 #' arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
@@ -32,6 +32,8 @@
 #'
 #' @inheritParams fit_cie_sky_model
 #' @inheritParams extract_sky_points
+#' @param sky_points An object of class \emph{data.frame}. The result of a call
+#'   to \code{\link{extract_sky_points}}.
 #' @param k Numeric vector of length one. Number of k-nearest neighbors.
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius where to search for
@@ -57,6 +59,7 @@
 #'   sRGB()
 #' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 #' bin <- apply_thr(ecaim, 0.75)
+#' bin <- bin & mask_hs(z, 0, 80)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
 #' r <- gbc(caim$Blue*255)
@@ -64,11 +67,17 @@
 #' sky_points <- extract_rl(r, z, a, sky_points, NULL)
 #' sky <- interpolate_sky_points(sky_points$sky_points, g)
 #' plot(sky)
+#'
+#' #modify g if the goal is to get the whole sky
+#' g <- !is.na(z)
+#' sky <- interpolate_sky_points(sky_points$sky_points, g)
+#' plot(sky)
 #' }
 interpolate_sky_points <- function(sky_points, g,
                                    k = 3,
                                    p = 2,
-                                   rmax = 200) {
+                                   rmax = 200,
+                                   col_id = "rl") {
   .is_single_layer_raster(g)
   stopifnot(length(k) == 1)
   stopifnot(length(p) == 1)
@@ -83,16 +92,11 @@ interpolate_sky_points <- function(sky_points, g,
   las <- .make_fake_las(
     c(xy[, 1]     , 0 - rmax, 0 - rmax       , xmax(g) + rmax, xmax(g) + rmax),
     c(xy[, 2]     , 0 - rmax, ymax(g) + rmax , ymax(g) + rmax, 0 - rmax),
-    c(sky_points$rl * 10000, 0       , 0              ,              0, 0)
+    c(sky_points[,col_id] * 10000, 0       , 0              ,              0, 0)
   )
   las@data$Classification <- 2
   lidR::crs(las) <- sf::st_crs(g)
 
-  # p <- sp::Polygon(xy[indexes, ])
-  # p <- sp::Polygons(list(p), 1)
-  # p <- sp::SpatialPolygons(list(p), 1L, proj4string = lidR::crs(las))
-  # sp::CRS(terra::crs(g))
-  # sfc <- sf::st_as_sfc(p)
   ir <- suppressWarnings(
         lidR::rasterize_terrain(las, res = 1,
                                 # shape =  "bbox",

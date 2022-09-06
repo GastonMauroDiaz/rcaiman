@@ -49,7 +49,7 @@
 #' \insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 #'
 #' @param r \linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-#'   the blue channel extracted from a hemispherical photograph. Please see
+#'   the blue channel extracted from a canopy photograph. Please see
 #'   \code{\link{read_caim}} and \code{\link{normalize}}.
 #' @param z \linkS4class{SpatRaster} built with \code{\link{zenith_image}}.
 #' @param a \linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.

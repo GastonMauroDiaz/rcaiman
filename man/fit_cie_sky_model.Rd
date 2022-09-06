@@ -11,6 +11,7 @@ fit_cie_sky_model(
   sky_points,
   zenith_dn,
   sun_coord,
+  custom_sky_coef = NULL,
   std_sky_no = NULL,
   general_sky_type = NULL,
   twilight = TRUE,
@@ -20,7 +21,7 @@ fit_cie_sky_model(
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a hemispherical photograph. Please see
+the blue channel extracted from a canopy photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -35,6 +36,10 @@ or a \emph{data.frame} with same structure and names.}
 
 \item{sun_coord}{An object of class \emph{list}. The result of a call to
 \code{\link{extract_sun_coord}}.}
+
+\item{custom_sky_coef}{Numeric vector of length five. Custom starting
+coefficients of the sky model. By default, they are drawn from
+standard skies.}
 
 \item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
 \insertCite{Li2016;textual}{rcaiman}.}
@@ -75,12 +80,12 @@ Use maximum likelihood to estimate the coefficients of the CIE sky model that
 best fit to data sampled from a real scene.
 }
 \details{
-This function assumes an hemispherical image as input. It is based on
-\insertCite{Lang2010;textual}{rcaiman}. In theory, the best result would be
-obtained with data showing a linear relation between digital numbers and the
-amount of light reaching the sensor. However, because the CIE sky model is
-indeed the adjoin of two mathematical model, it is capable of handling any
-non-linearity since it is not a physical model with strict assumptions.
+This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+the best result would be obtained with data showing a linear relation between
+digital numbers and the amount of light reaching the sensor. However, because
+the CIE sky model is indeed the adjoin of two mathematical model, it is
+capable of handling any non-linearity since it is not a physical model with
+strict assumptions.
 
 Ultimately, when the goal is to calculate the ratio of canopy to sky digital
 numbers, if the latter is accurately constructed, any non-linearity will be
@@ -132,6 +137,7 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
   sRGB()
 ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 bin <- apply_thr(ecaim, 0.75)
+bin <- bin & mask_hs(z, 0, 80)
 g <- sky_grid_segmentation(z, a, 10)
 r <- gbc(caim$Blue*255)
 sun_coord <- extract_sun_coord(r, z, a, bin, g)
@@ -145,6 +151,15 @@ sky_cie <- model$relative_luminance * model$zenith_dn
 sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 plot(sky_cie)
 plot(r/sky_cie)
+
+#to provide custom starting coefficient
+path <- system.file("external", package = "rcaiman")
+skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+custom_sky_coef <- skies[9, 1:5] \%>\% as.numeric()
+fit_cie_sky_model(r, z, a, rl$sky_points,
+                 rl$zenith_dn, sun_coord,
+                 rmse = TRUE,
+                 custom_sky_coef = sky_coef)
 }
 }
 \references{

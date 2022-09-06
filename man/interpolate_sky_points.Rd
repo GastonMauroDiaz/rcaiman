@@ -4,11 +4,11 @@
 \alias{interpolate_sky_points}
 \title{Interpolate sky points}
 \usage{
-interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200)
+interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200, col_id = "rl")
 }
 \arguments{
-\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
-or a \emph{data.frame} with same structure and names.}
+\item{sky_points}{An object of class \emph{data.frame}. The result of a call
+to \code{\link{extract_sky_points}}.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}}.}
@@ -24,7 +24,7 @@ knn.}
 An object of class \linkS4class{SpatRaster}.
 }
 \description{
-Interpolate values from hemispherical photographs.
+Interpolate values from canopy photographs.
 }
 \details{
 This function use \code{\link[lidR]{knnidw}} as workhorse function, so
@@ -67,11 +67,17 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
   sRGB()
 ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 bin <- apply_thr(ecaim, 0.75)
+bin <- bin & mask_hs(z, 0, 80)
 
 g <- sky_grid_segmentation(z, a, 10)
 r <- gbc(caim$Blue*255)
 sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_rl(r, z, a, sky_points, NULL)
+sky <- interpolate_sky_points(sky_points$sky_points, g)
+plot(sky)
+
+#modify g if the goal is to get the whole sky
+g <- !is.na(z)
 sky <- interpolate_sky_points(sky_points$sky_points, g)
 plot(sky)
 }

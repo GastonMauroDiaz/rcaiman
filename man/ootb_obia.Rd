@@ -2,7 +2,7 @@
 % Please edit documentation in R/ootb_obia.R
 \name{ootb_obia}
 \alias{ootb_obia}
-\title{Out-of-the-box object-based image analysis of hemispherical photographs}
+\title{Out-of-the-box object-based image analysis of canopy photographs}
 \usage{
 ootb_obia(caim, z, a, m = NULL, sky_blue = NULL)
 }
@@ -41,6 +41,13 @@ functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}}, and
 \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
 template.
 
+Pixels from the synthetic layer returned by \code{\link{obia}} that lay
+between \code{0} and \code{1} are assigned to the class \emph{plant} only if
+they comply with the following criteria: (1) are \code{0} after
+\code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees,
+(2) are \code{0} after \code{\link{apply_thr}} with a threshold of
+\code{0.5}, and (3) are not exclusively surrounded by sky pixels.
+
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
@@ -55,6 +62,7 @@ caim <- expand_noncircular(caim, z, zenith_colrow) \%>\% normalize()
 m <- !is.na(caim$Red) & !is.na(z)
 caim[!m] <- 0
 bin <- ootb_obia(caim, z, a)
+plot(bin)
 }
 }
 \seealso{

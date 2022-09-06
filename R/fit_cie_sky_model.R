@@ -85,12 +85,12 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' Use maximum likelihood to estimate the coefficients of the CIE sky model that
 #' best fit to data sampled from a real scene.
 #'
-#' This function assumes an hemispherical image as input. It is based on
-#' \insertCite{Lang2010;textual}{rcaiman}. In theory, the best result would be
-#' obtained with data showing a linear relation between digital numbers and the
-#' amount of light reaching the sensor. However, because the CIE sky model is
-#' indeed the adjoin of two mathematical model, it is capable of handling any
-#' non-linearity since it is not a physical model with strict assumptions.
+#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+#' the best result would be obtained with data showing a linear relation between
+#' digital numbers and the amount of light reaching the sensor. However, because
+#' the CIE sky model is indeed the adjoin of two mathematical model, it is
+#' capable of handling any non-linearity since it is not a physical model with
+#' strict assumptions.
 #'
 #' Ultimately, when the goal is to calculate the ratio of canopy to sky digital
 #' numbers, if the latter is accurately constructed, any non-linearity will be
@@ -138,6 +138,9 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' @param sun_coord An object of class \emph{list}. The result of a call to
 #'   \code{\link{extract_sun_coord}}.
 #' @inheritParams cie_sky_model_raster
+#' @param custom_sky_coef Numeric vector of length five. Custom starting
+#'   coefficients of the sky model. By default, they are drawn from
+#'   standard skies.
 #' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman}.
 #' @param general_sky_type Character vector of length one. It could be any of
@@ -185,6 +188,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #'   sRGB()
 #' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
 #' bin <- apply_thr(ecaim, 0.75)
+#' bin <- bin & mask_hs(z, 0, 80)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' r <- gbc(caim$Blue*255)
 #' sun_coord <- extract_sun_coord(r, z, a, bin, g)
@@ -198,8 +202,18 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 #' plot(sky_cie)
 #' plot(r/sky_cie)
+#'
+#' #to provide custom starting coefficient
+#' path <- system.file("external", package = "rcaiman")
+#' skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+#' custom_sky_coef <- skies[9, 1:5] %>% as.numeric()
+#' fit_cie_sky_model(r, z, a, rl$sky_points,
+#'                  rl$zenith_dn, sun_coord,
+#'                  rmse = TRUE,
+#'                  custom_sky_coef = sky_coef)
 #' }
 fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
+                              custom_sky_coef = NULL,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               twilight = TRUE,
@@ -221,6 +235,14 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
 
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+  if (!is.null(custom_sky_coef)) {
+    stopifnot(length(custom_sky_coef) == 5)
+    stopifnot(is.numeric(custom_sky_coef))
+    skies[1, 1:5] <- custom_sky_coef
+    skies <- skies[1,]
+    skies$general_sky_type <- "custom"
+    skies$description <- "custom"
+  }
 
   .fun <- function(i) {
     sun_a_z <- .degree2radian(rev(sun_coord$zenith_azimuth))

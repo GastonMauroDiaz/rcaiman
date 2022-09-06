@@ -8,7 +8,7 @@ find_sky_pixels_nonnull(r, sky, g, slope = 0.5)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a hemispherical photograph. Please see
+the blue channel extracted from a canopy photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{sky}{An object of class \linkS4class{SpatRaster} produced with

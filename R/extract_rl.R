@@ -56,10 +56,11 @@ extract_rl <- function(r, z, a, sky_points,
   sky_points$z <- z[cells][,]
 
   if(any(is.na(sky_points$z))) {
-      stop(paste0("This problem arises from having sky points touching",
-                  "the horizon. It generally solves masking out the region",
-                  "near the horizon using bin <- bin & mask_hs(z, 0, 80) to",
-                  "modify the binarized image involved in the calculations."))
+      stop(paste0("This problem arises from having sky points touching ",
+                  "the horizon. It generally solves masking out the region ",
+                  "near the horizon using \"bin <- bin & mask_hs(z, 0, 80)\" ",
+                  "to modify the binarized image involved in the calculations.")
+           )
     }
 
   if (use_window) {

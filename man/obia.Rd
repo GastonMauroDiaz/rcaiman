@@ -2,13 +2,13 @@
 % Please edit documentation in R/obia.R
 \name{obia}
 \alias{obia}
-\title{Object-based image analysis of hemispherical photographs}
+\title{Object-based image analysis of canopy photographs}
 \usage{
 obia(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a hemispherical photograph. Please see
+the blue channel extracted from a canopy photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
@@ -26,7 +26,7 @@ fraction that a segment should comply with to be considered as one
 containing foliage.}
 }
 \value{
-\linkS4class{SpatRaster}. An improved version of \code{bin}.
+\linkS4class{SpatRaster}.
 }
 \description{
 This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
@@ -42,13 +42,8 @@ This method produces a synthetic layer by computing the ratio of \code{r} to
 the maximum value of \code{r} at the segment level. This process is carried
 out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
 the latter is defined by bin equal to one. To avoid spurious values, the
-quantile \code{0.9} is computed instead of the maximum. Pixels from this
-synthetic layer that lay between \code{0} and \code{1} are assigned to the
-class \emph{plant} only if they comply with the following criteria: (1) are
-\code{0} after \code{\link{defuzzify}} with a sky grid segmentation of
-\code{10} degrees, (2) are \code{0} after \code{\link{apply_thr}} with a
-threshold of \code{0.5}, and (3) are not exclusively surrounded by sky
-pixels.
+quantile \code{0.9} is computed instead of the maximum. Pixels not belonging
+to the class \emph{foliage} return as \code{NA}.
 }
 \examples{
 \dontrun{
@@ -60,10 +55,16 @@ a <- azimuth_image(z)
 seg <- polar_qtree(caim, z, a)
 ecaim <- enhance_caim(caim, !is.na(z))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
-bin_obia <- obia(r, z, a, bin, seg)
+synth <- obia(r, z, a, bin, seg)
+plot(synth)
+synth <- terra::cover(synth, bin)
+plot(synth)
+synth[!bin] <- 0
+plot(synth)
+bin_obia <- apply_thr(synth, thr_isodata(synth[]))
 plot(bin - bin_obia)
 plot(bin_obia)
-# This is the closest version to the workflow presented in Diaz and lencinas
+# This is the closest to the workflow presented in Diaz and lencinas
 # (2015) that this package allows.
 }
 }

@@ -45,13 +45,13 @@ white dots and create a CSV file to feed this function. After digitizing the
 points on the image, use the dropdown menu Analyze>Measure to open the window
 Results. To obtain the CSV, use File>Save As...
 
-Another method--only valid for circular hemispherical photographs-- is taking
-a very bright picture (for example, a picture of a room with walls painted in
-light colors) with the lens completely free (do not use any mount). Then,
-digitize points over the circle perimeter. This was the method used for
-producing the example file (see Examples). It is worth noting that the
-perimeter of the circle depicted in a circular hemispherical photograph is
-not necessarily the horizon.
+Another method--only valid when enough of the circle perimeter is depicted in
+the image-- is taking a very bright picture (for example, a picture of a room
+with walls painted in light colors) with the lens completely free (do not use
+any mount). Then, digitize points over the circle perimeter. This was the
+method used for producing the example file (see Examples). It is worth noting
+that the perimeter of the circle depicted in a circular hemispherical
+photograph is not necessarily the horizon.
 }
 \examples{
 \dontrun{

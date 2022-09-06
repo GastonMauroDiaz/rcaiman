@@ -8,7 +8,7 @@ extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a hemispherical photograph. Please see
+the blue channel extracted from a canopy photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}

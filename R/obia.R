@@ -1,4 +1,4 @@
-#' Object-based image analysis of hemispherical photographs
+#' Object-based image analysis of canopy photographs
 #'
 #' This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' This version is simpler since it relies on a better working binarized image.
@@ -12,13 +12,8 @@
 #' the maximum value of \code{r} at the segment level. This process is carried
 #' out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
 #' the latter is defined by bin equal to one. To avoid spurious values, the
-#' quantile \code{0.9} is computed instead of the maximum. Pixels from this
-#' synthetic layer that lay between \code{0} and \code{1} are assigned to the
-#' class \emph{plant} only if they comply with the following criteria: (1) are
-#' \code{0} after \code{\link{defuzzify}} with a sky grid segmentation of
-#' \code{10} degrees, (2) are \code{0} after \code{\link{apply_thr}} with a
-#' threshold of \code{0.5}, and (3) are not exclusively surrounded by sky
-#' pixels.
+#' quantile \code{0.9} is computed instead of the maximum. Pixels not belonging
+#' to the class \emph{foliage} return as \code{NA}.
 #'
 #' @inheritParams ootb_mblt
 #' @param bin  \linkS4class{SpatRaster}. This should be a working binarization
@@ -29,7 +24,7 @@
 #'   fraction that a segment should comply with to be considered as one
 #'   containing foliage.
 #'
-#' @return \linkS4class{SpatRaster}. An improved version of \code{bin}.
+#' @return \linkS4class{SpatRaster}.
 #' @export
 #'
 #' @family Binarization Functions
@@ -46,10 +41,16 @@
 #' seg <- polar_qtree(caim, z, a)
 #' ecaim <- enhance_caim(caim, !is.na(z))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
-#' bin_obia <- obia(r, z, a, bin, seg)
+#' synth <- obia(r, z, a, bin, seg)
+#' plot(synth)
+#' synth <- terra::cover(synth, bin)
+#' plot(synth)
+#' synth[!bin] <- 0
+#' plot(synth)
+#' bin_obia <- apply_thr(synth, thr_isodata(synth[]))
 #' plot(bin - bin_obia)
 #' plot(bin_obia)
-#' # This is the closest version to the workflow presented in Diaz and lencinas
+#' # This is the closest to the workflow presented in Diaz and lencinas
 #' # (2015) that this package allows.
 #' }
 obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
@@ -62,15 +63,10 @@ obia <- function(r, z, a, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95) {
   segmentation <- segmentation * foliage
   segmentation[segmentation == 0] <- NA
   synth <- r/extract_feature(r, segmentation, function(x) quantile(x, 0.9))
-  synth[gf == 1] <- 1
+  # synth[gf == 1] <- 1
   synth[synth > 1 | synth < 0] <- NA
   synth[is.na(synth)] <- 1
-  synth[!bin] <- 0
-
-  g <- sky_grid_segmentation(z, a, 10)
-  bin_obia <- defuzzify(synth, g) | apply_thr(synth, 0.5)
-  ma <- matrix(c(1,1,1,1,-8,1,1,1,1), ncol = 3, nrow = 3)
-  bin_obia[terra::focal(bin_obia, ma) == 8] <- 1
-  bin_obia[!bin] <- 0
-  as.logical(bin_obia)
+  # synth[!bin] <- 0
+  synth[!foliage] <- NA
+  synth
 }

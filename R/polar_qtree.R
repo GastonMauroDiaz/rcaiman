@@ -54,9 +54,20 @@ polar_qtree <- function(r, z, a,
   ges <- Map(sky_grid_segmentation, z, a, angle.wds)
 
   .calc_delta_single_layer <- function(r) {
-    sd_now <- Map(function(g) extract_feature(r, g, sd,
-                                              return_raster = FALSE),
-                  ges)
+    if (any(is.na(r)[] %>% as.logical())) {
+      .sd <- function(x) {
+        x <- sd(x, na.rm = TRUE)
+        if (is.na(x)) x <- 0
+        x
+      }
+      sd_now <- Map(function(g) extract_feature(r, g, .sd,
+                                                return_raster = FALSE),
+                    ges)
+    } else {
+      sd_now <- Map(function(g) extract_feature(r, g, sd,
+                                                return_raster = FALSE),
+                    ges)
+    }
     indices_if_split <- Map(function(i) extract_feature(ges[[i-1]], ges[[i]],
                                                         max,
                                                         return_raster = FALSE),
