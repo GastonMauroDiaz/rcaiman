@@ -30,7 +30,7 @@
 #'   forced to one and \emph{dn}, and \emph{rl} are equals.
 #' @export
 #'
-#' @family Tools Functions
+#' @family Tool Functions
 #'
 #' @examples
 #' \dontrun{

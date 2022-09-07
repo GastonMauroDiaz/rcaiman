@@ -11,7 +11,7 @@ enhance_caim(
   w_red = 0,
   thr = NULL,
   fuzziness = NULL,
-  gamma = NULL
+  gamma = 2.2
 )
 }
 \arguments{
@@ -51,19 +51,17 @@ correction to the lightness information (see Details and argument
 An object of class \linkS4class{SpatRaster}--with same pixel
   dimensions than \code{caim}--that should show more contrast between the sky
   and plant pixels than any of the individual bands from \code{caim}; if not,
-  different parameters should be tested or the best contrasting individual
-  band --usually the blue one-- should be chosen instead of the output of
-  this function.
+  different parameters should be tested.
 }
 \description{
-This function was proposed in \insertCite{Diaz2015;textual}{rcaiman}. It uses
-the color perceptual attributes (hue, lightness, and chroma) to enhance the
-contrast between the sky and plants through fuzzy classification. It performs
-the next classification rules, here expressed in natural language: clear sky
-is blue and clouds decrease its chroma; if clouds are highly dense, then the
-sky is achromatic, and, in such cases, it can be light or dark; everything
-that does not match this description is not sky. These linguistic rules were
-translated to math language by means of fuzzy logic.
+This function was first proposed in \insertCite{Diaz2015;textual}{rcaiman}.
+It uses the color perceptual attributes (hue, lightness, and chroma) to
+enhance the contrast between the sky and plants through fuzzy classification.
+It performs the next classification rules, here expressed in natural
+language: clear sky is blue and clouds decrease its chroma; if clouds are
+highly dense, then the sky is achromatic, and, in such cases, it can be light
+or dark; everything that does not match this description is not sky. These
+linguistic rules were translated to math language by means of fuzzy logic.
 }
 \details{
 This is a pixel-wise methodology that evaluates the possibility for a pixel
@@ -86,6 +84,35 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
+#circular hemispherical photo
+path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
+caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(1490, lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+m <- !is.na(z)
+blue <- caim$Blue \%>\% gbc()
+plot(caim)
+
+sky_blue_sample <- read_caim(path, c(1092,1243), 66, 48)
+plot(sky_blue_sample)
+sky_blue <- apply(sky_blue_sample[], 2, median) \%>\% normalize(.,0,255) \%>\%
+  as.numeric() \%>\%
+  matrix(., ncol = 3) \%>\%
+  sRGB()
+
+caim <- normalize(caim)
+ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+plot(ecaim)
+plot(blue)
+
+colorfulness(caim, m) #pretty colorful
+m2 <- mask_sunlit_canopy(caim, m)
+hist(ecaim[!m2])
+hist(blue[m])
+
+plot(apply_thr(ecaim, thr_isodata(ecaim[!m2])))
+plot(apply_thr(blue, thr_isodata(blue[m])))
+
 #hemispherical photo from a smartphone
 path <- system.file("external/APC_0581.jpg", package = "rcaiman")
 caim <- read_caim(path)
@@ -97,33 +124,43 @@ m <- !is.na(caim$Red) & !is.na(z)
 caim[!m] <- NA
 blue <- caim$Blue \%>\% gbc()
 
-sky_blue_sample <- read_caim(path, c(417,311), 32, 62)
-plot(sky_blue_sample)
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\% normalize() \%>\%
+ecaim <- enhance_caim(caim, m)
+plot(ecaim)
+plot(blue)
+
+colorfulness(caim, m)
+hist(ecaim[m])
+hist(blue[m])
+
+plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
+plot(apply_thr(blue, thr_isodata(blue[m])))
+
+
+#restricted view canopy photo
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+
+sky_blue_sample <- read_caim(path, c(535,276), 11, 12) \%>\% normalize(., 0, 255)
+plotRGB(sky_blue_sample*255)
+sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
   as.numeric() \%>\%
   matrix(., ncol = 3) \%>\%
   sRGB()
 
-ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-plot(ecaim)
-plot(blue)
-hist(ecaim[m])
-hist(blue[m])
-
-plot(apply_thr(ecaim, thr_isodata(ecaim[])))
-plot(apply_thr(blue, thr_isodata(values(blue))))
-
-#restricted view canopy photo
-path <- system.file("external/APC_0020.jpg", package = "rcaiman")
 caim <- read_caim(path)
 plot(caim)
-ecaim <- enhance_caim(caim \%>\% normalize(), thr = 1, fuzziness = 1)
-plot(ecaim)
-
 blue <- gbc(caim$Blue)
 plot(blue)
 
-plot(apply_thr(ecaim, thr_isodata(ecaim[])))
+caim <- normalize(caim)
+colorfulness(caim) #more colorful than the previous photo
+ecaim <- enhance_caim(caim, sky_blue = sky_blue)
+plot(ecaim)
+
+m <- mask_sunlit_canopy(caim)
+hist(ecaim[!m])
+hist(ecaim[])
+hist(blue)
+plot(apply_thr(ecaim, thr_isodata(ecaim[!m])))
 plot(apply_thr(blue, thr_isodata(values(blue))))
 
 }

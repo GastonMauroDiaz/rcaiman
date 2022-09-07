@@ -18,10 +18,14 @@ method. This parameter controls the stopping condition. Therefore, it
 allows controlling the size of the resulting segments. Ultimately, segments
 sizes will depend on both this parameter and the heterogeneity of \code{r}.}
 }
+\value{
+A single layer image of the class \linkS4class{SpatRaster} with
+  integer values.
+}
 \description{
 The quad-tree segmentation algorithm is a top-down process that makes
 recursive divisions in four equal parts until a condition is satisfied and
-then stops locally. The usual implementation of the quad-tree algorithm is
+stops locally. The usual implementation of the quad-tree algorithm is
 based on the raster structure and this is why the result are squares of
 different sizes. This method implements the quad-tree segmentation in a polar
 space, so the segments are shaped like windshields, though some of them will
@@ -41,19 +45,21 @@ condition.
 \examples{
 \dontrun{
 caim <- read_caim()
+plot(caim)
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 seg <- polar_qtree(caim, z, a)
 plot(seg)
-tmp <- extract_feature(caim$Blue, seg)
-plot(tmp)
+plot(extract_feature(caim$Blue, seg))
 }
 }
 \seealso{
 Other Segmentation Functions: 
+\code{\link{chessboard}()},
 \code{\link{mask_hs}()},
 \code{\link{mask_sunlit_canopy}()},
+\code{\link{qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}

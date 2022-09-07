@@ -10,7 +10,7 @@
 #'
 #' @return No return value. Called for side effects.
 #'
-#' @family Tools Functions
+#' @family Tool Functions
 #'
 #' @examples
 #' \dontrun{

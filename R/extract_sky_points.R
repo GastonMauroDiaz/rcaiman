@@ -24,12 +24,12 @@
 #'
 #' @inheritParams fit_trend_surface
 #' @param g \linkS4class{SpatRaster} built with
-#'   \code{\link{sky_grid_segmentation}}.
+#'   \code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.
 #' @param dist_to_plant,min_raster_dist Numeric vector of length one or
 #'   \code{NULL}.
 #'
 #'
-#' @family Tools Functions
+#' @family Tool Functions
 #' @seealso \code{\link{fit_cie_sky_model}}
 #'
 #' @return An object of the class \emph{data.frame} with two columns named

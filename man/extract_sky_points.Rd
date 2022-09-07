@@ -16,7 +16,7 @@ binarization of \code{r} useful for masking pixels that are very likely
 to be pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}}.}
+\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
 
 \item{dist_to_plant, min_raster_dist}{Numeric vector of length one or
 \code{NULL}.}
@@ -74,9 +74,10 @@ plot(vect(xy), add = TRUE, col = 2)
 \seealso{
 \code{\link{fit_cie_sky_model}}
 
-Other Tools Functions: 
+Other Tool Functions: 
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
+\code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{masking}()},
@@ -85,4 +86,4 @@ Other Tools Functions:
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools Functions}
+\concept{Tool Functions}

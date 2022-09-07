@@ -36,8 +36,7 @@ of the project folder (which will be in turn a subfolder of the
 \code{\link{read_caim}}.
 
 The \code{img_name} argument of \code{write_sky_points()} should be the name
-of the file associated to the aforementioned \code{r} argument. Following the
-example, it should be "img01.pgm".
+of the file associated to the aforementioned \code{r} argument.
 
 The following code exemplifies how this package can be used in conjunction
 with HSP software.  The code assumes that the user is working within an
@@ -51,7 +50,7 @@ a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 mblt <- ootb_mblt(r, z, a)
 bin <- find_sky_pixels_nonnull(r, mblt$sky_s, g)
-bin <- mask_hs(z, 0,85) & bin
+bin <- mask_hs(z, 0, 85) & bin
 
 sun_coord <- extract_sun_coord(r, z, a, bin, g)
 write_sun_coord(sun_coord$row_col, ".", "IMG_1014")

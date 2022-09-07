@@ -26,6 +26,8 @@
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' plot(a)
+#' a <- azimuth_image(z, 45)
+#' plot(a)
 azimuth_image <- function (z, orientation = 0)
 {
   .is_single_layer_raster(z, "z")

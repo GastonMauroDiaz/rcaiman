@@ -4,7 +4,7 @@
 \alias{mask_sunlit_canopy}
 \title{Mask sunlit canopy}
 \usage{
-mask_sunlit_canopy(caim, m)
+mask_sunlit_canopy(caim, m = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
@@ -32,8 +32,10 @@ plot(sunlit_canopy)
 }
 \seealso{
 Other Segmentation Functions: 
+\code{\link{chessboard}()},
 \code{\link{mask_hs}()},
 \code{\link{polar_qtree}()},
+\code{\link{qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}

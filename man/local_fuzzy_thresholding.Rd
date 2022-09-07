@@ -33,8 +33,8 @@ An object of class \linkS4class{SpatRaster} with same pixel
   \code{caim}.
 }
 \description{
-This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
-uses a threshold value as the location parameter of a logistic membership
+This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
+It uses a threshold value as the location parameter of a logistic membership
 function whose scale parameter depends on a variable, here named \code{mem}.
 This dependence can be explained as follows: if the variable is equal to
 \code{1}, then the membership function is same as a threshold function

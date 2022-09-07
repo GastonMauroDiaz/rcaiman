@@ -1,6 +1,6 @@
 #' Regional thresholding
 #'
-#' Regional thresholding of greyscale images
+#' Regional thresholding of greyscale images.
 #'
 #' Methods currently implemented are:
 #'

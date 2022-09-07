@@ -16,7 +16,7 @@ the blue channel extracted from a canopy photograph. Please see
 \code{\link{fit_cie_sky_model}}, or \code{\link{ootb_sky_reconstruction}}.}
 
 \item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}}.}
+\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
 
 \item{slope}{Numeric vector of length one. See section Details in
 \code{\link{thr_image}}.}

@@ -38,6 +38,8 @@
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius where to search for
 #'   knn.
+#' @param col_id Numeric vector of length one. ID of the column with the values
+#'   to interpolate.
 #'
 #' @references \insertAllCited{}
 #'
@@ -101,6 +103,7 @@ interpolate_sky_points <- function(sky_points, g,
   stopifnot(length(k) == 1)
   stopifnot(length(p) == 1)
   stopifnot(length(rmax) == 1)
+  stopifnot(length(col_id) == 1)
   stopifnot(.is_integerish(k))
   stopifnot(is.numeric(p))
   stopifnot(is.numeric(rmax))

@@ -35,7 +35,10 @@ or a \emph{data.frame} with same structure and names.}
 \code{\link{extract_rl}} for how to obtain it.}
 
 \item{sun_coord}{An object of class \emph{list}. The result of a call to
-\code{\link{extract_sun_coord}}.}
+\code{\link{extract_sun_coord}}, or an object with same structure and
+names. See also \code{\link{row_col_from_zenith_azimuth}} in case you want
+to provide values based on date and time of acquisition and the R package
+'suncalc'.}
 
 \item{custom_sky_coef}{Numeric vector of length five. Custom starting
 coefficients of the sky model. By default, they are drawn from

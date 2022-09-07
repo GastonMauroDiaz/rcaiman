@@ -46,8 +46,10 @@ plot(mask_hs(z, 0, 90))
 \code{\link{masking}}
 
 Other Segmentation Functions: 
+\code{\link{chessboard}()},
 \code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
+\code{\link{qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
 \code{\link{sky_grid_segmentation}()}

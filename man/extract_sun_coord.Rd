@@ -20,7 +20,7 @@ binarization of \code{r} useful for masking pixels that are very likely
 to be pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}}.}
+\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
 
 \item{max_angular_dist}{Numeric vector of length one. Angle in degrees to
 control the maximum potential size of the solar corona.}

@@ -19,7 +19,7 @@ the blue channel extracted from a canopy photograph. Please see
 of \code{r} without gross errors.}
 
 \item{segmentation}{\linkS4class{SpatRaster} built with
-\code{\link{polar_qtree}}.}
+\code{\link{polar_qtree}} or \code{\link{qtree}}.}
 
 \item{gf_mn, gf_mx}{Numeric vector of length one. The minimum/maximum gap
 fraction that a segment should comply with to be considered as one
@@ -29,6 +29,9 @@ containing foliage.}
 \linkS4class{SpatRaster}.
 }
 \description{
+Object-based image analysis targeting the canopy  silhouette.
+}
+\details{
 This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 This version is simpler since it relies on a better working binarized image.
 The version from 2015 uses an automatic selection of samples followed by a
@@ -36,14 +39,13 @@ The version from 2015 uses an automatic selection of samples followed by a
 de gap fraction extracted from \code{bin} to classify \emph{foliage} by
 defining upper and lower limits through the arguments \code{gf_mx} and
 \code{gf_mn}.
-}
-\details{
+
 This method produces a synthetic layer by computing the ratio of \code{r} to
 the maximum value of \code{r} at the segment level. This process is carried
 out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
-the latter is defined by bin equal to one. To avoid spurious values, the
-quantile \code{0.9} is computed instead of the maximum. Pixels not belonging
-to the class \emph{foliage} return as \code{NA}.
+the latter is defined by \code{bin} equal to one. To avoid spurious values,
+the quantile \code{0.9} is computed instead of the maximum. Pixels not
+belonging to the class \emph{foliage} return as \code{NA}.
 }
 \examples{
 \dontrun{

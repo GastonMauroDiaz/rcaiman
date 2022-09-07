@@ -1,7 +1,7 @@
 #' local fuzzy thresholding
 #'
-#' This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
-#' uses a threshold value as the location parameter of a logistic membership
+#' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
+#' It uses a threshold value as the location parameter of a logistic membership
 #' function whose scale parameter depends on a variable, here named \code{mem}.
 #' This dependence can be explained as follows: if the variable is equal to
 #' \code{1}, then the membership function is same as a threshold function
@@ -73,7 +73,7 @@ local_fuzzy_thresholding <- function (lightness,
     fuzziness <- (max(lightness[m]) - min(lightness[m])) / 2
   }
   fun <- function(lightness, mem) {
-    suppressWarnings(stats::plogis(lightness, thr, fuzziness * (1 - mem)))
+    suppressWarnings(stats::plogis(lightness, thr, fuzziness * mem))
   }
   mem <- fun(terra::values(lightness), terra::values(mem))
   terra::values(lightness) <- mem

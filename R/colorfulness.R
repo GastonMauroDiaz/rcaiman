@@ -24,7 +24,7 @@
 #' @return A numeric vector of length one and, if the argument \code{plot} is
 #'   \code{TRUE}, an object returned by \code{\link[base]{plot}} is send to the
 #'   graphic device.
-#' @family Tools Functions
+#' @family Tool Functions
 #' @export
 #'
 #' @examples

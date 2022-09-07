@@ -27,9 +27,10 @@ write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
 }
 }
 \seealso{
-Other Tools Functions: 
+Other Tool Functions: 
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
+\code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
@@ -38,4 +39,4 @@ Other Tools Functions:
 \code{\link{read_caim}()},
 \code{\link{write_bin}()}
 }
-\concept{Tools Functions}
+\concept{Tool Functions}

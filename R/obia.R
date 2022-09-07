@@ -1,5 +1,7 @@
 #' Object-based image analysis of canopy photographs
 #'
+#' Object-based image analysis targeting the canopy  silhouette.
+#'
 #' This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' This version is simpler since it relies on a better working binarized image.
 #' The version from 2015 uses an automatic selection of samples followed by a
@@ -11,9 +13,9 @@
 #' This method produces a synthetic layer by computing the ratio of \code{r} to
 #' the maximum value of \code{r} at the segment level. This process is carried
 #' out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
-#' the latter is defined by bin equal to one. To avoid spurious values, the
-#' quantile \code{0.9} is computed instead of the maximum. Pixels not belonging
-#' to the class \emph{foliage} return as \code{NA}.
+#' the latter is defined by \code{bin} equal to one. To avoid spurious values,
+#' the quantile \code{0.9} is computed instead of the maximum. Pixels not
+#' belonging to the class \emph{foliage} return as \code{NA}.
 #'
 #'
 #'
@@ -21,7 +23,7 @@
 #' @param bin  \linkS4class{SpatRaster}. This should be a working binarization
 #'   of \code{r} without gross errors.
 #' @param segmentation \linkS4class{SpatRaster} built with
-#'   \code{\link{polar_qtree}}.
+#'   \code{\link{polar_qtree}} or \code{\link{qtree}}.
 #' @param gf_mn,gf_mx Numeric vector of length one. The minimum/maximum gap
 #'   fraction that a segment should comply with to be considered as one
 #'   containing foliage.
@@ -43,14 +45,16 @@
 #' a <- azimuth_image(z)
 #' seg <- polar_qtree(caim, z, a)
 #' ecaim <- enhance_caim(caim, !is.na(z))
-#' bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
+#' m <- mask_sunlit_canopy(caim, !is.na(z))
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[!m]))
 #' synth <- obia(r, z, a, bin, seg)
 #' plot(synth)
+#' foliage <- !is.na(synth)
 #' synth <- terra::cover(synth, bin)
 #' plot(synth)
 #' synth[!bin] <- 0
 #' plot(synth)
-#' bin_obia <- apply_thr(synth, thr_isodata(synth[]))
+#' bin_obia <- apply_thr(synth, thr_isodata(synth[foliage]))
 #' plot(bin - bin_obia)
 #' plot(bin_obia)
 #' ## This is the closest to the workflow presented in Diaz and Lencinas
@@ -58,23 +62,30 @@
 #'
 #' #restricted view canopy photo
 #' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+#'
+#' sky_blue_sample <- read_caim(path, c(535,276), 11, 12) %>% normalize(., 0, 255)
+#' plotRGB(sky_blue_sample*255)
+#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
+#'   as.numeric() %>%
+#'   matrix(., ncol = 3) %>%
+#'   sRGB()
+#'
 #' caim <- read_caim(path)
 #' plot(caim)
-#' blue <- gbc(caim$Blue)
 #' caim <- normalize(caim)
-#'
-#' ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
-#' plot(ecaim)
-#' bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
+#' ecaim <- enhance_caim(caim, sky_blue = sky_blue)
+#' m <- mask_sunlit_canopy(caim)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[!m]))
 #'
 #' seg <- qtree(caim)
 #' synth <- obia(blue, NULL, NULL, bin, seg)
 #' plot(synth)
-#' synth <- terra::cover(synth, bin)
+#' foliage <- !is.na(synth)
+#' synth <- cover(synth, bin)
 #' plot(synth)
 #' synth[!bin] <- 0
 #' plot(synth)
-#' bin_obia <- apply_thr(synth, thr_isodata(synth[]))
+#' bin_obia <- apply_thr(synth, thr_isodata(synth[foliage]))
 #' plot(bin - bin_obia)
 #' plot(bin_obia)
 #' }

@@ -11,7 +11,7 @@ interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200, col_id = "rl")
 to \code{\link{extract_sky_points}}.}
 
 \item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}}.}
+\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
@@ -19,6 +19,9 @@ to \code{\link{extract_sky_points}}.}
 
 \item{rmax}{Numeric vector of length one. Maximum radius where to search for
 knn.}
+
+\item{col_id}{Numeric vector of length one. ID of the column with the values
+to interpolate.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}.

@@ -25,9 +25,10 @@
 #'   \code{\link{local_fuzzy_thresholding}}, \code{\link{membership_to_color}},
 #'   and \code{\link{normalize}}.
 #'
-#' @section Segmentation: \code{\link{mask_hs}},
+#' @section Segmentation: \code{\link{mask_hs}}, \code{\link{chessboard}},
 #'   \code{\link{mask_sunlit_canopy}}, \code{\link{polar_qtree}},
-#'   \code{\link{rings_segmentation}}, \code{\link{sectors_segmentation}}, and
+#'   \code{\link{qtree}}, \code{\link{rings_segmentation}},
+#'   \code{\link{sectors_segmentation}}, and
 #'   \code{\link{sky_grid_segmentation}}.
 #'
 #' @section Sky reconstruction: \code{\link{fit_cie_sky_model}},
@@ -36,10 +37,30 @@
 #'   and \code{\link{ootb_sky_reconstruction}}.
 #'
 #' @section Tools: \code{\link{colorfulness}}, \code{\link{extract_feature}},
-#'   \code{\link{extract_rl}}, \code{\link{extract_sky_points}},
-#'   \code{\link{masking}}, \code{\link{read_bin}}, \code{\link{read_caim}},
-#'   \code{\link{write_bin}}, and \code{\link{write_caim}}.
+#'   \code{\link{extract_dn}}, \code{\link{extract_rl}},
+#'   \code{\link{extract_sky_points}}, \code{\link{masking}},
+#'   \code{\link{read_bin}}, \code{\link{read_caim}}, \code{\link{write_bin}},
+#'   and \code{\link{write_caim}}.
 #'
+#' @section Batch Processing:
+#'
+#'   Batch processing can be easily performed with standard R programming. Below
+#'   is an example that can be used as a template.
+#'
+#'   \preformatted{
+#' require(rcaiman)
+#'
+#' input_folder <- "c:/Users/janedoe/pics/"
+#' output_folder <- "c:/Users/janedoe/bins/"
+#' files <- dir(input_folder, full.names = TRUE)
+#'
+#' for (i in 1:length(files)) {
+#'  caim <- read_caim(file.path(files[i]))
+#'  blue <- gbc(caim$Blue)
+#'  bin <- apply_thr(blue, thr_isodata(blue[]))
+#'  write_bin(bin, file.path(output_folder, basename(files[i])))
+#' }
+#'   }
 #'
 #' @docType package
 #' @name rcaiman

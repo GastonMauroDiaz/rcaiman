@@ -43,10 +43,19 @@ template.
 
 Pixels from the synthetic layer returned by \code{\link{obia}} that lay
 between \code{0} and \code{1} are assigned to the class \emph{plant} only if
-they comply with the following criteria: (1) are \code{0} after
+they are:
+
+\itemize{
+
+\item \code{0} after
 \code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees,
-(2) are \code{0} after \code{\link{apply_thr}} with a threshold of
-\code{0.5}, and (3) are not exclusively surrounded by sky pixels.
+
+\item \code{0} after \code{\link{apply_thr}} with a threshold of
+\code{0.5}, and
+
+\item not exclusively surrounded by sky pixels.
+
+}
 
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.

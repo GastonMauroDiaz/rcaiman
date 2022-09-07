@@ -13,7 +13,7 @@
 #'   color. If \code{r} is a single layer image, then the layer is triplicated
 #'   to allow the use of color.
 #' @export
-#' @family Tools Functions
+#' @family Tool Functions
 #' @seealso \code{\link{mask_hs}}
 #'
 #'

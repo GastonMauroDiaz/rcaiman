@@ -11,7 +11,7 @@
 #' 5700 set to acquire in JPEG format, and those images were gamma back
 #' corrected with a default gamma value equal to 2.2 (see \code{\link{gbc}}).
 #' Results clearly shown that the optimal threshold value was linearly related
-#' with the background digital number; and so, therefore, shifting the aim from
+#' with the background digital number, shifting the aim from
 #' finding the optimal threshold to obtaining the background DN as if the canopy
 #' was not there. Functions \code{\link{fit_coneshaped_model}} and
 #' \code{\link{fit_trend_surface}} address that topic.

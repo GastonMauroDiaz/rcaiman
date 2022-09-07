@@ -1,3 +1,40 @@
+#' Quad-tree segmentation
+#'
+#' The quad-tree segmentation algorithm is a top-down process that makes
+#' recursive divisions in four equal parts until a condition is satisfied and
+#' stops locally. This is the usual implementation of the quad-tree
+#' algorithm, so it produces squared segments of different sizes. This
+#' particular implementation allows up to five sizes.
+#'
+#' The algorithm starts splitting the entire image into four to eight segments,
+#' depending on the aspect ratio; then, splits each segment into four
+#' sub-segments and calculates the standard deviation of the pixels from
+#' \code{r} delimited by each of those segments. The splitting process stops
+#' locally if the sum of the standard deviation of the sub-segments minus the
+#' standard deviation of the parent segment (named \emph{delta}) is less or
+#' equal than the \code{scale_parameter}. If \code{r} has more than one layer,
+#' \emph{delta} is calculated separately and \emph{delta} mean is used to
+#' evaluate the stopping condition.
+#'
+#' @inheritParams polar_qtree
+#'
+#' @return A single layer image of the class \linkS4class{SpatRaster} with
+#'   integer values.
+#'
+#' @export
+#'
+#' @family Segmentation Functions
+#'
+#' @examples
+#' \dontrun{
+#' caim <- read_caim()
+#' plot(caim)
+#' caim <- normalize(caim, 0, 255)
+#' seg <- qtree(caim, scale_parameter = 0.5)
+#' plot(caim$Blue)
+#' plot(extract_feature(caim$Blue, seg))
+#' plot(extract_feature(seg, seg, length))
+#' }
 qtree <- function(r, scale_parameter = 0.2) {
   stopifnot(class(r) == "SpatRaster")
   stopifnot(is.numeric(scale_parameter))
@@ -94,17 +131,6 @@ qtree <- function(r, scale_parameter = 0.2) {
              seq_along(wds))
   foo <- length(ges) - max(terra::rast(foo), na.rm = TRUE)
   foo[is.na(foo)] <- 0
-  # for (i in seq_along(ges)){
-  #   indices <- foo == i
-  #   if (any(indices[] %>% as.logical())) {
-  #     if (i == 1) {
-  #       foo[indices] <- ges[[1]][indices] + length(ges)
-  #     } else {
-  #       foo[indices] <- ges[[i]][indices] + fact
-  #     }
-  #     fact <- max(ges[[i]][indices])
-  #   }
-  # }
   for (i in seq_along(ges)){
     indices <- foo == i
     if (any(indices[] %>% as.logical())) {

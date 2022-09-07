@@ -50,3 +50,17 @@ v <- cellFromRowCol(caim, sky_points$row, sky_points$col) \%>\%
 plot(v, add = TRUE, col = 2)
 extract_dn(caim, sky_points)
 }
+\seealso{
+Other Tool Functions: 
+\code{\link{colorfulness}()},
+\code{\link{defuzzify}()},
+\code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
+\code{\link{masking}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
+}
+\concept{Tool Functions}

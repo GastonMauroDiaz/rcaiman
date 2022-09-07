@@ -10,6 +10,8 @@
 #'   used to name the new columns.
 #' @export
 #'
+#' @family Tool Functions
+#'
 #' @examples
 #' caim <- read_caim()
 #' r <- gbc(caim$Blue)

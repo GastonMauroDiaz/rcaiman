@@ -53,7 +53,7 @@ The following materials are required:
 
 \item standard yoga mat
 
-\item table about two times wider than the yoga mat
+\item table about two times wider than the yoga mat width
 
 \item twenty two push pins of different colors
 

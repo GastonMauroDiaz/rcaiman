@@ -32,6 +32,7 @@
 apply_thr <- function (r, thr)
 {
   .is_single_layer_raster(r)
+  r[is.na(r)] <- 0
 
   if (any(is(thr, "numeric"), is(thr, "integer"))) {
     stopifnot(length(thr) == 1)

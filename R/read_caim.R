@@ -34,7 +34,7 @@
 #' @return An object from class \linkS4class{SpatRaster} with its layers named
 #'   \emph{Red}, \emph{Green}, and \emph{Blue}.
 #' @export
-#' @family Tools Functions
+#' @family Tool Functions
 #'
 #'
 #' @examples

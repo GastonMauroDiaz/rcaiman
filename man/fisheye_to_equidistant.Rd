@@ -34,8 +34,9 @@ a <- azimuth_image(z)
 bin <- apply_thr(caim$Blue, 0.5)
 bin_equi <- fisheye_to_equidistant(bin, z, a, radius = 400)
 bin_equi <- apply_thr(bin_equi, 0.5)
+plot(bin)
 plot(bin_equi)
-# use write_bin(bin, "path\file_name") to have a file ready
+# use write_bin(bin, "path/file_name") to have a file ready
 # for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 }
 }

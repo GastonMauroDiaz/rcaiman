@@ -49,8 +49,9 @@ plotRGB(caim*255)
 colorfulness(caim)
 }
 \seealso{
-Other Tools Functions: 
+Other Tool Functions: 
 \code{\link{defuzzify}()},
+\code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
@@ -60,4 +61,4 @@ Other Tools Functions:
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
-\concept{Tools Functions}
+\concept{Tool Functions}

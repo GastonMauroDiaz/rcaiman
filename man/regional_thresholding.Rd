@@ -36,7 +36,7 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
-Regional thresholding of greyscale images
+Regional thresholding of greyscale images.
 }
 \details{
 Methods currently implemented are:

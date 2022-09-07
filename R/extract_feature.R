@@ -20,7 +20,7 @@
 #' @param ignore_label_0 Logical vector of length one. If this is \code{TRUE},
 #'   then the segment labeled with \code{0} will be ignored.
 #'
-#' @family Tools Functions
+#' @family Tool Functions
 #'
 #' @export
 #'

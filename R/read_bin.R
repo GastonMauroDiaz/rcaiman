@@ -8,7 +8,7 @@
 #'
 #' @return An object from class \linkS4class{SpatRaster}.
 #'
-#' @family Tools Functions
+#' @family Tool Functions
 #'
 #' @examples
 #' \dontrun{
