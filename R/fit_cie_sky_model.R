@@ -184,16 +184,12 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' sky_blue_sample <- crop(caim, ext(610,643,760,806))
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   as.numeric() %>%
-#'   matrix(., ncol = 3) %>%
-#'   sRGB()
-#' ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
-#' bin <- apply_thr(ecaim, 0.75)
+#'
+#' bin <- ootb_obia(caim, z, a)
 #' bin <- bin & mask_hs(z, 0, 80)
-#' g <- sky_grid_segmentation(z, a, 10)
+#'
 #' r <- gbc(caim$Blue*255)
+#' g <- sky_grid_segmentation(z, a, 10)
 #' sun_coord <- extract_sun_coord(r, z, a, bin, g)
 #' sky_points <- extract_sky_points(r, bin, g)
 #' rl <- extract_rl(r, z, a, sky_points)
@@ -213,7 +209,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' fit_cie_sky_model(r, z, a, rl$sky_points,
 #'                  rl$zenith_dn, sun_coord,
 #'                  rmse = TRUE,
-#'                  custom_sky_coef = sky_coef)
+#'                  custom_sky_coef = custom_sky_coef)
 #'
 #' #restricted view canopy photo
 #' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
@@ -226,10 +222,9 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' m <- !is.na(caim$Red)
 #' a <- azimuth_image(z)
 #' caim[!m] <- 0
-#' z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees
+#' z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees, a rough guess
 #'
-#' ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
-#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+#' bin <- ootb_obia(caim)
 #'
 #' g <- sky_grid_segmentation(z, a, 5, sequential = TRUE)
 #' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
@@ -239,7 +234,7 @@ cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
 #' sky_points <- extract_sky_points(r, bin, g)
 #' rl <- extract_rl(r, z, a, sky_points)
 #' model <- fit_cie_sky_model(r, z, a, rl$sky_points,
-#'                            rl$zenith_dn, sun_coord)
+#'                            rl$zenith_dn, sun_coord, twilight = FALSE)
 #' sky_cie <- model$relative_luminance * model$zenith_dn
 #' plot(sky_cie)
 #' plot(r/sky_cie)

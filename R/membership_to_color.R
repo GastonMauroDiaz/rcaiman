@@ -13,11 +13,11 @@
 
 #' Compute the membership to a target color
 #'
-#' This function was presented in \insertCite{Diaz2015;textual}{rcaiman}. It
-#' Computes the degree of membership to a color with two Gaussian membership
-#' functions and the dimensions \emph{A} and \emph{B} from the \emph{CIE L*a*b*}
-#' color space. To be clear, the lightness dimension is not considered in the
-#' calculations.
+#' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
+#' It computes the degree of membership to a color with two Gaussian membership
+#' functions and the dimensions \emph{a*} and \emph{b*} from the
+#' \emph{CIE L*a*b*} color space. To be clear, the lightness dimension is not
+#' considered in the calculations.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
@@ -41,10 +41,10 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
+#' plot(caim)
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' target_color <- sRGB(matrix(c(0.25, 0.75, 0), ncol = 3))
-#' mem <- membership_to_color(caim, target_color)
+#' mem <- membership_to_color(caim, sRGB(0.25, 0.75, 0))
 #' plot(mem)
 #' }
 membership_to_color <- function(caim, target_color, sigma = NULL) {

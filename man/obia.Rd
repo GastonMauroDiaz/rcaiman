@@ -49,46 +49,24 @@ belonging to the class \emph{foliage} return as \code{NA}.
 }
 \examples{
 \dontrun{
-#hemispherical photo from a smartphone
 caim <- read_caim()
 r <- caim$Blue \%>\% gbc()
 caim <- normalize(caim)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
+m <- !is.na(z)
+m2 <- !mask_sunlit_canopy(caim, m)
+ecaim <- enhance_caim(caim, m)
+bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+
 seg <- polar_qtree(caim, z, a)
-ecaim <- enhance_caim(caim, !is.na(z))
-bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
 synth <- obia(r, z, a, bin, seg)
 plot(synth)
+foliage <- !is.na(synth)
+hist(synth[foliage])
 synth <- terra::cover(synth, bin)
 plot(synth)
-synth[!bin] <- 0
-plot(synth)
-bin_obia <- apply_thr(synth, thr_isodata(synth[]))
-plot(bin - bin_obia)
-plot(bin_obia)
-## This is the closest to the workflow presented in Diaz and Lencinas
-## (2015) that this package allows.
-
-#restricted view canopy photo
-path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-caim <- read_caim(path)
-plot(caim)
-blue <- gbc(caim$Blue)
-caim <- normalize(caim)
-
-ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
-plot(ecaim)
-bin <- apply_thr(ecaim, thr_isodata(ecaim[]))
-
-seg <- qtree(caim)
-synth <- obia(blue, NULL, NULL, bin, seg)
-plot(synth)
-synth <- terra::cover(synth, bin)
-plot(synth)
-synth[!bin] <- 0
-plot(synth)
-bin_obia <- apply_thr(synth, thr_isodata(synth[]))
+bin_obia <- apply_thr(synth, thr_isodata(synth[foliage]))
 plot(bin - bin_obia)
 plot(bin_obia)
 }

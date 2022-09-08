@@ -36,7 +36,7 @@ Expand a non-circular hemispherical photograph.
  zenith_colrow <- c(1503, 998)
  z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
  r <- expand_noncircular(r, z, zenith_colrow)
- plot(r, col = grey(seq(0,1, 1/255)))
+ plot(r, col = seq(0,1,1/255) \%>\% grey())
  plot(is.na(r$Red), add = TRUE, alpha = 0.3,legend = FALSE)
 
  #noncircular fisheye from a smartphone with an auxiliary lens
@@ -46,7 +46,7 @@ Expand a non-circular hemispherical photograph.
  a <- azimuth_image(z)
  zenith_colrow <- c(1063, 771)/2
  caim <- expand_noncircular(caim, z, zenith_colrow)
- plot(caim$Blue, col = grey(seq(0,1, 1/255)))
+ plot(caim$Blue, col = seq(0,1,1/255) \%>\% grey())
  m <- !is.na(caim$Red) & !is.na(z)
  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 
@@ -62,7 +62,7 @@ Expand a non-circular hemispherical photograph.
  a <- azimuth_image(z)
  caim[!m] <- 0
  z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees
- plot(caim$Blue, col = grey(seq(0,1, 1/255)))
+ plot(caim$Blue, col = seq(0,1,1/255) \%>\% grey())
  m <- !is.na(caim$Red) & !is.na(z)
  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 }

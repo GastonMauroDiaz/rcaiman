@@ -2,12 +2,13 @@
 #'
 #' The quad-tree segmentation algorithm is a top-down process that makes
 #' recursive divisions in four equal parts until a condition is satisfied and
-#' stops locally. This is the usual implementation of the quad-tree
-#' algorithm, so it produces squared segments of different sizes. This
-#' particular implementation allows up to five sizes.
+#' stops locally. This is the usual implementation of the quad-tree algorithm,
+#' so it produces squared segments of different sizes. This particular
+#' implementation allows up to five sizes.
 #'
-#' The algorithm starts splitting the entire image into four to eight segments,
-#' depending on the aspect ratio; then, splits each segment into four
+#' The algorithm starts splitting the entire image into large squared segments
+#' following, depending on the aspect ratio, grids going from \eqn{4 \times 4}
+#' to \eqn{1 \times 4}/\eqn{4 \times 1}; then, splits each segment into four
 #' sub-segments and calculates the standard deviation of the pixels from
 #' \code{r} delimited by each of those segments. The splitting process stops
 #' locally if the sum of the standard deviation of the sub-segments minus the

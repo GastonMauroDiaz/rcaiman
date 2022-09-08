@@ -4,7 +4,7 @@
 \alias{ootb_obia}
 \title{Out-of-the-box object-based image analysis of canopy photographs}
 \usage{
-ootb_obia(caim, z, a, m = NULL, sky_blue = NULL)
+ootb_obia(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
@@ -36,7 +36,8 @@ Out-of-the-box version of methods first presented in
 }
 \details{
 This function is a hard-coded version of a pipeline that combines these main
-functions \code{\link{enhance_caim}}, \code{\link{polar_qtree}}, and
+functions \code{\link{mask_sunlit_canopy}}, \code{\link{enhance_caim}},
+\code{\link{polar_qtree}}/\code{\link{qtree}}, and
 \code{\link{obia}}. The code can be easily inspected by calling
 \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
 template.
@@ -48,12 +49,12 @@ they are:
 \itemize{
 
 \item \code{0} after
-\code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees,
+\code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees.
 
-\item \code{0} after \code{\link{apply_thr}} with a threshold of
-\code{0.5}, and
+\item \code{0} after \code{\link{apply_thr}} with a threshold computed with
+\code{\link{thr_isodata}}.
 
-\item not exclusively surrounded by sky pixels.
+\item Not exclusively surrounded by sky pixels.
 
 }
 
@@ -62,16 +63,50 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
+#circular hemispherical photo
+path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
+caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2) \%>\%
+  normalize()
+z <- zenith_image(1490, lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+
+bin <- ootb_obia(caim, z, a)
+plot(bin)
+
+## to compare
+blue <- gbc(caim$Blue*255)
+plot(apply_thr(blue, thr_isodata(blue[!is.na(z)])))
+plot(blue, col = seq(0,1,1/255) \%>\% grey())
+
+#hemispherical photo from a smartphone
 path <- system.file("external/APC_0581.jpg", package = "rcaiman")
-caim <- read_caim(path)
+caim <- read_caim(path) \%>\% normalize()
 z <- zenith_image(2132/2, lens("Olloclip"))
 a <- azimuth_image(z)
 zenith_colrow <- c(1063, 771)/2
 caim <- expand_noncircular(caim, z, zenith_colrow) \%>\% normalize()
 m <- !is.na(caim$Red) & !is.na(z)
-caim[!m] <- 0
+caim[!m] <- NA
+
 bin <- ootb_obia(caim, z, a)
 plot(bin)
+
+## to compare
+blue <- gbc(caim$Blue*255)
+plot(apply_thr(blue, thr_isodata(blue[m])))
+plot(blue, col = seq(0,1,1/255) \%>\% grey())
+
+#restricted view canopy photo
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+caim <- read_caim(path) \%>\% normalize()
+
+bin <- ootb_obia(caim)
+plot(bin)
+
+## to compare
+blue <- gbc(caim$Blue*255)
+plot(apply_thr(blue, thr_isodata(blue[])))
+plot(blue, col = seq(0,1,1/255) \%>\% grey())
 }
 }
 \seealso{

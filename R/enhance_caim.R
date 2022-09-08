@@ -78,12 +78,11 @@
 #' plot(ecaim)
 #' plot(blue)
 #'
-#' colorfulness(caim, m) #pretty colorful
-#' m2 <- mask_sunlit_canopy(caim, m)
-#' hist(ecaim[!m2])
+#' m2 <- !mask_sunlit_canopy(caim, m) & m
+#' hist(ecaim[m2])
 #' hist(blue[m])
 #'
-#' plot(apply_thr(ecaim, thr_isodata(ecaim[!m2])))
+#' plot(apply_thr(ecaim, thr_isodata(ecaim[m2])))
 #' plot(apply_thr(blue, thr_isodata(blue[m])))
 #'
 #' #hemispherical photo from a smartphone
@@ -101,11 +100,11 @@
 #' plot(ecaim)
 #' plot(blue)
 #'
-#' colorfulness(caim, m)
-#' hist(ecaim[m])
+#' m2 <- !mask_sunlit_canopy(caim, m) & m
+#' hist(ecaim[m2])
 #' hist(blue[m])
 #'
-#' plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
+#' plot(apply_thr(ecaim, thr_isodata(ecaim[m2])))
 #' plot(apply_thr(blue, thr_isodata(blue[m])))
 #'
 #'
@@ -125,16 +124,15 @@
 #' plot(blue)
 #'
 #' caim <- normalize(caim)
-#' colorfulness(caim) #more colorful than the previous photo
 #' ecaim <- enhance_caim(caim, sky_blue = sky_blue)
 #' plot(ecaim)
 #'
-#' m <- mask_sunlit_canopy(caim)
-#' hist(ecaim[!m])
+#' m <- !mask_sunlit_canopy(caim)
+#' hist(ecaim[m])
 #' hist(ecaim[])
 #' hist(blue)
-#' plot(apply_thr(ecaim, thr_isodata(ecaim[!m])))
-#' plot(apply_thr(blue, thr_isodata(values(blue))))
+#' plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
+#' plot(apply_thr(blue, thr_isodata(blue[])))
 #'
 #' }
 enhance_caim <- function(caim,
