@@ -14,11 +14,9 @@ ootb_obia(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL)
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
-enter \code{!is.na(caim$Red)}. See the Details section in
-\code{\link{local_fuzzy_thresholding}} to understand how this argument can
-modify the output.}
+\item{m}{\linkS4class{SpatRaster}. Default (\code{NULL}) is the equivalent to
+enter \code{!is.na(z)} for hemispherical photography, or enter
+\code{!is.na(caim$Red)} for restricted view photography.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
 be passed to \code{\link{membership_to_color}}. Default (\code{NULL}) is
@@ -37,10 +35,9 @@ Out-of-the-box version of methods first presented in
 \details{
 This function is a hard-coded version of a pipeline that combines these main
 functions \code{\link{mask_sunlit_canopy}}, \code{\link{enhance_caim}},
-\code{\link{polar_qtree}}/\code{\link{qtree}}, and
-\code{\link{obia}}. The code can be easily inspected by calling
-\code{ootb_obia} --no parenthesis. Advanced users can use that code as a
-template.
+\code{\link{polar_qtree}}/\code{\link{qtree}}, and \code{\link{obia}}. The
+code can be easily inspected by calling \code{ootb_obia} --no parenthesis.
+Advanced users can use that code as a template.
 
 Pixels from the synthetic layer returned by \code{\link{obia}} that lay
 between \code{0} and \code{1} are assigned to the class \emph{plant} only if
@@ -48,8 +45,8 @@ they are:
 
 \itemize{
 
-\item \code{0} after
-\code{\link{defuzzify}} with a sky grid segmentation of \code{10} degrees.
+\item \code{0} after \code{\link{defuzzify}} with a sky grid segmentation of
+\code{10} degrees.
 
 \item \code{0} after \code{\link{apply_thr}} with a threshold computed with
 \code{\link{thr_isodata}}.
@@ -57,6 +54,12 @@ they are:
 \item Not exclusively surrounded by sky pixels.
 
 }
+
+Default values of \code{z} and \code{a} allows the processing of restricted
+view photographs.
+
+If you use this function in your research, please cite
+\insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
@@ -86,7 +89,7 @@ a <- azimuth_image(z)
 zenith_colrow <- c(1063, 771)/2
 caim <- expand_noncircular(caim, z, zenith_colrow) \%>\% normalize()
 m <- !is.na(caim$Red) & !is.na(z)
-caim[!m] <- NA
+caim[!m] <- 0
 
 bin <- ootb_obia(caim, z, a)
 plot(bin)

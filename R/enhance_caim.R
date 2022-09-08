@@ -165,9 +165,8 @@ enhance_caim <- function(caim,
                                                 mem_sky_blue$membership_to_grey,
                                                 thr = thr,
                                                 fuzziness = fuzziness))
-  mem_thr[is.na(mem_thr)] <- 0
+  # mem_thr[is.na(mem_thr)] <- 0
   mem <- (mem_sky_blue$membership_to_target_color + mem_thr) / 2
-  # mem <- normalize(mem)
   names(mem) <- "Enhanced canopy image"
   mem
 }

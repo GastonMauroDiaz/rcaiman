@@ -61,13 +61,7 @@ considered as the sun location.
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-sky_blue_sample <- crop(caim, ext(610,643,760,806))
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
-  as.numeric() \%>\%
-  matrix(., ncol = 3) \%>\%
-  sRGB()
-ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
-bin <- apply_thr(ecaim, 0.75)
+bin <- ootb_obia(caim, z, a)
 g <- sky_grid_segmentation(z, a, 10)
 r <- gbc(caim$Blue*255)
 sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)

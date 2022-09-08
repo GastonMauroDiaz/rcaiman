@@ -55,13 +55,20 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
-#' bin <- ootb_mblt(r, z, a)
-#' bin <- bin$bin & mask_hs(z, 0, 80)
+#' bin <- ootb_obia(caim %>% normalize(), z, a)
+#' bin <- bin & mask_hs(z, 0, 85)
 #' sky <- ootb_sky_reconstruction(r, z, a, bin)
+#' sky <- normalize(sky, 0, 1, TRUE)
 #' plot(sky)
+#' sky <- ootb_sky_reconstruction(r, z, a, bin, sky)
+#'
 #' ratio <- r/sky
 #' plot(ratio)
 #' hist(ratio)
+#' ratio <- normalize(ratio, 0, 1, TRUE)
+#' g <- sky_grid_segmentation(z, a, 10)
+#' plot(defuzzify(ratio, g))
+#'
 #'
 #' #preprocessed with HSP
 #' path <- system.file("external/DSCN6342.pgm", package = "rcaiman")

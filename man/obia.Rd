@@ -46,6 +46,12 @@ out only on the pixels covered by the classes \emph{foliage} and \emph{sky}--
 the latter is defined by \code{bin} equal to one. To avoid spurious values,
 the quantile \code{0.9} is computed instead of the maximum. Pixels not
 belonging to the class \emph{foliage} return as \code{NA}.
+
+Default values of \code{z} and \code{a} allows the processing of
+restricted view photographs.
+
+If you use this function in your research, please cite
+\insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
 \dontrun{

@@ -3,9 +3,9 @@
 #' Quantify the colorfulness of an sRGB image using a bidimensional space formed
 #' by the green/red and the blue/yellow axes of the CIE \emph{L*a*b*} space,
 #' symbolized with \emph{a*} and \emph{b*}, respectively. The proposed index is
-#' defined as the ratio of the CIE \emph{a*b*} surface covered by the colors
-#' from the image to the one covered by the complete sRGB cube, multiplied by
-#' one hundred.
+#' defined as the surface of the \emph{a*b*} plane covered by colors from the
+#' image relative to the surface that the whole sRGB cube covers in the same
+#' plane, expressed in percentage.
 #'
 #' Pixels from the image covered by pixels from \code{m} with value \code{1}
 #' will be taking into account in the computations.

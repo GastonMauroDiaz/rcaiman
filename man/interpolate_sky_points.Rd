@@ -63,14 +63,7 @@ the convex hull of the sky points.
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-sky_blue_sample <- crop(caim, ext(610,643,760,806))
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
-  as.numeric() \%>\%
-  matrix(., ncol = 3) \%>\%
-  sRGB()
-ecaim <- enhance_caim(caim, !is.na(z), sky_blue, gamma = 2.2)
-bin <- apply_thr(ecaim, 0.75)
-bin <- bin & mask_hs(z, 0, 80)
+bin <- ootb_obia(caim, z, a)
 
 g <- sky_grid_segmentation(z, a, 10)
 r <- gbc(caim$Blue*255)
@@ -83,6 +76,7 @@ plot(sky)
 g <- !is.na(z)
 sky <- interpolate_sky_points(sky_points$sky_points, g)
 plot(sky)
+plot(r/sky)
 
 #restricted view canopy photo
 path <- system.file("external/APC_0020.jpg", package = "rcaiman")
@@ -91,8 +85,7 @@ plot(caim)
 r <- gbc(caim$Blue)
 caim <- normalize(caim)
 
-ecaim <- enhance_caim(caim, thr = 1, fuzziness = 1)
-bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+bin <- ootb_obia(caim)
 
 g <- chessboard(caim, 100)
 plot(g)
