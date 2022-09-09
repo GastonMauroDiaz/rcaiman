@@ -1,9 +1,12 @@
 #' Mask sunlit canopy
 #'
+#' It is a wrapper function around \code{\link{membership_to_color}}. It
+#' masks pixels that are likely sunlit canopy.
+#'
 #' @inheritParams enhance_caim
 #'
 #' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1}. It masks pixels that are very likely sunlit canopy.
+#'   \code{1}.
 #'
 #' @export
 #'

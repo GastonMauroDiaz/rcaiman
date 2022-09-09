@@ -110,7 +110,8 @@ interpolate_sky_points <- function(sky_points, g,
     c(sky_points[,col_id] * 10000, 0       , 0              ,              0, 0)
   )
   las@data$Classification <- 2
-  lidR::crs(las) <- sf::st_crs(g)
+  # lidR::crs(las) <- sf::st_crs(g)
+  lidR::crs(las) <- 7589
 
   ir <- suppressWarnings(
         lidR::rasterize_terrain(las, res = 1,

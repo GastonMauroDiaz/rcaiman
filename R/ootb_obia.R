@@ -120,6 +120,17 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL) {
     g <- sky_grid_segmentation(z, a, 10)
   }
 
+  # if (colorfulness(caim, bin) > 5) {
+  #   blue_sky <- mask_blue_sky(caim, m)
+  #   sky_points <- extract_sky_points(ecaim, blue_sky, g)
+  #   sky_blue <- extract_dn(caim, sky_points, fun = mean)
+  # }
+
+  ecaim <- enhance_caim(caim, bin, sky_blue = sky_blue,
+                        w_red = 0, gamma = 2.2, thr = NULL,
+                        fuzziness = NULL)
+  bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+
   r <- gbc(caim$Blue*255, gamma = 2.2)
   synth <- obia(r, z, a, bin, seg)
   foliage <- !is.na(synth)

@@ -32,8 +32,7 @@ Imports:
     utils,
     Rdpack,
     spatial,
-    lidR,
-    sf
+    lidR
 Suggests: 
     autothresholdr,
     conicfit,

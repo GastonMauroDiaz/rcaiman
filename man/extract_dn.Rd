@@ -4,7 +4,7 @@
 \alias{extract_dn}
 \title{Extract digital numbers}
 \usage{
-extract_dn(r, sky_points, use_window = TRUE)
+extract_dn(r, sky_points, use_window = TRUE, fun = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
@@ -15,16 +15,26 @@ to \code{\link{extract_sky_points}}.}
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
 \times 3} window will be used to extract the sky digital number from
 \code{r}.}
+
+\item{fun}{A \code{function} that takes a vector as input and returns a
+one-length numeric or logical vector as output (e.g. mean).}
 }
 \value{
-An object of the class \emph{data.frame} which is the argument
-  \code{sky_points} with an added column for each layer from \code{r}. Layer names are
-  used to name the new columns.
+An object of the class \emph{data.frame}, which is the argument
+  \code{sky_points} with an added column per each layer from \code{r}. The
+  layer names are used to name the new columns. If a function is
+  provided as the \code{fun} argument, the result will be summarized per
+  column using the provided function, and the \emph{row} and \emph{col}
+  information will be omitted. Moreover, if \code{r} is an RGB image, a
+  \linkS4class{color} will be returned instead of a \emph{data.frame}. The
+  latter feature is useful for obtaining  the \code{sky_blue} argument for
+  \code{\link{enhance_caim}}.
 }
 \description{
 It is a wrapper function around \code{\link[terra]{extract}}.
 }
 \examples{
+\dontrun{
 caim <- read_caim()
 r <- gbc(caim$Blue)
 bin <- apply_thr(r, thr_isodata(r[]))
@@ -32,7 +42,12 @@ z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g)
-extract_dn(caim, sky_points)
+sky_points <- extract_dn(caim, sky_points)
+head(sky_points)
+sky_points <- extract_sky_points(r, bin, g)
+sky_points <- extract_dn(caim, sky_points, fun = mean)
+sky_points
+}
 
 # ImageJ can be used to digitize points.
 # See calc_zenith_raster_coord() for details.
@@ -42,8 +57,8 @@ plot(caim)
 path <- system.file("external/points_over_perimeter.csv",
                      package = "rcaiman")
 sky_points <- read.csv(path)
-sky_points <- sky_points[,c(ncol(sky_points)-1, ncol(sky_points))]
-colnames(sky_points) <- c("col", "row")
+sky_points <- sky_points[,c(ncol(sky_points), ncol(sky_points)-1)]
+colnames(sky_points) <- c("row", "col")
 head(sky_points)
 v <- cellFromRowCol(caim, sky_points$row, sky_points$col) \%>\%
   xyFromCell(caim, .) \%>\% vect()

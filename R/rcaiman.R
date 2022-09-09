@@ -26,7 +26,8 @@
 #'   and \code{\link{normalize}}.
 #'
 #' @section Segmentation: \code{\link{mask_hs}}, \code{\link{chessboard}},
-#'   \code{\link{mask_sunlit_canopy}}, \code{\link{polar_qtree}},
+#'   \code{\link{mask_blue_sky}}, \code{\link{mask_sunlit_canopy}},
+#'   \code{\link{polar_qtree}},
 #'   \code{\link{qtree}}, \code{\link{rings_segmentation}},
 #'   \code{\link{sectors_segmentation}}, and
 #'   \code{\link{sky_grid_segmentation}}.
