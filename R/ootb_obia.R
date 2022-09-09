@@ -104,7 +104,7 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL) {
     }
   }
 
-  m2 <- !mask_sunlit_canopy(caim, m)
+  m2 <- !mask_sunlit_canopy(caim, m) & m
   ecaim <- enhance_caim(caim, m, sky_blue = sky_blue,
                         w_red = 0, gamma = 2.2, thr = NULL,
                         fuzziness = NULL)
