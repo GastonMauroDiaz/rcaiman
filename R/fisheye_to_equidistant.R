@@ -65,5 +65,6 @@ fisheye_to_equidistant <- function(r, z, a, radius = 745) {
     r <- terra::rast(r)
     names(r) <- layer_names
   }
+  terra::ext(r) <- terra::ext(0, ncol(m), 0, nrow(m))
   r
 }
