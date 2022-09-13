@@ -72,9 +72,14 @@
 #'   as.numeric() %>%
 #'   matrix(., ncol = 3) %>%
 #'   sRGB()
+#' hex(sky_blue)
+#' # Use hex to obtain the HEX color code and enter it into a search
+#' # engine (such as Mozilla Firefox) to see a color swatch. If the color is
+#' # too pale (unsaturated), such as the one from the example (#6D90D0), it
+#' # would be better to use the default.
 #'
 #' caim <- normalize(caim)
-#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' ecaim <- enhance_caim(caim, m)
 #' plot(ecaim)
 #' plot(blue)
 #'
@@ -107,29 +112,20 @@
 #' plot(apply_thr(ecaim, thr_isodata(ecaim[m2])))
 #' plot(apply_thr(blue, thr_isodata(blue[m])))
 #'
-#'
 #' #restricted view canopy photo
 #' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-#'
-#' sky_blue_sample <- read_caim(path, c(535,276), 11, 12) %>% normalize(., 0, 255)
-#' plotRGB(sky_blue_sample*255)
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   as.numeric() %>%
-#'   matrix(., ncol = 3) %>%
-#'   sRGB()
-#'
 #' caim <- read_caim(path)
 #' plot(caim)
 #' blue <- gbc(caim$Blue)
 #' plot(blue)
 #'
 #' caim <- normalize(caim)
-#' ecaim <- enhance_caim(caim, sky_blue = sky_blue)
+#' ecaim <- enhance_caim(caim)
 #' plot(ecaim)
 #'
 #' m <- !mask_sunlit_canopy(caim)
-#' hist(ecaim[m])
 #' hist(ecaim[])
+#' hist(ecaim[m])
 #' hist(blue)
 #' plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
 #' plot(apply_thr(blue, thr_isodata(blue[])))
@@ -165,7 +161,6 @@ enhance_caim <- function(caim,
                                                 mem_sky_blue$membership_to_grey,
                                                 thr = thr,
                                                 fuzziness = fuzziness))
-  # mem_thr[is.na(mem_thr)] <- 0
   mem <- (mem_sky_blue$membership_to_target_color + mem_thr) / 2
   names(mem) <- "Enhanced canopy image"
   mem

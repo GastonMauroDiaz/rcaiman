@@ -25,8 +25,8 @@
 #'   \code{\link{local_fuzzy_thresholding}}, \code{\link{membership_to_color}},
 #'   and \code{\link{normalize}}.
 #'
-#' @section Segmentation: \code{\link{mask_hs}}, \code{\link{chessboard}},
-#'   \code{\link{mask_blue_sky}}, \code{\link{mask_sunlit_canopy}},
+#' @section Segmentation: \code{\link{chessboard}}, \code{\link{mask_hs}},
+#'   \code{\link{mask_sunlit_canopy}},
 #'   \code{\link{polar_qtree}},
 #'   \code{\link{qtree}}, \code{\link{rings_segmentation}},
 #'   \code{\link{sectors_segmentation}}, and

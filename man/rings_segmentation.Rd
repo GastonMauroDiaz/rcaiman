@@ -32,7 +32,6 @@ plot(rings == 1)
 \seealso{
 Other Segmentation Functions: 
 \code{\link{chessboard}()},
-\code{\link{mask_blue_sky}()},
 \code{\link{mask_hs}()},
 \code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
