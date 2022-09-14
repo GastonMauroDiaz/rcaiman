@@ -33,8 +33,7 @@
 #'   coordinates of the solar disk (row and column), and the other is the
 #'   angular coordinates (zenith and azimuth angles in degrees).
 #'
-#' @family HSP Functions
-#' @seealso \code{\link{fit_cie_sky_model}}
+#' @family Sky Reconstruction
 #'
 #' @export
 #'

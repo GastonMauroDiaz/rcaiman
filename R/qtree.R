@@ -40,6 +40,7 @@ qtree <- function(r, scale_parameter = 0.2) {
   stopifnot(class(r) == "SpatRaster")
   stopifnot(is.numeric(scale_parameter))
   stopifnot(length(scale_parameter) == 1)
+  r <- terra::deepcopy(r)
 
   x <- round(min(ncol(r), nrow(r))/4)
   y <- paste0(c(1, rep(0, (nchar(x)-1))), collapse = "") %>% as.numeric()

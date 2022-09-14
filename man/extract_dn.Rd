@@ -4,13 +4,13 @@
 \alias{extract_dn}
 \title{Extract digital numbers}
 \usage{
-extract_dn(r, sky_points, use_window = TRUE, fun = NULL)
+extract_dn(r, img_points, use_window = TRUE, fun = NULL)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
 
-\item{sky_points}{An object of class \emph{data.frame}. The result of a call
-to \code{\link{extract_sky_points}}.}
+\item{img_points}{The result of a call to \code{\link{extract_sky_points}},
+or an object of the same class and structure.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
 \times 3} window will be used to extract the sky digital number from
@@ -21,14 +21,13 @@ one-length numeric or logical vector as output (e.g. mean).}
 }
 \value{
 An object of the class \emph{data.frame}, which is the argument
-  \code{sky_points} with an added column per each layer from \code{r}. The
-  layer names are used to name the new columns. If a function is
-  provided as the \code{fun} argument, the result will be summarized per
-  column using the provided function, and the \emph{row} and \emph{col}
-  information will be omitted. Moreover, if \code{r} is an RGB image, a
-  \linkS4class{color} will be returned instead of a \emph{data.frame}. The
-  latter feature is useful for obtaining  the \code{sky_blue} argument for
-  \code{\link{enhance_caim}}.
+  \code{img_points} with an added column per each layer from \code{r}. The
+  layer names are used to name the new columns. If a function is provided as
+  the \code{fun} argument, the result will be summarized per column using the
+  provided function, and the \emph{row} and \emph{col} information will be
+  omitted. Moreover, if \code{r} is an RGB image, a \linkS4class{color} will
+  be returned instead of a \emph{data.frame}. The latter feature is useful
+  for obtaining  the \code{sky_blue} argument for \code{\link{enhance_caim}}.
 }
 \description{
 It is a wrapper function around \code{\link[terra]{extract}}.
@@ -45,7 +44,6 @@ sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
 sky_points <- extract_sky_points(r, bin, g)
-sky_points <- extract_dn(caim, sky_points, fun = mean)
 sky_points
 }
 
@@ -56,14 +54,14 @@ caim <- read_caim(path)
 plot(caim)
 path <- system.file("external/points_over_perimeter.csv",
                      package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[,c(ncol(sky_points), ncol(sky_points)-1)]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-v <- cellFromRowCol(caim, sky_points$row, sky_points$col) \%>\%
+img_points <- read.csv(path)
+img_points <- img_points[,c(ncol(img_points), ncol(img_points)-1)]
+colnames(img_points) <- c("row", "col")
+head(img_points)
+v <- cellFromRowCol(caim, img_points$row, img_points$col) \%>\%
   xyFromCell(caim, .) \%>\% vect()
 plot(v, add = TRUE, col = 2)
-extract_dn(caim, sky_points)
+extract_dn(caim, img_points, fun = median)
 }
 \seealso{
 Other Tool Functions: 

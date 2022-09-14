@@ -71,15 +71,4 @@ plot(r)
 plot(vect(xy), add = TRUE, col = 2)
 }
 }
-\seealso{
-\code{\link{fit_cie_sky_model}}
-
-Other HSP Functions: 
-\code{\link{read_manual_input}()},
-\code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sky_points}()},
-\code{\link{write_sun_coord}()},
-\code{\link{zenith_azimuth_from_row_col}()}
-}
-\concept{HSP Functions}
+\concept{Sky Reconstruction}

@@ -17,8 +17,8 @@ auxiliary fisheye lens attached to smartphones.
 }
 
 \section{HSP}{
- \code{\link{extract_sun_coord}},
-  \code{\link{read_manual_input}}, \code{\link{read_opt_sky_coef}},
+ \code{\link{read_manual_input}},
+  \code{\link{read_opt_sky_coef}},
   \code{\link{row_col_from_zenith_azimuth}}, \code{\link{write_sky_points}},
   \code{\link{write_sun_coord}}, and
   \code{\link{zenith_azimuth_from_row_col}}.
@@ -48,7 +48,8 @@ auxiliary fisheye lens attached to smartphones.
 }
 
 \section{Sky reconstruction}{
- \code{\link{fit_cie_sky_model}},
+ \code{\link{extract_sun_coord}},
+  \code{\link{fit_cie_sky_model}},
   \code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
   \code{\link{fix_reconstructed_sky}}, \code{\link{interpolate_sky_points}},
   and \code{\link{ootb_sky_reconstruction}}.

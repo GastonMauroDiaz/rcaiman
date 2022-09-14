@@ -105,14 +105,13 @@ provided by this package. The code assumes that the user is working within an
 RStudio project located in the HSP project folder.
 
 \preformatted{
-r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize()
-plot(r)
+r <- read_caim("manipulate/IMG_1013.pgm")
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 manual_input <- read_manual_input(".", "IMG_1013" )
-sun_coord <- manual_input$sun_mark$row_col
-sun_coord <- zenith_azimuth_from_row_col(r, sun_coord, lens())
-sky_points <- manual_input$sky_marks
+sun_coord <- manual_input$sun_coord$row_col
+sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
+sky_points <- manual_input$sky_points
 rl <- extract_rl(r, z, a, sky_points)
 model <- fit_cie_sky_model(r, z, a, rl$sky_points, rl$zenith_dn, sun_coord)
 cie_sky <- model$relative_luminance * model$zenith_dn
@@ -120,9 +119,8 @@ plot(r/cie_sky)
 
 sky_coef <- read_opt_sky_coef(".", "IMG_1013")
 cie_sky_manual <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
-img <- read_caim("manipulate/IMG_1013.pgm")
 cie_sky_manual <- cie_sky_manual * manual_input$zenith_dn
-plot(img/cie_sky_manual)
+plot(r/cie_sky_manual)
 }
 
 If you use this function in your research, please cite

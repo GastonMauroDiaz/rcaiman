@@ -24,7 +24,7 @@ write_caim <- function(caim, path, bit_depth) {
     stop("bit_depth should be 8 or 16.")
   }
 
-  terra::crs(r) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
+  terra::crs(caim) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
   terra::ext(caim) <- terra::ext(0, ncol(caim), 0, nrow(caim))
 
   file_name <- basename(path)

@@ -78,10 +78,11 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   ymn <- center - ((nrow(caim)/2) + delta_y)
   ymx <- center + ((nrow(caim)/2) - delta_y)
   e <- terra::ext(xmn, xmx, ymn, ymx)
-  terra::ext(caim) <- e
+  r <- terra::deepcopy(caim)
+  terra::ext(r) <- e
 
-  ze <- terra::ext(z) * 1.5
-  r <- terra::extend(caim, z)
+  # ze <- terra::ext(z) * 1.5
+  r <- terra::extend(r, z)
   terra::ext(r) <- terra::align(terra::ext(r), z)
   r <- terra::resample(r, z)
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
