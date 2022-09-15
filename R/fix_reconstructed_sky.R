@@ -63,3 +63,13 @@ fix_reconstructed_sky <- function(sky, z, r, bin) {
   w <- z / 90
   x * w + sky * (1 - w)
 }
+
+#' @export
+#' @rdname fix_reconstructed_sky
+fix_predicted_sky <- function(sky, z, r, bin) {
+  warning("please use fix_reconstructed_sky() instead of fix_predicted_sky()", call. = FALSE)
+  fix_reconstructed_sky(sky, z, r, bin)
+}
+
+
+

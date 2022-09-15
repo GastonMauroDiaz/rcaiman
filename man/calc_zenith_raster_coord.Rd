@@ -2,9 +2,12 @@
 % Please edit documentation in R/calc_zenith_raster_coord.R
 \name{calc_zenith_raster_coord}
 \alias{calc_zenith_raster_coord}
+\alias{calc_zenith_raster_coordinates}
 \title{Calculate zenith raster coordinates}
 \usage{
 calc_zenith_raster_coord(path_to_csv)
+
+calc_zenith_raster_coordinates(path_to_csv)
 }
 \arguments{
 \item{path_to_csv}{Character vector of length one. Path to a CSV file created

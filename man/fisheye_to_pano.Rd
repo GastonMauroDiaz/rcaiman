@@ -25,6 +25,10 @@ of segments.}
 \description{
 Fisheye to panoramic (cylindrical projection)
 }
+\details{
+An early version of this function was used in
+\insertCite{Diaz2021;textual}{rcaiman}.
+}
 \examples{
 \dontrun{
 caim <- read_caim()
@@ -33,6 +37,9 @@ a <- azimuth_image(z)
 pano <- fisheye_to_pano(caim, z, a)
 plotRGB(pano)
 }
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other Lens Functions: 

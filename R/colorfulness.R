@@ -14,6 +14,9 @@
 #' It shows the color from the image plotted into a bidimensional space made by
 #' the axis \emph{a*} and \emph{b*} of the CIE \emph{L*a*b* space}.
 #'
+#' An early version of this function was used in
+#' \insertCite{Martin2020;textual}{rcaiman}.
+#'
 #' @inheritParams enhance_caim
 #' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
 #'   check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
@@ -26,6 +29,8 @@
 #'   graphic device.
 #' @family Tool Functions
 #' @export
+#'
+#' @references \insertAllCited{}
 #'
 #' @examples
 #' caim <- read_caim() %>% normalize()

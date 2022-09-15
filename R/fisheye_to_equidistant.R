@@ -68,3 +68,11 @@ fisheye_to_equidistant <- function(r, z, a, radius = 745) {
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
   r
 }
+
+
+#' @export
+#' @rdname fisheye_to_equidistant
+reproject_to_equidistant <- function(r, z, a, radius = 745) {
+  warning("please use fisheye_to_equidistant() instead of reproject_to_equidistant()", call. = FALSE)
+  fisheye_to_equidistant(r, z, a, radius = 745)
+}

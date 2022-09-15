@@ -2,9 +2,12 @@
 % Please edit documentation in R/fisheye_to_equidistant.R
 \name{fisheye_to_equidistant}
 \alias{fisheye_to_equidistant}
+\alias{reproject_to_equidistant}
 \title{Fisheye to equidistant}
 \usage{
 fisheye_to_equidistant(r, z, a, radius = 745)
+
+reproject_to_equidistant(r, z, a, radius = 745)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}

@@ -2,9 +2,12 @@
 % Please edit documentation in R/fix_reconstructed_sky.R
 \name{fix_reconstructed_sky}
 \alias{fix_reconstructed_sky}
+\alias{fix_predicted_sky}
 \title{Fix reconstructed sky}
 \usage{
 fix_reconstructed_sky(sky, z, r, bin)
+
+fix_predicted_sky(sky, z, r, bin)
 }
 \arguments{
 \item{sky}{\linkS4class{SpatRaster}. Sky DNs predicted with functions such as

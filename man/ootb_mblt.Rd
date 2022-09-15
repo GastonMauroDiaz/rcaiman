@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a, bin = NULL)
+ootb_mblt(r, z, a, bin = NULL, fix_cs_sky = FALSE)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -18,6 +18,9 @@ the blue channel extracted from a canopy photograph. Please see
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
 binarization of \code{r} useful for masking pixels that are very likely
 to be pure sky pixels.}
+
+\item{fix_cs_sky}{Logical vector of length one. If it is \code{TRUE},
+\code{\link{fix_reconstructed_sky}} is used to fix the cone-shaped sky.}
 }
 \value{
 Object from class list containing the binarized image (named

@@ -9,7 +9,7 @@ interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200, col_id = "rl")
 \arguments{
 \item{sky_points}{An object of class \emph{data.frame}. The result of a call
 to \code{\link{extract_rl}} or \code{\link{extract_dn}}, or a
-\empth{data.frame} with same basic structure and names.}
+\emph{data.frame} with same basic structure and names.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}

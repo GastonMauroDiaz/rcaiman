@@ -33,7 +33,7 @@
 #' @inheritParams extract_sky_points
 #' @param sky_points An object of class \emph{data.frame}. The result of a call
 #'   to \code{\link{extract_rl}} or \code{\link{extract_dn}}, or a
-#'   \empth{data.frame} with same basic structure and names.
+#'   \emph{data.frame} with same basic structure and names.
 #' @param k Numeric vector of length one. Number of k-nearest neighbors.
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius where to search for

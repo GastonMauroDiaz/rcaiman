@@ -2,12 +2,17 @@
 #'
 #' Fisheye to panoramic (cylindrical projection)
 #'
+#' An early version of this function was used in
+#' \insertCite{Diaz2021;textual}{rcaiman}.
+#'
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams ootb_mblt
 #' @inheritParams extract_feature
 #'
 #' @export
+#'
+#' @references \insertAllCited{}
 #'
 #' @family Lens Functions
 #'

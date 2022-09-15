@@ -56,6 +56,8 @@
 #' @param bin \linkS4class{SpatRaster}. This should be a preliminary
 #'   binarization of \code{r} useful for masking pixels that are very likely
 #'   to be pure sky pixels.
+#' @param fix_cs_sky Logical vector of length one. If it is \code{TRUE},
+#'   \code{\link{fix_reconstructed_sky}} is used to fix the cone-shaped sky.
 #'
 #' @export
 #' @family Binarization Functions
@@ -77,7 +79,7 @@
 #' bin <- ootb_mblt(r, z, a)
 #' plot(bin$bin)
 #' }
-ootb_mblt <- function(r, z, a, bin = NULL) {
+ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
   if (is.null(bin)) {
     bin <- find_sky_pixels(r, z, a)
@@ -93,6 +95,7 @@ ootb_mblt <- function(r, z, a, bin = NULL) {
     sky_cs <- model$fun(z, a)
     bin <- find_sky_pixels_nonnull(r, sky_cs, g)
   }
+  if (fix_cs_sky) sky_cs <- fix_reconstructed_sky(sky_cs, z, r, bin)
 
   sky_s <- fit_trend_surface(r, z, a, bin,
                              filling_source = sky_cs,

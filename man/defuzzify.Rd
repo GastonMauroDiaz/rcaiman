@@ -25,6 +25,10 @@ will agree at the chosen level of aggregation (controlled by the argument
 classification of gap fraction--or a linear ratio
 \insertCite{Lang2013}{rcaiman}--into a binary product.
 }
+\details{
+This method is also available in the HSP software package
+(\insertCite{Lang2013}{rcaiman}).
+}
 \examples{
 \dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")

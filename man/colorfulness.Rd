@@ -37,6 +37,9 @@ will be taking into account in the computations.
 If \code{plot = TRUE} is used, a plot is sent to the active graphics device.
 It shows the color from the image plotted into a bidimensional space made by
 the axis \emph{a*} and \emph{b*} of the CIE \emph{L*a*b* space}.
+
+An early version of this function was used in
+\insertCite{Martin2020;textual}{rcaiman}.
 }
 \examples{
 caim <- read_caim() \%>\% normalize()
@@ -47,6 +50,9 @@ path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2) \%>\% normalize()
 plotRGB(caim*255)
 colorfulness(caim)
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other Tool Functions: 
