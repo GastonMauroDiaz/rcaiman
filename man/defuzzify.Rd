@@ -27,7 +27,7 @@ classification of gap fraction--or a linear ratio
 }
 \details{
 This method is also available in the HSP software package
-(\insertCite{Lang2013}{rcaiman}).
+\insertCite{Lang2013}{rcaiman}.
 }
 \examples{
 \dontrun{

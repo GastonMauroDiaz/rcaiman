@@ -8,7 +8,7 @@
 #' \insertCite{Lang2013}{rcaiman}--into a binary product.
 #'
 #' This method is also available in the HSP software package
-#' (\insertCite{Lang2013}{rcaiman}).
+#' \insertCite{Lang2013}{rcaiman}.
 #'
 #' @param mem An object of the class \linkS4class{SpatRaster}. Degree of
 #'   membership.

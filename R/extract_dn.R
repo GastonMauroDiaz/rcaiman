@@ -53,6 +53,7 @@
 #' extract_dn(caim, img_points, fun = median)
 extract_dn <- function(r, img_points, use_window = TRUE, fun = NULL) {
   stopifnot(is.data.frame(img_points))
+  stopifnot(ncol(img_points) == 2)
   stopifnot(is(r, "SpatRaster"))
 
   cells <- terra::cellFromRowCol(r, img_points$row, img_points$col)

@@ -11,8 +11,8 @@ Description: Its main strength is to classify hemispherical
     such a task and well documented in 
     Díaz and Lencinas (2015) <doi:10.1109/lgrs.2015.2425931> and 
     Díaz and Lencinas (2018) <doi:10.1139/cjfr-2018-0006>. It supports 
-    non-circular hemispherical photography, such as those acquired with a 
-    15 mm lens or with auxiliary fisheye lenses attached to mobile devices. 
+    non-circular hemispherical photography, such as those acquired with  
+    15 mm lenses or with auxiliary fisheye lenses attached to mobile devices. 
     Most of the functions also support restricted view photography.
 License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues

@@ -78,6 +78,17 @@
 #' r[is.na(z)] <- 0 #because FOV > 180
 #' bin <- ootb_mblt(r, z, a)
 #' plot(bin$bin)
+#'
+#' ratio <- r/bin$sky_s
+#' ratio <- normalize(ratio, 0, 1, TRUE)
+#' # Alternative 1
+#' plot(apply_thr(ratio, thr_isodata(ratio[!is.na(z)])))
+#'
+#' # Alternative 2
+#' g <- sky_grid_segmentation(z, a, 10)
+#' plot(defuzzify(ratio, g))
+#'
+#' ##Note: In this example, differences are small, but they can be notorious.
 #' }
 ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE) {
   .check_if_r_z_and_a_are_ok(r, z, a)

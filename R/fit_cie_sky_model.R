@@ -1,7 +1,7 @@
 #' Fit CIE sky model
 #'
 #' Use maximum likelihood to estimate the coefficients of the CIE sky model that
-#' best fit to data sampled from a real scene.
+#' best fit to data sampled from a canopy photograph.
 #'
 #' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 #' the best result would be obtained with data showing a linear relation between
@@ -25,7 +25,7 @@
 #' RStudio project located in the HSP project folder.
 #'
 #' \preformatted{
-#' r <- read_caim("manipulate/IMG_1013.pgm")
+#' r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize()
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)
 #' manual_input <- read_manual_input(".", "IMG_1013" )
@@ -37,6 +37,7 @@
 #' cie_sky <- model$relative_luminance * model$zenith_dn
 #' plot(r/cie_sky)
 #'
+#' r <- read_caim("manipulate/IMG_1013.pgm")
 #' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
 #' cie_sky_manual <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
 #' cie_sky_manual <- cie_sky_manual * manual_input$zenith_dn

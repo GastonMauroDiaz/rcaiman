@@ -55,6 +55,7 @@ extract_rl <- function(r, z, a, sky_points,
                        z_thr = 2,
                        use_window = TRUE) {
   stopifnot(is.data.frame(sky_points))
+  stopifnot(ncol(sky_points) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)

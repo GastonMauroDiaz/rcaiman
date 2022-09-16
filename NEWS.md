@@ -8,23 +8,27 @@ dependencies of the latter package are on the course of losing maintenance by
 in the whole code. Although maximum efforts were made to maintain the behavior
 of functions, it may happen that scripts running well with version 0.1.1 fails
 with this new version.
+* A major bug on `local_fuzzy_thresholding()` was fixed. This affected the main
+function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
+If possible, results from scripts using `local_fuzzy_thresholding()` or `enhace_caim()` should be recalculated with this new version.
+
 
 ## New features
 
-* New HSP functions family enable a dynamic workflow between R and the HSP
-software (Tartu Observatory).
-* `azimuth_image()` gains a `rotation` parameter that allows processing images
-whose top is oriented to any known azimuth angle. Previously, it assumed that
-the top was oriented to the north.
+* New HSP functions family enables a dynamic workflow between R and the HSP
+software package (<doi:10.2478/fsmu-2013-0008>).
+* `azimuth_image()` gains `rotation`, which allows processing images
+with the top oriented to any known azimuth angle. Previously, by default it 
+assumed that the top was oriented to the north.
 * New `chessboard()` provides chessboard segmentation.
 * New `cie_sky_model_raster()` produces CIE sky images of any resolution from
-custom parameterized CIE sky models. The CIE sky model was implemented based on
-Pascal code by Mait Lang.
+custom parameterized CIE sky models. The CIE sky model implementation is based 
+on Pascal code by Mait Lang.
 * New `colorfulness()` provides a method to quantify image colorfulness.
 * New `deffuzify()` is an alternative to `apply_thr()` for turning fuzzy
 classification into Boolean.
-* New `extract_dn()` facilitates the extraction of digital number from canopy
-photographs. The extraction is based on points raster coordinates obtained
+* New `extract_dn()` facilitates the extraction of digital numbers from canopy
+photographs. The extraction is based on raster coordinates obtained
 automatically with `extract_sky_points()` or manually with third-party software.
 * New `extract_rl()` facilitates the extraction of relative luminance from
 hemispherical photographs. This function uses objects from
@@ -35,16 +39,15 @@ photographs.
 photographs. Objects returned by this function are essential to
 `fit_cie_sky_model()`.
 * New `find_sky_pixels_nonnull_criteria()` offers a method for fine-tuning
-working binarized images, which are input of many functions, such as
-`extract_sky_points()` and `extract_sun_coord()`. It is based on the assumption
-that the threshold can be tuned as long as no new cells with zero gaps are
-obtained.
+working binarized images, which are the input of many functions, such as
+`extract_sky_points()` and `extract_sun_coord()`. The method is based on the
+assumption that the threshold can be tuned as long as no new cells with zero 
+gaps are obtained (the so-called null cells).
 * New `fisheye_to_pano()` provides a method to reproject from hemispherical to
-cylindrical. The image resolution is substantially degraded since it is based on
-a sky grid produced with `sky_grid_segmentation()`.
+cylindrical.
 * New `fit_cie_sky_model()` uses maximum likelihood to estimate the coefficients
-of the CIE sky model that best fit to data sampled from a real scene. Then,
-those coefficients can be used to produce and image with
+of the CIE sky model that best fit to data sampled from a canopy photograph. 
+Then, those coefficients can be used to produce and image with
 `cie_sky_model_raster()`.
 * `fit_coneshaped_model()` now works with the point-like data objects returned
 by `extract_rl()` and returns a function that can easily produce a raster when
@@ -77,7 +80,8 @@ build an above canopy image from a single below canopy image, by means of
 `fit_cie_sky_model()` and `interpolate_sky_points()`.
 * New `polar_qtree()` provides quad-tree segmentation in the polar space.
 * New `qtree()` provides classical quad-tree segmentation
-* New `thr_isodata()` alternative implementation of the IsoData method from the autothresholdr package. 
+* New `thr_isodata()` is an alternative implementation of the IsoData method 
+from the autothresholdr package. 
 
 
 ## Minor improvements and fixes
@@ -88,11 +92,11 @@ order to get started.
 * Now `apply_thr()` turns NA values from `r` to 0. This allows to quickly
 produce binarized images without NA values.
 * `calc_zenith_raster_coord()` is former `calc_zenith_raster_coordinates()`.
-* `enhance_caim()` gains `thr` and `fuzziness` parameters and default values for
-all except `caim`. This makes the functions easier for new users and more
-flexible for advanced users.
+* `enhance_caim()` gains `thr` and `fuzziness`, and default values for
+all arguments except `caim`. This makes the functions easier for new users and
+more flexible for advanced users.
 * `expand_noncircular()` now produces the expected output when `zenith_colrow`
-is far from the image center, not only when it is close to the center.
+is far from the image center, not only when it is close to it.
 * `extract_feature()` gains `ignore_label_0` since it cannot handle NA values as
 expected after changing dependency from *raster* to *terra*.
 * `find_sky_pixels()` now uses sample size percentage.
@@ -102,12 +106,9 @@ Previously, and incorrectly, the resolution was different from 1 since while the
 dimension was computed from `radius`, as it should, the extension was taken from
 `z`.
 * `fix_reconstructed_sky()` is former `fix_predicted_sky()`.
-* Fix a major bug on `local_fuzzy_thresholding()`, which affects the main
-function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
-* `normalize()` gains `force_range` parameter and defaults values for `mn` and
-`mx`.
-* `ootb_mblt()` now use `find_sky_pixels_nonnull_criteria()` and gains two
-parameters, `bin` and `fix_sky_cs`, allowing customization.
+* `normalize()` gains `force_range` and defaults values for `mn` and `mx`.
+* `ootb_mblt()` now uses `find_sky_pixels_nonnull_criteria()` and gains two
+arguments, `bin` and `fix_sky_cs`, which allows quick customization.
 * `read_caim()` now is allowed to read any raster image that `terra::raster()`
 can read. Of course, the georeferencing is turned off by assigning a local
 projection and manipulating extension and resolution, as usual.
@@ -120,4 +121,4 @@ terra::rast(f)
 * In `regional_thresholding()`, `method` gains the thr_isodata method.
 * As a consequence of changing dependency from *raster* to *terra*,
 `rings_segmentation()`, `sectors_segmentation()`, and `sky_grid_segmentation()`
-returns 0 outside the circular image instead of NA.
+return 0 outside the circular image instead of NA.

@@ -100,10 +100,10 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\% normalize(.,0,255) \%>\%
   matrix(., ncol = 3) \%>\%
   sRGB()
 hex(sky_blue)
-# Use hex to obtain the HEX color code and enter it into a search
-# engine (such as Mozilla Firefox) to see a color swatch. If the color is
-# too pale (unsaturated), such as the one from the example (#6D90D0), it
-# would be better to use the default. Alternatively, the values can be
+# Use hex() to obtain the HEX color code. To see a color swatch, enter the
+# HEX code into a search engine (such as Mozilla Firefox). If the color is
+# too pale (i.e., unsaturated), such as the one from the example (#6D90D0),
+# it would be better to use the default. Alternatively, the values can be
 # stretched, which often produces a more intense color. That is demonstrated
 # below.
 sky_blue_sample <- read_caim(path, c(1092,1243), 66, 48)
