@@ -9,19 +9,20 @@
 Its main strength is to classify hemispherical photographs of the plant
 canopy with algorithms specially developed for such a task and well
 documented in [IEEE Geoscience and Remote Sensing
-Letters](http://ieeexplore.ieee.org/xpl/articleDetails.jsp?arnumber=7103294)
+Letters](https://ieeexplore.ieee.org/document/7103294?arnumber=7103294)
 and [Canadian Journal of Forest
-Research](http://www.nrcresearchpress.com/doi/full/10.1139/cjfr-2018-0006).
+Research](https://cdnsciencepub.com/doi/full/10.1139/cjfr-2018-0006).
 
 It also supports non-circular hemispherical photography, as the ones
 usually obtained with auxiliary fisheye lenses attached to smartphones.
 For digital cover photography, please refer to the [coverR
-package](https://www.biorxiv.org/content/10.1101/2022.01.13.475850v1),
+package](https://link.springer.com/article/10.1007/s00468-022-02338-5),
 although you might find some functions from *rcaiman* useful, such as
 *enhance_caim()*.
 
-It integrates well with other software, such as [HSP
-software](https://www.to.ee/eng/services/research_services/software),
+It integrates well with other software, such as [HSP – HemiSPherical
+Project
+Manager](https://kosmos.ut.ee/en/services/free-hemispherical-software),
 [CIMES](http://jmnw.free.fr/), and
 [Hemisfer](https://www.schleppi.ch/patrick/hemisfer/). The former is
 ideal for carrying on the preprocessing of photographs acquired in

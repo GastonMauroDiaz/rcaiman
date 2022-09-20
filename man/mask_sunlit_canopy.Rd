@@ -25,11 +25,13 @@ It is a wrapper function around \code{\link{membership_to_color}}. It
 masks pixels that are likely sunlit canopy.
 }
 \examples{
+\dontrun{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 m <- !is.na(z)
 sunlit_canopy <- mask_sunlit_canopy(caim, m)
 plot(sunlit_canopy)
+}
 }
 \seealso{
 Other Segmentation Functions: 

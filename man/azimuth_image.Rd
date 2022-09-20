@@ -33,8 +33,10 @@ Build a single layer image with azimuth angles as pixel values.
 z <- zenith_image(1490, lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 plot(a)
+\dontrun{
 a <- azimuth_image(z, 45)
 plot(a)
+}
 }
 \seealso{
 Other Lens Functions: 

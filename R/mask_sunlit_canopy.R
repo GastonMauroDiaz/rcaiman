@@ -13,11 +13,13 @@
 #' @family Segmentation Functions
 #'
 #' @examples
+#' \dontrun{
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' m <- !is.na(z)
 #' sunlit_canopy <- mask_sunlit_canopy(caim, m)
 #' plot(sunlit_canopy)
+#' }
 mask_sunlit_canopy <- function(caim, m = NULL) {
   if (is.null(m)) m <- !is.na(caim$Red)
   mem <- membership_to_color(caim, sRGB(0.25,0.75,0))

@@ -5,9 +5,9 @@
 #' \insertCite{Jonckheere2005;textual}{rcaiman}.
 #'
 #' The implementation is based on
-#' \href{http://fiji.sc/Auto_Threshold#IsoData}{the IsoData method of Auto
-#' Threshold ImageJ plugin by Gabriel Landini}, which is now available in the
-#' 'autothresholdr' package (\code{\link[autothresholdr]{auto_thresh}}).
+#' \href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method
+#' of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
+#' in the 'autothresholdr' package (\code{\link[autothresholdr]{auto_thresh}}).
 #' However, I found this implementarion more versatile since it is not
 #' restricted to an 8-bit input.
 #'

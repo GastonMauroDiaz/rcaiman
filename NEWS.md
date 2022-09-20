@@ -4,7 +4,7 @@
    
 * Now *rcaiman* depends on *terra* package instead of *raster* since key
 dependencies of the latter package are on the course of losing maintenance by
-2023 (<https://keen-swartz-3146c4.netlify.app/older.html>). This implied changes
+2023 (<https://r-spatial.org/book/sp-raster.html>). This implied changes
 in the whole code. Although maximum efforts were made to maintain the behavior
 of functions, it may happen that scripts running well with version 0.1.1 fails
 with this new version.
