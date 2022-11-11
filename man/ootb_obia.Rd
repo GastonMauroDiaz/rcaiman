@@ -4,7 +4,7 @@
 \alias{ootb_obia}
 \title{Out-of-the-box object-based image analysis of canopy photographs}
 \usage{
-ootb_obia(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL)
+ootb_obia(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL, gamma = 2.2)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
@@ -23,6 +23,10 @@ be passed to \code{\link{membership_to_color}}. Default (\code{NULL}) is
 the equivalent to enter \code{sRGB(0.1, 0.4, 0.8)}--the HEX color code is
 #1A66CC, it can be entered into a search engine (such as Mozilla Firefox)
 to see a color swatch.}
+
+\item{gamma}{Numeric vector of length one. This is for applying a gamma back
+correction to the lightness information (see Details and argument
+\code{w_red}).}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
@@ -57,9 +61,6 @@ they are:
 
 Default values of \code{z} and \code{a} allows the processing of restricted
 view photographs.
-
-If you use this function in your research, please cite
-\insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.

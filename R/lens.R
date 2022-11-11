@@ -13,8 +13,8 @@
 #' modeled with a straight line. Following
 #' \href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, this
 #' package uses a polynomial curve to model lens distortion. A third-order
-#' polynomial is sufficient in most cases
-#' \insertCite{Frazer2001}{rcaiman}.
+#' polynomial is sufficient in most cases \insertCite{Frazer2001}{rcaiman}.
+#' Equations should be fitted with angles in radians.
 #'
 #' Eventually, this will be a large database, but only the following lenses are
 #' available at the moment:

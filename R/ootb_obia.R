@@ -31,9 +31,6 @@
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 #'
-#' If you use this function in your research, please cite
-#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
-#'
 #' @inheritParams enhance_caim
 #' @inheritParams ootb_mblt
 #' @param m \linkS4class{SpatRaster}. Default (\code{NULL}) is the equivalent to
@@ -94,7 +91,8 @@
 #' plot(apply_thr(blue, thr_isodata(blue[])))
 #' plot(blue, col = seq(0,1,1/255) %>% grey())
 #' }
-ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL) {
+ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL,
+                      sky_blue = NULL, gamma = 2.2) {
 
   if (is.null(m)) {
     if (is.null(z)) {
@@ -106,7 +104,7 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL) {
 
   m2 <- !mask_sunlit_canopy(caim, m) & m
   ecaim <- enhance_caim(caim, m, sky_blue = sky_blue,
-                        w_red = 0, gamma = 2.2, thr = NULL,
+                        w_red = 0, gamma = gamma, thr = NULL,
                         fuzziness = NULL)
   bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
 
@@ -125,13 +123,18 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL) {
   #   sky_points <- extract_sky_points(ecaim, blue_sky, g)
   #   sky_blue <- extract_dn(caim, sky_points, fun = mean)
   # }
+  # ecaim <- enhance_caim(caim, bin, sky_blue = sky_blue,
+  #                       w_red = 0, gamma = gamma, thr = NULL,
+  #                       fuzziness = NULL)
 
-  ecaim <- enhance_caim(caim, bin, sky_blue = sky_blue,
-                        w_red = 0, gamma = 2.2, thr = NULL,
-                        fuzziness = NULL)
   bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
 
-  r <- gbc(caim$Blue*255, gamma = 2.2)
+  if (is.null(gamma)) {
+    r <- caim$Blue
+  } else {
+    r <- gbc(caim$Blue*255, gamma = gamma)
+  }
+
   synth <- obia(r, z, a, bin, seg)
   foliage <- !is.na(synth)
   synth <- terra::cover(synth, bin)
