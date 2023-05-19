@@ -96,7 +96,13 @@ ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE) {
     bin <- find_sky_pixels(r, z, a)
   }
   g <- sky_grid_segmentation(z, a, 10)
-  sky_points <- extract_sky_points(r, bin, g)
+  try(sky_points <- extract_sky_points(r, bin, g), silent = TRUE)
+  if (!exists("sky_points")) {
+    bin <- apply_thr(r, thr_isodata(r[mask_hs(z, 20,70)]))
+    sky_points <- extract_sky_points(r, bin, g)
+    warning("find_sky_pixels() failed and was replaced by thr_isodata()")
+  }
+
   sky_points <- extract_rl(r, z, a, sky_points, NULL)
   model <- fit_coneshaped_model(sky_points$sky_points)
   if (is.null(model)) {

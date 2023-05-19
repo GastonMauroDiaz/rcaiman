@@ -16,32 +16,6 @@ relative_radius_image <- function (diameter)
   dis <- dis / as.numeric(dis[1])
   dis[dis > 1] <- NA
   dis
-
-  # dis2 <- terra::flip(dis1)
-  # dis2 <- terra::extend(dis2, terra::ext(0, diameter/2, 0, diameter))
-  # terra::ext(dis1) <- terra::ext(0, diameter/2, diameter/2, diameter)
-  # dis1 <- terra::resample(dis1, dis2)
-  # dis1 <- terra::cover(dis1, dis2)
-  # dis2 <- terra::rev(dis1)
-  # dis1 <- terra::extend(dis1, terra::ext(diameter/2,
-  #                                        diameter,
-  #                                        0,
-  #                                        diameter))
-  # terra::ext(dis2) <- terra::ext(diameter/2, diameter, 0, diameter)
-  # dis2 <- terra::resample(dis2, dis1)
-  # terra::cover(dis1, dis2)
-
-  # r <- terra::rast(ncol = diameter, nrow = diameter)
-  # terra::crs(r) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
-  # terra::ext(r) <- terra::ext(0, diameter, 0, diameter)
-  # zenith <- diameter / 2
-  # i <- terra::cellFromRowCol(r, zenith, zenith)
-  # p1 <- terra::vect(matrix(c(zenith, zenith), ncol = 2), crs = terra::crs(r))
-  # dis <- terra::distance(r, p1)
-  # i <- terra::cellFromRowCol(r, zenith, diameter)
-  # dis <- dis / as.numeric(dis[i])
-  # dis[dis > 1] <- NA
-  # dis
 }
 
 #' Calculate relative radius

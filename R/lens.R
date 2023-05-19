@@ -25,10 +25,14 @@
 #' \item \strong{Nikon_FCE9}: Nikon FC-E9 auxiliary lens
 #' \insertCite{Diaz2018}{rcaiman}
 #'
-#' \item \strong{Nikkor_10.5_mm}: AF DX Fisheye-Nikkor 10.5mm f/2.8G ED
+#' \item \strong{Nikkor_10.5mm}: AF DX Fisheye Nikkor 10.5mm f/2.8G ED
 #' \insertCite{Pekin2009}{rcaiman}
 #'
-#' \item \strong{Olloclip}: Auxiliary lens. Unpublished
+#' \item \strong{Olloclip}: Auxiliary lens for mobile devices made by Olloclip
+#' \insertCite{Diaz2023}{rcaiman}
+#'
+#' \item \strong{Nikkor_8mm}: AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
+#' (unpublished)
 #'
 #' }
 #'
@@ -58,8 +62,9 @@ lens <- function(type = "equidistant", max_fov = FALSE) {
   switch(type,
     equidistant = list(2 / pi, 180)[[index]],
     Nikon_FCE9 = list(c(0.6427, 0.0346, -0.024491), 190)[[index]],
-    Nikkor_10.5_mm = list(c(0.71553, 0.01146, -0.03928), 165)[[index]],
+    Nikkor_10.5mm = list(c(0.71553, 0.01146, -0.03928), 165)[[index]],
     Soligor_fisheye = list(c(0.6427, 0.0346, -0.024491), 180)[[index]],
-    Olloclip = list(c(0.7836131, 0.1511661, -0.1558095), 170)[[index]]
+    Olloclip = list(c(0.7836131, 0.1511661, -0.155809), 170)[[index]],
+    Nikkor_8mm = list(c(0.68146827, 0.02003013, -0.0309279), 180)[[index]]
   )
 }

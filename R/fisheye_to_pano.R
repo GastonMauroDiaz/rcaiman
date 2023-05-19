@@ -37,7 +37,7 @@ fisheye_to_pano<- function(r, z, a, fun = mean, angle_width = 1) {
     g <- sky_grid_segmentation(z, a, angle_width)
     blue <- extract_feature(r, g, fun, return_raster = FALSE)
     xy <- .decode_label(as.numeric(names(blue)))
-    r <- matrix(NA, ncol = max(xy$sector_ID), nrow = max(xy$rings_ID))
+    r <- matrix(NA, ncol = max(xy$sector_ID), nrow = max(xy$ring_ID))
     r <- terra::rast(r)
     terra::crs(r) <- terra::crs(g)
     terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))

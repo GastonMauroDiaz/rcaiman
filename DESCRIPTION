@@ -1,8 +1,8 @@
 Package: rcaiman
 Type: Package
 Title: CAnopy IMage ANalysis
-Version: 1.0.9.9000
-Date: 2022-09-19
+Version: 1.1.2
+Date: 2023-05-19
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))
@@ -12,13 +12,15 @@ Description: Classify hemispherical
     Díaz and Lencinas (2015) <doi:10.1109/lgrs.2015.2425931> and 
     Díaz and Lencinas (2018) <doi:10.1139/cjfr-2018-0006>. It supports 
     non-circular hemispherical photography, such as those acquired with  
-    15 mm lenses or with auxiliary fish-eye lenses attached to mobile devices. 
-    Most of the functions also support restricted view photography.
+    15mm lenses or with auxiliary fish-eye lenses attached to mobile devices. 
+    For smartphone-based hemispherical photography see 
+    Díaz (2023) <doi:10.1111/2041-210x.14059>. Most of the functions also 
+    support restricted view photography.
 License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Depends:
     filenamer,
     magrittr,

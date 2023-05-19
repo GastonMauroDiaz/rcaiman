@@ -32,9 +32,9 @@ Expand a non-circular hemispherical photograph.
  )
 
  r <- read_caim(my_file)
- diameter <- calc_diameter(lens("Nikkor_10.5_mm"), 1202, 53)
+ diameter <- calc_diameter(lens("Nikkor_10.5mm"), 1202, 53)
  zenith_colrow <- c(1503, 998)
- z <- zenith_image(diameter, lens("Nikkor_10.5_mm"))
+ z <- zenith_image(diameter, lens("Nikkor_10.5mm"))
  r <- expand_noncircular(r, z, zenith_colrow)
  plot(r, col = seq(0,1,1/255) \%>\% grey())
  plot(is.na(r$Red), add = TRUE, alpha = 0.3,legend = FALSE)

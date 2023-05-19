@@ -34,13 +34,12 @@
 #' head(sky_points)
 #' sky_points <- extract_sky_points(r, bin, g)
 #' sky_points
-#' }
 #'
 #' # ImageJ can be used to digitize points.
 #' # See calc_zenith_raster_coord() for details.
 #' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
 #' caim <- read_caim(path)
-#' plot(caim)
+#' plot(caim$Blue)
 #' path <- system.file("external/points_over_perimeter.csv",
 #'                      package = "rcaiman")
 #' img_points <- read.csv(path)
@@ -51,6 +50,8 @@
 #'   xyFromCell(caim, .) %>% vect()
 #' plot(v, add = TRUE, col = 2)
 #' extract_dn(caim, img_points, fun = median)
+#'
+#' }
 extract_dn <- function(r, img_points, use_window = TRUE, fun = NULL) {
   stopifnot(is.data.frame(img_points))
   stopifnot(ncol(img_points) == 2)

@@ -73,6 +73,5 @@ fisheye_to_equidistant <- function(r, z, a, radius = 745) {
 #' @export
 #' @rdname fisheye_to_equidistant
 reproject_to_equidistant <- function(r, z, a, radius = 745) {
-  warning("please use fisheye_to_equidistant() instead of reproject_to_equidistant()", call. = FALSE)
-  fisheye_to_equidistant(r, z, a, radius = 745)
+  stop("please use fisheye_to_equidistant() instead of reproject_to_equidistant()")
 }

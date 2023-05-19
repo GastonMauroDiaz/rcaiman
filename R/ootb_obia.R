@@ -29,7 +29,8 @@
 #' view photographs.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
+#' \insertCite{Diaz2015;textual}{rcaiman} or \insertCite{Diaz2023}{rcaiman} in
+#' addition to this package.
 #'
 #' @inheritParams enhance_caim
 #' @inheritParams ootb_mblt

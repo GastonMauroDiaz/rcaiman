@@ -1,9 +1,9 @@
 #' Calibrate lens
 #'
-#' Calibrate a fisheye lens. This type of lens has wide field of view and a
+#' Calibrate a fisheye lens. This type of lens has a wide field of view and
 #' consistent azimuthal distortion. The latter property allows fitting a precise
-#' mathematical relation between the distance to the zenith on the image space
-#' and the zenith angle on the hemispherical space.
+#' mathematical relationship between the distance to the zenith on the image
+#' space and the zenith angle on the hemispherical space.
 #'
 #' These are the instructions to produce the CSV file required by this function.
 #' The following materials are required:
@@ -32,20 +32,23 @@
 #' Cut the sheet by the dashed line. Place the yoga mat extended on top of the
 #' table. Place the sheet on top of the yoga mat. Align the dashed line with the
 #' yoga mat border closest to you. Place push pins on each cross. If you are
-#' gentle, the yoga mat will allows you to do that without damaging the table.
+#' gentle, the yoga mat will allow you to do that without damaging the table.
 #' Of course, other materials could be used to obtain the same result, such as
 #' cardboard, foam, nails, etc.
 #'
 #' Place the camera on the tripod. Align its optical axis with the table while
 #' looking for getting an image showing the overlapping of the three pairs of
-#' push pins as instructed in the print. In order to take care of the line of
-#' pins at 90º relative to the optical axis, it may be better to use the naked
-#' eye to align the front of the lens with the pins.
+#' push pins, as instructed in the print. In order to take care of the line of
+#' pins at 90º relative to the optical axis, it may be of help to use the naked
+#' eye to align the front of the lens with the pins (Strictly speaking, we need
+#' to alight the nodal point of the lens instead of its front. The term
+#' "entrance pupil" is also used to refer to this point, but least-parallax
+#' point may be the best term).
 #'
 #' Transfer the photograph to the computer, open it with ImageJ, and use the
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 #' selection tool} to digitize the push pins, starting from the zenith push pin
-#' and not skipping any showed push pin. Then, use the dropdown menu
+#' and not skipping any shown push pin. Then, use the dropdown menu
 #' Analyze>Measure to open the window Results. To obtain the CSV, use File>Save
 #' As...
 #'
@@ -53,8 +56,13 @@
 #' \insertCite{Clark1988;textual}{rcaiman}.
 #'
 #' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are
-#' OK. If not, try moving the last points a little bit. Putting the last one a
-#' few pixels farther from the zenith is usually enough.
+#' OK. If not, try moving the last points a little bit. Putting the one of the
+#' last push pin a few pixels farther from the zenith is usually enough. An
+#' alternative is to round the coefficients, or truncate the last number of the
+#' last coefficient.
+#'
+#' Consult this \href{https://docs.google.com/document/d/178yZDAcfx--Xn1Ye8Js-kUXuPCuYOHQL5fxAH7KBEoY/edit?usp=sharing}{document}
+#' for additional details.
 #'
 #' @param path_to_csv Character vector of length one. Path to a CSV file created
 #'   with the
@@ -65,9 +73,9 @@
 #' @return An object of class \emph{list} with named elements. \emph{lens_coef}
 #'   stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
 #'   degrees, and \emph{max_theta_px} for distance in pixels between the zenith
-#'   and the maximum zenith angle in pixels units. The latter should be double
-#'   checked, particularly if the zenith push pin is not exactly on the zenith
-#'   pixel. To that end, do the following on ImageJ: use the
+#'   and the maximum zenith angle in pixels units. The latter should be
+#'   double-checked, particularly if the zenith push pin is not exactly on the
+#'   zenith pixel. To that end, do the following on ImageJ: use the
 #'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.1}{rectangular
 #'    selection tool} to create a small rectangle, open the Specify window by
 #'   going to the dropdown menu Edit>Selection>Specify..., insert the zenith
@@ -92,7 +100,7 @@
 #' calibration <- calibrate_lens(path)
 #' calibration$lens_coef
 #' calibration$max_theta
-#' calibration$max_thera_px
+#' calibration$max_theta_px
 #' test_lens_coef(calibration$lens_coef)
 calibrate_lens <- function(path_to_csv, degree = 3) {
 
@@ -125,6 +133,6 @@ calibrate_lens <- function(path_to_csv, degree = 3) {
 
   list(lens_coef = unname(coefficients(fit)),
        lens_coef_caneye = lens_coef_caneye,
-       max_theta = max_fov,
+       max_theta = max_fov %>% unname(),
        max_theta_px = max_fov_px)
 }

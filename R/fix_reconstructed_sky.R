@@ -67,8 +67,7 @@ fix_reconstructed_sky <- function(sky, z, r, bin) {
 #' @export
 #' @rdname fix_reconstructed_sky
 fix_predicted_sky <- function(sky, z, r, bin) {
-  warning("please use fix_reconstructed_sky() instead of fix_predicted_sky()", call. = FALSE)
-  fix_reconstructed_sky(sky, z, r, bin)
+  stop("please use fix_reconstructed_sky() instead of fix_predicted_sky()")
 }
 
 

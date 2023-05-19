@@ -1,3 +1,19 @@
+# rcaiman 1.1.1
+
+## New features
+
+* `ootb_obia()` gains `gamma`
+
+## Minor improvements and fixes
+
+* `ootb_mblt()` now can detect when `find_sky_pixels()` fails to deliver a good
+mask, and switch to find a mask by applying a global threshold calculated with 
+IsoData.This last method will works well since the failure of 
+`find_sky_pixels()` is associated with extremely open forest, in which 
+circumstances it will not produce comission errors. 
+
+
+
 # rcaiman 1.0.7
 
 ## Breaking changes
@@ -10,7 +26,8 @@ of functions, it may happen that scripts running well with version 0.1.1 fails
 with this new version.
 * A major bug on `local_fuzzy_thresholding()` was fixed. This affected the main
 function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
-If possible, results from scripts using `local_fuzzy_thresholding()` or `enhace_caim()` should be recalculated with this new version.
+If possible, results from scripts using `local_fuzzy_thresholding()` or 
+`enhace_caim()` should be recalculated with this new version.
 
 
 ## New features

@@ -20,6 +20,12 @@ Numeric vector of length two.
 \description{
 Zenith and azimuth angles from row and col numbers
 }
+\details{
+The result will be incorrect if the point is outside the circular image of
+180º field of view.In addition, there is not an azimuth image as argument
+because it is assumed that the photographs were acquired orienting the camera
+top to North.
+}
 \examples{
 z <- zenith_image(1000, lens_coef = lens())
 zenith_azimuth_from_row_col(z, c(501, 750), lens())

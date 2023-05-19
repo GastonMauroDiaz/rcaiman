@@ -45,10 +45,14 @@ available at the moment:
 \item \strong{Nikon_FCE9}: Nikon FC-E9 auxiliary lens
 \insertCite{Diaz2018}{rcaiman}
 
-\item \strong{Nikkor_10.5_mm}: AF DX Fisheye-Nikkor 10.5mm f/2.8G ED
+\item \strong{Nikkor_10.5mm}: AF DX Fisheye Nikkor 10.5mm f/2.8G ED
 \insertCite{Pekin2009}{rcaiman}
 
-\item \strong{Olloclip}: Auxiliary lens. Unpublished
+\item \strong{Olloclip}: Auxiliary lens for mobile devices made by Olloclip
+\insertCite{Diaz2023}{rcaiman}
+
+\item \strong{Nikkor_8mm}: AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
+(unpublished)
 
 }
 }

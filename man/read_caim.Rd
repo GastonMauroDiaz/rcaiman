@@ -48,7 +48,8 @@ may work with other distros.
 \examples{
 # This is the example image
 r <- read_caim()
-plotRGB(r)
+#plotRGB(r)
+plot(r$Blue)
 
 # This is also the example
 path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
@@ -60,7 +61,8 @@ r <- read_caim(path,
                upper_left = zenith_colrow - diameter_px/2,
                width = diameter_px,
                height = diameter_px)
-plotRGB(r)
+#plotRGB(r)
+plot(r$Blue)
 
 # A pre-processed image
 path <- system.file("external/DSCN6342.pgm", package = "rcaiman")

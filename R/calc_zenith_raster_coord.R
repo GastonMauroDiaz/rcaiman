@@ -70,6 +70,5 @@ calc_zenith_raster_coord <- function(path_to_csv) {
 #' @export
 #' @rdname calc_zenith_raster_coord
 calc_zenith_raster_coordinates <- function(path_to_csv) {
-  warning("please use calc_zenith_raster_coord() instead of calc_zenith_raster_coordinates()", call. = FALSE)
-  calc_zenith_raster_coord(path_to_csv)
+  stop("please use calc_zenith_raster_coord() instead of calc_zenith_raster_coordinates()")
 }

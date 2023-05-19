@@ -1,5 +1,12 @@
 #' Zenith and azimuth angles from row and col numbers
 #'
+#' Zenith and azimuth angles from row and col numbers
+#'
+#' The result will be incorrect if the point is outside the circular image of
+#' 180º field of view.In addition, there is not an azimuth image as argument
+#' because it is assumed that the photographs were acquired orienting the camera
+#' top to North.
+#'
 #' @inheritParams ootb_mblt
 #' @param row_col Numeric vector of length two. Row and col numbers.
 #' @inheritParams zenith_image

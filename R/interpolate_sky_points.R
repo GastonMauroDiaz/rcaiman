@@ -87,7 +87,8 @@
 #' plot(sky)
 #' plot(r/sky)
 #' }
-interpolate_sky_points <- function(sky_points, g,
+interpolate_sky_points <- function(sky_points,
+                                   g,
                                    k = 3,
                                    p = 2,
                                    rmax = 200,
@@ -123,12 +124,21 @@ interpolate_sky_points <- function(sky_points, g,
          )
   ir <- terra::resample(ir, g) / 10000
 
-  indexes <- grDevices::chull(xy)
-  p <- terra::vect(xy[indexes, ], "polygons")
-  ds <- terra::extract(g, p)
-  g <- terra::subst(g, unique(ds[,2]), 1)
-  g <- g == 1
 
-  ir[!g] <- NA
+  p <- terra::vect(xy, "points")
+  terra::crs(p) <- crs(g)
+
+  buff <- terra::buffer(p, rmax)
+  buff <- terra::rasterize(buff, g)
+  ir[is.na(buff)] <- NA
+  ir[g == 0] <- NA
+
+  # indexes <- grDevices::chull(xy)
+  # p <- terra::vect(xy[indexes, ], "polygons")
+  # ds <- terra::extract(g, p)
+  # g <- terra::subst(g, unique(ds[,2]), 1)
+  # g <- g == 1
+  #
+  # ir[!g] <- NA
   ir
 }

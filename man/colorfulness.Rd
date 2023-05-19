@@ -42,14 +42,18 @@ An early version of this function was used in
 \insertCite{Martin2020;textual}{rcaiman}.
 }
 \examples{
+
+#Sunlight image
 caim <- read_caim() \%>\% normalize()
-plotRGB(caim*255)
+#plotRGB(caim*255)
 colorfulness(caim)
 
+#Diffuse-light image
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2) \%>\% normalize()
-plotRGB(caim*255)
+#plotRGB(caim*255)
 colorfulness(caim)
+
 }
 \references{
 \insertAllCited{}

@@ -6,9 +6,9 @@
 
 .decode_label <- function(label) {
   sector_ID <- trunc(label / 1000)
-  rings_ID <- label - sector_ID * 1000
-  ds <- data.frame(sector_ID, rings_ID)
-  names(ds) <- c("sector_ID", "rings_ID")
+  ring_ID <- label - sector_ID * 1000
+  ds <- data.frame(sector_ID, ring_ID)
+  names(ds) <- c("sector_ID", "ring_ID")
   ds
 }
 
