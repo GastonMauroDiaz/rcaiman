@@ -38,7 +38,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)

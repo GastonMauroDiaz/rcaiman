@@ -4,22 +4,22 @@
 \alias{interpolate_sky_points}
 \title{Interpolate sky points}
 \usage{
-interpolate_sky_points(sky_points, g, k = 3, p = 2, rmax = 200, col_id = "rl")
+interpolate_sky_points(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "rl")
 }
 \arguments{
 \item{sky_points}{An object of class \emph{data.frame}. The result of a call
 to \code{\link{extract_rl}} or \code{\link{extract_dn}}, or a
 \emph{data.frame} with same basic structure and names.}
 
-\item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
+\item{r}{\linkS4class{SpatRaster}. The image from which \code{sky_points}
+was obtained.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
 \item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
 
 \item{rmax}{Numeric vector of length one. Maximum radius where to search for
-knn.}
+\emph{knn}.}
 
 \item{col_id}{Numeric vector of length one. ID of the column with the values
 to interpolate.}
@@ -54,13 +54,9 @@ Default parameters are the ones used by
 account for between 15 to 20 degrees, but it is expressed in pixels units.
 So, image resolution and lens projections should be taken into account to set
 this argument properly.
-
-The argument \code{g} should be the same used to obtain \code{sky_points}.
-The result will be limited to the cells with at least one pixel covered by
-the convex hull of the sky points.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -70,14 +66,9 @@ g <- sky_grid_segmentation(z, a, 10)
 r <- gbc(caim$Blue*255)
 sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_rl(r, z, a, sky_points, NULL)
-sky <- interpolate_sky_points(sky_points$sky_points, g)
+sky <- interpolate_sky_points(sky_points$sky_points, r)
 plot(sky)
 
-#modify g if the goal is to get the whole sky
-g <- !is.na(z)
-sky <- interpolate_sky_points(sky_points$sky_points, g)
-plot(sky)
-plot(r/sky)
 
 #restricted view canopy photo
 path <- system.file("external/APC_0020.jpg", package = "rcaiman")
@@ -93,7 +84,7 @@ plot(g)
 sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_dn(r, sky_points)
 head(sky_points)
-sky <- interpolate_sky_points(sky_points, !is.na(r), col_id = 3)
+sky <- interpolate_sky_points(sky_points, r, col_id = 3)
 plot(sky)
 plot(r/sky)
 }

@@ -22,7 +22,7 @@
 #' @family Tool Functions
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim()
 #' r <- gbc(caim$Blue)
 #' bin <- apply_thr(r, thr_isodata(r[]))

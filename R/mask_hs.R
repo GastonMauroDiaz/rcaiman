@@ -15,7 +15,7 @@
 #'   \code{1}.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' z <- zenith_image(1000, lens())
 #' a <- azimuth_image(z)
 #' m1 <- mask_hs(z, 20, 70)

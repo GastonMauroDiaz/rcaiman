@@ -16,8 +16,8 @@ the blue channel extracted from a canopy photograph. Please see
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely
-to be pure sky pixels.}
+binarization of \code{r} useful for masking pixels that are very likely to
+be pure sky pixels.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
@@ -53,9 +53,9 @@ If you use this function in your research, please cite
 \insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
 }
 \examples{
-\dontrun{
+\donttest{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)

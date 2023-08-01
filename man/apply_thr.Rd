@@ -29,7 +29,7 @@ particular threshold is applied to each particular pixel.
 \examples{
 r <- read_caim()
 apply_thr(r$Blue, thr_isodata(r$Blue[]))
-\dontrun{
+\donttest{
 # This function is useful in combination with the ‘autothresholdr’
 # package. For example:
 require(autothresholdr)

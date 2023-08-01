@@ -44,7 +44,7 @@ z <- zenith_image(1490, lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)
-\dontrun{
+\donttest{
 g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
 plot(g, col = col)

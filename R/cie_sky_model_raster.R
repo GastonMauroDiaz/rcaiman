@@ -44,7 +44,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' z <- zenith_image(1400, lens())
 #' a <- azimuth_image(z)
 #' path <- system.file("external", package = "rcaiman")

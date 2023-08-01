@@ -18,7 +18,7 @@
 #'
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'  r <- read_caim()
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)

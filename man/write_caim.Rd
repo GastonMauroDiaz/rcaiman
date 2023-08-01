@@ -20,7 +20,7 @@ No return value. Called for side effects.
 Wrapper function for \code{\link[terra]{writeRaster}}.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize(., 0, 255)
 write_caim(caim * 2^8, file.path(tempdir(), "test_8bit"), 8)
 write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
@@ -28,6 +28,7 @@ write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

@@ -13,7 +13,7 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' m <- !is.na(z)

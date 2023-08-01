@@ -31,7 +31,7 @@
 #'  \emph{dn}, and \emph{rl}, which stand for azimuth and zenith angle in
 #'  degrees, digital number, and relative luminance, respectively. If
 #'  \code{NULL} is provided as \code{no_of_points}, then \emph{zenith_dn} is
-#'  forced to one and \emph{dn}, and \emph{rl} are equals.
+#'  forced to one and, therefore, \emph{dn} and \emph{rl} will be identical.
 #'@export
 #'
 #'@family Tool Functions
@@ -39,9 +39,9 @@
 #'@references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
@@ -51,8 +51,8 @@
 #' rl <- extract_rl(r, z, a, sky_points, 1)
 #' }
 extract_rl <- function(r, z, a, sky_points,
-                       no_of_points = 20,
-                       z_thr = 2,
+                       no_of_points = 3,
+                       z_thr = 5,
                        use_window = TRUE) {
   stopifnot(is.data.frame(sky_points))
   stopifnot(ncol(sky_points) == 2)
@@ -66,7 +66,7 @@ extract_rl <- function(r, z, a, sky_points,
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
                   "near the horizon using \"bin <- bin & mask_hs(z, 0, 80)\" ",
-                  "to modify the binarized image involved in the calculations.")
+                  "as a preprocessing step.")
            )
     }
 

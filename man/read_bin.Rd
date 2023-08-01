@@ -16,7 +16,7 @@ An object from class \linkS4class{SpatRaster}.
 Wrapper functions for \code{\link[terra]{rast}}.
 }
 \examples{
-\dontrun{
+\donttest{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
 my_file <- file.path(tempdir(), "mask.tif")
@@ -27,6 +27,7 @@ plot(m - m_from_disk)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

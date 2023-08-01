@@ -49,7 +49,7 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' #JPEG file
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

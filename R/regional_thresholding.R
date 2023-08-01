@@ -46,9 +46,9 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' r <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' r <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' blue <- gbc(r$Blue)
 #' z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
 #' rings <- rings_segmentation(z, 10)

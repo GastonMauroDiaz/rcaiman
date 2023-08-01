@@ -51,7 +51,7 @@ If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 caim <- normalize(caim, 0, 255)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

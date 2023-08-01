@@ -30,7 +30,7 @@
 #'   to the number of segments found in \code{segmentation}.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' r <- read_caim()
 #' z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)

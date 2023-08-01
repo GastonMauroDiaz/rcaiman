@@ -18,7 +18,7 @@ No return value. Called for side effects.
 Wrapper functions for \code{\link[terra]{writeRaster}}.
 }
 \examples{
-\dontrun{
+\donttest{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
 my_file <- file.path(tempdir(), "mask")
@@ -32,6 +32,7 @@ plot(m - m_from_disk)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

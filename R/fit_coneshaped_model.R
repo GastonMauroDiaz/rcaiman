@@ -33,9 +33,9 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)

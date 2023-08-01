@@ -46,7 +46,7 @@ will be obtained by processing all pixels that belong to a segment with the
 provided function.
 }
 \examples{
-\dontrun{
+\donttest{
 r <- read_caim()
 z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -57,6 +57,7 @@ plot(extract_feature(r$Blue, g, return_raster = TRUE))
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

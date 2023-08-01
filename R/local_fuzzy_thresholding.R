@@ -43,7 +43,7 @@
 #' @export
 #' @family Pre-processing Functions
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim()
 #' caim <- normalize(caim, 0, 255)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

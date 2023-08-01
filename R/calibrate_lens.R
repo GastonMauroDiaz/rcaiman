@@ -1,11 +1,13 @@
 #' Calibrate lens
 #'
-#' Calibrate a fisheye lens. This type of lens has a wide field of view and
-#' consistent azimuthal distortion. The latter property allows fitting a precise
-#' mathematical relationship between the distance to the zenith on the image
-#' space and the zenith angle on the hemispherical space.
+#' Calibrate a fisheye lens
 #'
-#' These are the instructions to produce the CSV file required by this function.
+#' Fisheye lenses have a wide field of view and the same distortion in all
+#' directions running orthogonally to the optical axis. The latter property
+#' allows fitting a precise mathematical relationship between distances to the
+#' zenith on the image space and zenith angles on the hemispherical space.
+#'
+#' These instructions are for producing the CSV file required by this function.
 #' The following materials are required:
 #'
 #' \itemize{
@@ -18,41 +20,42 @@
 #'
 #' \item standard yoga mat
 #'
-#' \item table about two times wider than the yoga mat width
+#' \item table at least as wide as the yoga mat width
 #'
 #' \item twenty two push pins of different colors
 #'
-#' \item scissors
-#'
 #' \item one print of this \href{https://osf.io/tudzc/download}{sheet} (A1 size,
 #' almost like a poster).
+#'
+#' \item scissors
+#'
+#' \item some patience
 #'
 #' }
 #'
 #' Cut the sheet by the dashed line. Place the yoga mat extended on top of the
 #' table. Place the sheet on top of the yoga mat. Align the dashed line with the
 #' yoga mat border closest to you. Place push pins on each cross. If you are
-#' gentle, the yoga mat will allow you to do that without damaging the table.
-#' Of course, other materials could be used to obtain the same result, such as
+#' gentle, the yoga mat will allow you to do that without damaging the table. Of
+#' course, other materials could be used to obtain the same result, such as
 #' cardboard, foam, nails, etc.
 #'
 #' Place the camera on the tripod. Align its optical axis with the table while
 #' looking for getting an image showing the overlapping of the three pairs of
 #' push pins, as instructed in the print. In order to take care of the line of
 #' pins at 90º relative to the optical axis, it may be of help to use the naked
-#' eye to align the front of the lens with the pins (Strictly speaking, we need
-#' to alight the nodal point of the lens instead of its front. The term
-#' "entrance pupil" is also used to refer to this point, but least-parallax
-#' point may be the best term).
+#' eye to align the entrance pupil of the lens with the pins.
 #'
 #' Transfer the photograph to the computer, open it with ImageJ, and use the
 #' \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
 #' selection tool} to digitize the push pins, starting from the zenith push pin
-#' and not skipping any shown push pin. Then, use the dropdown menu
-#' Analyze>Measure to open the window Results. To obtain the CSV, use File>Save
-#' As...
+#' and not skipping any shown push pin. End with an additional point where the
+#' image meets the surrounding black or the last pixel in case there is not
+#' blackness because it is not a circular hemispherical image. Then, use the
+#' dropdown menu Analyze>Measure to open the window Results. To obtain the CSV,
+#' use File>Save As...
 #'
-#' This method was inspired by the calibration board from
+#' This method is based on the calibration board by
 #' \insertCite{Clark1988;textual}{rcaiman}.
 #'
 #' \strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are
@@ -61,8 +64,9 @@
 #' alternative is to round the coefficients, or truncate the last number of the
 #' last coefficient.
 #'
-#' Consult this \href{https://docs.google.com/document/d/178yZDAcfx--Xn1Ye8Js-kUXuPCuYOHQL5fxAH7KBEoY/edit?usp=sharing}{document}
-#' for additional details.
+#' This
+#' \href{https://docs.google.com/document/d/178yZDAcfx--Xn1Ye8Js-kUXuPCuYOHQL5fxAH7KBEoY/edit?usp=sharing}{document}
+#' contains additional details.
 #'
 #' @param path_to_csv Character vector of length one. Path to a CSV file created
 #'   with the
@@ -83,7 +87,7 @@
 #'   respective X and Y fields in order to align the upper-left corner of the
 #'   rectangle with the zenith, mark it with the
 #'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.14}{brush},
-#'    use the
+#'   use the
 #'   \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2}{straight
 #'   selection tool} to find the length within the zenith and the maximum zenith
 #'   angle showed in the image.

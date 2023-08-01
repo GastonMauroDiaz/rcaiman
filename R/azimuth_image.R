@@ -26,7 +26,7 @@
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' plot(a)
-#' \dontrun{
+#' \donttest{
 #' a <- azimuth_image(z, 45)
 #' plot(a)
 #' }

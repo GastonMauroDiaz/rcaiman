@@ -2,12 +2,9 @@
 % Please edit documentation in R/fisheye_to_equidistant.R
 \name{fisheye_to_equidistant}
 \alias{fisheye_to_equidistant}
-\alias{reproject_to_equidistant}
 \title{Fisheye to equidistant}
 \usage{
-fisheye_to_equidistant(r, z, a, radius = 745)
-
-reproject_to_equidistant(r, z, a, radius = 745)
+fisheye_to_equidistant(r, z, a, radius = NULL, k = NULL, p = NULL, rmax = 100)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
@@ -17,30 +14,46 @@ reproject_to_equidistant(r, z, a, radius = 745)
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{radius}{Numeric integer of length one. Radius of the reprojected
-hemispherical image (i.e., the output).}
+hemispherical image (i.e., the output). Default \code{NULL} is equivalent
+to input the radius of \code{r}.}
+
+\item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
+
+\item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
+
+\item{rmax}{Numeric vector of length one. Maximum radius where to search for
+\emph{knn}. Increase this value if pixels with value \code{0} or
+\code{FALSE} appears where other values are expected.}
 }
 \description{
 Fisheye to equidistant projection (also known as polar projection).
 }
 \details{
-There is no interpolation, so \code{NA} values may be generated depending on
-both the \code{radius} argument and how much the lens projection differs from
-the polar one. As a rule of thumb, increase \code{radius} as long as it does
-not produce \code{NA} values on the regions to be analyzed.
+The pixel values and their image coordinates are treated as points to be
+reprojected and interpolated. To that end, this function use
+\code{\link[lidR]{knnidw}} as workhorse function, so arguments \code{k},
+\code{p}, and \code{rmax} are passed to it. If the user does not input values
+to these arguments, both \code{k} and \code{p} are automatically defined by
+default as follow. When a binarized image is provided as argument \code{r},
+both parameters are set to \code{1}. Otherwise, they are set to \code{9} and
+\code{2}, respectively.
 }
 \examples{
-\dontrun{
-caim <- read_caim()
-caim <- normalize(caim, 0, 255)
+\donttest{
+caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 bin <- apply_thr(caim$Blue, 0.5)
-bin_equi <- fisheye_to_equidistant(bin, z, a, radius = 400)
-bin_equi <- apply_thr(bin_equi, 0.5)
+bin_equi <- fisheye_to_equidistant(bin, z, a)
 plot(bin)
 plot(bin_equi)
-# use write_bin(bin, "path/file_name") to have a file ready
-# for calculating LAI with CIMES, GLA, CAN-EYE, etc.
+#use write_bin(bin, "path/file_name") to have a file ready
+#for calculating LAI with CIMES, GLA, CAN-EYE, etc.
+
+#It can be used to reproject RGB photographs
+plotRGB(caim*255)
+caim <- fisheye_to_equidistant(caim, z, a)
+plotRGB(caim*255)
 }
 }
 \seealso{
@@ -50,6 +63,7 @@ Other Lens Functions:
 \code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},
 \code{\link{test_lens_coef}()},

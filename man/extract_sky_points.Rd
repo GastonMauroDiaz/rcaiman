@@ -12,8 +12,8 @@ the blue channel extracted from a canopy photograph. Please see
 \code{\link{read_caim}} and \code{\link{normalize}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely
-to be pure sky pixels.}
+binarization of \code{r} useful for masking pixels that are very likely to
+be pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
@@ -50,7 +50,7 @@ omitting raster distance calculation, which means a faster output in
 comparison with using \code{min_raster_dist = 1}.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -69,6 +69,7 @@ plot(vect(xy), add = TRUE, col = 2)
 \code{\link{fit_cie_sky_model}}
 
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

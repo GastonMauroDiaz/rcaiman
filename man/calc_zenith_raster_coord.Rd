@@ -57,7 +57,7 @@ that the perimeter of the circle depicted in a circular hemispherical
 photograph is not necessarily the horizon.
 }
 \examples{
-\dontrun{
+\donttest{
 path <- system.file("external/points_over_perimeter.csv",
                     package = "rcaiman")
 calc_zenith_raster_coord(path)
@@ -72,6 +72,7 @@ Other Lens Functions:
 \code{\link{calc_diameter}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},

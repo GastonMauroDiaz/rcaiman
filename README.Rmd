@@ -24,8 +24,8 @@ Geoscience and Remote Sensing
 Letters](https://ieeexplore.ieee.org/document/7103294?arnumber=7103294),
 [Canadian Journal of Forest
 Research](https://cdnsciencepub.com/doi/full/10.1139/cjfr-2018-0006), and 
-[Methods in Ecology and Evolution]
-(https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.14059). 
+[Methods in Ecology and 
+Evolution](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.14059). 
 It supports non-circular hemispherical photography, as the ones usually
 obtained with auxiliary fisheye lenses attached to smartphones.
 

@@ -11,22 +11,22 @@
 #'
 #' Pixels from the synthetic layer returned by \code{\link{obia}} that lay
 #' between \code{0} and \code{1} are assigned to the class \emph{plant} only if
-#' they are:
+#' they comply with the following conditions:
 #'
 #' \itemize{
 #'
-#' \item \code{0} after \code{\link{defuzzify}} with a sky grid segmentation of
-#' \code{10} degrees.
+#' \item Their values are equal to \code{0} after \code{\link{defuzzify}} with a
+#' sky grid segmentation of \code{10} degrees.
 #'
-#' \item \code{0} after \code{\link{apply_thr}} with a threshold computed with
-#' \code{\link{thr_isodata}}.
+#' \item Their values are equal to \code{0} after \code{\link{apply_thr}} with a
+#' threshold computed with \code{\link{thr_isodata}}.
 #'
-#' \item Not exclusively surrounded by sky pixels.
+#' \item They are not exclusively surrounded by sky pixels.
 #'
 #' }
 #'
-#' Default values of \code{z} and \code{a} allows the processing of restricted
-#' view photographs.
+#' Use the default values of \code{z} and \code{a} to process restricted view
+#' photographs.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman} or \insertCite{Diaz2023}{rcaiman} in
@@ -45,12 +45,12 @@
 #' @family Binarization Functions
 #' @export
 #'
+#' @references \insertAllCited{}
+#'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' #circular hemispherical photo
-#' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2) %>%
-#'   normalize()
+#' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(1490, lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #'

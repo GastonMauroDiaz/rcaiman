@@ -128,7 +128,7 @@ If you use this function in your research, please cite
 \insertCite{Lang2010;textual}{rcaiman} in addition to this package.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)

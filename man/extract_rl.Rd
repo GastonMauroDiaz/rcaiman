@@ -4,15 +4,7 @@
 \alias{extract_rl}
 \title{Extract relative luminance}
 \usage{
-extract_rl(
-  r,
-  z,
-  a,
-  sky_points,
-  no_of_points = 20,
-  z_thr = 2,
-  use_window = TRUE
-)
+extract_rl(r, z, a, sky_points, no_of_points = 3, z_thr = 5, use_window = TRUE)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
@@ -50,7 +42,7 @@ A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
  \emph{dn}, and \emph{rl}, which stand for azimuth and zenith angle in
  degrees, digital number, and relative luminance, respectively. If
  \code{NULL} is provided as \code{no_of_points}, then \emph{zenith_dn} is
- forced to one and \emph{dn}, and \emph{rl} are equals.
+ forced to one and, therefore, \emph{dn} and \emph{rl} will be identical.
 }
 \description{
 Extract the luminance relative to the zenith digital number.
@@ -62,9 +54,9 @@ The search for near-zenith points starts in the region  ranged between
 zenith angle till the required number of points is reached.
 }
 \examples{
-\dontrun{
+\donttest{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
@@ -79,6 +71,7 @@ rl <- extract_rl(r, z, a, sky_points, 1)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

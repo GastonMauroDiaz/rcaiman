@@ -11,7 +11,7 @@
 #' @family Tool Functions
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' z <- zenith_image(1000, lens())
 #' m <- !is.na(z)
 #' my_file <- file.path(tempdir(), "mask.tif")

@@ -38,7 +38,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim() %>% normalize()
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
@@ -87,12 +87,14 @@ extract_sky_points <- function(r, bin, g,
                      row = no_row[dist_to_plant_img],
                      g = g[dist_to_plant_img],
                      dn = r[dist_to_plant_img])
+    names(ds) <- c("col", "row", "g", "dn")
 
   } else {
     ds <- data.frame(col = no_col[bin],
                      row = no_row[bin],
                      g = g[bin],
                      dn = r[bin])
+    names(ds) <- c("col", "row", "g", "dn")
   }
 
   indices <- tapply(1:nrow(ds), ds$g,

@@ -43,7 +43,7 @@ calculated separately and \emph{delta} mean is used to evaluate the stopping
 condition.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 plot(caim)
 caim <- normalize(caim, 0, 255)

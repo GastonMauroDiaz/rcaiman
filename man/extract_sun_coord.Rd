@@ -16,8 +16,8 @@ the blue channel extracted from a canopy photograph. Please see
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely
-to be pure sky pixels.}
+binarization of \code{r} useful for masking pixels that are very likely to
+be pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with
 \code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
@@ -57,7 +57,7 @@ sun-corona segments and, finally, the center of its bounding box is
 considered as the sun location.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)

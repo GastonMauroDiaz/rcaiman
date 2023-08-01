@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #'  #noncircular fisheye from a DSLR camera
 #'  my_file <- file.path(tempdir(), "DSC_2881.JPG")
 #'  download.file("https://osf.io/x8urg/download", my_file,
@@ -54,7 +54,7 @@
 #'  m <- !is.na(caim$Red)
 #'  a <- azimuth_image(z)
 #'  caim[!m] <- 0
-#'  z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees
+#'  z <- normalize(z, 0, 90) * 30.15 # a diagonal FOV of 60.3 degrees
 #'  plot(caim$Blue, col = seq(0,1,1/255) %>% grey())
 #'  m <- !is.na(caim$Red) & !is.na(z)
 #'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

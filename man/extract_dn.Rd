@@ -33,7 +33,7 @@ An object of the class \emph{data.frame}, which is the argument
 It is a wrapper function around \code{\link[terra]{extract}}.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 r <- gbc(caim$Blue)
 bin <- apply_thr(r, thr_isodata(r[]))
@@ -66,6 +66,7 @@ extract_dn(caim, img_points, fun = median)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},

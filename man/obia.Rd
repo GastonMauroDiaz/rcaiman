@@ -54,7 +54,7 @@ If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 r <- caim$Blue \%>\% gbc()
 caim <- normalize(caim)

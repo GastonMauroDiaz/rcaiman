@@ -33,7 +33,7 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim()
 #' plot(caim)
 #' caim <- normalize(caim, 0, 255)

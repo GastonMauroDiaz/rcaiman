@@ -44,3 +44,27 @@
   fake_las@data$Z <- Z
   fake_las
 }
+
+.show_popup <- function(message) {
+  # Create the main window
+  win <- tcltk::tktoplevel()
+  tcltk::tkwm.title(win, "Popup")
+
+  # Create a label with the message
+  label <- tcltk::tklabel(win, text = message, padx = 10,
+                          pady = 10, justify = "left")
+  tcltk::tkpack(label)
+
+  # Create a button to close the window
+  button <- tcltk::tkbutton(win, text = "OK",
+                            command = function() tcltk::tkdestroy(win))
+  tcltk::tkpack(button, padx = 10, pady = 10)
+
+  # Set the focus on the window
+  tcltk::tkfocus(win)
+
+  # Run the event loop
+  tcltk::tkwait.window(win)
+}
+
+

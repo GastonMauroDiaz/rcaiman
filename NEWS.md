@@ -1,3 +1,17 @@
+* Add `extract_radiometry` to facilitate vignetting correction.
+* `extract_rl` default values were changed.
+* `fisheye_to_equidistant()` is now able to interpolate.
+* `interpolate_sky_points()` changes `g` for `r`. This acknowledge a change made
+in the code but not reflected in the arguments or documentation. The change was
+to approximate the function as much as possible to the Lang et al. (2010) method
+in which this function was based.
+* New `extract_radiometry()` helps to built a function to correct the vignetting
+effect.
+* New `calc_co()` provides canopy openness calculation for hemispherical images.
+* Fix an issue in `extract_sky_points()` due to a change on the behavior of 
+large data.frame naming. 
+
+
 # rcaiman 1.1.1
 
 ## New features

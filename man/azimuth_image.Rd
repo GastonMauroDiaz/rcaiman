@@ -33,7 +33,7 @@ Build a single layer image with azimuth angles as pixel values.
 z <- zenith_image(1490, lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 plot(a)
-\dontrun{
+\donttest{
 a <- azimuth_image(z, 45)
 plot(a)
 }
@@ -44,6 +44,7 @@ Other Lens Functions:
 \code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},
 \code{\link{lens}()},

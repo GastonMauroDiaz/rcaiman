@@ -8,8 +8,8 @@
 #' The pipeline combines these main functions \code{\link{find_sky_pixels}}--if
 #' \code{bin} is \code{NULL}--, \code{\link{fit_coneshaped_model}},
 #' \code{\link{find_sky_pixels_nonnull}}, and \code{\link{fit_trend_surface}}.
-#' The code can be easily inspected by calling \code{ootb_mblt}--no
-#' parenthesis. Advanced users can use that code as a template.
+#' The code can be easily inspected by calling \code{ootb_mblt}--no parenthesis.
+#' Advanced users can use that code as a template.
 #'
 #' The MBLT algorithm was first presented in
 #' \insertCite{Diaz2018;textual}{rcaiman}. The version presented here differs
@@ -18,7 +18,10 @@
 #' \itemize{
 #'
 #' \item \code{intercept} is set to \code{0}, \code{slope} to \code{1}, and
-#' \code{w} to \code{0.5}
+#' \code{w} to \code{0.5}. The values -7.8 \code{intercept}
+#' and 0.95 \code{slope} were originally used in
+#' \insertCite{Diaz2018;textual}{rcaiman} and are valid for the JPEG files
+#' produced with the Coolpix 5700 camera.
 #'
 #' \item This version implements a regional thresholding approach as the first
 #' step instead of a global one. Please refer to \code{\link{find_sky_pixels}}.
@@ -54,8 +57,8 @@
 #' @param z \linkS4class{SpatRaster} built with \code{\link{zenith_image}}.
 #' @param a \linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.
 #' @param bin \linkS4class{SpatRaster}. This should be a preliminary
-#'   binarization of \code{r} useful for masking pixels that are very likely
-#'   to be pure sky pixels.
+#'   binarization of \code{r} useful for masking pixels that are very likely to
+#'   be pure sky pixels.
 #' @param fix_cs_sky Logical vector of length one. If it is \code{TRUE},
 #'   \code{\link{fix_reconstructed_sky}} is used to fix the cone-shaped sky.
 #'
@@ -69,9 +72,9 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
@@ -79,16 +82,6 @@
 #' bin <- ootb_mblt(r, z, a)
 #' plot(bin$bin)
 #'
-#' ratio <- r/bin$sky_s
-#' ratio <- normalize(ratio, 0, 1, TRUE)
-#' # Alternative 1
-#' plot(apply_thr(ratio, thr_isodata(ratio[!is.na(z)])))
-#'
-#' # Alternative 2
-#' g <- sky_grid_segmentation(z, a, 10)
-#' plot(defuzzify(ratio, g))
-#'
-#' ##Note: In this example, differences are small, but they can be notorious.
 #' }
 ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE) {
   .check_if_r_z_and_a_are_ok(r, z, a)

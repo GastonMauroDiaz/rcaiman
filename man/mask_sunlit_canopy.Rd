@@ -25,7 +25,7 @@ It is a wrapper function around \code{\link{membership_to_color}}. It
 masks pixels that are likely sunlit canopy.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 m <- !is.na(z)

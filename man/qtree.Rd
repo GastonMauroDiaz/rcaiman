@@ -38,7 +38,7 @@ equal than the \code{scale_parameter}. If \code{r} has more than one layer,
 evaluate the stopping condition.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 plot(caim)
 caim <- normalize(caim, 0, 255)

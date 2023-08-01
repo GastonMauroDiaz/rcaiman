@@ -16,8 +16,8 @@ the blue channel extracted from a canopy photograph. Please see
 \item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely
-to be pure sky pixels.}
+binarization of \code{r} useful for masking pixels that are very likely to
+be pure sky pixels.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
@@ -71,7 +71,7 @@ either from \code{r} gaps or from the filling source--an exception is a
 filling source with plenty of \code{NA} values, which should not be provided.
 }
 \examples{
-\dontrun{
+\donttest{
 #JPEG file
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))

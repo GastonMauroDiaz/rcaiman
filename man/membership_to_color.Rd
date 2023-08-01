@@ -33,7 +33,7 @@ If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 plot(caim)
 caim <- normalize(caim, 0, 255)

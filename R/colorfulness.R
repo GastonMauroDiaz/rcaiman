@@ -41,7 +41,7 @@
 #'
 #' #Diffuse-light image
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2) %>% normalize()
+#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2) %>% normalize()
 #' #plotRGB(caim*255)
 #' colorfulness(caim)
 #'

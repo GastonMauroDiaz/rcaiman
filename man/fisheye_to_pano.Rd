@@ -30,7 +30,7 @@ An early version of this function was used in
 \insertCite{Diaz2021;textual}{rcaiman}.
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -48,6 +48,7 @@ Other Lens Functions:
 \code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{lens}()},
 \code{\link{test_lens_coef}()},

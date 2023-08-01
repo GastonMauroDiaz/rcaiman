@@ -27,7 +27,7 @@ An object of class \linkS4class{SpatRaster} that essentially is
 Image masking
 }
 \examples{
-\dontrun{
+\donttest{
  r <- read_caim()
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
@@ -46,6 +46,7 @@ Image masking
 \code{\link{mask_hs}}
 
 Other Tool Functions: 
+\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},

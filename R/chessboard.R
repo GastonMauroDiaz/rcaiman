@@ -10,7 +10,7 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim()
 #' seg <- chessboard(caim, 100)
 #' plot(caim$Blue)

@@ -47,19 +47,16 @@
 #'   which works like a spreadsheet.
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' path <- system.file("external/points_over_perimeter.csv",
 #'                     package = "rcaiman")
 #' calc_zenith_raster_coord(path)
 #' }
 calc_zenith_raster_coord <- function(path_to_csv) {
-  if (!requireNamespace("conicfit", quietly = TRUE)) {
-    stop(paste("Package \"conicfit\" needed for this function to work.",
-               "Please install it."),
-         call. = FALSE)
-  }
+  .this_requires_conicfit()
   requireNamespace("conicfit", quietly = TRUE)
-  x <- utils::read.csv(path_to_csv)[, -(1:5)]
+  x <- utils::read.csv(path_to_csv)
+  x <- cbind(x$X, x$Y)
   circle <- as.matrix(x) %>%
       conicfit::CircleFitByKasa() %>%
       .[-3]

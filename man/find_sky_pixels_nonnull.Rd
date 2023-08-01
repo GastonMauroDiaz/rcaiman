@@ -26,8 +26,8 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and
   \code{1}.
 }
 \description{
-Find sky pixels using the increase in the number of cells having no sky
-pixels (the so-called null cells) as stopping criteria.
+Find sky pixels using the increase in number of cells without sky pixels (the
+so-called null cells) as stopping criteria.
 }
 \details{
 The arguments \code{sky} and \code{slope} are passed to
@@ -38,9 +38,9 @@ The process is repeated but increasing \code{slope} in steps of 0.05 as long
 as the number of null cells remains constant.
 }
 \examples{
-\dontrun{
+\donttest{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1280, 960) - 745, 745 * 2, 745 * 2)
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)

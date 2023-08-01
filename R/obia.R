@@ -40,7 +40,7 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' caim <- read_caim()
 #' r <- caim$Blue %>% gbc()
 #' caim <- normalize(caim)

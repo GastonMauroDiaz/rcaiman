@@ -19,7 +19,7 @@ A single layer image of the class \linkS4class{SpatRaster} with
 Chessboard segmentation
 }
 \examples{
-\dontrun{
+\donttest{
 caim <- read_caim()
 seg <- chessboard(caim, 100)
 plot(caim$Blue)

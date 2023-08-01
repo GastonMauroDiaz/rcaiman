@@ -51,3 +51,11 @@
   stopifnot(!any(is.na(x[])))
   stopifnot(is.logical(x[1][,]))
 }
+
+.this_requires_conicfit <- function() {
+  if (!requireNamespace("conicfit", quietly = TRUE)) {
+    stop(paste("Package \"conicfit\" needed for this function to work.",
+               "Please install it."),
+         call. = FALSE)
+  }
+}

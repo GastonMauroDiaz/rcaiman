@@ -20,7 +20,7 @@ degrees, corresponding to the location of the solar disk center.}
 CIE sky model raster
 }
 \examples{
-\dontrun{
+\donttest{
 z <- zenith_image(1400, lens())
 a <- azimuth_image(z)
 path <- system.file("external", package = "rcaiman")

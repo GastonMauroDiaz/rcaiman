@@ -70,6 +70,7 @@ Other Lens Functions:
 \code{\link{calc_zenith_raster_coord}()},
 \code{\link{calibrate_lens}()},
 \code{\link{expand_noncircular}()},
+\code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},
 \code{\link{test_lens_coef}()},

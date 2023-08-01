@@ -47,7 +47,7 @@
 #' path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
 #' # the zenith raster coordinates can be easily transformed to the "upper_left"
 #' # argument by subtracting from it the radius expressed in pixels.
-#' zenith_colrow <- c(1280, 960)
+#' zenith_colrow <- c(1250, 1020)
 #' diameter_px <- 1490
 #' r <- read_caim(path,
 #'                upper_left = zenith_colrow - diameter_px/2,
@@ -65,7 +65,7 @@ read_caim <- function(path = NULL, upper_left = NULL, width = NULL,
 
   if (is.null(path)) {
     path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-    upper_left <-  c(1280, 960) - 745
+    upper_left <-  c(1250, 1020) - 745
     width <- height <- 745 * 2
   }
 
