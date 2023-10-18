@@ -4,29 +4,23 @@
 #'
 #' This function assumes that:
 #'
-#' \itemize{
-#'
-#' \item there is at least one pure sky pixel at the level of cells of \eqn{30
+#' * there is at least one pure sky pixel at the level of cells of \eqn{30
 #' \times 30} degrees, and
-#'
-#' \item sky pixels have a digital number (DN) greater than canopy pixels have.
-#'
-#' }
-#'
+#' * sky pixels have a digital number (DN) greater than canopy pixels have.
 #'
 #' For each \eqn{30 \times 30} cell, this method computes a quantile value and
 #' uses it as a threshold to select the pure sky pixels from the given cell. As
 #' a result, a binarized image is produced in a regional binarization fashion
-#' (\code{\link{regional_thresholding}}). This process starts with a quantile
+#' ([regional_thresholding()]). This process starts with a quantile
 #' probability of 0.99. After producing the binarized image, this function uses
 #' a search grid with cells of \eqn{5 \times 5} degrees to count how many of
 #' these cells have at least one sky pixel (pixels equal to one in the binarized
 #' image). If the percentage of  cells with sky pixels does not reach argument
-#' \code{sample_size_pct}, it goes back to the binarization step but decreasing
+#' `sample_size_pct`, it goes back to the binarization step but decreasing
 #' the probability by 0.01 points.
 #'
-#' If probability reach 0.9 and the \code{sample_size_pct} criterion were not
-#' yet satisfied, the \code{sample_size_pct} is decreased one percent and the
+#' If probability reach 0.9 and the `sample_size_pct` criterion were not
+#' yet satisfied, the `sample_size_pct` is decreased one percent and the
 #' process starts all over again.
 #'
 #' @inheritParams ootb_mblt
@@ -37,17 +31,25 @@
 #' @family Binarization Functions
 #'
 #' @export
-#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1}. This layer masks pixels that are very likely pure sky pixels.
+#' @return An object of class [SpatRaster-class] with values `0` and
+#'   `1`. This layer masks pixels that are very likely pure sky pixels.
 #'
 #' @examples
-#' \donttest{
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' \dontrun{
+#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' r <- gbc(caim$Blue)
+#' r <- caim$Blue
+#' r[is.na(r)] <- 0
 #' bin <- find_sky_pixels(r, z, a)
+#' plot(bin)
+#'
+#' g <- sky_grid_segmentation(z, a, 5)
+#' sky_points <- extract_sky_points(r, bin, g,
+#'                                  dist_to_plant = 3,
+#'                                  min_raster_dist = 15)
+#' dn <- extract_dn(r, sky_points, fun = median)
+#' bin <- find_sky_pixels_nonnull(r, dn, g) | bin
 #' plot(bin)
 #' }
 find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {

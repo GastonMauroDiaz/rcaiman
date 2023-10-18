@@ -20,3 +20,7 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageCheckArgs: --as-cran
 PackageRoxygenize: rd,collate,namespace
+
+PythonType: system
+PythonVersion: 3.11.4
+PythonPath: C:/Users/gdiaz/AppData/Local/Programs/Python/Python311/python.exe

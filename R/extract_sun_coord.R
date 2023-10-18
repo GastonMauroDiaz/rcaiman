@@ -3,22 +3,22 @@
 #' Extract the sun coordinates for CIE sky model fitting.
 #'
 #' This function uses an object-based image analyze framework. The segmentation
-#' is given by \code{g} and \code{bin}. For every cell of \code{g}, the pixels
-#' from \code{r} that are equal to one on \code{bin} are selected, and its
+#' is given by `g` and `bin`. For every cell of `g`, the pixels
+#' from `r` that are equal to one on `bin` are selected and its
 #' maximum value is calculated. Then, the 95th percentile of these maximum
 #' values is computed and used to filter out cells below that threshold; i.e,
 #' only the cells with at least one extremely bright sky pixel is selected.
 #'
 #' The selected cells are grouped based on adjacency, and new bigger segments
 #' are created from these groups. The degree of membership to the class
-#' \emph{Sun} is calculated for every new segment by computing the number of
+#' *Sun* is calculated for every new segment by computing the number of
 #' cells that constitute the segment and its mean digital number (values taken
-#' from \code{r}). In other words, the  largest and brightest segments are the
+#' from `r`). In other words, the  largest and brightest segments are the
 #' ones that score higher. The one with the highest score is selected as the
-#' \emph{sun seed}.
+#' *sun seed*.
 #'
 #' The angular distance from the sun seed to every other segments are computed,
-#' and only the segments not farther than \code{max_angular_dist} are classified
+#' and only the segments not farther than `max_angular_dist` are classified
 #' as part of the sun corona. A multi-part segment is created by merging the
 #' sun-corona segments and, finally, the center of its bounding box is
 #' considered as the sun location.
@@ -26,30 +26,29 @@
 #' @inheritParams extract_sky_points
 #' @inheritParams sky_grid_segmentation
 #' @param max_angular_dist Numeric vector of length one. Angle in degrees to
-#'   control the maximum potential size of the solar corona.
+#'   control the potential maximum size of the solar corona.
 #'
-#' @return Object of class \emph{list} with two numeric vectors of length two
-#'   named \emph{row_col} and \emph{zenith_azimuth}. The former is the raster
+#' @return Object of class *list* with two numeric vectors of length two
+#'   named *row_col* and *zenith_azimuth*. The former is the raster
 #'   coordinates of the solar disk (row and column), and the other is the
 #'   angular coordinates (zenith and azimuth angles in degrees).
 #'
-#' @family Sky Reconstruction
+#' @family Sky Reconstruction Functions
 #'
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' caim <- read_caim() %>% normalize()
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' \dontrun{
+#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' bin <- ootb_obia(caim, z, a)
+#' plotRGB(caim*255)
+#' bin <- ootb_obia(caim, z, a, gamma = NULL)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' r <- gbc(caim$Blue*255)
 #' sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
-#' xy <- cellFromRowCol(z, sun_coord$row_col[1], sun_coord$row_col[2]) %>%
-#'   xyFromCell(z, .)
-#' plot(r)
-#' plot(vect(xy), add = TRUE, col = 2)
+#' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
+#'         col = 3, pch = 10)
 #' }
 extract_sun_coord <- function(r, z, a, bin, g,
                              max_angular_dist = 30) {

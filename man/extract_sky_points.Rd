@@ -7,76 +7,74 @@
 extract_sky_points(r, bin, g, dist_to_plant = 3, min_raster_dist = 3)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely to
-be pure sky pixels.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
+\code{r} useful for masking pixels that are very likely pure sky pixels.}
 
-\item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
+\item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
+\code{\link[=chessboard]{chessboard()}}.}
 
-\item{dist_to_plant, min_raster_dist}{Numeric vector of length one or
-\code{NULL}.}
+\item{dist_to_plant, min_raster_dist}{Numeric vector of length one or \code{NULL}.}
 }
 \value{
 An object of the class \emph{data.frame} with two columns named
-  \emph{col} and \emph{row}.
+\emph{row} and \emph{col}.
 }
 \description{
-Extract sky points for model fitting.
+Extract sky points for model fitting
 }
 \details{
 This function will automatically sample sky pixels from the sky regions
-delimited by \code{bin}. The density and distribution of the sampling points
-is controlled by the arguments \code{g}, \code{dist_to_plant}, and
-\code{min_raster_dist}.
+delimited by \code{bin}. The density and distribution of the sampling points is
+controlled by the arguments \code{g}, \code{dist_to_plant}, and \code{min_raster_dist}.
 
-As the first step, sky pixels from \code{r} are evaluated to find, for each
-cell of \code{g}, the pixel with maximum digital value (local maximum). The
-argument \code{dist_to_plant} allows users to establish a buffer zone for
-\code{bin}, meaning a size reduction of original sky regions.
+As the first step, sky pixels from \code{r} are evaluated to find the pixel with
+maximum digital value (local maximum) per cell of the \code{g} argument. The
+\code{dist_to_plant} argument allows users to establish a buffer zone for \code{bin},
+meaning a size reduction of the original sky regions.
 
-The final step filters these local maximum values by calculating distances
-between points on the raster space. It discards new points that have a
-distance from existing points minor than \code{min_raster_dist}. Cell labels
-determine the order in which the points are evaluated.
+The final step is filtering these local maximum values by evaluating the
+Euclidean distances between them on the raster space. Any new point with a
+distance from existing points minor than \code{min_raster_dist} is discarded. Cell
+labels determine the order in which the points are evaluated.
 
 To skip a given filtering step, use code \code{NULL} as argument input. For
-instance, to provide \code{min_raster_dist = NULL} will return points
-omitting raster distance calculation, which means a faster output in
-comparison with using \code{min_raster_dist = 1}.
+instance, \code{min_raster_dist = NULL} will return points omitting
+the final step.
 }
 \examples{
-\donttest{
-caim <- read_caim() \%>\% normalize()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+\dontrun{
+caim <- read_caim() \%>\% normalize(., 0, 2^16)
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-bin <- ootb_obia(caim, z, a)
+plotRGB(caim*255)
+bin <- ootb_obia(caim, z, a, gamma = NULL)
 g <- sky_grid_segmentation(z, a, 10)
-r <- gbc(caim$Blue*255)
-sky_points <- extract_sky_points(r, bin, g)
-cells <- cellFromRowCol(z, sky_points$row, sky_points$col)
-hist(r[cells][,1])
-xy <- xyFromCell(z, cells)
-plot(r)
-plot(vect(xy), add = TRUE, col = 2)
+r <- caim$Blue
+sky_points <- extract_sky_points(r, bin, g,
+                                 dist_to_plant = 3,
+                                 min_raster_dist = 10)
+plot(bin)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 }
 }
 \seealso{
-\code{\link{fit_cie_sky_model}}
+\code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}
 
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

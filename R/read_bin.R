@@ -1,17 +1,17 @@
 #' Read binarized images
 #'
-#' Wrapper functions for \code{\link[terra]{rast}}.
+#' Wrapper functions for [terra::rast()].
 #'
 #' @param path Character vector of length one. Path to a binarized image.
 #'
 #' @export
 #'
-#' @return An object from class \linkS4class{SpatRaster}.
+#' @return An object from class [SpatRaster-class].
 #'
 #' @family Tool Functions
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' z <- zenith_image(1000, lens())
 #' m <- !is.na(z)
 #' my_file <- file.path(tempdir(), "mask.tif")

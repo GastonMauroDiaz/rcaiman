@@ -23,6 +23,7 @@
   .was_normalized(r)
   .is_single_layer_raster(z, "z")
   .is_single_layer_raster(a, "a")
+  stopifnot(ncol(z) == nrow(z))
   stopifnot(.get_max(z) <= 90)
   stopifnot(.get_max(a) <= 360)
   terra::compareGeom(r, z)

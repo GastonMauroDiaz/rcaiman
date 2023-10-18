@@ -20,9 +20,8 @@ Threshold calculated with the algorithm by
 }
 \details{
 The implementation is based on
-\href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method
-of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
-in the 'autothresholdr' package (\code{\link[autothresholdr]{auto_thresh}}).
+\href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
+in the 'autothresholdr' package (\code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}).
 However, I found this implementarion more versatile since it is not
 restricted to an 8-bit input.
 }
@@ -45,6 +44,6 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()}
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

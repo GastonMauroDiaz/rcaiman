@@ -4,18 +4,28 @@
 \alias{fisheye_to_equidistant}
 \title{Fisheye to equidistant}
 \usage{
-fisheye_to_equidistant(r, z, a, radius = NULL, k = NULL, p = NULL, rmax = 100)
+fisheye_to_equidistant(
+  r,
+  z,
+  a,
+  m = NULL,
+  radius = NULL,
+  k = NULL,
+  p = NULL,
+  rmax = 100
+)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}.}
+\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+
+\item{m}{\linkS4class{SpatRaster}. See \code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{radius}{Numeric integer of length one. Radius of the reprojected
-hemispherical image (i.e., the output). Default \code{NULL} is equivalent
-to input the radius of \code{r}.}
+hemispherical image (i.e., the output).}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
@@ -30,20 +40,26 @@ Fisheye to equidistant projection (also known as polar projection).
 }
 \details{
 The pixel values and their image coordinates are treated as points to be
-reprojected and interpolated. To that end, this function use
-\code{\link[lidR]{knnidw}} as workhorse function, so arguments \code{k},
-\code{p}, and \code{rmax} are passed to it. If the user does not input values
-to these arguments, both \code{k} and \code{p} are automatically defined by
-default as follow. When a binarized image is provided as argument \code{r},
-both parameters are set to \code{1}. Otherwise, they are set to \code{9} and
-\code{2}, respectively.
+reprojected and interpolated. To that end, this function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}}
+as workhorse function, so arguments \code{k}, \code{p}, and \code{rmax} are passed to it. If
+the user does not input values to these arguments, both \code{k} and \code{p} are
+automatically defined by default as follow. When a binarized image is
+provided as argument \code{r}, both parameters are set to \code{1}. Otherwise, they are
+set to \code{9} and \code{2}, respectively.
+}
+\note{
+Default value for the \code{radius} argument is equivalent to input the
+radius of the \code{r} argument.
 }
 \examples{
-\donttest{
-caim <- read_caim() \%>\% normalize()
+\dontrun{
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-bin <- apply_thr(caim$Blue, 0.5)
+r <- gbc(caim$Blue)
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+bin <- ootb_mblt(r, z, a)$bin
 bin_equi <- fisheye_to_equidistant(bin, z, a)
 plot(bin)
 plot(bin_equi)
@@ -51,17 +67,19 @@ plot(bin_equi)
 #for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 
 #It can be used to reproject RGB photographs
-plotRGB(caim*255)
+plotRGB(caim)
 caim <- fisheye_to_equidistant(caim, z, a)
-plotRGB(caim*255)
+plotRGB(caim)
 }
 }
 \seealso{
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_pano}()},

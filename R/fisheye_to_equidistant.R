@@ -3,34 +3,39 @@
 #' Fisheye to equidistant projection (also known as polar projection).
 #'
 #' The pixel values and their image coordinates are treated as points to be
-#' reprojected and interpolated. To that end, this function use
-#' \code{\link[lidR]{knnidw}} as workhorse function, so arguments \code{k},
-#' \code{p}, and \code{rmax} are passed to it. If the user does not input values
-#' to these arguments, both \code{k} and \code{p} are automatically defined by
-#' default as follow. When a binarized image is provided as argument \code{r},
-#' both parameters are set to \code{1}. Otherwise, they are set to \code{9} and
-#' \code{2}, respectively.
+#' reprojected and interpolated. To that end, this function use [lidR::knnidw()]
+#' as workhorse function, so arguments `k`, `p`, and `rmax` are passed to it. If
+#' the user does not input values to these arguments, both `k` and `p` are
+#' automatically defined by default as follow. When a binarized image is
+#' provided as argument `r`, both parameters are set to `1`. Otherwise, they are
+#' set to `9` and `2`, respectively.
 #'
-#' @param r \linkS4class{SpatRaster}.
+#' @param r [SpatRaster-class]. A fish-eye image.
+#' @inheritParams calc_co
 #' @inheritParams ootb_mblt
 #' @inheritParams interpolate_sky_points
 #' @param rmax Numeric vector of length one. Maximum radius where to search for
-#'   \emph{knn}. Increase this value if pixels with value \code{0} or
-#'   \code{FALSE} appears where other values are expected.
+#'   *knn*. Increase this value if pixels with value `0` or
+#'   `FALSE` appears where other values are expected.
 #' @param radius Numeric integer of length one. Radius of the reprojected
-#'   hemispherical image (i.e., the output). Default \code{NULL} is equivalent
-#'   to input the radius of \code{r}.
+#'   hemispherical image (i.e., the output).
+#'
+#' @note Default value for the `radius` argument is equivalent to input the
+#' radius of the `r` argument.
 #'
 #' @export
 #'
 #' @family Lens Functions
 #'
 #' @examples
-#' \donttest{
-#' caim <- read_caim() %>% normalize()
+#' \dontrun{
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
-#' bin <- apply_thr(caim$Blue, 0.5)
+#' r <- gbc(caim$Blue)
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
+#' bin <- ootb_mblt(r, z, a)$bin
 #' bin_equi <- fisheye_to_equidistant(bin, z, a)
 #' plot(bin)
 #' plot(bin_equi)
@@ -38,11 +43,12 @@
 #' #for calculating LAI with CIMES, GLA, CAN-EYE, etc.
 #'
 #' #It can be used to reproject RGB photographs
-#' plotRGB(caim*255)
+#' plotRGB(caim)
 #' caim <- fisheye_to_equidistant(caim, z, a)
-#' plotRGB(caim*255)
+#' plotRGB(caim)
 #' }
 fisheye_to_equidistant <- function(r, z, a,
+                                   m = NULL,
                                    radius = NULL,
                                    k = NULL,
                                    p = NULL,
@@ -61,7 +67,14 @@ fisheye_to_equidistant <- function(r, z, a,
     new_r <- zenith_image(radius * 2, lens())
     terra::ext(new_r) <- terra::ext(-pi / 2, pi / 2, -pi / 2, pi / 2)
 
-    m <- !is.na(z) & !is.na(r)
+    if(!is.null(m)) {
+      terra::compareGeom(r, m)
+      .is_single_layer_raster(m)
+      .is_logic_and_NA_free(m)
+      m <- !is.na(z) & !is.na(r) & m
+    } else {
+      m <- !is.na(z) & !is.na(r)
+    }
     pol <- data.frame(theta = a[m] * pi / 180 + pi / 2,
                       r = z[m] * pi / 180,
                       z = r[m])
@@ -122,7 +135,12 @@ fisheye_to_equidistant <- function(r, z, a,
     r <- terra::rast(r)
     names(r) <- layer_names
   }
-  terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
+  terra::ext(r) <- terra::ext(0, radius*2, 0, radius*2)
+  if(terra::res(r)[1] != 1) {
+    template <- rast(r)
+    terra::res(template) <- 1
+    r <- terra::resample(r, template, method = "near")
+  }
   r
 
 }

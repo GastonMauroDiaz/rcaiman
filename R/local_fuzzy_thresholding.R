@@ -2,54 +2,62 @@
 #'
 #' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' It uses a threshold value as the location parameter of a logistic membership
-#' function whose scale parameter depends on a variable, here named \code{mem}.
-#' This dependence can be explained as follows: if the variable is equal to
-#' \code{1}, then the membership function is same as a threshold function
-#' because the scale parameter is \code{0}; lowering the variable increases the
-#' scale parameter, thus blurring the threshold because it decreases the
-#' steepness of the curve. Since the variable is defined pixel by pixel, this
-#' should be considered as a \strong{local} fuzzy thresholding method.
+#' function whose scale parameter depends on a variable, here named `mem`. This
+#' dependence can be explained as follows: if the variable is equal to `1`, then
+#' the membership function is same as a threshold function because the scale
+#' parameter is `0`; lowering the variable increases the scale parameter, thus
+#' blurring the threshold because it decreases the steepness of the curve. Since
+#' the variable is defined pixel by pixel, this should be considered as a
+#' **local** fuzzy thresholding method.
 #'
-#' Argument \code{m} can be used to affect the automatic estimation of
-#' \code{thr} and \code{fuzziness}.
+#' Argument `m` can be used to affect the automatic estimation of `thr` and
+#' `fuzziness`.
 #'
 #' If you use this function in your research, please cite
-#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package.
+#' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package
+#' (`citation("rcaiman"`).
 #'
 #'
-#' @param lightness \linkS4class{SpatRaster}. A normalized greyscale image (see
-#'   \code{\link{normalize}}).
-#' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-#'   check \code{\link{mask_hs}}.
-#' @param mem \linkS4class{SpatRaster}. It is the scale parameter of the
-#'   logistic membership function. Typically it is obtained with
-#'   \code{\link{membership_to_color}}.
+#' @param lightness [SpatRaster-class]. A normalized greyscale image (see
+#'   [normalize()]).
+#' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
+#'   [mask_hs()].
+#' @param mem [SpatRaster-class]. It is the scale parameter of the logistic
+#'   membership function. Typically it is obtained with [membership_to_color()].
 #' @param thr Numeric vector of length one. Location parameter of the logistic
-#'   membership function. Use \code{NULL} to estimate it automatically with
-#'   \code{\link{thr_isodata}}.
+#'   membership function. Use `NULL` to estimate it automatically with
+#'   [thr_isodata()].
 #' @param fuzziness Numeric vector of length one. This number is a constant
-#'   value that scales \code{mem}. Use \code{NULL} to estimate it automatically
-#'   as the midpoint between the maximum and minimum values of \code{lightness}.
+#'   value that scales `mem`. Use `NULL` to estimate it automatically as the
+#'   midpoint between the maximum and minimum values of `lightness`.
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object of class \linkS4class{SpatRaster} with same pixel
-#'   dimensions than \code{caim}. Depending on \code{mem}, changes could be
-#'   subtle; however, they should be in the direction of showing more contrast
-#'   between the sky and plant pixels than any of the individual bands from
-#'   \code{caim}.
-#'
+#' @return An object of class [SpatRaster-class] with same pixel dimensions than
+#'   `caim`. Depending on `mem`, changes could be subtle.
 #'
 #' @export
 #' @family Pre-processing Functions
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' caim <- read_caim()
-#' caim <- normalize(caim, 0, 255)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' target_color <- sRGB(matrix(c(0.529, 0.808, 0.921), ncol = 3))
-#' mem <- membership_to_color(caim, target_color)
+#' z <- zenith_image(ncol(caim), lens())
+#' a <- azimuth_image(z)
 #' m <- !is.na(z)
+#' plotRGB((caim/(2^16-2))*255)
+#'
+#' caim <- normalize(caim)
+#'
+#' # ImageJ can be used to digitize points
+#' path <- system.file("external/sky_points.csv",
+#'                     package = "rcaiman")
+#' img_points <- read.csv(path)
+#' img_points <- img_points[c("Y", "X")]
+#' colnames(img_points) <- c("row", "col")
+#' head(img_points)
+#' target_color <- extract_dn(caim, img_points, fun = median)
+#'
+#' mem <- membership_to_color(caim, target_color)
 #' mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
 #' plot(mem_thr)
 #' }

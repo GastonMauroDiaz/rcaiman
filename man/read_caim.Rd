@@ -11,75 +11,76 @@ read_caim(path = NULL, upper_left = NULL, width = NULL, height = NULL)
 extension. The function will return a data example if no arguments are
 provided.}
 
-\item{upper_left}{An integer vector of length two.}
+\item{upper_left}{An integer vector of length two. The pixels coordinates of
+the upper left corner of a region of interest (ROI). These coordinates
+should be in the raster coordinates system. This system works like a
+spreadsheet, i.e, when going down through the vertical axis, the \emph{row}
+number increases (\strong{IMPORTANT}: column and row must be provided instead of
+row and column, as is the norm for objects from the class \emph{data.frame} and
+others alike)}
 
-\item{width, height}{An integer vector of length one.}
+\item{width, height}{An integer vector of length one. The size of the boxy ROI
+whose upper left corner is the \code{upper_left} argument.}
 }
 \value{
 An object from class \linkS4class{SpatRaster} with its layers named
-  \emph{Red}, \emph{Green}, and \emph{Blue}.
+\emph{Red}, \emph{Green}, and \emph{Blue} when a born-digital color
+photographs is provided as input.
 }
 \description{
-Wrapper function for \code{\link[terra]{rast}}.
+Wrapper function for \code{\link[terra:rast]{terra::rast()}}.
 }
 \details{
 Run \code{read_caim()} to obtain an example of a hemispherical photo taken in
-non-diffuse light conditions in a \emph{Nothofagus pumilio} forest with a
-FC-E9 auxiliary lens attached to a Nikon Coolpix 5700.
+non-diffuse light conditions in a \emph{Nothofagus pumilio} forest with a FC-E9
+auxiliary lens attached to a Nikon Coolpix 5700.
 
 Since this function aims to read born-digital color photographs, RGB-JPEG and
-RGB-TIFF are expected as input. Use \code{upper_left}, \code{width}, and
-\code{height} to read a region of the file. The \code{upper_left} parameter
-indicates the pixels coordinates of the upper left corner of the region of
-interest (ROI). These coordinates should be in the raster coordinates system,
-which works like a spreadsheet, i.e, when you go down through the vertical
-axis, the \emph{row} number increases (\strong{IMPORTANT: column and row must
-be provided instead of row and column as in objects from the class data.frame
-and others alike}). The \code{width} and \code{height} parameters indicate
-the size of the boxy ROI. I recommend using
-\href{https://imagej.nih.gov/ij/}{‘ImageJ’} to obtain these parameters, but
-any image editor can be used, such as ‘GIMP’ or ‘Adobe Photoshop’.
+RGB-TIFF are the expected input. However, since this function is a wrapper
+for \code{\link[terra:rast]{terra::rast()}}, format compatibility is heritages from it.
+
+Use \code{upper_left}, \code{width}, and \code{height} to read a particular region from the
+file. Although any image editor can be used to obtain those parameters, this
+function was tested with \href{https://imagej.nih.gov/ij/}{‘ImageJ’}, so it might
+be wise to use it.
 
 \strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
-\code{height}, open the image on the Fiji distro of ImageJ, draw a
-rectangular selection, and go to Edit>Selection>Specify. The same workflow
-may work with other distros.
+\code{height}, open the image on the Fiji distro of ImageJ, draw a rectangular
+selection, and go to Edit>Selection>Specify. The same workflow may work with
+other distros.
+}
+\note{
+The example image was obtained with this code:
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1290, 988)
+z <- zenith_image(745*2, lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+r <- read_caim_raw("DSCN4606.NEF", z, a, zenith_colrow, radius = 300)
+z <- zenith_image(ncol(r), lens())
+r <- correct_vignetting(r, z, c(0.0638, -0.101))
+r <- c(mean(r$Y, r$M), r$G, r$C)
+r <- normalize(r, -1)
+write_caim(r*2^16-2, "example.tif", 16)
+}\if{html}{\out{</div>}}
 }
 \examples{
-# This is the example image
-r <- read_caim()
-#plotRGB(r)
-plot(r$Blue)
-
-# This is also the example
-path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-# the zenith raster coordinates can be easily transformed to the "upper_left"
-# argument by subtracting from it the radius expressed in pixels.
-zenith_colrow <- c(1250, 1020)
-diameter_px <- 1490
-r <- read_caim(path,
-               upper_left = zenith_colrow - diameter_px/2,
-               width = diameter_px,
-               height = diameter_px)
-#plotRGB(r)
-plot(r$Blue)
-
-# A pre-processed image
-path <- system.file("external/DSCN6342.pgm", package = "rcaiman")
-r <- read_caim(path)
-plot(r)
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
+#plot(caim$Blue)
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }

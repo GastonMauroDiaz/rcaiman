@@ -1,7 +1,7 @@
 Package: rcaiman
 Type: Package
 Title: CAnopy IMage ANalysis
-Version: 1.1.4.9000
+Version: 1.1.5.9000
 Date: 2023-05-22
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
@@ -41,5 +41,7 @@ Suggests:
     conicfit,
     EBImage,
     bbmle,
-    imager
+    imager,
+    reticulate
 RdMacros: Rdpack
+Roxygen: list(markdown = TRUE)

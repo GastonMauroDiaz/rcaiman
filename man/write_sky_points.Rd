@@ -8,7 +8,7 @@ write_sky_points(sky_points, path_to_HSP_project, img_name)
 }
 \arguments{
 \item{sky_points}{An object of the class \emph{data.frame}. The result of a
-calling to \code{\link{extract_sky_points}}.}
+calling to \code{\link[=extract_sky_points]{extract_sky_points()}}.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder. For instance,
@@ -28,12 +28,12 @@ This function is part of a workflow that connects this package with the HSP
 software package \insertCite{Lang2013}{rcaiman}.
 
 This function was designed to be called after
-\code{\link{extract_sky_points}}. The \code{r} argument provided to
-\code{\link{extract_sky_points}} should be an image pre-processed by the HSP
+\code{\link[=extract_sky_points]{extract_sky_points()}}. The \code{r} argument provided to
+\code{\link[=extract_sky_points]{extract_sky_points()}} should be an image pre-processed by the HSP
 software. Those images are stored as PGM files in the subfolder "manipulate"
 of the project folder (which will be in turn a subfolder of the
 "project\strong{s}" folder). Those PGM files can be read with
-\code{\link{read_caim}}.
+\code{\link[=read_caim]{read_caim()}}.
 
 The \code{img_name} argument of \code{write_sky_points()} should be the name
 of the file associated to the aforementioned \code{r} argument.
@@ -48,8 +48,7 @@ plot(r)
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
-mblt <- ootb_mblt(r, z, a)
-bin <- find_sky_pixels_nonnull(r, mblt$sky_s, g)
+mblt <- ootb_mblt(r, z, a)$bin
 bin <- mask_hs(z, 0, 85) & bin
 
 sun_coord <- extract_sun_coord(r, z, a, bin, g)

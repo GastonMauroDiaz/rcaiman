@@ -5,13 +5,13 @@
 #' \insertCite{Jonckheere2005;textual}{rcaiman}.
 #'
 #' The implementation is based on
-#' \href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method
-#' of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
-#' in the 'autothresholdr' package (\code{\link[autothresholdr]{auto_thresh}}).
+#' [the IsoData method
+#' of Auto Threshold ImageJ plugin by Gabriel Landini](https://imagej.net/plugins/auto-threshold#IsoData), which is now available
+#' in the 'autothresholdr' package ([autothresholdr::auto_thresh()]).
 #' However, I found this implementarion more versatile since it is not
 #' restricted to an 8-bit input.
 #'
-#' @param x Numeric vector or a single-column \emph{matrix} or \emph{data.frame}
+#' @param x Numeric vector or a single-column *matrix* or *data.frame*
 #'   able to be coerced to numeric.
 #'
 #' @return Numeric vector of length one.

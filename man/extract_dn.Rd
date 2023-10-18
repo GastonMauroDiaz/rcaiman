@@ -7,73 +7,74 @@
 extract_dn(r, img_points, use_window = TRUE, fun = NULL)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}.}
+\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
 
-\item{img_points}{The result of a call to \code{\link{extract_sky_points}},
+\item{img_points}{The result of a call to \code{\link[=extract_sky_points]{extract_sky_points()}},
 or an object of the same class and structure.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
-\times 3} window will be used to extract the sky digital number from
+ \times 3} window will be used to extract the digital number from
 \code{r}.}
 
 \item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 }
 \value{
-An object of the class \emph{data.frame}, which is the argument
-  \code{img_points} with an added column per each layer from \code{r}. The
-  layer names are used to name the new columns. If a function is provided as
-  the \code{fun} argument, the result will be summarized per column using the
-  provided function, and the \emph{row} and \emph{col} information will be
-  omitted. Moreover, if \code{r} is an RGB image, a \linkS4class{color} will
-  be returned instead of a \emph{data.frame}. The latter feature is useful
-  for obtaining  the \code{sky_blue} argument for \code{\link{enhance_caim}}.
+An object of the class \emph{data.frame}. It is the argument
+\code{img_points} with an added column per each layer from \code{r}. The
+layer names are used to name the new columns. If a function is provided as
+the \code{fun} argument, the result will be summarized per column using the
+provided function, and the \emph{row} and \emph{col} information will be
+omitted. Moreover, if \code{r} is an RGB image, a \linkS4class{color} will
+be returned instead of a \emph{data.frame}. The latter feature is useful
+for obtaining  the \code{sky_blue} argument for \code{\link[=enhance_caim]{enhance_caim()}}.
 }
 \description{
-It is a wrapper function around \code{\link[terra]{extract}}.
+It is a wrapper function around \code{\link[terra:extract]{terra::extract()}}.
+}
+\note{
+The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+can be used to manually digitize points and create a CSV file from which to read
+coordinates (see Examples). After digitizing the points on the image, use the
+dropdown menu Analyze>Measure to open the Results window. To obtain the CSV
+file, use File>Save As...
 }
 \examples{
-\donttest{
+\dontrun{
 caim <- read_caim()
-r <- gbc(caim$Blue)
+r <- caim$Blue
 bin <- apply_thr(r, thr_isodata(r[]))
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
-sky_points <- extract_sky_points(r, bin, g)
-sky_points
 
-# ImageJ can be used to digitize points.
-# See calc_zenith_raster_coord() for details.
-path <- system.file("external/b4_2_5724.jpg", package = "rcaiman")
-caim <- read_caim(path)
-plot(caim$Blue)
-path <- system.file("external/points_over_perimeter.csv",
-                     package = "rcaiman")
-img_points <- read.csv(path)
-img_points <- img_points[,c(ncol(img_points), ncol(img_points)-1)]
-colnames(img_points) <- c("row", "col")
-head(img_points)
-v <- cellFromRowCol(caim, img_points$row, img_points$col) \%>\%
-  xyFromCell(caim, .) \%>\% vect()
-plot(v, add = TRUE, col = 2)
-extract_dn(caim, img_points, fun = median)
-
+# ImageJ can be used to digitize points
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+plot(bin)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+extract_dn(caim, sky_points, fun = median)
 }
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

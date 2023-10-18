@@ -3,14 +3,14 @@
 #' Read manual input stored in an HSP project.
 #'
 #' Refer to the Details section of function
-#' \code{\link{write_sky_points}}.
+#' [write_sky_points()].
 #'
 #' @inheritParams write_sky_points
 #' @family HSP Functions
 #'
-#' @return A list of numeric vectors named \emph{weight}, \emph{max_points},
-#'   \emph{angle}, \emph{point_radius}, \emph{sun_coord}, \emph{sky_points} and
-#'   \emph{zenith_dn.}
+#' @return A list of numeric vectors named *weight*, *max_points*,
+#'   *angle*, *point_radius*, *sun_coord*, *sky_points* and
+#'   *zenith_dn.*
 #'
 #' @export
 read_manual_input <- function(path_to_HSP_project, img_name) {

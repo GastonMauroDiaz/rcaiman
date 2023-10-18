@@ -7,7 +7,7 @@
 normalize(r, mn = NULL, mx = NULL, force_range = FALSE)
 }
 \arguments{
-\item{r}{\code{\linkS4class{SpatRaster}} or numeric vector.}
+\item{r}{\linkS4class{SpatRaster} or numeric vector.}
 
 \item{mn}{Numeric vector of length one. Minimum expected value. Default is
 equivalent to enter the minimum value from \code{r}.}
@@ -21,10 +21,10 @@ found below and above those limits.}
 }
 \value{
 An object from the same class as \code{r} with values from \code{r}
-  linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
-  one. Therefore, if \code{mn} and \code{mx} do not match the actual minimum
-  and maximum from \code{r}, then the output will not cover the 0-to-1 range
-  and may be outside that range if \code{force_range} is set to \code{FALSE}.
+linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
+one. Therefore, if \code{mn} and \code{mx} do not match the actual minimum
+and maximum from \code{r}, then the output will not cover the 0-to-1 range
+and may be outside that range if \code{force_range} is set to \code{FALSE}.
 }
 \description{
 Normalize numeric and raster data.
@@ -37,7 +37,7 @@ than \code{0}.This function can be used for linear stretching of the
 histogram.
 }
 \examples{
-normalize(read_caim(), 0, 255)
+normalize(read_caim())
 }
 \seealso{
 Other Pre-processing Functions: 

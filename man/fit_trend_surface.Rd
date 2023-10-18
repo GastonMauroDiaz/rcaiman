@@ -7,17 +7,16 @@
 fit_trend_surface(r, z, a, bin, filling_source = NULL, np = 6)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary
-binarization of \code{r} useful for masking pixels that are very likely to
-be pure sky pixels.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
+\code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
@@ -35,49 +34,61 @@ degree of polynomial surface
 }
 \value{
 A list with an object of class \linkS4class{SpatRaster} and of class
-  \code{trls} (see \code{\link[spatial]{surf.ls}}).
+\code{trls} (see \code{\link[spatial:surf.ls]{spatial::surf.ls()}}).
 }
 \description{
-Fit a trend surface using \code{\link[spatial]{surf.ls}} as workhorse
+Fit a trend surface using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as workhorse
 function.
 }
 \details{
-This function is meant to be used after \code{\link{fit_coneshaped_model}}.
+This function is meant to be used after \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}.
 
-A short explanation of this function can be found on
-\insertCite{Diaz2018;textual}{rcaiman}, under the heading \emph{Estimation of
-the sky DN as a previous step for our method}, after the explanation of the
-\code{\link{fit_coneshaped_model}}.
-
-If you use this function in your research, please cite
-\insertCite{Diaz2018;textual}{rcaiman} in addition to this package.
+This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
+heading \emph{Estimation of the sky DN as a previous step for our method}. If you
+use this function in your research, please cite that paper in addition to
+this package (\verb{citation("rcaiman"}).
 }
 \examples{
-\donttest{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+\dontrun{
+caim <- read_caim() \%>\% normalize()
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
+
+bin <- ootb_obia(caim, z, a, gamma = NULL)
+
 g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels(r, z, a)
-sky_points <- extract_sky_points(r, bin, g)
-sky_points <- extract_rl(r, z, a, sky_points, NULL)
-model <- fit_coneshaped_model(sky_points$sky_points)
+sky_points <- extract_sky_points(caim$Blue, bin, g, dist_to_plant = 5)
+plot(bin)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+rl <- extract_rl(caim$Blue, z, a, sky_points)
+
+model <- fit_coneshaped_model(rl$sky_points)
+summary(model$model)
 sky_cs <- model$fun(z, a)
-m <- mask_hs(z, 0, 80)
-sky <- fit_trend_surface(r, z, a, bin, filling_source = sky_cs)
-plot(sky$image)
+persp(terra::aggregate(sky_cs, 10), theta = 90, phi = 45)
+
+sky_s <- fit_trend_surface(caim$Blue, z, a, bin, sky_cs)
+persp(terra::aggregate(sky_s$image, 10), theta = 90, phi = 45)
+
+#a quick pipepile
+r <- caim$Blue
+bin <- find_sky_pixels(r, z, a)
+sky <- fit_trend_surface(r, z, a, bin)$image
+sky <- fix_reconstructed_sky(sky, z, r, bin)
+g <- sky_grid_segmentation(z, a, 10)
+bin <- find_sky_pixels_nonnull(r, sky, g)
+plot(bin)
 }
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
-\code{\link{thr_image}}
+\code{\link[=thr_mblt]{thr_mblt()}}
 
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
+\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fix_reconstructed_sky}()},

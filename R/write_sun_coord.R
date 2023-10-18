@@ -2,14 +2,14 @@
 #'
 #' Create a special file to interface with the HSP software.
 #'
-#' Refer to the Details section of function \code{\link{write_sky_points}}.
+#' Refer to the Details section of function [write_sky_points()].
 #'
 #' @param sun_coord Numeric vector of length two. Raster coordinates of the
 #'   solar disk that can be obtained by calling to
-#'   \code{\link{extract_sun_coord}}. \strong{TIP}: if the output of
-#'   \code{extrac_sun_coord()} is \code{sun_coord}, then you should provide here
-#'   this: \code{sun_coord$row_col}. See also
-#'   \code{\link{row_col_from_zenith_azimuth}} in case you want to provide
+#'   [extract_sun_coord()]. **TIP**: if the output of
+#'   `extrac_sun_coord()` is `sun_coord`, then you should provide here
+#'   this: `sun_coord$row_col`. See also
+#'   [row_col_from_zenith_azimuth()] in case you want to provide
 #'   values based on date and time of acquisition and the R package 'suncalc'.
 #' @inheritParams write_sky_points
 #'

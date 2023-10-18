@@ -7,42 +7,37 @@
 find_sky_pixels(r, z, a, sample_size_pct = 30)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{sample_size_pct}{Numeric vector of length one. Minimum percentage of
 cells to sample. The population is comprised of 1296 cells of \eqn{5 \times
-5} degrees.}
+  5} degrees.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}. This layer masks pixels that are very likely pure sky pixels.
+\code{1}. This layer masks pixels that are very likely pure sky pixels.
 }
 \description{
 Find sky pixels automatically.
 }
 \details{
 This function assumes that:
-
 \itemize{
-
 \item there is at least one pure sky pixel at the level of cells of \eqn{30
 \times 30} degrees, and
-
 \item sky pixels have a digital number (DN) greater than canopy pixels have.
-
 }
-
 
 For each \eqn{30 \times 30} cell, this method computes a quantile value and
 uses it as a threshold to select the pure sky pixels from the given cell. As
 a result, a binarized image is produced in a regional binarization fashion
-(\code{\link{regional_thresholding}}). This process starts with a quantile
+(\code{\link[=regional_thresholding]{regional_thresholding()}}). This process starts with a quantile
 probability of 0.99. After producing the binarized image, this function uses
 a search grid with cells of \eqn{5 \times 5} degrees to count how many of
 these cells have at least one sky pixel (pixels equal to one in the binarized
@@ -55,13 +50,21 @@ yet satisfied, the \code{sample_size_pct} is decreased one percent and the
 process starts all over again.
 }
 \examples{
-\donttest{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+\dontrun{
+caim <- read_caim() \%>\% normalize(., 0, 2^16)
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
+r <- caim$Blue
+r[is.na(r)] <- 0
 bin <- find_sky_pixels(r, z, a)
+plot(bin)
+
+g <- sky_grid_segmentation(z, a, 5)
+sky_points <- extract_sky_points(r, bin, g,
+                                 dist_to_plant = 3,
+                                 min_raster_dist = 15)
+dn <- extract_dn(r, sky_points, fun = median)
+bin <- find_sky_pixels_nonnull(r, dn, g) | bin
 plot(bin)
 }
 }
@@ -73,7 +76,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()},
-\code{\link{thr_isodata}()}
+\code{\link{thr_isodata}()},
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

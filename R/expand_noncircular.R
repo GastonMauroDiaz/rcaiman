@@ -2,40 +2,31 @@
 #'
 #' Expand a non-circular hemispherical photograph.
 #'
-#' @param caim \linkS4class{SpatRaster}. The return of a call to
-#'   \code{\link{read_caim}}.
+#' @param caim [SpatRaster-class]. The return of a call to
+#'   [read_caim()].
 #' @inheritParams ootb_mblt
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
-#'   zenith. See \code{\link{calc_zenith_raster_coord}}.
+#'   zenith. See [calc_zenith_colrow()].
 #'
 #' @family Lens Functions
 #'
-#' @return An object of class \linkS4class{SpatRaster} that is the result of
-#'   adding margins (\code{NA} pixels) to \code{caim}. The zenith point depicted
+#' @return An object of class [SpatRaster-class] that is the result of
+#'   adding margins (`NA` pixels) to `caim`. The zenith point depicted
 #'   in the picture should be in the center of the image or very close to it.
 #'
 #' @export
 #'
 #' @examples
-#' \donttest{
-#'  #noncircular fisheye from a DSLR camera
-#'  my_file <- file.path(tempdir(), "DSC_2881.JPG")
-#'  download.file("https://osf.io/x8urg/download", my_file,
-#'              method = "auto", mode = "wb"
-#'  )
+#' \dontrun{
 #'
-#'  r <- read_caim(my_file)
-#'  diameter <- calc_diameter(lens("Nikkor_10.5mm"), 1202, 53)
-#'  zenith_colrow <- c(1503, 998)
-#'  z <- zenith_image(diameter, lens("Nikkor_10.5mm"))
-#'  r <- expand_noncircular(r, z, zenith_colrow)
-#'  plot(r, col = seq(0,1,1/255) %>% grey())
-#'  plot(is.na(r$Red), add = TRUE, alpha = 0.3,legend = FALSE)
+#'  # ====================================================================
+#'  # Non-circular Fisheye images from a Smartphone with an Auxiliary Lens
+#'  # (Also applicable to Non-circular iamges from DSLR cameras)
+#'  # ====================================================================
 #'
-#'  #noncircular fisheye from a smartphone with an auxiliary lens
 #'  path <- system.file("external/APC_0581.jpg", package = "rcaiman")
 #'  caim <- read_caim(path)
-#'  z <- zenith_image(2132/2, lens("Olloclip"))
+#'  z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
 #'  a <- azimuth_image(z)
 #'  zenith_colrow <- c(1063, 771)/2
 #'  caim <- expand_noncircular(caim, z, zenith_colrow)
@@ -43,7 +34,11 @@
 #'  m <- !is.na(caim$Red) & !is.na(z)
 #'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 #'
-#'  #restricted view canopy photo
+#'
+#'  # ============================
+#'  # Restricted View Canopy Photo
+#'  # ============================
+#'
 #'  path <- system.file("external/APC_0020.jpg", package = "rcaiman")
 #'  caim <- read_caim(path)
 #'  plot(caim)
@@ -54,7 +49,7 @@
 #'  m <- !is.na(caim$Red)
 #'  a <- azimuth_image(z)
 #'  caim[!m] <- 0
-#'  z <- normalize(z, 0, 90) * 30.15 # a diagonal FOV of 60.3 degrees
+#'  z <- normalize(z, 0, 90) * 30.15 # 60.3º diagonal FOV according to metadata
 #'  plot(caim$Blue, col = seq(0,1,1/255) %>% grey())
 #'  m <- !is.na(caim$Red) & !is.na(z)
 #'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
@@ -81,7 +76,6 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   r <- terra::deepcopy(caim)
   terra::ext(r) <- e
 
-  # ze <- terra::ext(z) * 1.5
   r <- terra::extend(r, z)
   terra::ext(r) <- terra::align(terra::ext(r), z)
   r <- terra::resample(r, z)

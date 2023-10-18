@@ -1,50 +1,42 @@
+#' Colorfulness index
+#'
 #' Quantify the colorfulness of an image
 #'
 #' Quantify the colorfulness of an sRGB image using a bidimensional space formed
-#' by the green/red and the blue/yellow axes of the CIE \emph{L*a*b*} space,
-#' symbolized with \emph{a*} and \emph{b*}, respectively. The proposed index is
-#' defined as the surface of the \emph{a*b*} plane covered by colors from the
-#' image relative to the surface that the whole sRGB cube covers in the same
-#' plane, expressed in percentage.
+#' by the green/red and the blue/yellow axes of the CIE *Lab* space, symbolized
+#' with *a* and *b*, respectively. The colorfulness index (CI) is defined as
 #'
-#' Pixels from the image covered by pixels from \code{m} with value \code{1}
-#' will be taking into account in the computations.
+#' \eqn{CI = \dfrac{A_o}{A_p} \cdot 100},
 #'
-#' If \code{plot = TRUE} is used, a plot is sent to the active graphics device.
-#' It shows the color from the image plotted into a bidimensional space made by
-#' the axis \emph{a*} and \emph{b*} of the CIE \emph{L*a*b* space}.
+#' where \eqn{A_o} and \eqn{A_p} are the observed and potential area of the *ab*
+#' plane. \eqn{A_o} refers to the colors from the image while \eqn{A_p} to the
+#' colors from the whole sRGB cube.
 #'
+#' If `plot = TRUE` is used, a plot is sent to the active graphics device. It
+#' shows the color from the image plotted into a plane made by the axes *a* and
+#' *b*.
+#'
+#' @note
 #' An early version of this function was used in
 #' \insertCite{Martin2020;textual}{rcaiman}.
 #'
 #' @inheritParams enhance_caim
-#' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-#'   check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
-#'   enter \code{!is.na(caim$Red)}.
-#' @param plot Logical vector of length one. If is \code{TRUE}, a plot will be
-#'   send to the graphic device, showing the data on the CIE \emph{a*b*} space.
+#' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
+#'   [mask_hs()]. Default (`NULL`) is the equivalent to enter
+#'   `!is.na(caim$Red)`.
+#' @param plot Logical vector of length one. If is `TRUE`, a plot will be send
+#'   to the graphic device to show the data on the CIE *ab* space.
 #'
-#' @return A numeric vector of length one and, if the argument \code{plot} is
-#'   \code{TRUE}, an object returned by \code{\link[base]{plot}} is send to the
-#'   graphic device.
+#' @return A numeric vector of length one and, if the argument `plot` is `TRUE`,
+#'   an object returned by [base::plot()] is send to the graphic device.
 #' @family Tool Functions
 #' @export
 #'
 #' @references \insertAllCited{}
 #'
 #' @examples
-#'
-#' #Sunlight image
 #' caim <- read_caim() %>% normalize()
-#' #plotRGB(caim*255)
 #' colorfulness(caim)
-#'
-#' #Diffuse-light image
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2) %>% normalize()
-#' #plotRGB(caim*255)
-#' colorfulness(caim)
-#'
 colorfulness <- function (caim, m = NULL, plot = FALSE)  {
   stopifnot(class(caim) == "SpatRaster")
   if (.get_max(caim) > 1)
@@ -94,7 +86,7 @@ colorfulness <- function (caim, m = NULL, plot = FALSE)  {
     i <- grDevices::chull(full[,2:3])
     full <- full[i, 2:3]
 
-    plot(full, type = "n", xlab="a*", ylab="b*", asp = 1)
+    plot(full, type = "n", xlab="a", ylab="b", asp = 1)
     lines(rbind(full, full[1,]))
     points(lab, col = hexs)
   }

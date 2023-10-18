@@ -3,12 +3,12 @@
 #' Read optimized CIE sky coefficients stored in an HSP project.
 #'
 #' Refer to the Details section of function
-#' \code{\link{write_sky_points}}.
+#' [write_sky_points()].
 #'
 #' @inheritParams write_sky_points
 #'
 #' @family HSP Functions
-#' @seealso \code{\link{cie_sky_model_raster}}
+#' @seealso [cie_sky_model_raster()]
 #'
 #' @return Numeric vector of length five.
 #'

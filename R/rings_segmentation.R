@@ -6,11 +6,11 @@
 #' @inheritParams ootb_mblt
 #' @param angle_width Numeric vector of length one. Angle in degrees able to
 #'   divide the angle range into a whole number of segments.
-#' @param return_angle Logical vector of length one. If it is \code{FALSE}, all
+#' @param return_angle Logical vector of length one. If it is `FALSE`, all
 #'   the pixels that belong to a segment are labeled with an ID number.
 #'   Otherwise, the angle mean of the segment is assigned to the pixels.
 #'
-#' @return An object from the class \linkS4class{SpatRaster} with segments
+#' @return An object from the class [SpatRaster-class] with segments
 #'   shaped like concentric rings.
 #' @export
 #'

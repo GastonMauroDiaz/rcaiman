@@ -1,8 +1,8 @@
 #' Write canopy image
 #'
-#' Wrapper function for \code{\link[terra]{writeRaster}}.
+#' Wrapper function for [terra::writeRaster()].
 #'
-#' @param caim \linkS4class{SpatRaster}.
+#' @param caim [SpatRaster-class].
 #' @param path Character vector of length one. Path for writing the image.
 #' @param bit_depth Numeric vector of length one.
 #'
@@ -13,10 +13,13 @@
 #' @family Tool Functions
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' caim <- read_caim() %>% normalize(., 0, 255)
-#' write_caim(caim * 2^8, file.path(tempdir(), "test_8bit"), 8)
-#' write_caim(caim * 2^16, file.path(tempdir(), "test_16bit"), 16)
+#' write_caim(caim * 2^8-2, file.path(tempdir(), "test_8bit"), 8)
+#' write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
+#' # Note: the normalized values are scaled by multiplying by 2^bit_depth-2
+#' # to avoid storing in the maximum bin because those values will be
+#' # interpreted as NA by read_caim(), and that is undesired.
 #' }
 write_caim <- function(caim, path, bit_depth) {
 

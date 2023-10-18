@@ -8,33 +8,33 @@ masking(r, m, RGB = c(1, 0, 0))
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image. Values should be normalized,
-see \code{\link{normalize}}. Only methods for images with one or three
+see \code{\link[=normalize]{normalize()}}. Only methods for images with one or three
 layers have been implemented.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link{mask_hs}}.}
+check \code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that essentially is
-  \code{r} with areas where \code{m} is equal to zero painted in a solid
-  color. If \code{r} is a single layer image, then the layer is triplicated
-  to allow the use of color.
+\code{r} with areas where \code{m} is equal to zero painted in a solid
+color. If \code{r} is a single layer image, then the layer is triplicated
+to allow the use of color.
 }
 \description{
 Image masking
 }
 \examples{
-\donttest{
+\dontrun{
  r <- read_caim()
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
  m <- as.logical(m)
 
- masked_caim <-  masking(normalize(r, 0, 255), m)
+ masked_caim <-  masking(normalize(r), m)
  plotRGB(masked_caim * 255)
 
  masked_bin <- masking(apply_thr(r$Blue, 125), m)
@@ -43,17 +43,19 @@ Image masking
 
 }
 \seealso{
-\code{\link{mask_hs}}
+\code{\link[=mask_hs]{mask_hs()}}
 
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

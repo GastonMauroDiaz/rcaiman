@@ -9,22 +9,20 @@ chessboard(r, size)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}.}
 
-\item{size}{Numerica vector of length one. Size of the square segments.}
+\item{size}{Numeric vector of length one. Size of the square segments.}
 }
 \value{
-A single layer image of the class \linkS4class{SpatRaster} with
-  integer values.
+A single layer image of the class \linkS4class{SpatRaster} with integer
+values.
 }
 \description{
 Chessboard segmentation
 }
 \examples{
-\donttest{
 caim <- read_caim()
-seg <- chessboard(caim, 100)
+seg <- chessboard(caim, 20)
 plot(caim$Blue)
 plot(extract_feature(caim$Blue, seg))
-}
 }
 \seealso{
 Other Segmentation Functions: 

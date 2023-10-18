@@ -2,39 +2,30 @@
 #'
 #' Interpolate values from canopy photographs.
 #'
-#' This function use \code{\link[lidR]{knnidw}} as workhorse function, so
-#' arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
+#' This function use [lidR::knnidw()] as workhorse function, so
+#' arguments `k`, `p`, and `rmax` are passed to it.
 #'
-#' This method is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
-#' interpolation requires a linear relation between DNs and the amount of light
-#' reaching the sensor. To that end, photographs should be taken in RAW format
-#' to avoid gamma correction \insertCite{Lang2010}{rcaiman}. As a compromise
-#' solution, \code{\link{gbc}} can be used.
-#'
-#' The vignetting effect also hinders the linear relation between DNs and the
-#' amount of light reaching the sensor. Please refer to
-#' \insertCite{Lang2010;textual}{rcaiman} for more details about the vignetting
-#' effect.
-#'
-#' The use of \code{k = 1} solves the linear dilemma from the theoretical point
-#' of view since no averaging is taking place in the calculations. However,
-#' probably, it is best to use \code{k} greater than 1.
+#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
+#' the best result would be obtained with data showing a linear relation between
+#' digital numbers and the amount of light reaching the sensor. See
+#' [extract_radiometry()] and [read_caim_raw()] for further details. As a
+#' compromise solution, [gbc()] can be used.
 #'
 #' Default parameters are the ones used by
-#' \insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should
+#' \insertCite{Lang2010;textual}{rcaiman}. The argument `rmax` should
 #' account for between 15 to 20 degrees, but it is expressed in pixels units.
 #' So, image resolution and lens projections should be taken into account to set
 #' this argument properly.
 #'
-#' @param sky_points An object of class \emph{data.frame}. The result of a call
-#'   to \code{\link{extract_rl}} or \code{\link{extract_dn}}, or a
-#'   \emph{data.frame} with same basic structure and names.
-#' @param r \linkS4class{SpatRaster}. The image from which \code{sky_points}
+#' @param sky_points An object of class *data.frame*. The data.frame returned by
+#'   [extract_rl()] or [extract_dn()], or a
+#'   *data.frame* with same basic structure and names.
+#' @param r [SpatRaster-class]. The image from which `sky_points`
 #'   was obtained.
 #' @param k Numeric vector of length one. Number of k-nearest neighbors.
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius where to search for
-#'   \emph{knn}.
+#'   *knn*.
 #' @param col_id Numeric vector of length one. ID of the column with the values
 #'   to interpolate.
 #'
@@ -42,42 +33,37 @@
 #'
 #' @family Sky Reconstruction Functions
 #'
-#' @return An object of class \linkS4class{SpatRaster}.
+#' @return An object of class [SpatRaster-class].
 #'
 #' @export
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' caim <- read_caim() %>% normalize()
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' bin <- ootb_obia(caim, z, a)
+#'
+#' bin <- ootb_obia(caim, z, a, gamma = NULL)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
-#' r <- gbc(caim$Blue*255)
-#' sky_points <- extract_sky_points(r, bin, g)
-#' sky_points <- extract_rl(r, z, a, sky_points, NULL)
-#' sky <- interpolate_sky_points(sky_points$sky_points, r)
+#' sky_points <- extract_sky_points(caim$Blue, bin, g, dist_to_plant = 3)
+#' plot(bin)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+#' sky_points <- extract_dn(caim$Blue, sky_points)
+#'
+#' sky <- interpolate_sky_points(sky_points, caim$Blue, col_id = 3)
 #' plot(sky)
+#' plot(caim$Blue/sky)
 #'
-#'
-#' #restricted view canopy photo
-#' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-#' caim <- read_caim(path)
-#' plot(caim)
-#' r <- gbc(caim$Blue)
-#' caim <- normalize(caim)
-#'
-#' bin <- ootb_obia(caim)
-#'
-#' g <- chessboard(caim, 100)
-#' plot(g)
-#' sky_points <- extract_sky_points(r, bin, g)
-#' sky_points <- extract_dn(r, sky_points)
-#' head(sky_points)
-#' sky <- interpolate_sky_points(sky_points, r, col_id = 3)
-#' plot(sky)
-#' plot(r/sky)
+#' # a quick demonstration of how to use trend surface fitting to smooth the
+#' # interpolation
+#' persp(terra::aggregate(sky, 10), theta = 45, phi = 30)
+#' sky_s <- fit_trend_surface(sky, z, a, !is.na(z))
+#' persp(terra::aggregate(sky_s$image, 10), theta = 45, phi = 30)
+#' plot(sky_s$image)
+#' plot(caim$Blue)
+#' plot(caim$Blue/sky_s$image)
+#' plot(apply_thr(caim$Blue/sky_s$image, 0.5))
 #' }
 interpolate_sky_points <- function(sky_points,
                                    r,

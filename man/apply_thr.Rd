@@ -9,27 +9,26 @@ apply_thr(r, thr)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A greyscale image.}
 
-\item{thr}{Numeric vector of length one or \linkS4class{SpatRaster}.
-Threshold.}
+\item{thr}{Numeric vector of length one or a single-layer raster from the
+class \linkS4class{SpatRaster}. Threshold.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}.
+An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 }
 \description{
 Global or local thresholding of images.
 }
 \details{
-It is a wrapper function around the operator \code{>} from the ‘terra’
-package. If a single threshold value is provided as the \code{thr} argument,
-it is applied to every pixel of the object \code{r}. If, instead, a
-\linkS4class{SpatRaster} is provided as the \code{thr} argument, then a
-particular threshold is applied to each particular pixel.
+It is a wrapper function around the operator \code{>} from the \emph{terra} package. If
+a single threshold value is provided as the \code{thr} argument, it is applied to
+every pixel of the object \code{r}. If instead a \linkS4class{SpatRaster} is provided as
+the \code{thr} argument,  a particular threshold is applied to each particular
+pixel.
 }
 \examples{
 r <- read_caim()
 apply_thr(r$Blue, thr_isodata(r$Blue[]))
-\donttest{
+\dontrun{
 # This function is useful in combination with the ‘autothresholdr’
 # package. For example:
 require(autothresholdr)
@@ -46,7 +45,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()},
-\code{\link{thr_isodata}()}
+\code{\link{thr_isodata}()},
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

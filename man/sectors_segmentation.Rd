@@ -7,7 +7,7 @@
 sectors_segmentation(a, angle_width, return_angle = FALSE)
 }
 \arguments{
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{angle_width}{Numeric vector of length one. Angle in degrees able to
 divide the angle range into a whole number of segments.}
@@ -18,7 +18,7 @@ Otherwise, the angle mean of the segment is assigned to the pixels.}
 }
 \value{
 An object from the class \linkS4class{SpatRaster} with segments
-  shaped like pizza slices.
+shaped like pizza slices.
 }
 \description{
 Segmenting a hemispherical view by slicing the azimuth angle from zero

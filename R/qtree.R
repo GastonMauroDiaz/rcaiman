@@ -10,16 +10,16 @@
 #' following, depending on the aspect ratio, grids going from \eqn{4 \times 4}
 #' to \eqn{1 \times 4} or \eqn{4 \times 1}; then, splits each segment into four
 #' sub-segments and calculates the standard deviation of the pixels from
-#' \code{r} delimited by each of those segments. The splitting process stops
+#' `r` delimited by each of those segments. The splitting process stops
 #' locally if the sum of the standard deviation of the sub-segments minus the
-#' standard deviation of the parent segment (named \emph{delta}) is less or
-#' equal than the \code{scale_parameter}. If \code{r} has more than one layer,
-#' \emph{delta} is calculated separately and \emph{delta} mean is used to
+#' standard deviation of the parent segment (named *delta*) is less or
+#' equal than the `scale_parameter`. If `r` has more than one layer,
+#' *delta* is calculated separately and *delta* mean is used to
 #' evaluate the stopping condition.
 #'
 #' @inheritParams polar_qtree
 #'
-#' @return A single layer image of the class \linkS4class{SpatRaster} with
+#' @return A single layer image of the class [SpatRaster-class] with
 #'   integer values.
 #'
 #' @export
@@ -27,11 +27,9 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \donttest{
-#' caim <- read_caim()
-#' plot(caim)
-#' caim <- normalize(caim, 0, 255)
-#' seg <- qtree(caim, scale_parameter = 0.5)
+#' \dontrun{
+#' caim <- read_caim() %>% normalize()
+#' seg <- qtree(caim, scale_parameter = 0.05)
 #' plot(caim$Blue)
 #' plot(extract_feature(caim$Blue, seg))
 #' plot(extract_feature(seg, seg, length))

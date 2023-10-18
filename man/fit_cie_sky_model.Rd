@@ -20,29 +20,28 @@ fit_cie_sky_model(
 )
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{The \emph{data.frame} returned by \code{\link{extract_rl}}
-or a \emph{data.frame} with same structure and names.}
+\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rl]{extract_rl()}} or a
+\emph{data.frame} with same structure and names.}
 
 \item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
-\code{\link{extract_rl}} for how to obtain it.}
+\code{\link[=extract_rl]{extract_rl()}} for how to obtain it.}
 
 \item{sun_coord}{An object of class \emph{list}. The result of a call to
-\code{\link{extract_sun_coord}}, or an object with same structure and
-names. See also \code{\link{row_col_from_zenith_azimuth}} in case you want
-to provide values based on date and time of acquisition and the R package
-'suncalc'.}
+\code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
+\code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values based on
+date and time of acquisition and the R package 'suncalc'.}
 
 \item{custom_sky_coef}{Numeric vector of length five. Custom starting
-coefficients of the sky model. By default, they are drawn from
-standard skies.}
+coefficients of the sky model. By default, they are drawn from standard
+skies.}
 
 \item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
 \insertCite{Li2016;textual}{rcaiman}.}
@@ -51,32 +50,34 @@ standard skies.}
 these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
 \insertCite{Li2016;textual}{rcaiman} for additional details.}
 
-\item{twilight}{Logical vector of length one. If it is \code{TRUE} and the
-initial standard parameters belong to the "Clear" general sky type, sun
-zenith angles from 90 to 96 degrees will be tested (civic twilight). This
-is necessary since \code{\link{extract_sun_coord}} would mistakenly
-recognize the center of what can be seen of the solar corona as the solar
-disk.}
+\item{twilight}{Logical vector of length one. If it is \code{TRUE} and the initial
+standard parameters belong to the "Clear" general sky type, sun zenith
+angles from 90 to 96 degrees will be tested (civic twilight). This is
+necessary since \code{\link[=extract_sun_coord]{extract_sun_coord()}} would mistakenly recognize the center
+of what can be seen of the solar corona as the solar disk.}
 
-\item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria
-for selecting the best sky model is to choose the one with less root mean
-square error calculated by using \code{sky_points} as reference values.
-Otherwise, the criteria is to evaluate the whole hemisphere by calculating
-the product between the square ratio of \code{r} to the sky model and the
-fraction of pixels from this new layer that are above one or below zero,
-and selecting the sky model that produce the least value.}
+\item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria for
+selecting the best sky model is to choose the one with the lowest \strong{root
+mean square error (RMSE)} calculated by using the \code{sky_points} argument as
+the source of reference values. Otherwise, the criteria is to evaluate the
+whole image by calculating the \strong{out-of-range index} as \eqn{\sum_{i =
+  1}^{N}(r_i/sky_i)^2}, where \eqn{r} is the \code{r} argument, \eqn{sky} is the
+raster obtained from the fitted model with \code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}} and
+\code{zenith_dn}, \eqn{i} is the index that represents the position of a given
+pixel on the raster grid, \eqn{N} is the total number of pixels that
+satisfy either of these inequalities: \eqn{r_i/sky_i<0} and
+\eqn{r_i/sky_i>1}.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \value{
-The result includes the following: (1) the output produced by
-  \code{\link[bbmle]{mle2}}, (2) the 5 coefficients, (3) observed and
-  predicted values, the sun coordinates --zenith and azimuth angle in
-  degrees--, (4) the relative luminance image calculated for every pixel
-  using the estimated coefficients and corresponding sun coordinates, (4) the
-  digital number at the zenith, and (5) the description of the standard sky
-  from which the initial coefficients were drawn. See
-  \insertCite{Li2016;textual}{rcaiman} to know more about these coefficients.
+object from the class \emph{list}. The result includes the following: (1)
+the output produced by \code{\link[bbmle:mle2]{bbmle::mle2()}}, (2) the 5 coefficients, (3 and 4)
+observed and predicted values, (5) the digital number at the zenith, (6)
+the sun coordinates --zenith and azimuth angle in degrees--, and (7) the
+description of the standard sky from which the initial coefficients were
+drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
+coefficients.
 }
 \description{
 Use maximum likelihood to estimate the coefficients of the CIE sky model that
@@ -85,27 +86,17 @@ best fit to data sampled from a canopy photograph.
 \details{
 This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 the best result would be obtained with data showing a linear relation between
-digital numbers and the amount of light reaching the sensor. However, because
-the CIE sky model is indeed the adjoin of two mathematical model, it is
-capable of handling any non-linearity since it is not a physical model with
-strict assumptions.
-
-Ultimately, when the goal is to calculate the ratio of canopy to sky digital
-numbers, if the latter is accurately constructed, any non-linearity will be
-canceled. Please, see \code{\link{interpolate_sky_points}} for further
-considerations.
-
-Nevertheless, the recommended input for this function is data pre-processed
-with the HSP software package \insertCite{Lang2013}{rcaiman}. Please, refer
-to \code{\link{write_sky_points}} for additional details about HSP.
+digital numbers and the amount of light reaching the sensor. See
+\code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}} for further details. As a
+compromise solution, \code{\link[=gbc]{gbc()}} can be used.
 
 The following code exemplifies how this package can be used to compare the
-manually-guided fitting provided by HSP against the automatic fitting
-provided by this package. The code assumes that the user is working within an
-RStudio project located in the HSP project folder.
+manually-guided fitting provided by HSP \insertCite{Lang2013}{rcaiman}
+against the automatic fitting provided by this package. The code assumes that
+the user is working within an RStudio project located in the HSP project
+folder.
 
-\preformatted{
-r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize()
+\if{html}{\out{<div class="sourceCode">}}\preformatted{r <- read_caim("manipulate/IMG_1013.pgm") \%>\% normalize()
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 manual_input <- read_manual_input(".", "IMG_1013" )
@@ -122,70 +113,72 @@ sky_coef <- read_opt_sky_coef(".", "IMG_1013")
 cie_sky_manual <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
 cie_sky_manual <- cie_sky_manual * manual_input$zenith_dn
 plot(r/cie_sky_manual)
+}\if{html}{\out{</div>}}
 }
-
+\note{
 If you use this function in your research, please cite
-\insertCite{Lang2010;textual}{rcaiman} in addition to this package.
+\insertCite{Lang2010;textual}{rcaiman} in addition to this package
+(\verb{citation("rcaiman"}).
 }
 \examples{
-\donttest{
+\dontrun{
 caim <- read_caim() \%>\% normalize()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-bin <- ootb_obia(caim, z, a)
-bin <- bin & mask_hs(z, 0, 80)
+# Manual method after Lang et al. (2010)
+# ImageJ can be used to digitize points
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+plot(caim$Blue)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-r <- gbc(caim$Blue*255)
-g <- sky_grid_segmentation(z, a, 10)
-sun_coord <- extract_sun_coord(r, z, a, bin, g)
-sky_points <- extract_sky_points(r, bin, g)
-rl <- extract_rl(r, z, a, sky_points)
-model <- fit_cie_sky_model(r, z, a, rl$sky_points,
+xy <- c(210, 451) #'originally captured with click() after x11()
+sun_coord <- zenith_azimuth_from_row_col(z, z, c(nrow(z) - xy[2],xy[1]))
+points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
+       col = 3, pch = 1)
+
+rl <- extract_rl(caim$Blue, z, a, sky_points)
+
+set.seed(7)
+model <- fit_cie_sky_model(caim$Blue, z, a, rl$sky_points,
                            rl$zenith_dn, sun_coord,
-                           rmse = TRUE,
-                           general_sky_type = "Partly cloudy")
-sky_cie <- model$relative_luminance * model$zenith_dn
+                           general_sky_type = "Clear",
+                           rmse = FALSE,
+                           twilight = FALSE,
+                           method = "SANN")
+summary(model$mle2_output)
+plot(model$obs, model$pred)
+abline(0,1)
+r2 <- lm(model$pred~model$obs) \%>\% summary(.) \%>\% .$r.squared
+r2
+sky_cie <- cie_sky_model_raster(z, a,
+                                model$sun_coord$zenith_azimuth,
+                                model$coef) * model$zenith_dn
 sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 plot(sky_cie)
-plot(r/sky_cie)
+plot(caim$Blue/sky_cie)
 
-#to provide custom starting coefficient
-path <- system.file("external", package = "rcaiman")
-skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
-custom_sky_coef <- skies[9, 1:5] \%>\% as.numeric()
-fit_cie_sky_model(r, z, a, rl$sky_points,
-                 rl$zenith_dn, sun_coord,
-                 rmse = TRUE,
-                 custom_sky_coef = custom_sky_coef)
+# a quick demonstration of how to use interpolation to improve sky modelling
+# after Lang et al. (2010)
+sky <- interpolate_sky_points(rl$sky_points, caim$Blue, rmax = ncol(caim)/7)
+plot(sky)
+sky <- sky * rl$zenith_dn * (1 - r2) + sky_cie * r2
+sky <- terra::cover(sky, sky_cie)
+plot(sky)
+plot(caim$Blue/sky)
 
-#restricted view canopy photo
-path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-caim <- read_caim(path)
-plot(caim)
-caim <- normalize(caim)
-diameter <- calc_diameter(lens(), sqrt(nrow(caim)^2 + ncol(caim)^2)/2, 90)
-z <- zenith_image(diameter, lens())
-caim <- expand_noncircular(caim, z, c(ncol(caim)/2, nrow(caim)/2))
-m <- !is.na(caim$Red)
-a <- azimuth_image(z)
-caim[!m] <- 0
-z <- normalize(z, 0, 90) * 20 # a diagonal FOV of 40 degrees, a rough guess
-
-bin <- ootb_obia(caim)
-
-g <- sky_grid_segmentation(z, a, 5, sequential = TRUE)
-col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
-plot(g, col = col)
-r <- gbc(caim$Blue*255)
-sun_coord <- extract_sun_coord(r, z, a, bin, g)
-sky_points <- extract_sky_points(r, bin, g)
-rl <- extract_rl(r, z, a, sky_points)
-model <- fit_cie_sky_model(r, z, a, rl$sky_points,
-                           rl$zenith_dn, sun_coord, twilight = FALSE)
-sky_cie <- model$relative_luminance * model$zenith_dn
-plot(sky_cie)
-plot(r/sky_cie)
+# how to provide a custom starting coefficient
+model <- fit_cie_sky_model(caim$Blue, z, a, rl$sky_points,
+                           rl$zenith_dn, sun_coord,
+                           custom_sky_coef = model$coef,
+                           method = "SANN")
+plot(model$obs, model$pred, ylim = range(model$obs))
+abline(0,1)
 }
 }
 \references{
@@ -194,6 +187,7 @@ plot(r/sky_cie)
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
+\code{\link{extract_sun_coord}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{fix_reconstructed_sky}()},

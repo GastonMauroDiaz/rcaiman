@@ -9,14 +9,13 @@ lens(type = "equidistant", max_fov = FALSE)
 \arguments{
 \item{type}{Character vector of length one. The name of the lens.}
 
-\item{max_fov}{Logical vector of length one. Use \code{TRUE} to return the
-maximum field of view in degrees.}
+\item{max_fov}{Logical vector of length one. Use \code{TRUE} to return the maximum
+field of view in degrees.}
 }
 \value{
-If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector
-  of length one, which is the lens maximum field of view in degrees.
-  Otherwise, it returns a numeric vector with the coefficients of the lens
-  function.
+If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector of length
+one, which is the lens maximum field of view in degrees. Otherwise, it
+returns a numeric vector with the coefficients of the lens function.
 }
 \description{
 Database of lens projection functions and field of views.
@@ -30,35 +29,42 @@ has the horizon as perimeter. The equidistant model, also called polar, is
 the most widely used as a standard reference. Real lenses can approximate the
 projection models, but they always have some kind of distortion. In the
 equidistant model, the relation between zenith angle and relative radius is
-modeled with a straight line. Following
-\href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, this
-package uses a polynomial curve to model lens distortion. A third-order
-polynomial is sufficient in most cases \insertCite{Frazer2001}{rcaiman}.
-Equations should be fitted with angles in radians.
+modeled with a straight line. Following \href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, this package uses a
+polynomial curve to model lens distortion. A third-order polynomial is
+sufficient in most cases \insertCite{Frazer2001}{rcaiman}. Equations should
+be fitted with angles in radians.
 
 Eventually, this will be a large database, but only the following lenses are
 available at the moment:
-
-\itemize{ \item \strong{equidistant}: standard equidistant projection
+\itemize{
+\item equidistant: standard equidistant projection
 \insertCite{Schneider2009}{rcaiman}.
-
-\item \strong{Nikon_FCE9}: Nikon FC-E9 auxiliary lens
-\insertCite{Diaz2018}{rcaiman}
-
-\item \strong{Nikkor_10.5mm}: AF DX Fisheye Nikkor 10.5mm f/2.8G ED
+\item Nikkor_10.5mm: AF DX Fisheye Nikkor 10.5mm f/2.8G ED
 \insertCite{Pekin2009}{rcaiman}
-
-\item \strong{Olloclip}: Auxiliary lens for mobile devices made by Olloclip
-\insertCite{Diaz2023}{rcaiman}
-
-\item \strong{Nikkor_8mm}: AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
-(unpublished)
-
+\item Nikon_FCE9: Nikon FC-E9 converter
+\insertCite{Diaz2024}{rcaiman}
+\item Olloclip: Auxiliary lens for mobile devices made by Olloclip
+\insertCite{Diaz2024}{rcaiman}
+\item Nikkor_8mm: AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
+\insertCite{Diaz2024}{rcaiman}
 }
 }
 \examples{
 lens("Nikon_FCE9")
 lens("Nikon_FCE9", max_fov = TRUE)
+
+.fp <- function(theta, lens_coef) {
+  x <- lens_coef[1:5]
+  x[is.na(x)] <- 0
+  for (i in 1:5) assign(letters[i], x[i])
+  a * theta + b * theta^2 + c * theta^3 + d * theta^4 + e * theta^5
+}
+
+theta <- seq(0, pi/2, pi/180)
+plot(theta, .fp(theta, lens()), type = "l", lty = 2,
+      ylab = "relative radius")
+lines(theta, .fp(theta, lens("Nikon_FCE9")))
+
 }
 \references{
 \insertAllCited{}
@@ -67,8 +73,10 @@ lens("Nikon_FCE9", max_fov = TRUE)
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

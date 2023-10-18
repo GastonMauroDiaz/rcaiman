@@ -15,10 +15,10 @@ write_bin(bin, path)
 No return value. Called for side effects.
 }
 \description{
-Wrapper functions for \code{\link[terra]{writeRaster}}.
+Wrapper functions for \code{\link[terra:writeRaster]{terra::writeRaster()}}.
 }
 \examples{
-\donttest{
+\dontrun{
 z <- zenith_image(1000, lens())
 m <- !is.na(z)
 my_file <- file.path(tempdir(), "mask")
@@ -32,15 +32,17 @@ plot(m - m_from_disk)
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_caim}()}
 }

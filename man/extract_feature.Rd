@@ -23,13 +23,13 @@ one-length numeric or logical vector as output (e.g. mean).}
 \item{return_raster}{Logical vector of length one, see details.}
 
 \item{ignore_label_0}{Logical vector of length one. If this is \code{TRUE},
-then the segment labeled with \code{0} will be ignored.}
+the segment labeled with \code{0} will be ignored.}
 }
 \value{
 If \code{return_raster} is set to \code{TRUE}, then an object of
-  class \linkS4class{SpatRaster} with the same pixel dimensions than \code{r}
-  will be returned. Otherwise, the return is a numeric vector of length equal
-  to the number of segments found in \code{segmentation}.
+class \linkS4class{SpatRaster} with the same pixel dimensions than \code{r}
+will be returned. Otherwise, the return is a numeric vector of length equal
+to the number of segments found in \code{segmentation}.
 }
 \description{
 Extract features from raster images.
@@ -46,25 +46,25 @@ will be obtained by processing all pixels that belong to a segment with the
 provided function.
 }
 \examples{
-\donttest{
 r <- read_caim()
-z <- zenith_image(ncol(r),lens("Nikon_FCE9"))
+z <- zenith_image(ncol(r),lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
 print(extract_feature(r$Blue, g, return_raster = FALSE))
-plot(extract_feature(r$Blue, g, return_raster = TRUE))
-}
+# plot(extract_feature(r$Blue, g, return_raster = TRUE))
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

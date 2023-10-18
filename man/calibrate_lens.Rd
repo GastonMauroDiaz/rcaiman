@@ -7,31 +7,22 @@
 calibrate_lens(path_to_csv, degree = 3)
 }
 \arguments{
-\item{path_to_csv}{Character vector of length one. Path to a CSV file created
-with the
-\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
- selection tool of ‘ImageJ’ software}.}
+\item{path_to_csv}{Character vector. Path to a CSV file created with the
+\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
 
 \item{degree}{Numeric vector of length one. Polynomial model degree.}
 }
 \value{
-An object of class \emph{list} with named elements. \emph{lens_coef}
-  stands for lens coefficients, \emph{max_theta} for maximum zenith angle in
-  degrees, and \emph{max_theta_px} for distance in pixels between the zenith
-  and the maximum zenith angle in pixels units. The latter should be
-  double-checked, particularly if the zenith push pin is not exactly on the
-  zenith pixel. To that end, do the following on ImageJ: use the
-  \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.1}{rectangular
-   selection tool} to create a small rectangle, open the Specify window by
-  going to the dropdown menu Edit>Selection>Specify..., insert the zenith
-  coordinates (obtained with \code{\link{calc_zenith_raster_coord}}) into the
-  respective X and Y fields in order to align the upper-left corner of the
-  rectangle with the zenith, mark it with the
-  \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.14}{brush},
-  use the
-  \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2}{straight
-  selection tool} to find the length within the zenith and the maximum zenith
-  angle showed in the image.
+An object of class \emph{list} with named elements. \emph{ds} is the dataset
+used to fit the model, \emph{model} is the fitted model (class \code{lm}, see
+\code{\link[stats:lm]{stats::lm()}}), \emph{horizon_radius} is the radius at 90º, \emph{lens_coef} is a
+numeric vector of length equal to the \code{degree} argument containing the
+polynomial model coefficients for predicting relative radius
+(\code{coefficients(fit)/horizon_radius}),
+\emph{zenith_colrow} are the raster coordinates of the zenith push pin,
+\emph{max_theta} is the maximum zenith angle in degrees, and \emph{max_theta_px} is
+the distance in pixels between the zenith and the maximum zenith angle in
+pixels units.
 }
 \description{
 Calibrate a fisheye lens
@@ -40,33 +31,31 @@ Calibrate a fisheye lens
 Fisheye lenses have a wide field of view and the same distortion in all
 directions running orthogonally to the optical axis. The latter property
 allows fitting a precise mathematical relationship between distances to the
-zenith on the image space and zenith angles on the hemispherical space.
+zenith on the image space and zenith angles on the hemispherical space
+(assuming upward-looking hemispherical photography with the optical axis
+vertically aligned).
 
-These instructions are for producing the CSV file required by this function.
-The following materials are required:
-
+The method
+outlined here, known as the simple method, is explained in details in
+\insertCite{Diaz2024;textual}{rcaiman}. Next explanation might serve mostly
+as a handbook.
+\subsection{Step-by-step guide for producing a CSV file to feed this function}{
+\subsection{Materials}{
 \itemize{
-
 \item this package and \href{https://imagej.nih.gov/ij/download.html}{ImageJ}
-
 \item camera and lens
-
 \item tripod
-
 \item standard yoga mat
-
 \item table at least as wide as the yoga mat width
-
 \item twenty two push pins of different colors
-
-\item one print of this \href{https://osf.io/tudzc/download}{sheet} (A1 size,
-almost like a poster).
-
+\item one print of this \href{https://osf.io/tudzc}{sheet} (A1 size,
+almost like a research poster).
 \item scissors
-
 \item some patience
-
 }
+}
+
+\subsection{Instructions}{
 
 Cut the sheet by the dashed line. Place the yoga mat extended on top of the
 table. Place the sheet on top of the yoga mat. Align the dashed line with the
@@ -75,41 +64,64 @@ gentle, the yoga mat will allow you to do that without damaging the table. Of
 course, other materials could be used to obtain the same result, such as
 cardboard, foam, nails, etc.
 
+\figure{calibration_board.jpg}{Calibration board}
+
 Place the camera on the tripod. Align its optical axis with the table while
 looking for getting an image showing the overlapping of the three pairs of
 push pins, as instructed in the print. In order to take care of the line of
 pins at 90º relative to the optical axis, it may be of help to use the naked
-eye to align the entrance pupil of the lens with the pins.
+eye to align the entrance pupil of the lens with the pins. The alignment of
+the push pins only guarantees the position of the lens entrance pupil, the
+leveling should be cheeked with an instrument, and the alignment between the
+optical axis and the radius of the zenith push pin should be taken into
+account. In practice, the latter is achieved by aligning the camera body with
+the orthogonal frame made by the quarter circle.
 
-Transfer the photograph to the computer, open it with ImageJ, and use the
-\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point
-selection tool} to digitize the push pins, starting from the zenith push pin
-and not skipping any shown push pin. End with an additional point where the
-image meets the surrounding black or the last pixel in case there is not
-blackness because it is not a circular hemispherical image. Then, use the
-dropdown menu Analyze>Measure to open the window Results. To obtain the CSV,
-use File>Save As...
+Take a photo and transfer it to the computer, open it with ImageJ, and use
+the \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool}
+to digitize the push pins, starting from the zenith push pin and not skipping
+any shown push pin. End with an additional point where the image meets the
+surrounding black (or the last pixel in case there is not blackness because
+it is not a circular hemispherical image. There is no need to follow the line
+formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
+the window Results. To obtain the CSV, use File>Save As...
 
-This method is based on the calibration board by
-\insertCite{Clark1988;textual}{rcaiman}.
+\figure{push_pins_imageJ.jpg}{Points digitization with ImageJ}
 
-\strong{TIP:} use \code{\link{test_lens_coef}} to test if coefficients are
-OK. If not, try moving the last points a little bit. Putting the one of the
-last push pin a few pixels farther from the zenith is usually enough. An
-alternative is to round the coefficients, or truncate the last number of the
-last coefficient.
+Use \code{\link[=test_lens_coef]{test_lens_coef()}} to test if coefficients are OK.
+}
 
-This
-\href{https://docs.google.com/document/d/178yZDAcfx--Xn1Ye8Js-kUXuPCuYOHQL5fxAH7KBEoY/edit?usp=sharing}{document}
-contains additional details.
+}
+}
+\note{
+If we imagine the fisheye image as an analog clock, it is possible to
+calibrate 3 o'clock by attaching the camera to the tripod in landscape mode
+while leaving the quarter-circle at the lens's right side. To calibrate 9
+o'clock, it will be necessary to rotate the camera to put the quarter-circle
+at the lens's left side. To calibrate 12 and 6 o'clock, it will be necessary
+to do the same but with the camera in portrait mode. If several directions
+are sampled with this procedure, a character vector of length greater than
+one in which each element is a path to a CSV files could be provided as the
+\code{path_to_csv} argument.
 }
 \examples{
 path <- system.file("external/Results_calibration.csv", package = "rcaiman")
 calibration <- calibrate_lens(path)
-calibration$lens_coef
-calibration$max_theta
-calibration$max_theta_px
+coefficients(calibration$model)
+calibration$lens_coef \%>\% signif(3)
+calibration$horizon_radius
 test_lens_coef(calibration$lens_coef)
+
+.fp <- function(theta, lens_coef) {
+  x <- lens_coef[1:5]
+  x[is.na(x)] <- 0
+  for (i in 1:5) assign(letters[i], x[i])
+  a * theta + b * theta^2 + c * theta^3 + d * theta^4 + e * theta^5
+}
+
+plot(calibration$ds)
+theta <- seq(0, pi/2, pi/180)
+lines(theta, .fp(theta, coefficients(calibration$model)))
 }
 \references{
 \insertAllCited{}
@@ -118,7 +130,9 @@ test_lens_coef(calibration$lens_coef)
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

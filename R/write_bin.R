@@ -1,8 +1,8 @@
 #' Write binarized images
 #'
-#' Wrapper functions for \code{\link[terra]{writeRaster}}.
+#' Wrapper functions for [terra::writeRaster()].
 #'
-#' @param bin \linkS4class{SpatRaster}.
+#' @param bin [SpatRaster-class].
 #' @inheritParams write_caim
 #'
 #' @export
@@ -12,7 +12,7 @@
 #' @family Tool Functions
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' z <- zenith_image(1000, lens())
 #' m <- !is.na(z)
 #' my_file <- file.path(tempdir(), "mask")

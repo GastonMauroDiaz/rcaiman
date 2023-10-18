@@ -10,22 +10,22 @@
 #' sides and two opposite and parallel curvy sides.
 #'
 #' The algorithm splits segments of 30 degrees resolution into four sub-segments
-#' and calculates the standard deviation of the pixels from \code{r} delimited
+#' and calculates the standard deviation of the pixels from `r` delimited
 #' by each of those segments. The splitting process stops locally if the sum of
 #' the standard deviation of the sub-segments minus the standard deviation of
-#' the parent segment (named \emph{delta}) is less or equal than the
-#' \code{scale_parameter}. If \code{r} has more than one layer, \emph{delta} is
-#' calculated separately and \emph{delta} mean is used to evaluate the stopping
+#' the parent segment (named *delta*) is less or equal than the
+#' `scale_parameter`. If `r` has more than one layer, *delta* is
+#' calculated separately and *delta* mean is used to evaluate the stopping
 #' condition.
 #'
-#' @param r \linkS4class{SpatRaster}.
+#' @param r [SpatRaster-class].
 #' @inheritParams ootb_mblt
 #' @param scale_parameter Numeric vector of length one. Quad-tree is a top-down
 #'   method. This parameter controls the stopping condition. Therefore, it
 #'   allows controlling the size of the resulting segments. Ultimately, segments
-#'   sizes will depend on both this parameter and the heterogeneity of \code{r}.
+#'   sizes will depend on both this parameter and the heterogeneity of `r`.
 #'
-#' @return A single layer image of the class \linkS4class{SpatRaster} with
+#' @return A single layer image of the class [SpatRaster-class] with
 #'   integer values.
 #'
 #' @export polar_qtree
@@ -33,11 +33,9 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \donttest{
-#' caim <- read_caim()
-#' plot(caim)
-#' caim <- normalize(caim, 0, 255)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' \dontrun{
+#' caim <- read_caim() %>% normalize()
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' seg <- polar_qtree(caim, z, a)
 #' plot(seg)

@@ -14,66 +14,60 @@ regional_thresholding(
 )
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
-\item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting
-\code{r}. Probably, \code{\link{rings_segmentation}} will be the most used
-for fisheye images.}
+\item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting \code{r}.
+Arguably, the result of a call to \code{\link[=rings_segmentation]{rings_segmentation()}} will be the
+preferred choice for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current
 options.}
 
 \item{intercept, slope}{Numeric vector of length one. These are linear
-function coefficients--see section Details in \code{\link{thr_image}}.}
+function coefficients.}
 
-\item{prob}{Numeric vector of length one. Probability for
-\code{\link[stats]{quantile}} calculation.}
+\item{prob}{Numeric vector of length one. Probability for \code{\link[stats:quantile]{stats::quantile()}}
+calculation.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}.
+An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 }
 \description{
 Regional thresholding of greyscale images.
 }
 \details{
 Methods currently implemented are:
-
 \itemize{
-
 \item \strong{Diaz2018}: method presented in
 \insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
-selected, the arguments \code{intercept}, \code{slope}, and \code{prob}
-should be provided. It works segment-wise extracting the digital numbers
-(dns) per segment and passing them to \code{quantile(dns, prob)}, which
-aggregated result (\code{x}) is in turn passed to \code{thr_image(x,
-intercept, slope)}. Finally, this threshold image is applied to obtain a
-binarized image.
-
+selected, the arguments \code{intercept}, \code{slope}, and \code{prob} should be provided.
+It works segment-wise extracting the digital numbers per segment and passing
+them to \code{\link[stats:quantile]{stats::quantile()}} along with \code{prob}, which aggregated result is in
+turn passed to \code{\link[=thr_mblt]{thr_mblt()}} along with \code{intercept} and \code{slope}. Finally, this
+threshold image is applied to obtain a binarized image.
 \item \strong{Methods from autothresholdr package}: this function can call
-methods from \code{\link[autothresholdr]{auto_thresh}}. Use \code{"IsoData"}
+methods from \code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}. For instance, use \code{"IsoData"}
 to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which was
 recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
-
 \item \strong{Method isodata from this package}: Use \code{"thr_isodata"} to
-use \code{\link{thr_isodata}}.
-
+use \code{\link[=thr_isodata]{thr_isodata()}}.
 }
 }
 \examples{
-\donttest{
+\dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-r <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-blue <- gbc(r$Blue)
-z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
-rings <- rings_segmentation(z, 10)
-bin <- regional_thresholding(blue, rings, "Diaz2018", -8, 0.5, 1)
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+r <- gbc(caim$Blue)
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+rings <- rings_segmentation(z, 15)
+bin <- regional_thresholding(r, rings, "Diaz2018", -7.8, 0.95 * 0.5, 0.99)
 plot(bin)
-bin <- regional_thresholding(blue, rings, "thr_isodata")
+bin <- regional_thresholding(r, rings, "thr_isodata")
 plot(bin)
-}
+#' }
 }
 \references{
 \insertAllCited{}
@@ -86,7 +80,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
-\code{\link{thr_image}()},
-\code{\link{thr_isodata}()}
+\code{\link{thr_isodata}()},
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

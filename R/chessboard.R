@@ -1,21 +1,19 @@
 #' Chessboard segmentation
 #'
 #' @inheritParams polar_qtree
-#' @param size Numerica vector of length one. Size of the square segments.
+#' @param size Numeric vector of length one. Size of the square segments.
 #'
-#' @return A single layer image of the class \linkS4class{SpatRaster} with
-#'   integer values.
+#' @return A single layer image of the class [SpatRaster-class] with integer
+#'   values.
 #' @export
 #'
 #' @family Segmentation Functions
 #'
 #' @examples
-#' \donttest{
 #' caim <- read_caim()
-#' seg <- chessboard(caim, 100)
+#' seg <- chessboard(caim, 20)
 #' plot(caim$Blue)
 #' plot(extract_feature(caim$Blue, seg))
-#' }
 chessboard <- function(r, size) {
   is(r, "SpatRaster")
   stopifnot(length(size) == 1)

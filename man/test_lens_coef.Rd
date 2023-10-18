@@ -8,25 +8,37 @@ test_lens_coef(lens_coef)
 }
 \arguments{
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function.}
+projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 }
 \value{
 Returns \code{invisible(TRUE)} and print "Test passed" if all tests
-  pass, otherwise throws an error.
+pass, otherwise throws an error.
 }
 \description{
 Test if a lens projection function will work between the 0-to-1 range.
 }
+\details{
+The package tolerate a number very close to 1 but not exactly 1 as long as it
+is greater than 1. Therefore, when the test fails at this \emph{"Test that
+lens projection function does not predict values barely below one"}, the best
+practice is to manually edit the last coefficient. For instance, changing it
+from -0.0296 to -0.0295. See \code{\link[testthat:equality-expectations]{testthat::expect_equal()}} for further details.
+
+If it fails in \emph{"Test that lens projection function works between the
+0-to-1 range"}, collecting data again might be necessary.
+}
 \examples{
 test_lens_coef(lens("Nikon_FCE9"))
-test_lens_coef(2 / pi)
+test_lens_coef(2/pi)
 }
 \seealso{
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

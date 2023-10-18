@@ -16,7 +16,7 @@ sizes will depend on both this parameter and the heterogeneity of \code{r}.}
 }
 \value{
 A single layer image of the class \linkS4class{SpatRaster} with
-  integer values.
+integer values.
 }
 \description{
 The quad-tree segmentation algorithm is a top-down process that makes
@@ -38,11 +38,9 @@ equal than the \code{scale_parameter}. If \code{r} has more than one layer,
 evaluate the stopping condition.
 }
 \examples{
-\donttest{
-caim <- read_caim()
-plot(caim)
-caim <- normalize(caim, 0, 255)
-seg <- qtree(caim, scale_parameter = 0.5)
+\dontrun{
+caim <- read_caim() \%>\% normalize()
+seg <- qtree(caim, scale_parameter = 0.05)
 plot(caim$Blue)
 plot(extract_feature(caim$Blue, seg))
 plot(extract_feature(seg, seg, length))

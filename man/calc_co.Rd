@@ -4,19 +4,18 @@
 \alias{calc_co}
 \title{Calculate canopy openness}
 \usage{
-calc_co(bin, m, z, a, angle_width)
+calc_co(bin, m = NULL, z, a, angle_width)
 }
 \arguments{
 \item{bin}{\linkS4class{SpatRaster}. Binarized hemispherical canopy image.}
 
-\item{m}{\linkS4class{SpatRaster}. Check \code{\link{mask_hs}}.}
+\item{m}{\linkS4class{SpatRaster}. See \code{\link[=mask_hs]{mask_hs()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
-10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
+\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 constrain is rooted in the requirement of a value able to divide both the
 \code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
 of segments.}
@@ -31,17 +30,32 @@ Calculate canopy openness
 Canopy openness calculated as in the equation from
 \insertCite{Gonsamo2011;textual}{rcaiman}:
 
-\eqn{CO = \sum_{i = 1}^{N} GF(\phi_i, \theta_i) \cdot ((cos(\theta_1) -
-cos(\theta_2))/n)}, where \eqn{GF(\phi_i, \theta_i)} is the gap fraction of
-the cell \eqn{i}, \eqn{\theta_1} and \eqn{\theta_2} are the smallest and
-largest zenith angle of the cell \eqn{i}, and \eqn{n} is the number of cells
-on the ring delimited by \eqn{\theta_1} and \eqn{\theta_2}.
+\eqn{CO = \sum_{i = 1}^{N} GF(\phi_i, \theta_i) \cdot [(cos(\theta_1) -
+cos(\theta_2))/n]},
+
+where \eqn{GF(\phi_i, \theta_i)} is the gap fraction of the cell \eqn{i},
+\eqn{\theta_1} and \eqn{\theta_2} are the minimum and maximum zenith angle of
+the cell \eqn{i}, \eqn{n} is the number of cells on the ring delimited by
+\eqn{\theta_1} and \eqn{\theta_2}, and \eqn{N} is the total number of cells.
+
+When a mask is provided through the \code{m} argument, the equation is modified as
+follow:
+
+\eqn{
+\frac{
+CO = \sum_{i = 1}^{N} GF(\phi_i, \theta_i) \cdot [(cos(\theta_1) -
+cos(\theta_2))/n]
+} { \sum_{i = 1}^{N} (cos(\theta_1) - cos(\theta_2))/n}
+
+}.
+
+This allows the masking of any individual cell.
 }
 \examples{
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- !is.na(z)
+m <- mask_hs(z, 0, 70)
 bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 plot(bin)
 calc_co(bin, m, z, a, 10)
@@ -50,18 +64,4 @@ calc_co(bin, m, z, a, 10)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{colorfulness}()},
-\code{\link{defuzzify}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{masking}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()}
-}
-\concept{Tool Functions}
+\concept{Metrics Functions}

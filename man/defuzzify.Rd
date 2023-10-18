@@ -11,33 +11,33 @@ defuzzify(mem, segmentation)
 membership.}
 
 \item{segmentation}{An object of the class \linkS4class{SpatRaster}, such as
-the result of a call to \code{\link{sky_grid_segmentation}}.}
+the result of a call to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 }
 \value{
 An object of the class \linkS4class{SpatRaster} containing binary
-  information.
+information.
 }
 \description{
 This function translates degree of membership into Boolean logic using a
 regional approach. The result will ensure that the fuzzy and Boolean version
 will agree at the chosen level of aggregation (controlled by the argument
 \code{segmentation}). This method makes perfect sense to translate a subpixel
-classification of gap fraction--or a linear ratio
-\insertCite{Lang2013}{rcaiman}--into a binary product.
+classification of gap fraction (or a linear ratio) into a binary product.
 }
-\details{
+\note{
 This method is also available in the HSP software package
 \insertCite{Lang2013}{rcaiman}.
 }
 \examples{
-\donttest{
+\dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-r[is.na(z)] <- 0 # because FOV > 180
-bin <- ootb_mblt(r, z, a)
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+bin <- find_sky_pixels(r, z, a)
+bin <- ootb_mblt(r, z, a, bin)
 plot(bin$bin)
 ratio <- r / bin$sky_s
 ratio <- normalize(ratio, 0, 1, TRUE)
@@ -45,7 +45,7 @@ plot(ratio)
 g <- sky_grid_segmentation(z, a, 10)
 bin2 <- defuzzify(ratio, g)
 plot(bin2)
-plot(bin$bin - bin2)
+plot(abs(bin$bin - bin2))
 }
 }
 \references{
@@ -53,14 +53,16 @@ plot(bin$bin - bin2)
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
 \code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

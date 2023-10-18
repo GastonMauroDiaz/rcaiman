@@ -22,10 +22,10 @@ Read optimized CIE sky coefficients stored in an HSP project.
 }
 \details{
 Refer to the Details section of function
-\code{\link{write_sky_points}}.
+\code{\link[=write_sky_points]{write_sky_points()}}.
 }
 \seealso{
-\code{\link{cie_sky_model_raster}}
+\code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}}
 
 Other HSP Functions: 
 \code{\link{read_manual_input}()},

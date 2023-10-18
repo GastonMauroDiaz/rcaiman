@@ -1,31 +1,31 @@
 #' Image masking
 #'
-#' @param r \linkS4class{SpatRaster}. The image. Values should be normalized,
-#'   see \code{\link{normalize}}. Only methods for images with one or three
+#' @param r [SpatRaster-class]. The image. Values should be normalized,
+#'   see [normalize()]. Only methods for images with one or three
 #'   layers have been implemented.
-#' @param m \linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-#'   check \code{\link{mask_hs}}.
+#' @param m [SpatRaster-class]. A mask. For hemispherical photographs,
+#'   check [mask_hs()].
 #' @param RGB Numeric vector of length three. RGB color code. Red is the default
 #'   color.
 #'
-#' @return An object of class \linkS4class{SpatRaster} that essentially is
-#'   \code{r} with areas where \code{m} is equal to zero painted in a solid
-#'   color. If \code{r} is a single layer image, then the layer is triplicated
+#' @return An object of class [SpatRaster-class] that essentially is
+#'   `r` with areas where `m` is equal to zero painted in a solid
+#'   color. If `r` is a single layer image, then the layer is triplicated
 #'   to allow the use of color.
 #' @export
 #' @family Tool Functions
-#' @seealso \code{\link{mask_hs}}
+#' @seealso [mask_hs()]
 #'
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #'  r <- read_caim()
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)
 #'  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
 #'  m <- as.logical(m)
 #'
-#'  masked_caim <-  masking(normalize(r, 0, 255), m)
+#'  masked_caim <-  masking(normalize(r), m)
 #'  plotRGB(masked_caim * 255)
 #'
 #'  masked_bin <- masking(apply_thr(r$Blue, 125), m)

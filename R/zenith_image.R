@@ -1,8 +1,8 @@
 #' Relative radius image
 #'
-#' Build a single layer image with relative radius values.
+#' Build a single-layer image with relative radius values
 #'
-#' @param diameter A numeric vector of length one. Diameter in pixels.
+#' @inheritParams zenith_image
 #'
 #' @noRd
 relative_radius_image <- function (diameter)
@@ -18,52 +18,24 @@ relative_radius_image <- function (diameter)
   dis
 }
 
-#' Calculate relative radius
-#'
-#' Calculate the relative radius given a zenith angle and lens function.
-#'
-#' @param angle Numeric vector. Zenith angles in degrees.
-#' @param lens_coef Numeric vector. Polynomial coefficients
-#'   of the lens projection function.
-#'
-#' @noRd
-calc_relative_radius <- function(angle, lens_coef) {
 
-  angle <- .degree2radian(angle)
-
-  temp <- cbind(lens_coef, seq(1, length(lens_coef)))
-  for (i in 1:length(lens_coef)) {
-    if (i == 1) {
-      ma <- temp[i, 1] * angle^temp[i, 2]
-    } else {
-      ma <- rbind(ma, temp[i, 1] * angle^temp[i, 2])
-    }
-  }
-
-  if (length(lens_coef) == 1) {
-    relative_radius <- ma
-  } else {
-    relative_radius <- apply(ma, 2, sum)
-  }
-  unname(relative_radius)
-}
 
 #' Zenith image
 #'
-#' Built a single layer image with zenith angle values.
+#' Built a single layer-image with zenith angle values, assuming upwards-looking
+#' hemispherical photography with the optical axis vertically aligned.
 #'
 #'
 #' @param diameter Numeric vector of length one. Diameter in pixels expressed as
-#'   an even integer, so to simplify calculations by having the zenith point
-#'   located between pixels. Snapping the zenith point between pixels does not
-#'   affect accuracy because half-pixel is less than the uncertainty in
-#'   localizing the circle within the picture.
+#'   an even integer. The latter is to simplify calculations by having the
+#'   zenith point located between pixels. Snapping the zenith point between
+#'   pixels does not affect accuracy because half-pixel is less than the
+#'   uncertainty in localizing the circle within the picture.
 #' @param lens_coef Numeric vector. Polynomial coefficients of the lens
-#'   projection function.
+#'   projection function. See [calibrate_lens()].
 #'
-#' @return An object of class \linkS4class{SpatRaster} of zenith angles in
-#'   degrees, showing a complete hemispherical view with the zenith on the
-#'   center.
+#' @return An object of class [SpatRaster-class] of zenith angles in degrees,
+#'   showing a complete hemispherical view with the zenith on the center.
 #' @export
 #'
 #' @family Lens Functions
@@ -73,8 +45,7 @@ calc_relative_radius <- function(angle, lens_coef) {
 #' plot(z)
 zenith_image <- function (diameter, lens_coef)
 {
-  # Assign zenith angle by inverting relative radius(R)
-  # with a Look Up Table (LUT).
+  # Assign zenith angle by inverting relative radius(R) with a Look Up Table
   stopifnot(.is_integerish(diameter))
   stopifnot(.is_even(diameter))
 

@@ -3,19 +3,19 @@
 #' Given a zenith or azimuth image and angle restrictions, this function
 #' produces a mask.
 #'
-#' @param r \linkS4class{SpatRaster} built with \code{\link{zenith_image}} or
-#'   \code{\link{azimuth_image}}.
+#' @param r [SpatRaster-class] built with [zenith_image()] or
+#'   [azimuth_image()].
 #' @param from,to angle in degrees, inclusive limits.
 #'
 #' @export
 #' @family Segmentation Functions
-#' @seealso \code{\link{masking}}
+#' @seealso [masking()]
 #'
-#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1}.
+#' @return An object of class [SpatRaster-class] with values `0` and
+#'   `1`.
 #'
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' z <- zenith_image(1000, lens())
 #' a <- azimuth_image(z)
 #' m1 <- mask_hs(z, 20, 70)

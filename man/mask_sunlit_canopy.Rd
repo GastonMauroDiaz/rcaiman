@@ -8,30 +8,32 @@ mask_sunlit_canopy(caim, m = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link{read_caim}}.}
+\code{\link[=read_caim]{read_caim()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
-enter \code{!is.na(caim$Red)}. See the Details section in
-\code{\link{local_fuzzy_thresholding}} to understand how this argument can
-modify the output.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
+\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
+to understand how this argument can modify the output.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}.
+An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 }
 \description{
-It is a wrapper function around \code{\link{membership_to_color}}. It
-masks pixels that are likely sunlit canopy.
+It is a wrapper function around \code{\link[=membership_to_color]{membership_to_color()}}. It was developed
+with images in sRGB color space \insertCite{Diaz2023}{rcaiman}.
 }
 \examples{
-\donttest{
-caim <- read_caim() \%>\% normalize()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-m <- !is.na(z)
-sunlit_canopy <- mask_sunlit_canopy(caim, m)
-plot(sunlit_canopy)
+\dontrun{
+path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+caim <- read_caim(path)
+plotRGB(caim)
+caim <- normalize(caim)
+m <- mask_sunlit_canopy(caim)
+plot(m)
 }
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other Segmentation Functions: 

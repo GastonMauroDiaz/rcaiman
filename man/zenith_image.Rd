@@ -8,21 +8,21 @@ zenith_image(diameter, lens_coef)
 }
 \arguments{
 \item{diameter}{Numeric vector of length one. Diameter in pixels expressed as
-an even integer, so to simplify calculations by having the zenith point
-located between pixels. Snapping the zenith point between pixels does not
-affect accuracy because half-pixel is less than the uncertainty in
-localizing the circle within the picture.}
+an even integer. The latter is to simplify calculations by having the
+zenith point located between pixels. Snapping the zenith point between
+pixels does not affect accuracy because half-pixel is less than the
+uncertainty in localizing the circle within the picture.}
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function.}
+projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} of zenith angles in
-  degrees, showing a complete hemispherical view with the zenith on the
-  center.
+An object of class \linkS4class{SpatRaster} of zenith angles in degrees,
+showing a complete hemispherical view with the zenith on the center.
 }
 \description{
-Built a single layer image with zenith angle values.
+Built a single layer-image with zenith angle values, assuming upwards-looking
+hemispherical photography with the optical axis vertically aligned.
 }
 \examples{
 z <- zenith_image(1490, lens("Nikon_FCE9"))
@@ -32,8 +32,10 @@ plot(z)
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

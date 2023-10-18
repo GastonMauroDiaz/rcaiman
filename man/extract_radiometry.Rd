@@ -2,44 +2,68 @@
 % Please edit documentation in R/extract_radiometry.R
 \name{extract_radiometry}
 \alias{extract_radiometry}
-\title{Extract radiometry}
+\title{Extract radiometry data}
 \usage{
-extract_radiometry(path_to_pgms, z_thr = 15, size_px = NULL, pattern = "pgm")
+extract_radiometry(l, size_px = NULL)
 }
 \arguments{
-\item{path_to_pgms}{Character vector of length one. Path to a folder with the
-PGM files for radiometry sampling. These files must comply with the
-equidistant projection.}
-
-\item{z_thr}{Numeric vector of length one. Maximum angle in degrees used to
-calculate the digital number (DN) not affected by the vignetting effect. If
-\code{NULL} is provided, DNs are returned instead of relative luminance.}
+\item{l}{List of prepossessed images (\linkS4class{SpatRaster}) for radiometry
+sampling. These images must comply with the equidistant projection.}
 
 \item{size_px}{Numeric vector of length one. Diameter in pixels of the
 circular sampling area at the image center. This area is modified
 considering the equidistant projection distortion. Therefore, it will be
-visualized as an ellipse any other place but the image center.}
-
-\item{pattern}{an optional \link[base]{regular expression}.  Only file names
-    which match the regular expression will be returned.}
+visualized as an ellipse at any other place but the image center.}
 }
 \value{
-An object from the class \code{data.frame} with columns \emph{theta}
-  (zenith angle in radians) and \emph{radiometry} (relative luminance or
-  digital number, depending on argument \code{z_thr}.
+An object from the class \code{data.frame} with columns \emph{theta} (zenith
+angle in radians) and \emph{radiometry} (digital number (DN) or relative digital
+number (RDN), depending on argument \code{z_thr}.
 }
 \description{
-Extract radiometry
+Extract radiometry from images taken with the aid of a portable light source
+and the calibration board detailed in \code{\link[=calibrate_lens]{calibrate_lens()}}. Then end goal is to
+obtain the data required to model the vignetting effect.
 }
 \details{
-Consult this
-\href{https://docs.google.com/document/d/178yZDAcfx--Xn1Ye8Js-kUXuPCuYOHQL5fxAH7KBEoY/edit?usp=sharing}{document}
-for additional details.
+Lenses have the inconvenient property of increasingly attenuating light in
+the direction orthogonal to the optical axis. This phenomenon is known as the
+vignetting effect and varies with lens model and aperture setting. The method
+outlined here, known as the simple method, is explained in details in
+\insertCite{Diaz2024;textual}{rcaiman}. Next explanation might serve mostly
+as a quick recap of it.
 
-This code exemplify how to use the function to obtain the data and use base R
-functions to obtain the vignetting function.
-\preformatted{
-up_data <- extract_radiometry("D610/up")
+The development of the simple method was done with a Kindle Paperwhite eBooks
+reader of 6" with built-in light. However, an iPhone 6 plus was also tested
+in the early stages of development and no substantial differences were
+observed. A metal bookends desk book holder was used to fasten the eBook
+reader upright and a semi-transparent paper to favor a Lambertian light
+distribution. In addition, the latter was used to draw marks on it aiming to
+guide pixel sampling. The book holder also facilitated the alignment of the
+screen with the dotted lines of the printed quarter-circle.
+
+\figure{light_source.jpg}{Portable light source}
+
+As a general guideline, a wide variety of mobile devices could be used as
+light sources, but if scattered data points are obtained with it, then other
+light sources should be tested in order to double check that the light
+quality is not the reason for points scattering.
+
+With the room only illuminated by the portable light source, nine photographs
+should be taken with the light source located in the equivalent to 0, 10, 20,
+30, 40, 50, 60, 70, and 80 degrees of zenith angle, respectively. Camera
+configuration should be in manual mode and set with the aperture (f-number)
+for which a vignetting function is required. The shutter speed should be
+regulated to obtain light-source pixels with middle grey values. The nine
+photographs should be taken \strong{without changing the camera configuration or
+the light conditions}.
+
+\figure{calibration_board_vignetting.jpg}{Obtaining radiometric data}
+
+This code exemplify how to use the function to obtain the data and base R
+functions to obtain the vignetting function (\eqn{f_v}).
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{up_data <- extract_radiometry("D610/up")
 down_data <- extract_radiometry("D610/down")
 right_data <- extract_radiometry("D610/right")
 left_data <- extract_radiometry("D610/left")
@@ -53,18 +77,78 @@ legend("bottomleft", legend = c("up", "down", "right", "left"),
 
 fit <- lm((1 - ds$radiometry) ~ poly(ds$theta, 3, raw = TRUE) - 1)
 summary(fit)
-coef <- fit$coefficients
-fun <- function(x) 1 - (coef[1] * x + coef[2] * x^2 + coef[3] * x^3)
-curve(fun, add = TRUE, col= 2)
+coef <- -fit$coefficients #Did you notice the minus sign?
+.fv <- function(x) 1 + coef[1] * x + coef[2] * x^2 + coef[3] * x^3
+curve(.fv, add = TRUE, col = 2)
 coef
+
+}\if{html}{\out{</div>}}
+
+Once one of the aperture settings is calibrated, it can be used to calibrate
+all the rest. To do so,  the equipment should be used to take photographs in
+all desired exposition and without moving the camera, including the aperture
+already calibrated and preferably under an open sky in stable diffuse light
+conditions. The same procedure, which minor adaptations, is applicable to
+cross-camera calibration. Below code could be used as a template.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1500, 997)*2
+diameter <- 947*4
+z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
+a <- azimuth_image(z)
+
+files <- dir("raw/", full.names = TRUE)
+l <- list()
+for (i in seq_along(files)) \{
+  if (i == 1) \{
+    # because the first aperture was the one already calibrated
+    lens_coef_v <- c(0.0302, -0.320, 0.0908)
+  \} else \{
+    lens_coef_v <- NULL
+  \}
+  l[[i]] <- read_caim_raw(files[i], z, a, zenith_colrow,
+                          radius = 500,
+                          only_blue = TRUE,
+                          lens_coef_v = lens_coef_v)
+\}
+
+ref <- l[[1]]
+rings <- rings_segmentation(zenith_image(ncol(ref), lens()), 3)
+theta <- seq(1.5, 90 - 1.5, 3) * pi/180
+
+.fun <- function(r) \{
+  r <- extract_feature(r, rings, return_raster = FALSE)
+  r/r[1]
+\}
+
+l <- Map(.fun, l)
+
+.fun <- function(x) \{
+  x / l[[1]][] # because the first is the one already calibrated
+\}
+radiometry <- Map(.fun, l)
+
+l <- list()
+for (i in 2:length(radiometry)) \{
+  l[[i-1]] <- data.frame(theta = theta, radiometry = radiometry[[i]][])
+\}
+ds <- l[[1]]
+head(ds)
+# The result is one dataset (ds) for each file. This is all what it is needed
+# before using base R functions to fit a vignetting function
+
+}\if{html}{\out{</div>}}
 }
+\references{
+\insertAllCited{}
 }
 \seealso{
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{fisheye_to_equidistant}()},
 \code{\link{fisheye_to_pano}()},

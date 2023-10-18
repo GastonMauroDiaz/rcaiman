@@ -4,15 +4,17 @@
 \alias{zenith_azimuth_from_row_col}
 \title{Zenith and azimuth angles from row and col numbers}
 \usage{
-zenith_azimuth_from_row_col(z, row_col, lens_coef)
+zenith_azimuth_from_row_col(z, a, row_col, lens_coef = NULL)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{row_col}{Numeric vector of length two. Row and col numbers.}
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function.}
+projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 }
 \value{
 Numeric vector of length two.
@@ -26,9 +28,13 @@ The result will be incorrect if the point is outside the circular image of
 because it is assumed that the photographs were acquired orienting the camera
 top to North.
 }
+\note{
+Use the \code{lens_coef} argument to calculate coordinates below the horizon.
+}
 \examples{
-z <- zenith_image(1000, lens_coef = lens())
-zenith_azimuth_from_row_col(z, c(501, 750), lens())
+z <- zenith_image(1000, lens())
+a <- azimuth_image(z)
+zenith_azimuth_from_row_col(z, a, c(501, 750))
 }
 \seealso{
 Other HSP Functions: 

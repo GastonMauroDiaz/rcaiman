@@ -4,54 +4,66 @@
 \alias{find_sky_pixels_nonnull}
 \title{Find sky pixels following the non-null criteria}
 \usage{
-find_sky_pixels_nonnull(r, sky, g, slope = 0.5)
+find_sky_pixels_nonnull(r, sky, g, intercept = 0, slope = 1, w = 0.5)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically,
-the blue channel extracted from a canopy photograph. Please see
-\code{\link{read_caim}} and \code{\link{normalize}}.}
+\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
+blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
+and \code{\link[=normalize]{normalize()}}.}
 
 \item{sky}{An object of class \linkS4class{SpatRaster} produced with
-\code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
-\code{\link{fit_cie_sky_model}}, or \code{\link{ootb_sky_reconstruction}}.}
+\code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}, \code{\link[=fit_trend_surface]{fit_trend_surface()}}, \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, or
+\code{\link[=ootb_sky_reconstruction]{ootb_sky_reconstruction()}}. It also support a numeric vector of length
+one. For instance, it could be a value obtained with a combination of
+\code{\link[=extract_sky_points]{extract_sky_points()}} and \code{\link[=extract_dn]{extract_dn()}}. The latter can be understood as
+modelling the sky with a plane.}
 
-\item{g}{\linkS4class{SpatRaster} built with
-\code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.}
+\item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
+\code{\link[=chessboard]{chessboard()}}.}
 
-\item{slope}{Numeric vector of length one. See section Details in
-\code{\link{thr_image}}.}
+\item{intercept, slope}{Numeric vector of length one. These are linear
+function coefficients.}
+
+\item{w}{Numeric vector of length one. Weighting parameter from
+\insertCite{Diaz2018;textual}{rcaiman}'s Equation 1. See \code{\link[=thr_mblt]{thr_mblt()}}}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}.
+An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 }
 \description{
-Find sky pixels using the increase in number of cells without sky pixels (the
-so-called null cells) as stopping criteria.
+Cells without sky pixels are the so-called null cells. This type of cells are
+mathematically intractable by models typically used to obtain canopy metrics.
+This function find sky pixels using increase in number of null cells as the
+stopping criteria.
 }
 \details{
-The arguments \code{sky} and \code{slope} are passed to
-\code{\link{thr_image}}, which output is in turn passed to
-\code{\link{apply_thr}} along with \code{r}. As a result, \code{r} is
-binarized and used along with \code{g} to compute the number of null cells.
-The process is repeated but increasing \code{slope} in steps of 0.05 as long
-as the number of null cells remains constant.
+The arguments \code{sky}, \code{intercept}, \code{slope}, and \code{w} are passed to \code{\link[=thr_mblt]{thr_mblt()}}
+whose output is in turn passed to \code{\link[=apply_thr]{apply_thr()}} along with \code{r}. As a result,
+\code{r} is binarized and used along with \code{g} to compute the number of null cells.
+The process is repeated but increasing \code{w} in steps of 0.05 as long as
+the number of null cells remains constant.
 }
 \examples{
-\donttest{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+\dontrun{
+caim <- read_caim() \%>\% normalize(., 0, 2^16)
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
-bin <- find_sky_pixels(r, z, a)
+bin <- ootb_obia(caim, z, a, gamma = NULL)
+g <- sky_grid_segmentation(z, a, 3)
+r <- caim$Blue
+sky_points <- extract_sky_points(r, bin, g,
+                                 dist_to_plant = 5,
+                                 min_raster_dist = 5)
+rl <- extract_rl(r, z, a, sky_points)
+model <- fit_coneshaped_model(rl$sky_points)
+summary(model$model)
+
+sky <- model$fun(z, a)
+sky <- fit_trend_surface(sky, z, a, !is.na(z))$image
+plot(r/sky)
+
 g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(r, bin, g)
-sky_points <- extract_rl(r, z, a, sky_points, NULL)
-model <- fit_coneshaped_model(sky_points$sky_points)
-sky_cs <- model$fun(z, a)
-g[mask_hs(z, 0, 10) | mask_hs(z, 70, 90)] <- NA
-bin <- find_sky_pixels_nonnull(r, sky_cs, g)
+bin <- find_sky_pixels_nonnull(r, sky, g)
 plot(bin)
 }
 }
@@ -63,7 +75,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()},
-\code{\link{thr_isodata}()}
+\code{\link{thr_isodata}()},
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

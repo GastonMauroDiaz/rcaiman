@@ -7,33 +7,35 @@
 azimuth_image(z, orientation = 0)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{orientation}{The azimuthal angle at which the top of the image is
-facing, in degrees. Generally, it corresponds to the angle at which the top
-of the camera was facing at the moment of acquisition.}
+\item{orientation}{Azimuth angle (degrees) at which the top of the image was
+pointing at the moment of taking the picture. The usual field protocol is
+recording the angle at which the top of the camera points.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with azimuth angles in
-  degrees. If the \code{orientation} argument is zero, North (0º) is pointing
-  up as in maps, but East (90º) and West (270º) are flipped respecting to
-  maps. To understand why is that, do the following: take two flash-card size
-  pieces of paper; put one on a table in front of you and draw on it a
-  compass rose; take the other and hold it with your arms extended over your
-  head and, following the directions of the compass rose in front of you,
-  draw another one in the paper side that face down--It will be an awkward
-  position, like if you were taking an upward-looking photo with a mobile
-  device while looking at the screen--; finally, put it down and compare both
-  compass roses.
+An object of class \linkS4class{SpatRaster} with azimuth angles in degrees.
+If the \code{orientation} argument is zero, North (0º) is pointing up as in
+maps, but East (90º) and West (270º) are flipped regarding to maps. To
+understand why is that, do the following: take two flash-card size pieces
+of paper; put one on a table in front of you and draw on it a compass rose;
+take the other and hold it with your arms extended over your head and,
+following the directions of the compass rose in front of you, draw another
+one in the paper side that face down--It will be an awkward position, like
+if you were taking an upward-looking photo with a mobile device while
+looking at the screen--; finally, put it down and compare both compass
+roses.
 }
 \description{
-Build a single layer image with azimuth angles as pixel values.
+Build a single-layer image with azimuth angles as pixel values, assuming
+upwards-looking hemispherical photography with the optical axis vertically
+aligned.
 }
 \examples{
 z <- zenith_image(1490, lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 plot(a)
-\donttest{
+\dontrun{
 a <- azimuth_image(z, 45)
 plot(a)
 }
@@ -41,8 +43,10 @@ plot(a)
 \seealso{
 Other Lens Functions: 
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

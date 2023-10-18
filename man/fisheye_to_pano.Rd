@@ -7,17 +7,16 @@
 fisheye_to_pano(r, z, a, fun = mean, angle_width = 1)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}.}
+\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 
-\item{angle_width}{Numeric vector of length one. It should be \code{30, 15,
-10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
+\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 constrain is rooted in the requirement of a value able to divide both the
 \code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
 of segments.}
@@ -30,12 +29,12 @@ An early version of this function was used in
 \insertCite{Diaz2021;textual}{rcaiman}.
 }
 \examples{
-\donttest{
+\dontrun{
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 pano <- fisheye_to_pano(caim, z, a)
-plotRGB(pano)
+plotRGB(pano \%>\% normalize() \%>\% multiply_by(255))
 }
 }
 \references{
@@ -45,8 +44,10 @@ plotRGB(pano)
 Other Lens Functions: 
 \code{\link{azimuth_image}()},
 \code{\link{calc_diameter}()},
-\code{\link{calc_zenith_raster_coord}()},
+\code{\link{calc_relative_radius}()},
+\code{\link{calc_zenith_colrow}()},
 \code{\link{calibrate_lens}()},
+\code{\link{crosscalibrate_lens}()},
 \code{\link{expand_noncircular}()},
 \code{\link{extract_radiometry}()},
 \code{\link{fisheye_to_equidistant}()},

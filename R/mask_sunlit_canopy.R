@@ -1,24 +1,26 @@
 #' Mask sunlit canopy
 #'
-#' It is a wrapper function around \code{\link{membership_to_color}}. It
-#' masks pixels that are likely sunlit canopy.
+#' It is a wrapper function around [membership_to_color()]. It was developed
+#' with images in sRGB color space \insertCite{Diaz2023}{rcaiman}.
 #'
 #' @inheritParams enhance_caim
 #'
-#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1}.
+#' @return An object of class [SpatRaster-class] with values `0` and `1`.
 #'
 #' @export
 #'
 #' @family Segmentation Functions
 #'
+#' @references \insertAllCited{}
+#'
 #' @examples
-#' \donttest{
-#' caim <- read_caim() %>% normalize()
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' m <- !is.na(z)
-#' sunlit_canopy <- mask_sunlit_canopy(caim, m)
-#' plot(sunlit_canopy)
+#' \dontrun{
+#' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' plotRGB(caim)
+#' caim <- normalize(caim)
+#' m <- mask_sunlit_canopy(caim)
+#' plot(m)
 #' }
 mask_sunlit_canopy <- function(caim, m = NULL) {
   if (is.null(m)) m <- !is.na(caim$Red)

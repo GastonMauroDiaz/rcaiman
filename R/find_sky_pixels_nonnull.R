@@ -1,63 +1,75 @@
 #' Find sky pixels following the non-null criteria
 #'
-#' Find sky pixels using the increase in number of cells without sky pixels (the
-#' so-called null cells) as stopping criteria.
+#' Cells without sky pixels are the so-called null cells. This type of cells are
+#' mathematically intractable by models typically used to obtain canopy metrics.
+#' This function find sky pixels using increase in number of null cells as the
+#' stopping criteria.
 #'
-#' The arguments \code{sky} and \code{slope} are passed to
-#' \code{\link{thr_image}}, which output is in turn passed to
-#' \code{\link{apply_thr}} along with \code{r}. As a result, \code{r} is
-#' binarized and used along with \code{g} to compute the number of null cells.
-#' The process is repeated but increasing \code{slope} in steps of 0.05 as long
-#' as the number of null cells remains constant.
+#' The arguments `sky`, `intercept`, `slope`, and `w` are passed to [thr_mblt()]
+#' whose output is in turn passed to [apply_thr()] along with `r`. As a result,
+#' `r` is binarized and used along with `g` to compute the number of null cells.
+#' The process is repeated but increasing `w` in steps of 0.05 as long as
+#' the number of null cells remains constant.
 #'
 #'
 #' @inheritParams find_sky_pixels
-#' @param slope Numeric vector of length one. See section Details in
-#'   \code{\link{thr_image}}.
+#' @inheritParams thr_mblt
+#' @inheritParams ootb_mblt
 #' @inheritParams extract_sky_points
-#' @param sky An object of class \linkS4class{SpatRaster} produced with
-#'   \code{\link{fit_coneshaped_model}}, \code{\link{fit_trend_surface}},
-#'   \code{\link{fit_cie_sky_model}}, or \code{\link{ootb_sky_reconstruction}}.
+#' @param sky An object of class [SpatRaster-class] produced with
+#'   [fit_coneshaped_model()], [fit_trend_surface()], [fit_cie_sky_model()], or
+#'   [ootb_sky_reconstruction()]. It also support a numeric vector of length
+#'   one. For instance, it could be a value obtained with a combination of
+#'   [extract_sky_points()] and [extract_dn()]. The latter can be understood as
+#'   modelling the sky with a plane.
 #'
-#' @return An object of class \linkS4class{SpatRaster} with values \code{0} and
-#'   \code{1}.
+#' @return An object of class [SpatRaster-class] with values `0` and `1`.
 #' @export
 #'
 #' @family Binarization Functions
 #'
 #' @examples
-#' \donttest{
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' \dontrun{
+#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' r <- gbc(caim$Blue)
-#' bin <- find_sky_pixels(r, z, a)
+#' bin <- ootb_obia(caim, z, a, gamma = NULL)
+#' g <- sky_grid_segmentation(z, a, 3)
+#' r <- caim$Blue
+#' sky_points <- extract_sky_points(r, bin, g,
+#'                                  dist_to_plant = 5,
+#'                                  min_raster_dist = 5)
+#' rl <- extract_rl(r, z, a, sky_points)
+#' model <- fit_coneshaped_model(rl$sky_points)
+#' summary(model$model)
+#'
+#' sky <- model$fun(z, a)
+#' sky <- fit_trend_surface(sky, z, a, !is.na(z))$image
+#' plot(r/sky)
+#'
 #' g <- sky_grid_segmentation(z, a, 10)
-#' sky_points <- extract_sky_points(r, bin, g)
-#' sky_points <- extract_rl(r, z, a, sky_points, NULL)
-#' model <- fit_coneshaped_model(sky_points$sky_points)
-#' sky_cs <- model$fun(z, a)
-#' g[mask_hs(z, 0, 10) | mask_hs(z, 70, 90)] <- NA
-#' bin <- find_sky_pixels_nonnull(r, sky_cs, g)
+#' bin <- find_sky_pixels_nonnull(r, sky, g)
 #' plot(bin)
 #' }
-find_sky_pixels_nonnull <- function(r, sky, g, slope = 0.5) {
+find_sky_pixels_nonnull <- function(r, sky, g,
+                                    intercept = 0,
+                                    slope = 1,
+                                    w = 0.5) {
   sky[is.na(sky)] <- 1
-  .get_nulls_no <- function(slope) {
-    thr <- suppressWarnings(thr_image(sky, 0, slope))
+  .get_nulls_no <- function(w) {
+    thr <- suppressWarnings(thr_mblt(sky, intercept, slope* w))
     bin <- apply_thr(r, thr)
     no_of_nulls <- extract_feature(bin, g, mean, return_raster = FALSE)
     sum(no_of_nulls == 0)
   }
   unlock <- TRUE
   while (unlock) {
-    no_nulls_1 <- .get_nulls_no(slope)
-    slope <- slope + 0.05
-    no_nulls_2 <- .get_nulls_no(slope)
+    no_nulls_1 <- .get_nulls_no(w)
+    w <- w + 0.05
+    no_nulls_2 <- .get_nulls_no(w)
     unlock <- no_nulls_2 <= no_nulls_1
-    if (!unlock) slope <- slope - 0.05
+    if (!unlock) w <- w - 0.05
   }
-  thr <- suppressWarnings(thr_image(sky, 0, slope))
+  thr <- suppressWarnings(thr_mblt(sky, intercept, slope * w))
   apply_thr(r, thr)
 }

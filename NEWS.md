@@ -1,6 +1,25 @@
-* Add `extract_radiometry` to facilitate vignetting correction.
-* `extract_rl` default values were changed.
-* `fisheye_to_equidistant()` is now able to interpolate.
+* `row_col_from_zenith_azimuth()` and `zenith_azimuth_from_row_col()` now uses 
+different arguments because they were reprogrammed after observing errors in 
+azimuth angle computations.
+* New `correct_vignetting()`
+* `fit_cie_sky_model()` output was simplified, it does not return a raster 
+anymore. It has to be calculated from the model with `cie_sky_model_raster()`.
+* `thr_mblt()` is former `thr_image()`.
+* `ootb_sky_reconstruction()` was updated.
+* `ootb_mblt()` was updated and gains `w`.
+* `find_sky_pixels_nonnull()` gains `intercept` and `w`.
+* New `extrac_sky_points_simple()`
+* `calibrate_lens` gains a more extensive output
+* `calc_zenith_colrow()` is former `calc_zenith_raster_coord()`.
+* `ootb_obia()` gains `w_red`
+* New `crosscalibrate_lens`
+* fix `extrac_sky_points()`, `dist_to_plan` now works as intended.
+* fix `row_col_from_zenith_azimuth()` unintentional side effect.
+* New `label_cfa()` [delete]
+* New `crop_caim()`
+* New `extract_radiometry()` to facilitate vignetting correction.
+* `extract_rl()` default values were changed.
+* `fisheye_to_equidistant()` is now able to interpolate. Gain the argument m
 * `interpolate_sky_points()` changes `g` for `r`. This acknowledge a change made
 in the code but not reflected in the arguments or documentation. The change was
 to approximate the function as much as possible to the Lang et al. (2010) method
@@ -8,52 +27,47 @@ in which this function was based.
 * New `extract_radiometry()` helps to built a function to correct the vignetting
 effect.
 * New `calc_co()` provides canopy openness calculation for hemispherical images.
-* Fix an issue in `extract_sky_points()` due to a change on the behavior of 
-large data.frame naming. 
-
+* Fix an issue in `extract_sky_points()` due to a change on the behavior of
+large data.frame naming.
+* `ootb_mblt()` now uses the new `extract_sky_points_simple()` by default.
 
 # rcaiman 1.1.1
 
 ## New features
 
 * `ootb_obia()` gains `gamma`
-
 ## Minor improvements and fixes
-
 * `ootb_mblt()` now can detect when `find_sky_pixels()` fails to deliver a good
-mask, and switch to find a mask by applying a global threshold calculated with 
-IsoData.This last method will works well since the failure of 
-`find_sky_pixels()` is associated with extremely open forest, in which 
-circumstances it will not produce comission errors. 
-
-
+mask, and switch to find a mask by applying a global threshold calculated with
+IsoData.This last method will works well since the failure of
+`find_sky_pixels()` is associated with extremely open forest, in which
+circumstances it will not produce comission errors.
 
 # rcaiman 1.0.7
 
 ## Breaking changes
-   
+
 * Now *rcaiman* depends on *terra* package instead of *raster* since key
 dependencies of the latter package are on the course of losing maintenance by
-2023 (<https://r-spatial.org/book/sp-raster.html>). This implied changes
-in the whole code. Although maximum efforts were made to maintain the behavior
-of functions, it may happen that scripts running well with version 0.1.1 fails
-with this new version.
+2023 (<https://r-spatial.org/book/sp-raster.html>). This implied changes in the
+whole code. Although maximum efforts were made to maintain the behavior of
+functions, it may happen that scripts running well with version 0.1.1 fails with
+this new version.
 * A major bug on `local_fuzzy_thresholding()` was fixed. This affected the main
 function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
-If possible, results from scripts using `local_fuzzy_thresholding()` or 
+If possible, results from scripts using `local_fuzzy_thresholding()` or
 `enhace_caim()` should be recalculated with this new version.
-
 
 ## New features
 
 * New HSP functions family enables a dynamic workflow between R and the HSP
 software package (<doi:10.2478/fsmu-2013-0008>).
 * `azimuth_image()` gains `rotation`, which allows processing images
-with the top oriented to any known azimuth angle. Previously, by default it 
+with the top oriented to any known azimuth angle. Previously, by default it
 assumed that the top was oriented to the north.
 * New `chessboard()` provides chessboard segmentation.
 * New `cie_sky_model_raster()` produces CIE sky images of any resolution from
-custom parameterized CIE sky models. The CIE sky model implementation is based 
+custom parameterized CIE sky models. The CIE sky model implementation is based
 on Pascal code by Mait Lang.
 * New `colorfulness()` provides a method to quantify image colorfulness.
 * New `deffuzify()` is an alternative to `apply_thr()` for turning fuzzy
@@ -72,12 +86,12 @@ photographs. Objects returned by this function are essential to
 * New `find_sky_pixels_nonnull_criteria()` offers a method for fine-tuning
 working binarized images, which are the input of many functions, such as
 `extract_sky_points()` and `extract_sun_coord()`. The method is based on the
-assumption that the threshold can be tuned as long as no new cells with zero 
+assumption that the threshold can be tuned as long as no new cells with zero
 gaps are obtained (the so-called null cells).
 * New `fisheye_to_pano()` provides a method to reproject from hemispherical to
 cylindrical.
 * New `fit_cie_sky_model()` uses maximum likelihood to estimate the coefficients
-of the CIE sky model that best fit to data sampled from a canopy photograph. 
+of the CIE sky model that best fit to data sampled from a canopy photograph.
 Then, those coefficients can be used to produce and image with
 `cie_sky_model_raster()`.
 * `fit_coneshaped_model()` now works with the point-like data objects returned
@@ -111,9 +125,8 @@ build an above canopy image from a single below canopy image, by means of
 `fit_cie_sky_model()` and `interpolate_sky_points()`.
 * New `polar_qtree()` provides quad-tree segmentation in the polar space.
 * New `qtree()` provides classical quad-tree segmentation
-* New `thr_isodata()` is an alternative implementation of the IsoData method 
-from the autothresholdr package. 
-
+* New `thr_isodata()` is an alternative implementation of the IsoData method
+from the autothresholdr package.
 
 ## Minor improvements and fixes
 

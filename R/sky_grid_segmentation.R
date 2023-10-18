@@ -6,22 +6,22 @@
 #' Intersecting rings with sectors makes a grid in which each cell is a
 #' portion of the hemisphere. Each pixel of the grid is labeled with an ID that
 #' codify both ring and sector IDs. For example, a grid with a regular interval
-#' of one degree has segment from \code{1001} to \code{360090}. This numbers are
+#' of one degree has segment from `1001` to `360090`. This numbers are
 #' calculated with: \eqn{sectorID \times 1000 + ringID}, where \eqn{sectorID} is
 #' the ID number of the sector and \eqn{ringID} is the ID number of the ring.
 #'
 #'
 #' @inheritParams ootb_mblt
-#' @param angle_width Numeric vector of length one. It should be \code{30, 15,
-#'   10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
+#' @param angle_width Numeric vector of length one. It should be `30, 15,
+#'   10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1` or `0.5` degrees. This
 #'   constrain is rooted in the requirement of a value able to divide both the
-#'   \code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
+#'   `0` to `360` and `0` to `90` ranges into a whole number
 #'   of segments.
-#' @param sequential Logical vector of length one. If it is \code{TRUE}, the
-#'   segments are labeled with sequential numbers. By default (\code{FALSE}),
+#' @param sequential Logical vector of length one. If it is `TRUE`, the
+#'   segments are labeled with sequential numbers. By default (`FALSE`),
 #'   labeling numbers are not sequential (see Details).
 #'
-#' @return An object from the class \linkS4class{SpatRaster} with segments
+#' @return An object from the class [SpatRaster-class] with segments
 #'   shaped like windshields, though some of them will look elongated in
 #'   height. The pattern is two opposite and converging straight sides and two
 #'   opposite and parallel curvy sides.
@@ -34,7 +34,7 @@
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 15)
 #' plot(g == 24005)
-#' \donttest{
+#' \dontrun{
 #' g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 #' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
 #' plot(g, col = col)

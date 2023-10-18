@@ -4,15 +4,17 @@
 \alias{row_col_from_zenith_azimuth}
 \title{Row and col numbers from zenith and azimuth angles}
 \usage{
-row_col_from_zenith_azimuth(z, za, lens_coef)
+row_col_from_zenith_azimuth(z, a, za, lens_coef = NULL)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{za}{Numeric vector of length two. Zenith and azimuth angles in degrees.}
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function.}
+projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 }
 \value{
 Numeric vector of length two.
@@ -20,9 +22,13 @@ Numeric vector of length two.
 \description{
 Row and col numbers from zenith and azimuth angles
 }
+\note{
+Use the \code{lens_coef} argument to calculate coordinates below the horizon.
+}
 \examples{
 z <- zenith_image(1000, lens())
-row_col_from_zenith_azimuth(z, c(45, 270), lens())
+a <- azimuth_image(z)
+row_col_from_zenith_azimuth(z, a, c(45, 270))
 }
 \seealso{
 Other HSP Functions: 

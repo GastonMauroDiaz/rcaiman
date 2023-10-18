@@ -2,72 +2,66 @@
 % Please edit documentation in R/colorfulness.R
 \name{colorfulness}
 \alias{colorfulness}
-\title{Quantify the colorfulness of an image}
+\title{Colorfulness index}
 \usage{
 colorfulness(caim, m = NULL, plot = FALSE)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link{read_caim}}.}
+\code{\link[=read_caim]{read_caim()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link{mask_hs}}. Default (\code{NULL}) is the equivalent to
-enter \code{!is.na(caim$Red)}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
+\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{!is.na(caim$Red)}.}
 
-\item{plot}{Logical vector of length one. If is \code{TRUE}, a plot will be
-send to the graphic device, showing the data on the CIE \emph{a*b*} space.}
+\item{plot}{Logical vector of length one. If is \code{TRUE}, a plot will be send
+to the graphic device to show the data on the CIE \emph{ab} space.}
 }
 \value{
-A numeric vector of length one and, if the argument \code{plot} is
-  \code{TRUE}, an object returned by \code{\link[base]{plot}} is send to the
-  graphic device.
+A numeric vector of length one and, if the argument \code{plot} is \code{TRUE},
+an object returned by \code{\link[base:plot]{base::plot()}} is send to the graphic device.
 }
 \description{
-Quantify the colorfulness of an sRGB image using a bidimensional space formed
-by the green/red and the blue/yellow axes of the CIE \emph{L*a*b*} space,
-symbolized with \emph{a*} and \emph{b*}, respectively. The proposed index is
-defined as the surface of the \emph{a*b*} plane covered by colors from the
-image relative to the surface that the whole sRGB cube covers in the same
-plane, expressed in percentage.
+Quantify the colorfulness of an image
 }
 \details{
-Pixels from the image covered by pixels from \code{m} with value \code{1}
-will be taking into account in the computations.
+Quantify the colorfulness of an sRGB image using a bidimensional space formed
+by the green/red and the blue/yellow axes of the CIE \emph{Lab} space, symbolized
+with \emph{a} and \emph{b}, respectively. The colorfulness index (CI) is defined as
 
-If \code{plot = TRUE} is used, a plot is sent to the active graphics device.
-It shows the color from the image plotted into a bidimensional space made by
-the axis \emph{a*} and \emph{b*} of the CIE \emph{L*a*b* space}.
+\eqn{CI = \dfrac{A_o}{A_p} \cdot 100},
 
+where \eqn{A_o} and \eqn{A_p} are the observed and potential area of the \emph{ab}
+plane. \eqn{A_o} refers to the colors from the image while \eqn{A_p} to the
+colors from the whole sRGB cube.
+
+If \code{plot = TRUE} is used, a plot is sent to the active graphics device. It
+shows the color from the image plotted into a plane made by the axes \emph{a} and
+\emph{b}.
+}
+\note{
 An early version of this function was used in
 \insertCite{Martin2020;textual}{rcaiman}.
 }
 \examples{
-
-#Sunlight image
 caim <- read_caim() \%>\% normalize()
-#plotRGB(caim*255)
 colorfulness(caim)
-
-#Diffuse-light image
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2) \%>\% normalize()
-#plotRGB(caim*255)
-colorfulness(caim)
-
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_co}()},
+\code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}

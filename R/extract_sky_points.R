@@ -1,56 +1,53 @@
 #' Extract sky points
 #'
-#' Extract sky points for model fitting.
+#' Extract sky points for model fitting
 #'
 #' This function will automatically sample sky pixels from the sky regions
-#' delimited by \code{bin}. The density and distribution of the sampling points
-#' is controlled by the arguments \code{g}, \code{dist_to_plant}, and
-#' \code{min_raster_dist}.
+#' delimited by `bin`. The density and distribution of the sampling points is
+#' controlled by the arguments `g`, `dist_to_plant`, and `min_raster_dist`.
 #'
-#' As the first step, sky pixels from \code{r} are evaluated to find, for each
-#' cell of \code{g}, the pixel with maximum digital value (local maximum). The
-#' argument \code{dist_to_plant} allows users to establish a buffer zone for
-#' \code{bin}, meaning a size reduction of original sky regions.
+#' As the first step, sky pixels from `r` are evaluated to find the pixel with
+#' maximum digital value (local maximum) per cell of the `g` argument. The
+#' `dist_to_plant` argument allows users to establish a buffer zone for `bin`,
+#' meaning a size reduction of the original sky regions.
 #'
-#' The final step filters these local maximum values by calculating distances
-#' between points on the raster space. It discards new points that have a
-#' distance from existing points minor than \code{min_raster_dist}. Cell labels
-#' determine the order in which the points are evaluated.
+#' The final step is filtering these local maximum values by evaluating the
+#' Euclidean distances between them on the raster space. Any new point with a
+#' distance from existing points minor than `min_raster_dist` is discarded. Cell
+#' labels determine the order in which the points are evaluated.
 #'
-#' To skip a given filtering step, use code \code{NULL} as argument input. For
-#' instance, to provide \code{min_raster_dist = NULL} will return points
-#' omitting raster distance calculation, which means a faster output in
-#' comparison with using \code{min_raster_dist = 1}.
+#' To skip a given filtering step, use code `NULL` as argument input. For
+#' instance, `min_raster_dist = NULL` will return points omitting
+#' the final step.
 #'
 #' @inheritParams fit_trend_surface
-#' @param g \linkS4class{SpatRaster} built with
-#'   \code{\link{sky_grid_segmentation}} or \code{\link{chessboard}}.
-#' @param dist_to_plant,min_raster_dist Numeric vector of length one or
-#'   \code{NULL}.
+#' @param g [SpatRaster-class] built with [sky_grid_segmentation()] or
+#'   [chessboard()].
+#' @param dist_to_plant,min_raster_dist Numeric vector of length one or `NULL`.
 #'
 #'
 #' @family Tool Functions
-#' @seealso \code{\link{fit_cie_sky_model}}
+#' @seealso [fit_cie_sky_model()]
 #'
-#' @return An object of the class \emph{data.frame} with two columns named
-#'   \emph{col} and \emph{row}.
+#' @return An object of the class *data.frame* with two columns named
+#'   *row* and *col*.
 #'
 #' @export
 #'
 #' @examples
-#' \donttest{
-#' caim <- read_caim() %>% normalize()
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' \dontrun{
+#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' bin <- ootb_obia(caim, z, a)
+#' plotRGB(caim*255)
+#' bin <- ootb_obia(caim, z, a, gamma = NULL)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' r <- gbc(caim$Blue*255)
-#' sky_points <- extract_sky_points(r, bin, g)
-#' cells <- cellFromRowCol(z, sky_points$row, sky_points$col)
-#' hist(r[cells][,1])
-#' xy <- xyFromCell(z, cells)
-#' plot(r)
-#' plot(vect(xy), add = TRUE, col = 2)
+#' r <- caim$Blue
+#' sky_points <- extract_sky_points(r, bin, g,
+#'                                  dist_to_plant = 3,
+#'                                  min_raster_dist = 10)
+#' plot(bin)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
 extract_sky_points <- function(r, bin, g,
                               dist_to_plant = 3,
@@ -78,7 +75,7 @@ extract_sky_points <- function(r, bin, g,
     .this_requires_EBImage()
     kern <- EBImage::makeBrush(dist_to_plant, "box")
     dist_to_plant_img <- NA_count == 0
-    dist_to_plant_img <- EBImage::erode(as.matrix(dist_to_plant_img), kern) %>%
+    dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
       terra::setValues(dist_to_plant_img, .)
     dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
     dist_to_plant_img <- as.logical(dist_to_plant_img)

@@ -4,33 +4,43 @@
 \alias{ootb_obia}
 \title{Out-of-the-box object-based image analysis of canopy photographs}
 \usage{
-ootb_obia(caim, z = NULL, a = NULL, m = NULL, sky_blue = NULL, gamma = 2.2)
+ootb_obia(
+  caim,
+  z = NULL,
+  a = NULL,
+  m = NULL,
+  sky_blue = NULL,
+  w_red = 0,
+  gamma = 2.2
+)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link{read_caim}}.}
+\code{\link[=read_caim]{read_caim()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link{azimuth_image}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. Default (\code{NULL}) is the equivalent to
-enter \code{!is.na(z)} for hemispherical photography, or enter
-\code{!is.na(caim$Red)} for restricted view photography.}
+\item{m}{\linkS4class{SpatRaster}. Default (\code{NULL}) is the equivalent to enter
+\code{!is.na(z)} for hemispherical photography, or enter \code{!is.na(caim$Red)} for
+restricted view photography.}
 
-\item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to
-be passed to \code{\link{membership_to_color}}. Default (\code{NULL}) is
-the equivalent to enter \code{sRGB(0.1, 0.4, 0.8)}--the HEX color code is
-#1A66CC, it can be entered into a search engine (such as Mozilla Firefox)
-to see a color swatch.}
+\item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to be passed to
+\code{\link[=membership_to_color]{membership_to_color()}}. Default (\code{NULL}) is the equivalent to enter
+\code{sRGB(0.1, 0.4, 0.8)}--the HEX color code is #1A66CC, it can be entered
+into a search engine (such as Mozilla Firefox) to see a color swatch.}
+
+\item{w_red}{Numeric vector of length one. Weight of the red channel. A
+single layer image is calculated as a weighted average of the blue and red
+channels. This layer is used as lightness information. The weight of the
+blue is the complement of \code{w_red}.}
 
 \item{gamma}{Numeric vector of length one. This is for applying a gamma back
-correction to the lightness information (see Details and argument
-\code{w_red}).}
+correction to the lightness information (see Details and argument \code{w_red}).}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and
-  \code{1}.
+An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 }
 \description{
 Out-of-the-box version of methods first presented in
@@ -38,53 +48,54 @@ Out-of-the-box version of methods first presented in
 }
 \details{
 This function is a hard-coded version of a pipeline that combines these main
-functions \code{\link{mask_sunlit_canopy}}, \code{\link{enhance_caim}},
-\code{\link{polar_qtree}}/\code{\link{qtree}}, and \code{\link{obia}}. The
-code can be easily inspected by calling \code{ootb_obia} --no parenthesis.
-Advanced users can use that code as a template.
+functions \code{\link[=mask_sunlit_canopy]{mask_sunlit_canopy()}}, \code{\link[=enhance_caim]{enhance_caim()}},
+\code{\link[=polar_qtree]{polar_qtree()}}/\code{\link[=qtree]{qtree()}}, and \code{\link[=obia]{obia()}}. The code can be easily inspected by
+calling \code{ootb_obia} --no parenthesis. Advanced users can use that code as a
+template.
 
-Pixels from the synthetic layer returned by \code{\link{obia}} that lay
-between \code{0} and \code{1} are assigned to the class \emph{plant} only if
-they comply with the following conditions:
+Pixels from the synthetic layer returned by \code{\link[=obia]{obia()}} that lay between \code{0} and
+\code{1} are assigned to the class \emph{plant} only if they comply with the following
+conditions:
 
 \itemize{
 
-\item Their values are equal to \code{0} after \code{\link{defuzzify}} with a
+\item Their values are equal to \code{0} after \code{\link[=defuzzify]{defuzzify()}} with a
 sky grid segmentation of \code{10} degrees.
 
-\item Their values are equal to \code{0} after \code{\link{apply_thr}} with a
-threshold computed with \code{\link{thr_isodata}}.
+\item Their values are equal to \code{0} after \code{\link[=apply_thr]{apply_thr()}} with a
+threshold computed with \code{\link[=thr_isodata]{thr_isodata()}}.
 
 \item They are not exclusively surrounded by sky pixels.
 
 }
 
-Use the default values of \code{z} and \code{a} to process restricted view
-photographs.
+Use the default values of \code{z} and \code{a} to process restricted view photographs.
 
 If you use this function in your research, please cite
-\insertCite{Diaz2015;textual}{rcaiman} or \insertCite{Diaz2023}{rcaiman} in
-addition to this package.
+\insertCite{Diaz2015;textual}{rcaiman} or
+\insertCite{Diaz2023;textual}{rcaiman} in addition to this package
+(\verb{citation("rcaiman"}).
 }
 \examples{
-\donttest{
-#circular hemispherical photo
+\dontrun{
+# ==============================================
+# Circular Hemispherical Photo (from a raw file)
+# ==============================================
+
 caim <- read_caim() \%>\% normalize()
-z <- zenith_image(1490, lens("Nikon_FCE9"))
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-bin <- ootb_obia(caim, z, a)
+bin <- ootb_obia(caim, z, a, gamma = NULL)
 plot(bin)
 
-## to compare
-blue <- gbc(caim$Blue*255)
-plot(apply_thr(blue, thr_isodata(blue[!is.na(z)])))
-plot(blue, col = seq(0,1,1/255) \%>\% grey())
+# =====================================
+# Hemispherical Photo from a Smartphone
+# =====================================
 
-#hemispherical photo from a smartphone
 path <- system.file("external/APC_0581.jpg", package = "rcaiman")
 caim <- read_caim(path) \%>\% normalize()
-z <- zenith_image(2132/2, lens("Olloclip"))
+z <- zenith_image(2132/2, c(0.7836, 0.1512, -0.1558))
 a <- azimuth_image(z)
 zenith_colrow <- c(1063, 771)/2
 caim <- expand_noncircular(caim, z, zenith_colrow) \%>\% normalize()
@@ -94,22 +105,15 @@ caim[!m] <- 0
 bin <- ootb_obia(caim, z, a)
 plot(bin)
 
-## to compare
-blue <- gbc(caim$Blue*255)
-plot(apply_thr(blue, thr_isodata(blue[m])))
-plot(blue, col = seq(0,1,1/255) \%>\% grey())
+# ============================
+# Restricted View Canopy Photo
+# ============================
 
-#restricted view canopy photo
 path <- system.file("external/APC_0020.jpg", package = "rcaiman")
 caim <- read_caim(path) \%>\% normalize()
 
 bin <- ootb_obia(caim)
 plot(bin)
-
-## to compare
-blue <- gbc(caim$Blue*255)
-plot(apply_thr(blue, thr_isodata(blue[])))
-plot(blue, col = seq(0,1,1/255) \%>\% grey())
 }
 }
 \references{
@@ -123,7 +127,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{regional_thresholding}()},
-\code{\link{thr_image}()},
-\code{\link{thr_isodata}()}
+\code{\link{thr_isodata}()},
+\code{\link{thr_mblt}()}
 }
 \concept{Binarization Functions}

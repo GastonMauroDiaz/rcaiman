@@ -2,18 +2,15 @@
 % Please edit documentation in R/fix_reconstructed_sky.R
 \name{fix_reconstructed_sky}
 \alias{fix_reconstructed_sky}
-\alias{fix_predicted_sky}
 \title{Fix reconstructed sky}
 \usage{
 fix_reconstructed_sky(sky, z, r, bin)
-
-fix_predicted_sky(sky, z, r, bin)
 }
 \arguments{
 \item{sky}{\linkS4class{SpatRaster}. Sky DNs predicted with functions such as
-\code{\link{fit_coneshaped_model}} and \code{\link{fit_trend_surface}}.}
+\code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}} and \code{\link[=fit_trend_surface]{fit_trend_surface()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link{zenith_image}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{r}{\linkS4class{SpatRaster}. The source of the sky DNs used to build
 \code{sky} (the data source).}
@@ -23,45 +20,63 @@ select the sky DNs for building the \code{sky} argument.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}. The argument \code{sky}
-  with dimensions unchanged but values edited.
+with dimensions unchanged but values edited.
 }
 \description{
 Automatically edit a raster image of sky digital numbers (DNs) reconstructed
-with functions such as \code{\link{fit_coneshaped_model}} and
-\code{\link{fit_trend_surface}}.
+with functions such as \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}} and
+\code{\link[=fit_trend_surface]{fit_trend_surface()}}.
 }
 \details{
 The predicted sky DNs are usually erroneous near the horizon because either
 they are a misleading extrapolation or are based on corrupted data (non-pure
 sky DNs).
 
-The proposed automatic edition consists of (1) flattening the values below
-the minimum value from the data source--defined by \code{r} and
-\code{bin}--and (2) forcing the values toward the horizon to become gradually
-the median value from the data source. The latter is achieved by calculating
+The proposed automatic edition consists of
+\itemize{
+\item flattening the values below
+the minimum value from the data source defined by \code{r} and
+\code{bin}and
+\item forcing the values toward the horizon to become gradually
+the median value from the data source.
+}
+
+The latter is achieved by calculating
 the weighted average of the median value and the predicted sky DNs, using the
 ratio of \code{z} to \code{90} to determine the weights.
 }
 \examples{
-\donttest{
+\dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels(r, z, a)
-sky_points <- extract_sky_points(r, bin, g)
-sky_points <- extract_rl(r, z, a, sky_points, NULL)
+
+
+sky_points <- extract_rl(r, z, a, extract_sky_points_simple(r, z, a),
+                         NULL,
+                         use_window = FALSE)# this is important when
+                                            # extract_sky_points_simple()
+                                            # is used
 model <- fit_coneshaped_model(sky_points$sky_points)
+summary(model$model)
 sky_cs <- model$fun(z, a)
+plot(r/sky_cs)
+plot(sky_cs)
+persp(terra::aggregate(sky_cs, 20), theta = 90, phi = 20)
+bin <- apply_thr(r, thr_mblt(sky_cs, 0, 0.5))
+plot(bin)
 sky_cs <- fix_reconstructed_sky(sky_cs, z, r, bin)
-persp(sky_cs, theta = 90, phi = 0)
+bin <- apply_thr(r, thr_mblt(sky_cs, 0, 0.5))
+plot(bin)
+persp(terra::aggregate(sky_cs, 20), theta = 90, phi = 20)
 }
 }
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
+\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
