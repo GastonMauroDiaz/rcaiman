@@ -25,13 +25,7 @@ although you might find some functions from *rcaiman* useful, such as
 It integrates well with other software, such as [HSP – HemiSPherical
 Project Manager](http://scorpion.aai.ee/~lang/HSP/),
 [CIMES](http://jmnw.free.fr/), and
-[Hemisfer](https://www.schleppi.ch/patrick/hemisfer/). The former is
-ideal for carrying on the preprocessing of photographs acquired in
-diffuse light conditions, by that I mean: extracting authentic blue
-pixels, reproject to equidistant, and vignetting correction. After the
-processing, you may obtain good results with *ootb_mblt()*. **Hemisfer**
-and **CIMES** can be used to calculate canopy metrics from the binarized
-images.
+[Hemisfer](https://www.schleppi.ch/patrick/hemisfer/).
 
 ## Installation
 

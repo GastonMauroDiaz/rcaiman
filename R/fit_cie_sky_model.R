@@ -256,40 +256,6 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     }
   }
 
-  # total_area <- sum(!is.na(z)[], na.rm = TRUE)
-  # .calc_sasr <- function(x) {
-  #   if (length(x$coef) != 5) {
-  #     return(NA)
-  #   } else {
-  #     relative_luminance <- cie_sky_model_raster(z, a,
-  #                                                x$sun_coord$zenith_azimuth,
-  #                                                x$coef)
-  #     sky <- relative_luminance * x$zenith_dn
-  #     sun_rl <- sky[x$sun_coord$row_col[1], x$sun_coord$row_col[2]][,]
-  #     if (x$sun_coord$zenith_azimuth[1] < 90 &
-  #         sun_rl > quantile(sky[], 0.9, na.rm = TRUE)
-  #         ) {
-  #       ratio <- r / sky
-  #       ratio[is.infinite(ratio)] <- -0.1
-  #       m <- ratio < 0 | ratio > 1
-  #       area_outside_expected_values <- sum(m[], na.rm = TRUE)
-  #       w <- area_outside_expected_values / total_area
-  #       return(sum(ratio[]^2, na.rm = TRUE) * w)
-  #     } else {
-  #       if (x$sun_coord$zenith_azimuth[1] >= 90) {
-  #         ratio <- r / sky
-  #         ratio[is.infinite(ratio)] <- -0.1
-  #         m <- ratio < 0 | ratio > 1
-  #         area_outside_expected_values <- sum(m[], na.rm = TRUE)
-  #         w <- area_outside_expected_values / total_area
-  #         return(sum(ratio[]^2, na.rm = TRUE) * w)
-  #       } else {
-  #         return(NA)
-  #       }
-  #     }
-  #   }
-  # }
-
   if (!rmse) {
     .calc_oor_index <- function(x) {
       if (length(x$coef) != 5) {
@@ -320,12 +286,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     model <- fit[[which.min(error)]]
     if (model$sun_coord$zenith_azimuth[1] >= 90) {
         model$sun_coord$row_col <- c(NA, NA)
-        # warning(paste("Sun zenith angle was overwriten so \"row_col\"",
-        #               "and \"zenith_azimuth\" does not match as in the",
-        #               "original \"sun_coord\" argument.",
-        #               "If you need to recalculate the \"sun_coord\",",
-        #               "check the row_col_from_zenith_azimuth() function."))
-      }
+    }
     return(model)
   }
 }

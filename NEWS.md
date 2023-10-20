@@ -1,35 +1,47 @@
-* `row_col_from_zenith_azimuth()` and `zenith_azimuth_from_row_col()` now uses 
-different arguments because they were reprogrammed after observing errors in 
-azimuth angle computations.
-* New `correct_vignetting()`
+# rcaiman 1.2.0
+
+## Breaking changes
+
+* `ootb_mblt()` was updated and results from this version will be different to 
+the one from the previous one. However, all changes are in line with the 
+original publications.
+
+## New features
+
+* New `calc_co()` provides canopy openness calculation for hemispherical images.
+* New `correct_vignetting()` to correct the vignetting effect and doing so 
+standardize radiometry.
+* New `crop_caim()` allows cropping after reading, complementing `read_caim()`.
+* New `crosscalibrate_lens()` allows geometrical cross-calibration.
+* New `extract_radiometry()` helps to built a function to correct the vignetting
+effect with `correct_vignetting()`.
+* New `extract_sky_points_simple()` to obtain sky points without the need of a 
+working binarized image.
+* `fisheye_to_equidistant()` is now able to interpolate. It gains the `m` 
+argument.
+
+## Minor improvements and fixes
+
+* `calc_zenith_colrow()` is former `calc_zenith_raster_coord()`.
+* `calibrate_lens` gains a more extensive output.
+* `extract_rl()` default values were changed.
+* Fix `extrac_sky_points()`. Now, `dist_to_plan` works as intended.
+* `find_sky_pixels_nonnull()` gains `intercept` and `w`.
 * `fit_cie_sky_model()` output was simplified, it does not return a raster 
 anymore. It has to be calculated from the model with `cie_sky_model_raster()`.
-* `thr_mblt()` is former `thr_image()`.
-* `ootb_sky_reconstruction()` was updated.
-* `ootb_mblt()` was updated and gains `w`.
-* `find_sky_pixels_nonnull()` gains `intercept` and `w`.
-* New `extrac_sky_points_simple()`
-* `calibrate_lens` gains a more extensive output
-* `calc_zenith_colrow()` is former `calc_zenith_raster_coord()`.
-* `ootb_obia()` gains `w_red`
-* New `crosscalibrate_lens`
-* fix `extrac_sky_points()`, `dist_to_plan` now works as intended.
-* fix `row_col_from_zenith_azimuth()` unintentional side effect.
-* New `label_cfa()` [delete]
-* New `crop_caim()`
-* New `extract_radiometry()` to facilitate vignetting correction.
-* `extract_rl()` default values were changed.
-* `fisheye_to_equidistant()` is now able to interpolate. Gain the argument m
 * `interpolate_sky_points()` changes `g` for `r`. This acknowledge a change made
 in the code but not reflected in the arguments or documentation. The change was
 to approximate the function as much as possible to the Lang et al. (2010) method
 in which this function was based.
-* New `extract_radiometry()` helps to built a function to correct the vignetting
-effect.
-* New `calc_co()` provides canopy openness calculation for hemispherical images.
-* Fix an issue in `extract_sky_points()` due to a change on the behavior of
+* Fix an issue in `extract_sky_points()` due to a change on the behavior of 
 large data.frame naming.
-* `ootb_mblt()` now uses the new `extract_sky_points_simple()` by default.
+* `ootb_obia()` gains `w_red`.
+* `ootb_sky_reconstruction()` was updated.
+* `row_col_from_zenith_azimuth()` and `zenith_azimuth_from_row_col()` now uses
+different arguments because they were reprogrammed after observing errors in 
+azimuth angle computations and unintentional side effects.
+* `thr_mblt()` is former `thr_image()`.
+
 
 # rcaiman 1.1.1
 

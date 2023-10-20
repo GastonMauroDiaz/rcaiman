@@ -56,9 +56,9 @@ from the original in the following main aspects:
 \item The original version used a global thresholding method to provide sky
 points to the cone-shaped model. This one uses \code{\link[=extract_sky_points_simple]{extract_sky_points_simple()}}.
 Nevertheless, a binarized image can be provided through the \code{bin} argument
-(\code{\link[=find_sky_pixels]{find_sky_pixels()}}, \code{\link[=regional_thresholding]{regional_thresholding()}}, and \code{\link[=ootb_obia]{ootb_obia()}} are
-recommended ways to obtain a working binarized image). If a binarized image
-is provided, \code{\link[=extract_sky_points]{extract_sky_points()}} is used.
+(\code{\link[=find_sky_pixels]{find_sky_pixels()}}, \code{\link[=regional_thresholding]{regional_thresholding()}}, [ootb_obia(), and
+\code{\link[=ootb_mblt]{ootb_mblt()}}] are recommended ways to obtain a working binarized image). If
+a binarized image is provided, \code{\link[=extract_sky_points]{extract_sky_points()}} is used.
 \item \code{intercept} and \code{slope} are automatically obtained using data from sky
 points and a linear model for accuracy evaluation after
 \insertCite{Pineiro2008;textual}{rcaiman}. This approach handles inaccuracies

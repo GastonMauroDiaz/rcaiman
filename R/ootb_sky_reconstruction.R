@@ -41,9 +41,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' r <- normalize(caim$Blue)
+#'
+#' mn_mx <- optim_normalize(caim, !is.na(z))
+#' caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
 #'
 #' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
@@ -54,24 +58,37 @@
 #'
 #' bin <- ootb_obia(caim, z, a, sky_blue = sky_blue, gamma = NULL)
 #' plot(bin)
+#'
+#' .fun <- function(method) {
+#'   ootb_sky_reconstruction(r, z, a, bin, method = method)
+#' }
 #' set.seed(7)
-#' sky <- ootb_sky_reconstruction(caim$Blue, z, a, bin)
+#' l <- future.apply::future_Map(.fun,
+#'                               c("BFGS", "CG", "SANN"), future.seed = TRUE)
+#'
+#' r2 <- Map(function(sky) sky$validation %>% summary() %>% .$r.squared, l) %>%
+#'   unlist()
+#' oor <- Map(function(sky) sky$OOR, l) %>% unlist()
+#' n <- Map(function(sky) sky$sky_points %>% nrow(), l) %>% unlist()
+#' i <- which.min(oor/r2/n)
+#' sky <- l[[i]]
 #' sky$validation %>% summary()
 #'
+#' sky$sky
 #' plot(sky$sky)
-#' plot(caim$Blue/sky$sky)
-#' hist(caim$Blue/sky$sky, xlim = c(0, 2), breaks = 255)
-#' hist((caim$Blue/sky$sky)[bin], xlim = c(0, 2), breaks = 255)
-#' plot((caim$Blue/sky$sky)>1.1)
+#' plot(r/sky$sky)
+#' hist(r/sky$sky, xlim = c(0, 2), breaks = 255)
+#' hist((r/sky$sky)[bin], xlim = c(0, 2), breaks = 255)
+#' plot((r/sky$sky)>1.1)
 #'
 #' plot(sky$bin)
 #'
-#' sky2 <- ootb_sky_reconstruction(caim$Blue, z, a, sky$bin, sky$sky)
+#' sky2 <- ootb_sky_reconstruction(r, z, a, sky$bin, sky$sky)
 #' plot(sky2)
-#' plot(caim$Blue/sky2)
-#' hist(caim$Blue/sky2, xlim = c(0, 2), breaks = 255)
-#' hist((caim$Blue/sky2)[sky$bin], xlim = c(0, 2), breaks = 255)
-#' plot((caim$Blue/sky2)>1.1)
+#' plot(r/sky2)
+#' hist(r/sky2, xlim = c(0, 2), breaks = 255)
+#' hist((r/sky2)[sky$bin], xlim = c(0, 2), breaks = 255)
+#' plot((r/sky2)>1.1)
 #' }
 ootb_sky_reconstruction <- function(r, z, a, bin,
                                     filling_source = NULL,
@@ -400,7 +417,7 @@ ootb_sky_reconstruction <- function(r, z, a, bin,
     fit <- lm(x~y)
     mblt <- coefficients(fit)
     r2 <- summary(fit)$r.squared
-    bin <- apply_thr(r, thr_mblt(sky, mblt[1]*255, mblt[2] * r2))
+    bin <- apply_thr(r, thr_mblt(sky, mblt[1]*255, mblt[2] * r2 * 0.95))
 
     sky <- list(sky = sky,
                 model = model,

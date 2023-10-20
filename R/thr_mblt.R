@@ -31,8 +31,8 @@
 #'
 #' were IV is the initial value \insertCite{Wagner2001}{rcaiman}, which is the
 #' boundary between SDN and the mixed pixels, i.e, the pixels that are neither
-#' Gap or Non-gap \insertCite{Macfarlane2011}{rcaiman}, \eqn{a} and \eqn{b} are
-#' the intercept and slope coefficients, respectively, and \eqn{w} is a
+#' _Gap_ or _Non-gap_ \insertCite{Macfarlane2011}{rcaiman}, \eqn{a} and \eqn{b}
+#' are the intercept and slope coefficients, respectively, and \eqn{w} is a
 #' weighting parameter that takes into account that OTV is always lower than IV.
 #' If SDN is calculated at the pixel level, a local thresholding method can be
 #' applied by evaluating, pixel by pixel, if the below canopy digital number
@@ -82,9 +82,8 @@
 #' and electronic system will be canceled during the calculation of T as long as
 #' only one camera is involved. Therefore, After examining Equation 4b, we can
 #' conclude that intercept 0 and slope 1 are theoretically correct.In addition,
-#' the w parameter can be used to filter out mixed pixels and sample the most
-#' pure sky pixels possible. The greater w, the greater the possibility of
-#' selecting pure sky pixels.
+#' the w parameter can be used to filter out mixed pixels. The greater w, the
+#' greater the possibility of selecting pure sky pixels.
 #'
 #' @note
 #'
@@ -94,12 +93,13 @@
 #' normalized. The latter was a design decision aiming to harmonize the whole
 #' package, although it might sound counter intuitive.
 #'
-#' Nevertheless, new empirical calibrations may be unnecessary since the values
-#' -7.8 `intercept` and 0.95 `slope` observed with back-gamma corrected JPEG
-#' files produced with the Nikon Coolpix 5700 camera are sufficiently close to
-#' the theoretical values to suggest that using them is a correct assumption. In
-#' addition, instead of calibrating JPEG images, users should adopt raw file
-#' acquisition ([read_caim_raw()]).
+#' Nevertheless, new empirical calibration on JPEG files may be unnecessary
+#' since the values -7.8 `intercept` and 0.95 `slope` that had been observed
+#' with back-gamma corrected JPEG files produced with the Nikon Coolpix 5700
+#' camera are sufficiently close to the theoretical values that is reasonably to
+#' interpret them as a confirmation of the theory.
+#'
+#' Users are encouraged to adopt raw file acquisition ([read_caim_raw()]).
 #'
 #' To apply the weighting parameter (w) from Equation 1, just provide the
 #' argument `slope` as \eqn{slope \times w}.
@@ -120,7 +120,7 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' thr_mblt(gbc(125), -8, 1)
+#' thr_mblt(gbc(125), -7.8, 0.95 * 0.5)
 thr_mblt <- function (dn, intercept, slope) {
   stopifnot(length(intercept) == 1)
   stopifnot(class(intercept) == "numeric")

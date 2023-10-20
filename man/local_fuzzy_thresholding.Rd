@@ -52,8 +52,8 @@ If you use this function in your research, please cite
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- !is.na(z)
-plotRGB((caim/(2^16-2))*255)
+mn_mx <- optim_normalize(caim, !is.na(z))
+caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
 
 caim <- normalize(caim)
 

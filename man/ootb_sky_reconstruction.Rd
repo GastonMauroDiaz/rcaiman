@@ -98,7 +98,17 @@ sky_blue <- extract_dn(caim, sky_points, fun = median)
 bin <- ootb_obia(caim, z, a, sky_blue = sky_blue, gamma = NULL)
 plot(bin)
 set.seed(7)
-sky <- ootb_sky_reconstruction(caim$Blue, z, a, bin)
+sky_bfgs <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "BFGS")
+set.seed(7)
+sky_cg <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "CG")
+set.seed(7)
+sky_sann <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "SANN")
+l <- list(sky_bfgs, sky_cg, sky_sann)
+r2 <- Map(function(sky) sky$validation \%>\% summary() \%>\% .$r.squared, l) \%>\%
+  unlist()
+oor <- Map(function(sky) sky$OOR, l) \%>\% unlist()
+i <- which.min(oor/r2)
+sky <- l[[i]]
 sky$validation \%>\% summary()
 
 plot(sky$sky)

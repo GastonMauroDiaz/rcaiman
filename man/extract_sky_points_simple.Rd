@@ -57,6 +57,7 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
+\code{\link{optim_normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},

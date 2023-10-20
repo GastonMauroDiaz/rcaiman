@@ -52,12 +52,14 @@
 #' # Circular Hemispherical Photo (from a raw file)
 #' # ==============================================
 #'
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' mn_mx <- optim_normalize(caim, !is.na(z))
+#' caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
 #'
-#' bin <- ootb_obia(caim, z, a, gamma = NULL)
-#' plot(bin)
+#' bin2 <- ootb_obia(caim, z, a, gamma = NULL)
+#' plot(bin2)
 #'
 #' # =====================================
 #' # Hemispherical Photo from a Smartphone

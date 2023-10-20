@@ -46,8 +46,6 @@
 #'   [membership_to_color()]. Default (`NULL`) is the equivalent to enter
 #'   `sRGB(0.1, 0.4, 0.8)`--the HEX color code is #1A66CC, it can be entered
 #'   into a search engine (such as Mozilla Firefox) to see a color swatch.
-#' @param force_saturation Logical vector of length one. By default the
-#'   saturation of the `sky_blue` argument is forced above 0.8.
 #'
 #' @export
 #' @references \insertAllCited{}
@@ -63,10 +61,13 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' plotRGB((caim/(2^16-2))*255)
+#' mn_mx <- optim_normalize(caim, m)
+#'
+#' plotRGB(normalize(caim, mn_mx[1], mn_mx[2], TRUE)*255)
 #' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-#' plotRGB((sky_blue_sample/2^16)*255)
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>% normalize(., 0, 2^16) %>%
+#' plotRGB(normalize(sky_blue_sample, mn_mx[1], mn_mx[2], TRUE)*255)
+#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
+#'   normalize(., mn_mx[1], mn_mx[2]) %>%
 #'   as.numeric() %>%
 #'   matrix(., ncol = 3) %>%
 #'   sRGB()
@@ -75,8 +76,8 @@
 #' # HEX code into a search engine (such as Mozilla Firefox).
 #' # NOTE: see extract_dn() for an alternative method to obtain sky_blue
 #'
-#' caim <- normalize(caim, 0, 2^16)
-#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' ncaim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+#' ecaim <- enhance_caim(ncaim, m, sky_blue = sky_blue)
 #' plot(ecaim)
 #' plot(caim$Blue)
 #'
@@ -91,8 +92,7 @@ enhance_caim <- function(caim,
                          w_red = 0,
                          thr = NULL,
                          fuzziness = NULL,
-                         gamma = NULL,
-                         force_saturation = TRUE) {
+                         gamma = NULL) {
   stopifnot(class(caim) == "SpatRaster")
   .was_normalized(caim, "caim")
   stopifnot(all(names(caim) == c("Red", "Green", "Blue")))
@@ -104,18 +104,8 @@ enhance_caim <- function(caim,
     terra::compareGeom(caim, m)
   }
 
-  stopifnot(length(force_saturation) == 1)
-
   if (is.null(sky_blue)) {
     sky_blue <- colorspace::sRGB(0.1, 0.4, 0.8)
-  } else {
-    sky_blue <- as(sky_blue, "HSV")
-    sky_blue <- colorspace::coords(sky_blue)
-    if (force_saturation & sky_blue[1,2] < 0.8) {
-      sky_blue[1,2] <- 0.8
-    }
-    sky_blue <- colorspace::HSV(sky_blue)
-    sky_blue <- as(sky_blue, "RGB")
   }
 
   mem_sky_blue <- membership_to_color(caim, sky_blue, sigma)

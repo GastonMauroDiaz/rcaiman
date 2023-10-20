@@ -12,8 +12,7 @@ enhance_caim(
   w_red = 0,
   thr = NULL,
   fuzziness = NULL,
-  gamma = NULL,
-  force_saturation = TRUE
+  gamma = NULL
 )
 }
 \arguments{
@@ -32,7 +31,7 @@ into a search engine (such as Mozilla Firefox) to see a color swatch.}
 
 \item{sigma}{Numeric vector of length one. Use \code{NULL} (default) to estimate
 it automatically as the euclidean distance between \code{target_color} and grey
-in the \emph{CIE Lab} color space.}
+in the \emph{CIE L\emph{a}b*} color space.}
 
 \item{w_red}{Numeric vector of length one. Weight of the red channel. A
 single layer image is calculated as a weighted average of the blue and red
@@ -49,9 +48,6 @@ midpoint between the maximum and minimum values of \code{lightness}.}
 
 \item{gamma}{Numeric vector of length one. This is for applying a gamma back
 correction to the lightness information (see Details and argument \code{w_red}).}
-
-\item{force_saturation}{Logical vector of length one. By default the
-saturation of the \code{sky_blue} argument is forced above 0.8.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}--with same pixel dimensions
@@ -96,11 +92,13 @@ If you use this function in your research, please cite
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- !is.na(z)
-plotRGB((caim/(2^16-2))*255)
+mn_mx <- optim_normalize(caim, !is.na(z))
+
+plotRGB(normalize(caim, mn_mx[1], mn_mx[2], TRUE)*255)
 sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-plotRGB((sky_blue_sample/2^16)*255)
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\% normalize(., 0, 2^16) \%>\%
+plotRGB(normalize(sky_blue_sample, mn_mx[1], mn_mx[2], TRUE)*255)
+sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
+  normalize(., mn_mx[1], mn_mx[2]) \%>\%
   as.numeric() \%>\%
   matrix(., ncol = 3) \%>\%
   sRGB()
@@ -109,14 +107,14 @@ hex(sky_blue)
 # HEX code into a search engine (such as Mozilla Firefox).
 # NOTE: see extract_dn() for an alternative method to obtain sky_blue
 
-caim <- normalize(caim, 0, 2^16)
-ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+ncaim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+ecaim <- enhance_caim(ncaim, m, sky_blue = sky_blue)
 plot(ecaim)
 plot(caim$Blue)
 
 ## to compare
 plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
-plot(apply_thr(caim$Blue, thr_isodata(caim$Blue[m])))
+plot(apply_thr(ncaim$Blue, thr_isodata(caim$Blue[m])))
 }
 }
 \references{

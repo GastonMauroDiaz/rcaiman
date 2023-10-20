@@ -3,7 +3,13 @@
 }
 
 .get_gaussian_2d_parameters <- function(target_color, sigma) {
-  if (!is(target_color, "LAB")) target_color <- as(target_color, "LAB")
+  if (!is(target_color, "LAB")) {
+    if (!is(target_color, "sRGB")) {
+      target_color <- as(target_color, "sRGB")
+    } else {
+      target_color <- as(target_color, "LAB")
+    }
+  }
   ma <- colorspace::coords(target_color)
   target_a <- ma[, 2]
   target_b <- ma[, 3]
@@ -15,8 +21,8 @@
 #'
 #' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' It computes the degree of membership to a color using two Gaussian membership
-#' functions and the axes *a* and *b* from the
-#' *CIE Lab* color space. The lightness dimension is not
+#' functions and the axes _a*_ and _b*_ from the
+#' _CIE L*a*b*_ color space. The lightness dimension is not
 #' considered in the calculations.
 #'
 #' If you use this function in your research, please cite
@@ -27,7 +33,7 @@
 #' @param target_color [color-class].
 #' @param sigma Numeric vector of length one. Use `NULL` (default) to estimate
 #'   it automatically as the euclidean distance between `target_color` and grey
-#'   in the *CIE Lab* color space.
+#'   in the _CIE L*a*b*_ color space.
 #'
 #'
 #' @return It returns an object from the class [SpatRaster-class]. First layer
@@ -65,7 +71,8 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   if (!is.null(sigma)) stopifnot(length(sigma) == 1)
 
   color <- colorspace::sRGB(terra::values(caim))
-  if (!is(color, "LAB")) color <- as(color, "LAB")
+  color <- as(color, "LAB")
+
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
   x <- colorspace::coords(color)
