@@ -34,28 +34,30 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim()
+#' r <- caim$Blue
+#' caim <- normalize(caim, 0, 20847, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' m <- !is.na(z)
 #'
-#' bin <- ootb_obia(caim, z, a, gamma = NULL)
+#' bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
-#' sky_points <- extract_sky_points(caim$Blue, bin, g, dist_to_plant = 5)
+#' sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 5)
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#' rl <- extract_rl(caim$Blue, z, a, sky_points)
+#' rl <- extract_rl(r, z, a, sky_points)
 #'
 #' model <- fit_coneshaped_model(rl$sky_points)
 #' summary(model$model)
 #' sky_cs <- model$fun(z, a)
 #' persp(terra::aggregate(sky_cs, 10), theta = 90, phi = 45)
 #'
-#' sky_s <- fit_trend_surface(caim$Blue, z, a, bin, sky_cs)
+#' sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)
 #' persp(terra::aggregate(sky_s$image, 10), theta = 90, phi = 45)
 #'
-#' #a quick pipepile
-#' r <- caim$Blue
+#' #a quick pipeline
 #' bin <- find_sky_pixels(r, z, a)
 #' sky <- fit_trend_surface(r, z, a, bin)$image
 #' sky <- fix_reconstructed_sky(sky, z, r, bin)

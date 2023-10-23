@@ -13,17 +13,11 @@
 #' `1` are assigned to the class *plant* only if they comply with the following
 #' conditions:
 #'
-#' \itemize{
-#'
-#' \item Their values are equal to `0` after [defuzzify()] with a
+#' * Their values are equal to `0` after [defuzzify()] with a
 #' sky grid segmentation of `10` degrees.
-#'
-#' \item Their values are equal to `0` after [apply_thr()] with a
+#' * Their values are equal to `0` after [apply_thr()] with a
 #' threshold computed with [thr_isodata()].
-#'
-#' \item They are not exclusively surrounded by sky pixels.
-#'
-#' }
+#' * They are not exclusively surrounded by sky pixels.
 #'
 #' Use the default values of `z` and `a` to process restricted view photographs.
 #'
@@ -55,10 +49,23 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' mn_mx <- optim_normalize(caim, !is.na(z))
-#' caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+#' m <- !is.na(z)
 #'
-#' bin2 <- ootb_obia(caim, z, a, gamma = NULL)
+#' mn <- quantile(caim$Blue[m], 0.01)
+#' mx <- quantile(caim$Blue[m], 0.99)
+#' r <- normalize(caim$Blue, mn, mx, TRUE)
+#'
+#' bin <- find_sky_pixels(r, z, a)
+#' mblt <- ootb_mblt(r, z, a, bin)
+#' plot(mblt$bin)
+#'
+#' mx <- optim_normalize(caim, mblt$bin)
+#' ncaim <- normalize(caim, mx = mx, force_range = TRUE)
+#' plotRGB(ncaim*255)
+#' plotRGB(normalize(caim)*255)
+#' percentage_of_clipped_highlights(ncaim$Blue, m)
+#'
+#' bin2 <- ootb_obia(ncaim, z, a, gamma = NULL)
 #' plot(bin2)
 #'
 #' # =====================================

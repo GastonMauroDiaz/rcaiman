@@ -29,7 +29,7 @@
 #'
 #' @inheritParams sky_grid_segmentation
 #' @param bin [SpatRaster-class]. Binarized hemispherical canopy image.
-#' @param m [SpatRaster-class]. See [mask_hs()].
+#' @inheritParams masking
 #'
 #' @return Numeric vector of length one.
 #' @export

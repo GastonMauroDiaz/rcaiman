@@ -48,21 +48,24 @@ this argument properly.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim()
+r <- caim$Blue
+caim <- normalize(caim, 0, 20847, TRUE)
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
+m <- !is.na(z)
 
-bin <- ootb_obia(caim, z, a, gamma = NULL)
+bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 
 g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(caim$Blue, bin, g, dist_to_plant = 3)
+sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-sky_points <- extract_dn(caim$Blue, sky_points)
+sky_points <- extract_dn(r, sky_points)
 
-sky <- interpolate_sky_points(sky_points, caim$Blue, col_id = 3)
+sky <- interpolate_sky_points(sky_points, r, col_id = 3)
 plot(sky)
-plot(caim$Blue/sky)
+plot(r/sky)
 
 # a quick demonstration of how to use trend surface fitting to smooth the
 # interpolation
@@ -70,9 +73,9 @@ persp(terra::aggregate(sky, 10), theta = 45, phi = 30)
 sky_s <- fit_trend_surface(sky, z, a, !is.na(z))
 persp(terra::aggregate(sky_s$image, 10), theta = 45, phi = 30)
 plot(sky_s$image)
-plot(caim$Blue)
-plot(caim$Blue/sky_s$image)
-plot(apply_thr(caim$Blue/sky_s$image, 0.5))
+plot(r)
+plot(r/sky_s$image)
+plot(apply_thr(r/sky_s$image, 0.5))
 }
 }
 \references{

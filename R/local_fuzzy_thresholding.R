@@ -20,8 +20,7 @@
 #'
 #' @param lightness [SpatRaster-class]. A normalized greyscale image (see
 #'   [normalize()]).
-#' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
-#'   [mask_hs()].
+#' @inheritParams masking
 #' @param mem [SpatRaster-class]. It is the scale parameter of the logistic
 #'   membership function. Typically it is obtained with [membership_to_color()].
 #' @param thr Numeric vector of length one. Location parameter of the logistic
@@ -43,8 +42,6 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' mn_mx <- optim_normalize(caim, !is.na(z))
-#' caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
 #'
 #' caim <- normalize(caim)
 #'
@@ -56,10 +53,12 @@
 #' colnames(img_points) <- c("row", "col")
 #' head(img_points)
 #' target_color <- extract_dn(caim, img_points, fun = median)
+#' as(target_color, "HSV")
+#' target_color <- HSV(240, 0.85, 0.5) #to increase saturation
 #'
 #' mem <- membership_to_color(caim, target_color)
 #' mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
-#' plot(mem_thr)
+#' plot(mem_thr
 #' }
 local_fuzzy_thresholding <- function (lightness,
                                       m,

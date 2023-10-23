@@ -37,6 +37,7 @@ Other Tool Functions:
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
+\code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
 \code{\link{write_bin}()},

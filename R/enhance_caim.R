@@ -61,13 +61,21 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' mn_mx <- optim_normalize(caim, m)
 #'
-#' plotRGB(normalize(caim, mn_mx[1], mn_mx[2], TRUE)*255)
+#' mn <- quantile(caim$Blue[m], 0.01)
+#' mx <- quantile(caim$Blue[m], 0.99)
+#' r <- normalize(caim$Blue, mn, mx, TRUE)
+#'
+#' bin <- find_sky_pixels(r, z, a)
+#' mblt <- ootb_mblt(r, z, a, bin)
+#'
+#' mx <- optim_normalize(caim, mblt$bin)
+#' mn <- min(caim[m])
+#'
 #' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-#' plotRGB(normalize(sky_blue_sample, mn_mx[1], mn_mx[2], TRUE)*255)
+#' plotRGB(normalize(sky_blue_sample, mn, mx, TRUE)*255)
 #' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   normalize(., mn_mx[1], mn_mx[2]) %>%
+#'   normalize(., mn, mx) %>%
 #'   as.numeric() %>%
 #'   matrix(., ncol = 3) %>%
 #'   sRGB()
@@ -76,8 +84,13 @@
 #' # HEX code into a search engine (such as Mozilla Firefox).
 #' # NOTE: see extract_dn() for an alternative method to obtain sky_blue
 #'
-#' ncaim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
-#' ecaim <- enhance_caim(ncaim, m, sky_blue = sky_blue)
+#' as(sky_blue, "HSV") #saturatio (S) is low
+#' # To obtain same hue (H) but greater saturation, it only requires this:
+#' sky_blue <- HSV(239, 0.85, 0.5) %>% as(., "sRGB") %>% as(., "LAB")
+#' hex(sky_blue)
+#'
+#' caim <- normalize(caim, mx = mx, force_range = TRUE)
+#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 #' plot(ecaim)
 #' plot(caim$Blue)
 #'

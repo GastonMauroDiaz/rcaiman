@@ -84,47 +84,62 @@ plenty of \code{NA} values, which should not be provided.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
+m <- !is.na(z)
 
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-sky_blue <- extract_dn(caim, sky_points, fun = median)
+m <- !is.na(z)
+mn <- quantile(caim$Blue[m], 0.01)
+mx <- quantile(caim$Blue[m], 0.99)
+r <- normalize(caim$Blue, mn, mx, TRUE)
 
-bin <- ootb_obia(caim, z, a, sky_blue = sky_blue, gamma = NULL)
+bin <- find_sky_pixels(r, z, a)
+bin <- ootb_mblt(r, z, a, bin)
+plot(bin$bin)
+
+mx <- optim_normalize(caim, m)
+
+r <- normalize(caim$Blue)
+caim <- normalize(caim, mx = mx, force_range = TRUE)
+
+bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 plot(bin)
+bin2 <- ootb_mblt(r, z, a, bin)$bin
+plot(bin2)
+
+.fun <- function(method, bin) {
+  ootb_sky_reconstruction(r, z, a, bin, method = method)
+}
 set.seed(7)
-sky_bfgs <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "BFGS")
-set.seed(7)
-sky_cg <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "CG")
-set.seed(7)
-sky_sann <- ootb_sky_reconstruction(caim$Blue, z, a, bin, method = "SANN")
-l <- list(sky_bfgs, sky_cg, sky_sann)
+l <- Map(.fun, rep(c("BFGS", "CG", "SANN"), 2),
+         as.list(c(rep(bin, 3), rep(bin2, 3))))
+
+cie_fit <- Map(function(sky) lm(sky$model$pred ~ sky$model$obs) \%>\%
+                 summary() \%>\% .$r.squared, l) \%>\% unlist()
+n <- Map(function(sky) sky$sky_points \%>\% nrow(), l) \%>\% unlist()
+
 r2 <- Map(function(sky) sky$validation \%>\% summary() \%>\% .$r.squared, l) \%>\%
   unlist()
 oor <- Map(function(sky) sky$OOR, l) \%>\% unlist()
 i <- which.min(oor/r2)
-sky <- l[[i]]
-sky$validation \%>\% summary()
 
+sky$sky
+sky$validation \%>\% summary()
 plot(sky$sky)
-plot(caim$Blue/sky$sky)
-hist(caim$Blue/sky$sky, xlim = c(0, 2), breaks = 255)
-hist((caim$Blue/sky$sky)[bin], xlim = c(0, 2), breaks = 255)
-plot((caim$Blue/sky$sky)>1.1)
+plot(r/sky$sky)
+hist(r/sky$sky, xlim = c(0, 2), breaks = 255)
+hist((r/sky$sky)[bin], xlim = c(0, 2), breaks = 255)
+plot((r/sky$sky)>1.1)
 
 plot(sky$bin)
 
-sky2 <- ootb_sky_reconstruction(caim$Blue, z, a, sky$bin, sky$sky)
+sky2 <- ootb_sky_reconstruction(r, z, a, sky$bin, sky$sky)
 plot(sky2)
-plot(caim$Blue/sky2)
-hist(caim$Blue/sky2, xlim = c(0, 2), breaks = 255)
-hist((caim$Blue/sky2)[sky$bin], xlim = c(0, 2), breaks = 255)
-plot((caim$Blue/sky2)>1.1)
+plot(r/sky2)
+hist(r/sky2, xlim = c(0, 2), breaks = 255)
+hist((r/sky2)[sky$bin], xlim = c(0, 2), breaks = 255)
+plot((r/sky2)>1.1)
 }
 }
 \references{

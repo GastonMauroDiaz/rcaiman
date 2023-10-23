@@ -9,34 +9,46 @@
 #'
 #' @family Tool Functions
 #'
-#' @return Numeric vector of length two.
+#' @return Numeric vector of length one. The values for using as `mx` argument
+#'   with [normalize()].
 #' @export
 #'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
+#' z <- zenith_image(ncol(caim), lens())
+#' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' mn_mx <- optim_normalize(caim, m)
-#' ncaim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+#'
+#' mn <- quantile(caim$Blue[m], 0.01)
+#' mx <- quantile(caim$Blue[m], 0.99)
+#' r <- normalize(caim$Blue, mn, mx, TRUE)
+#'
+#' bin <- find_sky_pixels(r, z, a)
+#' mblt <- ootb_mblt(r, z, a, bin)
+#' plot(mblt$bin)
+#'
+#' mx <- optim_normalize(caim, mblt$bin)
+#' ncaim <- normalize(caim, mx = mx, force_range = TRUE)
 #' plotRGB(ncaim*255)
 #' plotRGB(normalize(caim)*255)
+#' percentage_of_clipped_highlights(ncaim$Blue, m)
 #' }
-optim_normalize <- function(caim, m, mn = NULL, mx = NULL, method = "BFGS")  {
+optim_normalize <- function(caim, m, mx = NULL, method = "BFGS")  {
   terra::compareGeom(caim, m)
   stopifnot(terra::nlyr(caim) == 3)
 
   names(caim) <- names(read_caim())
   caim[is.na(caim)] <- 0
-  if(is.null(mn)) mn <- quantile(caim$Blue[m], 0.01)
   if(is.null(mx)) mx <- quantile(caim$Blue[m], 0.99)
 
-  .get_index <- function(mn, mx) {
-    .caim <- normalize(caim, mn, mx, TRUE)
+  .get_index <- function(mx) {
+    .caim <- normalize(caim, mx = mx, force_range = TRUE)
     area <- (sum(.caim$Blue[m] == 0 | .caim$Blue[m] == 1) / sum(m[])) * 100
     cf <- 0
     try(cf <- colorfulness(.caim, m), silent = TRUE)
     (100 - cf) * area
   }
-  fit <- bbmle::mle2(.get_index, list(mn = mn, mx = mx), method = method)
+  fit <- bbmle::mle2(.get_index, list(mx = mx), method = method)
   fit@coef
 }

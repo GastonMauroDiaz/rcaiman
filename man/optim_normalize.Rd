@@ -4,7 +4,7 @@
 \alias{optim_normalize}
 \title{Optimize normalize parameters}
 \usage{
-optim_normalize(caim, m, mn = NULL, mx = NULL, method = "BFGS")
+optim_normalize(caim, m, mx = NULL, method = "BFGS")
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}. The return of a call to
@@ -15,16 +15,14 @@ optim_normalize(caim, m, mn = NULL, mx = NULL, method = "BFGS")
 \code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
 to understand how this argument can modify the output.}
 
-\item{mn}{Numeric vector of length one. Minimum expected value. Default is
-equivalent to enter the minimum value from \code{r}.}
-
 \item{mx}{Numeric vector of length one. Maximum expected value. Default is
 equivalent to enter the maximum value from \code{r}.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \value{
-Numeric vector of length two.
+Numeric vector of length one. The values for using as \code{mx} argument
+with \code{\link[=normalize]{normalize()}}.
 }
 \description{
 Wrapper function for \code{\link[bbmle:mle2]{bbmle::mle2()}}. Optimize normalize parameters by
@@ -33,11 +31,23 @@ maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing saturation
 \examples{
 \dontrun{
 caim <- read_caim()
+z <- zenith_image(ncol(caim), lens())
+a <- azimuth_image(z)
 m <- !is.na(z)
-mn_mx <- optim_normalize(caim, m)
-ncaim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+
+mn <- quantile(caim$Blue[m], 0.01)
+mx <- quantile(caim$Blue[m], 0.99)
+r <- normalize(caim$Blue, mn, mx, TRUE)
+
+bin <- find_sky_pixels(r, z, a)
+mblt <- ootb_mblt(r, z, a, bin)
+plot(mblt$bin)
+
+mx <- optim_normalize(caim, mblt$bin)
+ncaim <- normalize(caim, mx = mx, force_range = TRUE)
 plotRGB(ncaim*255)
 plotRGB(normalize(caim)*255)
+percentage_of_clipped_highlights(ncaim$Blue, m)
 }
 }
 \seealso{
@@ -51,6 +61,7 @@ Other Tool Functions:
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{masking}()},
+\code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},

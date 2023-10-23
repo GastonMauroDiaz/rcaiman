@@ -35,18 +35,12 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim()
+caim <- read_caim() \%>\% normalize
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
-plotRGB((caim/(2^16-2))*255)
-sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-plotRGB((sky_blue_sample/2^16)*255)
-sky_blue <- apply(sky_blue_sample[], 2, median) \%>\% normalize(., 0, 2^16) \%>\%
-  as.numeric() \%>\%
-  matrix(., ncol = 3) \%>\%
-  sRGB()
-caim <- normalize(caim)
+
+sky_blue <- HSV(239, 0.85, 0.5)
 mem <- membership_to_color(caim, sky_blue)
 plot(mem)
 }

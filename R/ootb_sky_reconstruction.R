@@ -44,37 +44,45 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' m <- !is.na(z)
+#'
+#' m <- !is.na(z)
+#' mn <- quantile(caim$Blue[m], 0.01)
+#' mx <- quantile(caim$Blue[m], 0.99)
+#' r <- normalize(caim$Blue, mn, mx, TRUE)
+#'
+#' bin <- find_sky_pixels(r, z, a)
+#' bin <- ootb_mblt(r, z, a, bin)
+#' plot(bin$bin)
+#'
+#' mx <- optim_normalize(caim, m)
+#'
 #' r <- normalize(caim$Blue)
+#' caim <- normalize(caim, mx = mx, force_range = TRUE)
 #'
-#' mn_mx <- optim_normalize(caim, !is.na(z))
-#' caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
-#'
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' sky_blue <- extract_dn(caim, sky_points, fun = median)
-#'
-#' bin <- ootb_obia(caim, z, a, sky_blue = sky_blue, gamma = NULL)
+#' bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 #' plot(bin)
+#' bin2 <- ootb_mblt(r, z, a, bin)$bin
+#' plot(bin2)
 #'
-#' .fun <- function(method) {
+#' .fun <- function(method, bin) {
 #'   ootb_sky_reconstruction(r, z, a, bin, method = method)
 #' }
 #' set.seed(7)
-#' l <- future.apply::future_Map(.fun,
-#'                               c("BFGS", "CG", "SANN"), future.seed = TRUE)
+#' l <- Map(.fun, rep(c("BFGS", "CG", "SANN"), 2),
+#'          as.list(c(rep(bin, 3), rep(bin2, 3))))
+#'
+#' cie_fit <- Map(function(sky) lm(sky$model$pred ~ sky$model$obs) %>%
+#'                  summary() %>% .$r.squared, l) %>% unlist()
+#' n <- Map(function(sky) sky$sky_points %>% nrow(), l) %>% unlist()
 #'
 #' r2 <- Map(function(sky) sky$validation %>% summary() %>% .$r.squared, l) %>%
 #'   unlist()
 #' oor <- Map(function(sky) sky$OOR, l) %>% unlist()
-#' n <- Map(function(sky) sky$sky_points %>% nrow(), l) %>% unlist()
-#' i <- which.min(oor/r2/n)
-#' sky <- l[[i]]
-#' sky$validation %>% summary()
+#' i <- which.min(oor/r2)
 #'
 #' sky$sky
+#' sky$validation %>% summary()
 #' plot(sky$sky)
 #' plot(r/sky$sky)
 #' hist(r/sky$sky, xlim = c(0, 2), breaks = 255)

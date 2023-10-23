@@ -9,7 +9,8 @@ calc_co(bin, m = NULL, z, a, angle_width)
 \arguments{
 \item{bin}{\linkS4class{SpatRaster}. Binarized hemispherical canopy image.}
 
-\item{m}{\linkS4class{SpatRaster}. See \code{\link[=mask_hs]{mask_hs()}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 

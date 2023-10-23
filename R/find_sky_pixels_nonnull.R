@@ -30,12 +30,14 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' caim <- read_caim()
+#' r <- caim$Blue
+#' caim <- normalize(caim, 0, 20847, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' bin <- ootb_obia(caim, z, a, gamma = NULL)
+#' m <- !is.na(z)
+#' bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 #' g <- sky_grid_segmentation(z, a, 3)
-#' r <- caim$Blue
 #' sky_points <- extract_sky_points(r, bin, g,
 #'                                  dist_to_plant = 5,
 #'                                  min_raster_dist = 5)

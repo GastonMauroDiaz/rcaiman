@@ -10,8 +10,8 @@ local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 \item{lightness}{\linkS4class{SpatRaster}. A normalized greyscale image (see
 \code{\link[=normalize]{normalize()}}).}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{mem}{\linkS4class{SpatRaster}. It is the scale parameter of the logistic
 membership function. Typically it is obtained with \code{\link[=membership_to_color]{membership_to_color()}}.}
@@ -52,8 +52,6 @@ If you use this function in your research, please cite
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-mn_mx <- optim_normalize(caim, !is.na(z))
-caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
 
 caim <- normalize(caim)
 
@@ -65,10 +63,12 @@ img_points <- img_points[c("Y", "X")]
 colnames(img_points) <- c("row", "col")
 head(img_points)
 target_color <- extract_dn(caim, img_points, fun = median)
+as(target_color, "HSV")
+target_color <- HSV(240, 0.85, 0.5) #to increase saturation
 
 mem <- membership_to_color(caim, target_color)
 mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
-plot(mem_thr)
+plot(mem_thr
 }
 }
 \references{

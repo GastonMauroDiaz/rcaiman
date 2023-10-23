@@ -56,17 +56,12 @@ template.
 Pixels from the synthetic layer returned by \code{\link[=obia]{obia()}} that lay between \code{0} and
 \code{1} are assigned to the class \emph{plant} only if they comply with the following
 conditions:
-
 \itemize{
-
 \item Their values are equal to \code{0} after \code{\link[=defuzzify]{defuzzify()}} with a
 sky grid segmentation of \code{10} degrees.
-
 \item Their values are equal to \code{0} after \code{\link[=apply_thr]{apply_thr()}} with a
 threshold computed with \code{\link[=thr_isodata]{thr_isodata()}}.
-
 \item They are not exclusively surrounded by sky pixels.
-
 }
 
 Use the default values of \code{z} and \code{a} to process restricted view photographs.
@@ -85,10 +80,23 @@ If you use this function in your research, please cite
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-mn_mx <- optim_normalize(caim, !is.na(z))
-caim <- normalize(caim, mn_mx[1], mn_mx[2], TRUE)
+m <- !is.na(z)
 
-bin2 <- ootb_obia(caim, z, a, gamma = NULL)
+mn <- quantile(caim$Blue[m], 0.01)
+mx <- quantile(caim$Blue[m], 0.99)
+r <- normalize(caim$Blue, mn, mx, TRUE)
+
+bin <- find_sky_pixels(r, z, a)
+mblt <- ootb_mblt(r, z, a, bin)
+plot(mblt$bin)
+
+mx <- optim_normalize(caim, mblt$bin)
+ncaim <- normalize(caim, mx = mx, force_range = TRUE)
+plotRGB(ncaim*255)
+plotRGB(normalize(caim)*255)
+percentage_of_clipped_highlights(ncaim$Blue, m)
+
+bin2 <- ootb_obia(ncaim, z, a, gamma = NULL)
 plot(bin2)
 
 # =====================================

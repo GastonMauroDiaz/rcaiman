@@ -3,8 +3,7 @@
 ## Breaking changes
 
 * `ootb_mblt()` was updated and results from this version will be different to 
-the one from the previous one. However, all changes are in line with the 
-original publications.
+those from previous version.
 
 ## New features
 
