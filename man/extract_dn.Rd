@@ -30,7 +30,7 @@ be returned instead of a \emph{data.frame}. The latter feature is useful
 for obtaining  the \code{sky_blue} argument for \code{\link[=enhance_caim]{enhance_caim()}}.
 }
 \description{
-It is a wrapper function around \code{\link[terra:extract]{terra::extract()}}.
+Wrapper function around \code{\link[terra:extract]{terra::extract()}}.
 }
 \note{
 The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
@@ -72,6 +72,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

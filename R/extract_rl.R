@@ -14,7 +14,7 @@
 #'  package \insertCite{Lang2013}{rcaiman} can be used to manually digitize
 #'  points. See [extract_dn()] and
 #'  [read_manual_input()] for details.
-#'@param no_of_points Numeric vector on length one. The number of near-zenith
+#'@param no_of_points Numeric vector of length one. The number of near-zenith
 #'  points required for the estimation of the zenith DN.
 #'@param z_thr Numeric vector on length one. The starting maximum zenith angle
 #'  used to search for near-zenith points.
@@ -48,7 +48,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' caim <- read_caim() %>% normalize(., 0, 20847)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' plotRGB(caim*255)

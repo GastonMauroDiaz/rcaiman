@@ -2,7 +2,7 @@
 % Please edit documentation in R/lens.R
 \name{lens}
 \alias{lens}
-\title{Lens database}
+\title{Access the lens database}
 \usage{
 lens(type = "equidistant", max_fov = FALSE)
 }

@@ -6,8 +6,8 @@
 #' reprojected and interpolated. To that end, this function use [lidR::knnidw()]
 #' as workhorse function, so arguments `k`, `p`, and `rmax` are passed to it. If
 #' the user does not input values to these arguments, both `k` and `p` are
-#' automatically defined by default as follow. When a binarized image is
-#' provided as argument `r`, both parameters are set to `1`. Otherwise, they are
+#' automatically defined by default as follow: when a binarized image is
+#' provided as argument `r`, both parameters are set to `1`; otherwise, they are
 #' set to `9` and `2`, respectively.
 #'
 #' @param r [SpatRaster-class]. A fish-eye image.
@@ -39,10 +39,10 @@
 #' bin_equi <- fisheye_to_equidistant(bin, z, a)
 #' plot(bin)
 #' plot(bin_equi)
-#' #use write_bin(bin, "path/file_name") to have a file ready
-#' #for calculating LAI with CIMES, GLA, CAN-EYE, etc.
+#' # Use write_bin(bin, "path/file_name") to have a file ready
+#' # to calcute LAI with CIMES, GLA, CAN-EYE, etc.
 #'
-#' #It can be used to reproject RGB photographs
+#' # It can be used to reproject RGB photographs
 #' plotRGB(caim)
 #' caim <- fisheye_to_equidistant(caim, z, a)
 #' plotRGB(caim)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/thr_isodata.R
 \name{thr_isodata}
 \alias{thr_isodata}
-\title{Threshold calculated with the isodata method}
+\title{Calculate a threshold with the isodata method}
 \usage{
 thr_isodata(x)
 }
@@ -21,7 +21,7 @@ Threshold calculated with the algorithm by
 \details{
 The implementation is based on
 \href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
-in the 'autothresholdr' package (\code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}).
+in the \code{autothresholdr} package (\code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}).
 However, I found this implementarion more versatile since it is not
 restricted to an 8-bit input.
 }
@@ -38,8 +38,6 @@ plot(bin)
 \seealso{
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},

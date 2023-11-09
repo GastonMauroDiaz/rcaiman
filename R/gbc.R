@@ -2,7 +2,7 @@
 #'
 #' Gamma back correction of JPEG images
 #'
-#' Digital cameras usually use sRGB as color space, which is a standard
+#' Digital cameras usually use sRGB as color space. It is a standard
 #' developed to ensure accurate color and tone management. The transfer function
 #' of sRGB, known as gamma correction, is very close to a power function with
 #' the exponent 1/2.2. This is why a DN of a born-digital photograph that was
@@ -10,7 +10,7 @@
 #' having the sensor a linear response.
 #'
 #'
-#' @param DN_from_JPEG Numeric vector or object from the [SpatRaster-class]
+#' @param DN_from_JPEG Numeric vector or object of the [SpatRaster-class]
 #'   class. Digital numbers from a JPEG file (0 to 255, i.e., the standard 8-bit
 #'   encoded).
 #' @param gamma Numeric vector of length one. Gamma value. Please see

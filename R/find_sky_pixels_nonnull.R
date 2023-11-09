@@ -26,12 +26,12 @@
 #' @return An object of class [SpatRaster-class] with values `0` and `1`.
 #' @export
 #'
-#' @family Binarization Functions
+#' @family Tool Functions
 #'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' r <- caim$Blue
+#' r <- caim$Blue %>% normalize()
 #' caim <- normalize(caim, 0, 20847, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
@@ -49,8 +49,12 @@
 #' sky <- fit_trend_surface(sky, z, a, !is.na(z))$image
 #' plot(r/sky)
 #'
+#' x <- predict(model$model)
+#' y <- predict(model$model) + model$model$residuals
+#' mblt <- coefficients(lm(x~y))
+#'
 #' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels_nonnull(r, sky, g)
+#' bin <- find_sky_pixels_nonnull(r, sky, g, mblt[1], mblt[2], w = 0.1)
 #' plot(bin)
 #' }
 find_sky_pixels_nonnull <- function(r, sky, g,

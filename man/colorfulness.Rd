@@ -2,42 +2,35 @@
 % Please edit documentation in R/colorfulness.R
 \name{colorfulness}
 \alias{colorfulness}
-\title{Colorfulness index}
+\title{Quantify colorfulness}
 \usage{
-colorfulness(caim, m = NULL, plot = FALSE)
+colorfulness(caim, m = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
 \code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
 \code{!is.na(caim$Red)}.}
-
-\item{plot}{Logical vector of length one. If is \code{TRUE}, a plot will be send
-to the graphic device to show the data on the CIE \emph{ab} space.}
 }
 \value{
-A numeric vector of length one and, if the argument \code{plot} is \code{TRUE},
-an object returned by \code{\link[base:plot]{base::plot()}} is send to the graphic device.
+A numeric vector of length one.
 }
 \description{
 Quantify the colorfulness of an image
 }
 \details{
 Quantify the colorfulness of an sRGB image using a bidimensional space formed
-by the green/red and the blue/yellow axes of the CIE \emph{Lab} space, symbolized
-with \emph{a} and \emph{b}, respectively. The colorfulness index (CI) is defined as
+by the green/red and the blue/yellow axes of the CIE \emph{La\emph{b}} space,
+symbolized with \emph{a*} and \emph{\emph{b}}, respectively. The colorfulness index (CI) is
+defined as
 
 \eqn{CI = \dfrac{A_o}{A_p} \cdot 100},
 
-where \eqn{A_o} and \eqn{A_p} are the observed and potential area of the \emph{ab}
-plane. \eqn{A_o} refers to the colors from the image while \eqn{A_p} to the
-colors from the whole sRGB cube.
-
-If \code{plot = TRUE} is used, a plot is sent to the active graphics device. It
-shows the color from the image plotted into a plane made by the axes \emph{a} and
-\emph{b}.
+where \eqn{A_o} and \eqn{A_p} are the observed and potential area of the
+\emph{a\emph{b}} plane. \eqn{A_o} refers to the colors from the image while \eqn{A_p}
+to the colors from the whole sRGB cube.
 }
 \note{
 An early version of this function was used in
@@ -59,6 +52,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

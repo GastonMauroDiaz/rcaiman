@@ -2,7 +2,7 @@
 % Please edit documentation in R/local_fuzzy_thresholding.R
 \name{local_fuzzy_thresholding}
 \alias{local_fuzzy_thresholding}
-\title{local fuzzy thresholding}
+\title{Local fuzzy thresholding}
 \usage{
 local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 }
@@ -68,7 +68,7 @@ target_color <- HSV(240, 0.85, 0.5) #to increase saturation
 
 mem <- membership_to_color(caim, target_color)
 mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
-plot(mem_thr
+plot(mem_thr)
 }
 }
 \references{

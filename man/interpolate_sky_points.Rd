@@ -67,7 +67,7 @@ sky <- interpolate_sky_points(sky_points, r, col_id = 3)
 plot(sky)
 plot(r/sky)
 
-# a quick demonstration of how to use trend surface fitting to smooth the
+# A quick demonstration of how to use trend surface fitting to smooth the
 # interpolation
 persp(terra::aggregate(sky, 10), theta = 45, phi = 30)
 sky_s <- fit_trend_surface(sky, z, a, !is.na(z))
@@ -84,7 +84,6 @@ plot(apply_thr(r/sky_s$image, 0.5))
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

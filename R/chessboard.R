@@ -1,4 +1,4 @@
-#' Chessboard segmentation
+#' Do chessboard segmentation
 #'
 #' @inheritParams polar_qtree
 #' @param size Numeric vector of length one. Size of the square segments.

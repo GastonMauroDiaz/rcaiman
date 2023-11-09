@@ -24,10 +24,9 @@
 #'
 #' * The original version used a global thresholding method to provide sky
 #' points to the cone-shaped model. This one uses [extract_sky_points_simple()].
-#' Nevertheless, a binarized image can be provided through the `bin` argument
-#' ([find_sky_pixels()], [regional_thresholding()], [ootb_obia(), and
-#' [ootb_mblt()]] are recommended ways to obtain a working binarized image). If
-#' a binarized image is provided, [extract_sky_points()] is used.
+#' Nevertheless, a binarized image can be provided through the `bin` argument,
+#' triggering the use of [extract_sky_points()] instead of
+#' [extract_sky_points_simple()].
 #' * `intercept` and `slope` are automatically obtained using data from sky
 #' points and a linear model for accuracy evaluation after
 #' \insertCite{Pineiro2008;textual}{rcaiman}. This approach handles inaccuracies

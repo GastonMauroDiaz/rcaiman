@@ -3,14 +3,12 @@
 #' Extract features from raster images.
 #'
 #' Given a single-layer raster, a segmentation, and a function,
-#' `extract_features` will return a numeric vector or a
-#' [SpatRaster-class] depending on whether the parameter
-#' `return_raster` is `TRUE` or `FALSE`. For the first case, each
-#' pixel of each segment will adopt the respective extracted feature value. For
-#' the second case, the return will be the extracted feature as a vector of
-#' length equal to the total number of segments. Each extracted feature value
-#' will be obtained by processing all pixels that belong to a segment with the
-#' provided function.
+#' `extract_features` will return a numeric vector or a [SpatRaster-class]
+#' depending on whether the parameter `return_raster` is `TRUE` or `FALSE`. For
+#' the first case, each pixel of each segment will adopt the respective
+#' extracted feature value. For the second case, the return will be a vector of
+#' length equal to the total number of segments. Each value will be obtained by
+#' processing all pixels that belong to a segment with the provided function.
 #'
 #' @param r [SpatRaster-class]. Single layer raster.
 #' @param segmentation [SpatRaster-class]. The segmentation of `r`.

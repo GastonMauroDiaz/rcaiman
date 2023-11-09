@@ -24,8 +24,8 @@
   gradation <- Phi_Z / Phi_0
 
   # Indicatrix function
-  F_Chi <-  1 + .c * (exp(.d * Chi) - exp(.d * pi/2)) + .e * cos(Chi)^2
-  F_Zs  <-  1 + .c * (exp(.d *  Zs) - exp(.d * pi/2)) + .e * cos(Zs)^2
+  F_Chi <- 1 + .c * (exp(.d * Chi) - exp(.d * pi/2)) + .e * cos(Chi)^2
+  F_Zs  <- 1 + .c * (exp(.d *  Zs) - exp(.d * pi/2)) + .e * cos(Zs)^2
   indicatrix <- F_Chi / F_Zs
 
   unname(gradation * indicatrix)

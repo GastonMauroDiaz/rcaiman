@@ -1,4 +1,4 @@
-#' Threshold calculated with the isodata method
+#' Calculate a threshold with the isodata method
 #'
 #' Threshold calculated with the algorithm by
 #' \insertCite{isodata;textual}{rcaiman}, which was recommended by
@@ -7,7 +7,7 @@
 #' The implementation is based on
 #' [the IsoData method
 #' of Auto Threshold ImageJ plugin by Gabriel Landini](https://imagej.net/plugins/auto-threshold#IsoData), which is now available
-#' in the 'autothresholdr' package ([autothresholdr::auto_thresh()]).
+#' in the `autothresholdr` package ([autothresholdr::auto_thresh()]).
 #' However, I found this implementarion more versatile since it is not
 #' restricted to an 8-bit input.
 #'

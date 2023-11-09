@@ -2,7 +2,7 @@
 % Please edit documentation in R/sectors_segmentation.R
 \name{sectors_segmentation}
 \alias{sectors_segmentation}
-\title{Sectors segmentation}
+\title{Do sectors segmentation}
 \usage{
 sectors_segmentation(a, angle_width, return_angle = FALSE)
 }
@@ -21,11 +21,11 @@ An object from the class \linkS4class{SpatRaster} with segments
 shaped like pizza slices.
 }
 \description{
-Segmenting a hemispherical view by slicing the azimuth angle from zero
+Segment a hemispherical view by slicing the azimuth angle from zero
 to 360º in equals intervals.
 }
 \examples{
-z <- zenith_image(1490, lens())
+z <- zenith_image(600, lens())
 a <- azimuth_image(z)
 sectors <- sectors_segmentation(a, 15)
 plot(sectors == 1)

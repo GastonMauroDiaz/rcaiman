@@ -31,20 +31,20 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rl]{extract_rl()}} or a
 \emph{data.frame} with same structure and names.}
 
-\item{zenith_dn}{Numeric vector of length 1. Zenith digital number, see
+\item{zenith_dn}{Numeric vector of length one. Zenith digital number, see
 \code{\link[=extract_rl]{extract_rl()}} for how to obtain it.}
 
 \item{sun_coord}{An object of class \emph{list}. The result of a call to
 \code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
 \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values based on
-date and time of acquisition and the R package 'suncalc'.}
+date and time of acquisition and the \code{suncalc} package.}
 
 \item{custom_sky_coef}{Numeric vector of length five. Custom starting
 coefficients of the sky model. By default, they are drawn from standard
 skies.}
 
-\item{std_sky_no}{Numeric vector. Standard sky number from Table 1 from
-\insertCite{Li2016;textual}{rcaiman}.}
+\item{std_sky_no}{Numeric vector. Standard sky number from
+\insertCite{Li2016;textual}{rcaiman}'s Table 1.}
 
 \item{general_sky_type}{Character vector of length one. It could be any of
 these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
@@ -64,7 +64,7 @@ whole image by calculating the \strong{out-of-range index} as \eqn{\sum_{i =
   1}^{N}(r_i/sky_i)^2}, where \eqn{r} is the \code{r} argument, \eqn{sky} is the
 raster obtained from the fitted model with \code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}} and
 \code{zenith_dn}, \eqn{i} is the index that represents the position of a given
-pixel on the raster grid, \eqn{N} is the total number of pixels that
+pixel on the raster grid, and \eqn{N} is the total number of pixels that
 satisfy either of these inequalities: \eqn{r_i/sky_i<0} and
 \eqn{r_i/sky_i>1}.}
 
@@ -137,7 +137,7 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-xy <- c(210, 451) #'originally captured with click() after x11()
+xy <- c(210, 451) #originally captured with click() after x11()
 sun_coord <- zenith_azimuth_from_row_col(z, z, c(nrow(z) - xy[2],xy[1]))
 points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
        col = 3, pch = 1)
@@ -159,11 +159,10 @@ r2
 sky_cie <- cie_sky_model_raster(z, a,
                                 model$sun_coord$zenith_azimuth,
                                 model$coef) * model$zenith_dn
-sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 plot(sky_cie)
 plot(caim$Blue/sky_cie)
 
-# a quick demonstration of how to use interpolation to improve sky modelling
+# A quick demonstration of how to use interpolation to improve sky modelling
 # after Lang et al. (2010)
 sky <- interpolate_sky_points(rl$sky_points, caim$Blue, rmax = ncol(caim)/7)
 plot(sky)
@@ -187,7 +186,6 @@ abline(0,1)
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{fix_reconstructed_sky}()},

@@ -1,6 +1,6 @@
-#' Rings segmentation
+#' Do rings segmentation
 #'
-#' Segmenting an hemispherical view by slicing the zenith angle from zero to 90º
+#' Segment an hemispherical view by slicing the zenith angle from zero to 90º
 #' in equals intervals.
 #'
 #' @inheritParams ootb_mblt
@@ -17,7 +17,7 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' z <- zenith_image(1490, lens())
+#' z <- zenith_image(600, lens())
 #' rings <- rings_segmentation(z, 15)
 #' plot(rings == 1)
 rings_segmentation <- function(z, angle_width, return_angle = FALSE) {

@@ -16,13 +16,11 @@ enhance_caim(
 )
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
-\code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
-to understand how this argument can modify the output.}
+\code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to be passed to
 \code{\link[=membership_to_color]{membership_to_color()}}. Default (\code{NULL}) is the equivalent to enter
@@ -79,13 +77,17 @@ The argument \code{sky_blue} can be obtained from a photograph that clearly show
 the sky. Then, it can be used to process all the others photograph taken with
 the same equipment, configuration, and protocol.
 
-\code{\link[=gbc]{gbc()}} internally used to back-correct the values passed to
-\code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}.
+Via the \code{gamma} argument, \code{\link[=gbc]{gbc()}} can be internally used to back-correct the
+values passed to \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}.
 }
 \note{
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} in addition to this package
 (\verb{citation("rcaiman"}).
+
+The default value of argument \code{m} is the equivalent to enter
+\code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
+to understand how this argument can modify the output.
 }
 \examples{
 \dontrun{
@@ -117,7 +119,7 @@ hex(sky_blue)
 # NOTE: see extract_dn() for an alternative method to obtain sky_blue
 
 as(sky_blue, "HSV") #saturatio (S) is low
-# To obtain same hue (H) but greater saturation, it only requires this:
+# To obtain same hue (H) but greater saturation
 sky_blue <- HSV(239, 0.85, 0.5) \%>\% as(., "sRGB") \%>\% as(., "LAB")
 hex(sky_blue)
 

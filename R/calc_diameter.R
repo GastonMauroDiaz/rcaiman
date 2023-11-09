@@ -24,7 +24,7 @@
 #' * Locate the camera over the vertex that is 3 meters away from the wall.
 #' Place it at a given height above the floor, 1.3 meters for instance.
 #'
-#' * Make a mark on the wall at chosen height over the wall-vertex nearest
+#' * Make a mark on the wall at the chosen height over the wall-vertex nearest
 #' to the camera-vertex. Make four more marks with one meter of spacing and
 #' following a horizontal line. This will create marks for 0º, 18º, 34º, 45º,
 #' and 54º \eqn{\theta}.

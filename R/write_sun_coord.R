@@ -10,7 +10,7 @@
 #'   `extrac_sun_coord()` is `sun_coord`, then you should provide here
 #'   this: `sun_coord$row_col`. See also
 #'   [row_col_from_zenith_azimuth()] in case you want to provide
-#'   values based on date and time of acquisition and the R package 'suncalc'.
+#'   values based on date and time of acquisition and the `suncalc` package.
 #' @inheritParams write_sky_points
 #'
 #'

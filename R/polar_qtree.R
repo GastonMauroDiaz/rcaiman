@@ -1,4 +1,4 @@
-#' Quad-tree segmentation in the polar space
+#' Do quad-tree segmentation in the polar space
 #'
 #' The quad-tree segmentation algorithm is a top-down process that makes
 #' recursive divisions in four equal parts until a condition is satisfied and

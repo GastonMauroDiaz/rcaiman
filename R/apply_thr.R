@@ -2,11 +2,10 @@
 #'
 #' Global or local thresholding of images.
 #'
-#' It is a wrapper function around the operator `>` from the *terra* package. If
+#' It is a wrapper function around the operator `>` from the `terra` package. If
 #' a single threshold value is provided as the `thr` argument, it is applied to
-#' every pixel of the object `r`. If instead a [SpatRaster-class] is provided as
-#' the `thr` argument,  a particular threshold is applied to each particular
-#' pixel.
+#' every pixel of the object `r`. If instead a [SpatRaster-class] is provided,
+#' a particular threshold is applied to each particular pixel.
 #'
 #' @param r [SpatRaster-class]. A greyscale image.
 #' @param thr Numeric vector of length one or a single-layer raster from the
@@ -19,7 +18,8 @@
 #'
 #' @examples
 #' r <- read_caim()
-#' apply_thr(r$Blue, thr_isodata(r$Blue[]))
+#' bin <- apply_thr(r$Blue, thr_isodata(r$Blue[]))
+#' plot(bin)
 #' \dontrun{
 #' # This function is useful in combination with the ‘autothresholdr’
 #' # package. For example:

@@ -2,7 +2,7 @@
 % Please edit documentation in R/zenith_azimuth_from_row_col.R
 \name{zenith_azimuth_from_row_col}
 \alias{zenith_azimuth_from_row_col}
-\title{Zenith and azimuth angles from row and col numbers}
+\title{Obtain zenith and azimuth angles from row and col numbers}
 \usage{
 zenith_azimuth_from_row_col(z, a, row_col, lens_coef = NULL)
 }
@@ -20,13 +20,7 @@ projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 Numeric vector of length two.
 }
 \description{
-Zenith and azimuth angles from row and col numbers
-}
-\details{
-The result will be incorrect if the point is outside the circular image of
-180º field of view.In addition, there is not an azimuth image as argument
-because it is assumed that the photographs were acquired orienting the camera
-top to North.
+Obtain zenith and azimuth angles from row and col numbers
 }
 \note{
 Use the \code{lens_coef} argument to calculate coordinates below the horizon.

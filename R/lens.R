@@ -1,4 +1,4 @@
-#' Lens database
+#' Access the lens database
 #'
 #' Database of lens projection functions and field of views.
 #'

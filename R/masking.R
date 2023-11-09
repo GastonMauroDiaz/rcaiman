@@ -23,7 +23,6 @@
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)
 #'  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
-#'  m <- as.logical(m)
 #'
 #'  masked_caim <-  masking(normalize(r), m)
 #'  plotRGB(masked_caim * 255)

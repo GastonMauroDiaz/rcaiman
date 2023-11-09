@@ -45,18 +45,18 @@
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
-#' @param zenith_dn Numeric vector of length 1. Zenith digital number, see
+#' @param zenith_dn Numeric vector of length one. Zenith digital number, see
 #'   [extract_rl()] for how to obtain it.
 #' @param sun_coord An object of class *list*. The result of a call to
 #'   [extract_sun_coord()] or an object with same structure and names. See also
 #'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
-#'   date and time of acquisition and the R package 'suncalc'.
+#'   date and time of acquisition and the `suncalc` package.
 #' @inheritParams cie_sky_model_raster
 #' @param custom_sky_coef Numeric vector of length five. Custom starting
 #'   coefficients of the sky model. By default, they are drawn from standard
 #'   skies.
-#' @param std_sky_no Numeric vector. Standard sky number from Table 1 from
-#'   \insertCite{Li2016;textual}{rcaiman}.
+#' @param std_sky_no Numeric vector. Standard sky number from
+#'   \insertCite{Li2016;textual}{rcaiman}'s Table 1.
 #' @param general_sky_type Character vector of length one. It could be any of
 #'   these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman} for additional details.
@@ -73,7 +73,7 @@
 #'   1}^{N}(r_i/sky_i)^2}, where \eqn{r} is the `r` argument, \eqn{sky} is the
 #'   raster obtained from the fitted model with [cie_sky_model_raster()] and
 #'   `zenith_dn`, \eqn{i} is the index that represents the position of a given
-#'   pixel on the raster grid, \eqn{N} is the total number of pixels that
+#'   pixel on the raster grid, and \eqn{N} is the total number of pixels that
 #'   satisfy either of these inequalities: \eqn{r_i/sky_i<0} and
 #'   \eqn{r_i/sky_i>1}.
 #' @inheritParams bbmle::mle2
@@ -109,7 +109,7 @@
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' xy <- c(210, 451) #'originally captured with click() after x11()
+#' xy <- c(210, 451) #originally captured with click() after x11()
 #' sun_coord <- zenith_azimuth_from_row_col(z, z, c(nrow(z) - xy[2],xy[1]))
 #' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 #'        col = 3, pch = 1)
@@ -131,11 +131,10 @@
 #' sky_cie <- cie_sky_model_raster(z, a,
 #'                                 model$sun_coord$zenith_azimuth,
 #'                                 model$coef) * model$zenith_dn
-#' sky_cie <- normalize(sky_cie, 0, 1, TRUE)
 #' plot(sky_cie)
 #' plot(caim$Blue/sky_cie)
 #'
-#' # a quick demonstration of how to use interpolation to improve sky modelling
+#' # A quick demonstration of how to use interpolation to improve sky modelling
 #' # after Lang et al. (2010)
 #' sky <- interpolate_sky_points(rl$sky_points, caim$Blue, rmax = ncol(caim)/7)
 #' plot(sky)
@@ -189,8 +188,11 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     AzS <- sun_a_z[1]
     Zs <- sun_a_z[2]
 
+    # **Note**: when the .c or .e parameters are negative, the sun can be darker
+    # than the sky, which does not make sense. So, the code avoids that
+    # possibility by using abs()
     flog <- function(.a, .b, .c, .d, .e, S) {
-      media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, abs(.c), .d, abs(.e))
       - sum(stats::dnorm(sky_points$rl, mean = media, sd = exp(S)))
     }
 
@@ -221,8 +223,10 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
                              .c = as.numeric(skies[i,3]),
                              .d = as.numeric(skies[i,4]),
                              .e = as.numeric(skies[i,5]))
+      coef <- fit@coef[-6]
+      coef[c(3,5)] <- abs(coef[c(3,5)])
       return(list(mle2_output = fit,
-                  coef = fit@coef[-6],
+                  coef = coef,
                   obs = sky_points$rl,
                   pred = pred,
                   zenith_dn = zenith_dn,
@@ -242,7 +246,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
 
   fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
-  if (twilight) {
+  if (twilight & sun_coord$zenith_azimuth[1] > 65) {
     indices <- match(11:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]
     if (length(indices) != 0) {

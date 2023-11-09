@@ -46,7 +46,7 @@ the number of null cells remains constant.
 \examples{
 \dontrun{
 caim <- read_caim()
-r <- caim$Blue
+r <- caim$Blue \%>\% normalize()
 caim <- normalize(caim, 0, 20847, TRUE)
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
@@ -64,20 +64,34 @@ sky <- model$fun(z, a)
 sky <- fit_trend_surface(sky, z, a, !is.na(z))$image
 plot(r/sky)
 
+x <- predict(model$model)
+y <- predict(model$model) + model$model$residuals
+mblt <- coefficients(lm(x~y))
+
 g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels_nonnull(r, sky, g)
+bin <- find_sky_pixels_nonnull(r, sky, g, mblt[1], mblt[2], w = 0.1)
 plot(bin)
 }
 }
 \seealso{
-Other Binarization Functions: 
-\code{\link{apply_thr}()},
+Other Tool Functions: 
+\code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
+\code{\link{defuzzify}()},
+\code{\link{extract_dn}()},
+\code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
+\code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
 \code{\link{find_sky_pixels}()},
-\code{\link{obia}()},
-\code{\link{ootb_mblt}()},
-\code{\link{ootb_obia}()},
-\code{\link{regional_thresholding}()},
-\code{\link{thr_isodata}()},
-\code{\link{thr_mblt}()}
+\code{\link{masking}()},
+\code{\link{optim_normalize}()},
+\code{\link{percentage_of_clipped_highlights}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
+\code{\link{read_caim}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
-\concept{Binarization Functions}
+\concept{Tool Functions}

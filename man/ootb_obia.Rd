@@ -15,8 +15,8 @@ ootb_obia(
 )
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -132,8 +132,6 @@ plot(bin)
 \seealso{
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{regional_thresholding}()},

@@ -4,7 +4,7 @@
 #' maximizing [colorfulness()] and minimizing saturation.
 #'
 #' @inheritParams enhance_caim
-#' @inheritParams normalize
+#' @inheritParams ootb_mblt
 #' @inheritParams bbmle::mle2
 #'
 #' @family Tool Functions
@@ -34,19 +34,19 @@
 #' plotRGB(normalize(caim)*255)
 #' percentage_of_clipped_highlights(ncaim$Blue, m)
 #' }
-optim_normalize <- function(caim, m, mx = NULL, method = "BFGS")  {
-  terra::compareGeom(caim, m)
+optim_normalize <- function(caim, bin, method = "BFGS")  {
+  terra::compareGeom(caim, bin)
   stopifnot(terra::nlyr(caim) == 3)
 
   names(caim) <- names(read_caim())
   caim[is.na(caim)] <- 0
-  if(is.null(mx)) mx <- quantile(caim$Blue[m], 0.99)
+  mx <- quantile(caim$Blue[bin], 0.99)
 
   .get_index <- function(mx) {
     .caim <- normalize(caim, mx = mx, force_range = TRUE)
-    area <- (sum(.caim$Blue[m] == 0 | .caim$Blue[m] == 1) / sum(m[])) * 100
+    area <- (sum(.caim$Blue[bin] == 0 | .caim$Blue[bin] == 1) / sum(bin[])) * 100
     cf <- 0
-    try(cf <- colorfulness(.caim, m), silent = TRUE)
+    try(cf <- colorfulness(.caim, bin), silent = TRUE)
     (100 - cf) * area
   }
   fit <- bbmle::mle2(.get_index, list(mx = mx), method = method)

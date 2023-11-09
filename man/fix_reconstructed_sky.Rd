@@ -32,7 +32,7 @@ The predicted sky DNs are usually erroneous near the horizon because either
 they are a misleading extrapolation or are based on corrupted data (non-pure
 sky DNs).
 
-The proposed automatic edition consists of
+The proposed automatic edition consists of:
 \itemize{
 \item flattening the values below
 the minimum value from the data source defined by \code{r} and
@@ -47,36 +47,20 @@ ratio of \code{z} to \code{90} to determine the weights.
 }
 \examples{
 \dontrun{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+caim <- read_caim()
+r <- caim$Blue
+caim <- normalize(caim, 0, 20847, TRUE)
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
-
-
-sky_points <- extract_rl(r, z, a, extract_sky_points_simple(r, z, a),
-                         NULL,
-                         use_window = FALSE)# this is important when
-                                            # extract_sky_points_simple()
-                                            # is used
-model <- fit_coneshaped_model(sky_points$sky_points)
-summary(model$model)
-sky_cs <- model$fun(z, a)
-plot(r/sky_cs)
-plot(sky_cs)
-persp(terra::aggregate(sky_cs, 20), theta = 90, phi = 20)
-bin <- apply_thr(r, thr_mblt(sky_cs, 0, 0.5))
-plot(bin)
-sky_cs <- fix_reconstructed_sky(sky_cs, z, r, bin)
-bin <- apply_thr(r, thr_mblt(sky_cs, 0, 0.5))
-plot(bin)
-persp(terra::aggregate(sky_cs, 20), theta = 90, phi = 20)
+bin <- find_sky_pixels(r, z, a)
+sky <- fit_trend_surface(r, z, a, bin)$image
+sky <- fix_reconstructed_sky(sky, z, r, bin)
+plot(sky)
 }
 }
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

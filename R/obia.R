@@ -1,4 +1,4 @@
-#' Object-based image analysis of canopy photographs
+#' Do object-based image analysis of canopy photographs
 #'
 #' Object-based image analysis targeting the canopy  silhouette.
 #'

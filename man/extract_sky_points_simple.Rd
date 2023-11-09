@@ -26,11 +26,11 @@ Extract sky points for model fitting
 This function will automatically sample sky pixels following this simple
 strategy:
 \itemize{
-\item mask the region of \code{r} above 15 and below 75 degrees of zenith angle,
-\item dividing the hemisphere into sectors of 15 degrees each
+\item mask out the region of \code{r} above 15 and below 75 degrees of zenith angle,
+\item divide the hemisphere into sectors of 15 degrees each
 (see \code{\link[=sectors_segmentation]{sectors_segmentation()}}),
 \item search for the maximum digital value in each sector (n = 24),
-\item dividing the hemisphere into rings of 5 degrees each
+\item divide the hemisphere into rings of 5 degrees each
 (see \code{\link[=rings_segmentation]{rings_segmentation()}},
 \item search for the maximum digital value in each ring (n = 12)
 \item combine these local maxima (n = 36).
@@ -56,6 +56,9 @@ Other Tool Functions:
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

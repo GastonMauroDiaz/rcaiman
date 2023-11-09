@@ -1,4 +1,4 @@
-#' Model-based local thresholding
+#' Calculate thresholds with the model-based method
 #'
 #' Transform background digital number into threshold values
 #'
@@ -13,9 +13,9 @@
 #' shown that the optimal threshold value was linearly related with the
 #' background digital number (see Figure 1 and Figure 7 from
 #' \insertCite{Diaz2018;textual}{rcaiman}). This shifted the aim from finding
-#' the optimal threshold, following \insertCite{Song2014}{rcaiman} method, to
-#' obtaining the background DN as if the canopy was not there, as
-#' \insertCite{Lang2010}{rcaiman} proposed.
+#' the optimal threshold, following \insertCite{Song2014;textual}{rcaiman}
+#' method, to obtaining the background DN as if the canopy was not there, as
+#' \insertCite{Lang2010;textual}{rcaiman} proposed.
 #'
 #' ## Working principle
 #'
@@ -43,7 +43,7 @@
 #' previous findings drawn from a radiometric measurement paradigm, which are
 #' introduced next.
 #'
-#' \insertCite{Cescatti2007;textual}{rcaiman}) posed that cameras can be used as
+#' \insertCite{Cescatti2007;textual}{rcaiman} posed that cameras can be used as
 #' a radiation measurement device if they are properly calibrated. This method,
 #' denominated by the author as LinearRatio, seeks to obtain the transmittance
 #' (T) as the ratio of below to above canopy radiation:
@@ -54,9 +54,9 @@
 #' were CDN is below canopy digital number (DN), i.e., the DN extracted from a
 #' canopy hemispherical photograph.
 #'
-#' The LinearRatio method uses T as a proxy for gap fraction. It ideally
+#' The LinearRatio method uses T as a proxy for gap fraction. It
 #' requires twin cameras, one below and the other above the canopy. In contrast,
-#' \insertCite{Lang2010;textual}{rcaiman}) proposed to obtain SDN by manually
+#' \insertCite{Lang2010;textual}{rcaiman} proposed to obtain SDN by manually
 #' selecting pure sky pixels from canopy hemispherical photographs and
 #' reconstructing the whole sky by subsequent modeling and interpolating---this
 #' method is often referred to as LinearRatio single camera or LinearRatioSC.
@@ -89,15 +89,15 @@
 #'
 #' It is worth noting that Equation 1 was developed with 8-bit images, so
 #' calibration of new coefficient should be done in the 0 to 255 domain since
-#' that is what [thr_mblt()] expect, although the input `dn` should be
-#' normalized. The latter was a design decision aiming to harmonize the whole
-#' package, although it might sound counter intuitive.
+#' that is what [thr_mblt()] expect, although the `dn` argument should be
+#' normalized. The latter, in spite of sounding counter intuitive, was a design
+#' decision aiming to harmonize the whole package.
 #'
 #' Nevertheless, new empirical calibration on JPEG files may be unnecessary
 #' since the values -7.8 `intercept` and 0.95 `slope` that had been observed
 #' with back-gamma corrected JPEG files produced with the Nikon Coolpix 5700
-#' camera are sufficiently close to the theoretical values that is reasonably to
-#' interpret them as a confirmation of the theory.
+#' camera are sufficiently close to the theoretical values that it sounds
+#' reasonable to interpret them as a confirmation of the theory.
 #'
 #' Users are encouraged to adopt raw file acquisition ([read_caim_raw()]).
 #'

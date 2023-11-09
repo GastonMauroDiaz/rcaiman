@@ -19,15 +19,15 @@ An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
 Global or local thresholding of images.
 }
 \details{
-It is a wrapper function around the operator \code{>} from the \emph{terra} package. If
+It is a wrapper function around the operator \code{>} from the \code{terra} package. If
 a single threshold value is provided as the \code{thr} argument, it is applied to
-every pixel of the object \code{r}. If instead a \linkS4class{SpatRaster} is provided as
-the \code{thr} argument,  a particular threshold is applied to each particular
-pixel.
+every pixel of the object \code{r}. If instead a \linkS4class{SpatRaster} is provided,
+a particular threshold is applied to each particular pixel.
 }
 \examples{
 r <- read_caim()
-apply_thr(r$Blue, thr_isodata(r$Blue[]))
+bin <- apply_thr(r$Blue, thr_isodata(r$Blue[]))
+plot(bin)
 \dontrun{
 # This function is useful in combination with the ‘autothresholdr’
 # package. For example:
@@ -39,8 +39,6 @@ plot(bin)
 }
 \seealso{
 Other Binarization Functions: 
-\code{\link{find_sky_pixels_nonnull}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},

@@ -38,7 +38,7 @@ used to fit the model, \emph{model} is the fitted model (class \code{lm}, see
 \code{\link[stats:lm]{stats::lm()}}), \emph{horizon_radius} is the radius at 90º, \emph{lens_coef} is a
 numeric vector of length equal to the \code{degree} argument containing the
 polynomial model coefficients for predicting relative radius
-(\code{coefficients(fit)/horizon_radius}).
+(\code{coefficients(model)/horizon_radius}).
 }
 \description{
 Cross-calibrate lens

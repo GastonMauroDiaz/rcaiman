@@ -36,14 +36,12 @@ Extract features from raster images.
 }
 \details{
 Given a single-layer raster, a segmentation, and a function,
-\code{extract_features} will return a numeric vector or a
-\linkS4class{SpatRaster} depending on whether the parameter
-\code{return_raster} is \code{TRUE} or \code{FALSE}. For the first case, each
-pixel of each segment will adopt the respective extracted feature value. For
-the second case, the return will be the extracted feature as a vector of
-length equal to the total number of segments. Each extracted feature value
-will be obtained by processing all pixels that belong to a segment with the
-provided function.
+\code{extract_features} will return a numeric vector or a \linkS4class{SpatRaster}
+depending on whether the parameter \code{return_raster} is \code{TRUE} or \code{FALSE}. For
+the first case, each pixel of each segment will adopt the respective
+extracted feature value. For the second case, the return will be a vector of
+length equal to the total number of segments. Each value will be obtained by
+processing all pixels that belong to a segment with the provided function.
 }
 \examples{
 r <- read_caim()
@@ -62,6 +60,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

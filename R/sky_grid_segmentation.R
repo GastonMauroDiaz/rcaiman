@@ -1,6 +1,6 @@
-#' Sky grid segmentation
+#' Do sky grid segmentation
 #'
-#' Segmenting the hemisphere view into segments of equal angular resolution for
+#' Segment the hemisphere view into segments of equal angular resolution for
 #' both zenith and azimuth angles.
 #'
 #' Intersecting rings with sectors makes a grid in which each cell is a
@@ -30,7 +30,7 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' z <- zenith_image(1490, lens())
+#' z <- zenith_image(600, lens())
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 15)
 #' plot(g == 24005)

@@ -1,7 +1,7 @@
 #' Extract radiometry data
 #'
 #' Extract radiometry from images taken with the aid of a portable light source
-#' and the calibration board detailed in [calibrate_lens()]. Then end goal is to
+#' and the calibration board detailed in [calibrate_lens()]. The end goal is to
 #' obtain the data required to model the vignetting effect.
 #'
 #' Lenses have the inconvenient property of increasingly attenuating light in
@@ -16,7 +16,7 @@
 #' in the early stages of development and no substantial differences were
 #' observed. A metal bookends desk book holder was used to fasten the eBook
 #' reader upright and a semi-transparent paper to favor a Lambertian light
-#' distribution. In addition, the latter was used to draw marks on it aiming to
+#' distribution. In addition, the latter was used to draw on in order to
 #' guide pixel sampling. The book holder also facilitated the alignment of the
 #' screen with the dotted lines of the printed quarter-circle.
 #'
@@ -30,7 +30,7 @@
 #' With the room only illuminated by the portable light source, nine photographs
 #' should be taken with the light source located in the equivalent to 0, 10, 20,
 #' 30, 40, 50, 60, 70, and 80 degrees of zenith angle, respectively. Camera
-#' configuration should be in manual mode and set with the aperture (f-number)
+#' configuration should be in manual mode and set with the aperture (f/number)
 #' for which a vignetting function is required. The shutter speed should be
 #' regulated to obtain light-source pixels with middle grey values. The nine
 #' photographs should be taken **without changing the camera configuration or
@@ -42,10 +42,20 @@
 #' functions to obtain the vignetting function (\eqn{f_v}).
 #'
 #' ````
-#' up_data <- extract_radiometry("D610/up")
-#' down_data <- extract_radiometry("D610/down")
-#' right_data <- extract_radiometry("D610/right")
-#' left_data <- extract_radiometry("D610/left")
+#' .read_raw <- function(path_to_raw_file) {
+#'   r <- read_caim_raw(path_to_raw_file, z, a, zenith_colrow,
+#'                      radius = 500, only_blue = TRUE)
+#'   r
+#' }
+#'
+#' l <- Map(.read_raw, dir("raw/up/", full.names = TRUE))
+#' up_data <- extract_radiometry(l)
+#' l <- Map(.read_raw, dir("raw/down/", full.names = TRUE))
+#' down_data <- extract_radiometry(l)
+#' l <- Map(.read_raw, dir("raw/right/", full.names = TRUE))
+#' right_data <- extract_radiometry(l)
+#' l <- Map(.read_raw, dir("raw/left/", full.names = TRUE))
+#' left_data <- extract_radiometry(l)
 #'
 #' ds <- rbind(up_data, down_data, right_data, left_data)
 #'
@@ -56,7 +66,7 @@
 #'
 #' fit <- lm((1 - ds$radiometry) ~ poly(ds$theta, 3, raw = TRUE) - 1)
 #' summary(fit)
-#' coef <- -fit$coefficients #Did you notice the minus sign?
+#' coef <- -fit$coefficients #did you notice the minus sign?
 #' .fv <- function(x) 1 + coef[1] * x + coef[2] * x^2 + coef[3] * x^3
 #' curve(.fv, add = TRUE, col = 2)
 #' coef

@@ -2,7 +2,7 @@
 % Please edit documentation in R/obia.R
 \name{obia}
 \alias{obia}
-\title{Object-based image analysis of canopy photographs}
+\title{Do object-based image analysis of canopy photographs}
 \usage{
 obia(r, z = NULL, a = NULL, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 }
@@ -79,8 +79,6 @@ hist(synth[foliage])
 \seealso{
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},

@@ -31,7 +31,6 @@ plot(cie_sky_model_raster(z, a, sun_coord, sky_coef))
 }
 \seealso{
 Other Sky Reconstruction Functions: 
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

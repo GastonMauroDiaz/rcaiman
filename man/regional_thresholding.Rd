@@ -75,8 +75,6 @@ plot(bin)
 \seealso{
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{find_sky_pixels_nonnull}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},

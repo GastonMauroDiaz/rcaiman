@@ -20,33 +20,35 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
-of \code{r}. If an incomplete above-canopy image is available, non-sky
-pixels should be turned \code{NA} or they will be considered as sky pixels
-erroneously. A photograph taken immediately after or before taking \code{r}
-under the open sky with the same equipment and configuration is a very good
-option but not recommended under fleeting clouds. The orientation relative
-to the North must be the same as for \code{r}. If it is set to \code{NULL}
-(default), only sky pixels from \code{r} will be used as input.}
+of \code{r}. A photograph taken immediately after or before taking \code{r} under the
+open sky with the same equipment and configuration is a very good option
+but not recommended under fleeting clouds. The orientation relative to the
+North must be the same as for \code{r}. If it is set to \code{NULL} (default), only
+sky pixels from \code{r} will be used as input.}
 
 \item{np}{
 degree of polynomial surface
 }
 }
 \value{
-A list with an object of class \linkS4class{SpatRaster} and of class
-\code{trls} (see \code{\link[spatial:surf.ls]{spatial::surf.ls()}}).
+A list with an object of class \linkS4class{SpatRaster} and of class \code{trls}
+(see \code{\link[spatial:surf.ls]{spatial::surf.ls()}}).
 }
 \description{
-Fit a trend surface using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as workhorse
-function.
+Fit a trend surface using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as workhorse function.
 }
 \details{
 This function is meant to be used after \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}.
 
-This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
-heading \emph{Estimation of the sky DN as a previous step for our method}. If you
-use this function in your research, please cite that paper in addition to
+This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under
+the heading \emph{Estimation of the sky DN as a previous step for our method}. If
+you use this function in your research, please cite that paper in addition to
 this package (\verb{citation("rcaiman"}).
+}
+\note{
+If an incomplete above-canopy image is available as filling source,
+non-sky pixels should be turned \code{NA} or they will be erroneously considered
+as sky pixels.
 }
 \examples{
 \dontrun{
@@ -72,14 +74,6 @@ persp(terra::aggregate(sky_cs, 10), theta = 90, phi = 45)
 
 sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)
 persp(terra::aggregate(sky_s$image, 10), theta = 90, phi = 45)
-
-#a quick pipeline
-bin <- find_sky_pixels(r, z, a)
-sky <- fit_trend_surface(r, z, a, bin)$image
-sky <- fix_reconstructed_sky(sky, z, r, bin)
-g <- sky_grid_segmentation(z, a, 10)
-bin <- find_sky_pixels_nonnull(r, sky, g)
-plot(bin)
 }
 }
 \references{
@@ -90,7 +84,6 @@ plot(bin)
 
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fix_reconstructed_sky}()},

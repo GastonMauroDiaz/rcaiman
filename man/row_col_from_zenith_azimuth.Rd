@@ -2,7 +2,7 @@
 % Please edit documentation in R/row_col_from_zenith_azimuth.R
 \name{row_col_from_zenith_azimuth}
 \alias{row_col_from_zenith_azimuth}
-\title{Row and col numbers from zenith and azimuth angles}
+\title{Obtain row and col numbers from zenith and azimuth angles}
 \usage{
 row_col_from_zenith_azimuth(z, a, za, lens_coef = NULL)
 }
@@ -20,7 +20,7 @@ projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
 Numeric vector of length two.
 }
 \description{
-Row and col numbers from zenith and azimuth angles
+Obtain row and col numbers from zenith and azimuth angles
 }
 \note{
 Use the \code{lens_coef} argument to calculate coordinates below the horizon.

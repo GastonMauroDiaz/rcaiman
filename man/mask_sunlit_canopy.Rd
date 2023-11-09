@@ -7,13 +7,11 @@
 mask_sunlit_canopy(caim, m = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
-\code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
-to understand how this argument can modify the output.}
+\code{\link[=mask_hs]{mask_hs()}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.

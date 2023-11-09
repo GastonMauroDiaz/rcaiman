@@ -21,8 +21,7 @@
 #' \frac{
 #' CO = \sum_{i = 1}^{N} GF(\phi_i, \theta_i) \cdot [(cos(\theta_1) -
 #' cos(\theta_2))/n]
-#' } { \sum_{i = 1}^{N} (cos(\theta_1) - cos(\theta_2))/n}
-#'
+#' }{ \sum_{i = 1}^{N} (cos(\theta_1) - cos(\theta_2))/n}
 #' }.
 #'
 #' This allows the masking of any individual cell.

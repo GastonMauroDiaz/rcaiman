@@ -45,9 +45,9 @@ r <- gbc(caim$Blue)
 
 sky_points <- extract_rl(r, z, a, extract_sky_points_simple(r, z, a),
                          NULL,
-                         use_window = FALSE)# this is important when
-                                            # extract_sky_points_simple()
-                                            # is used
+                         use_window = FALSE)#this is important when
+                                            #extract_sky_points_simple()
+                                            #is used
 model <- fit_coneshaped_model(sky_points$sky_points)
 summary(model$model)
 sky_cs <- model$fun(z, a)
@@ -68,7 +68,6 @@ persp(sky_cs, theta = 90, phi = 20)
 
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{fix_reconstructed_sky}()},

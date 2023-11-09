@@ -2,7 +2,7 @@
 % Please edit documentation in R/defuzzify.R
 \name{defuzzify}
 \alias{defuzzify}
-\title{Defuzzify fuzzy classification}
+\title{Defuzzify a fuzzy classification}
 \usage{
 defuzzify(mem, segmentation)
 }
@@ -10,7 +10,7 @@ defuzzify(mem, segmentation)
 \item{mem}{An object of the class \linkS4class{SpatRaster}. Degree of
 membership.}
 
-\item{segmentation}{An object of the class \linkS4class{SpatRaster}, such as
+\item{segmentation}{An object of the class \linkS4class{SpatRaster} such as
 the result of a call to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 }
 \value{
@@ -60,6 +60,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

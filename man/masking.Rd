@@ -32,7 +32,6 @@ Image masking
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
- m <- as.logical(m)
 
  masked_caim <-  masking(normalize(r), m)
  plotRGB(masked_caim * 255)
@@ -54,6 +53,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},

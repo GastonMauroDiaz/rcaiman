@@ -66,7 +66,7 @@ write_caim(r*2^16-2, "example.tif", 16)
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#plot(caim$Blue)
+plot(caim$Blue)
 }
 \seealso{
 Other Tool Functions: 
@@ -78,6 +78,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

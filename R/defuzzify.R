@@ -1,4 +1,4 @@
-#' Defuzzify fuzzy classification
+#' Defuzzify a fuzzy classification
 #'
 #' This function translates degree of membership into Boolean logic using a
 #' regional approach. The result will ensure that the fuzzy and Boolean version
@@ -13,7 +13,7 @@
 #'
 #' @param mem An object of the class [SpatRaster-class]. Degree of
 #'   membership.
-#' @param segmentation An object of the class [SpatRaster-class], such as
+#' @param segmentation An object of the class [SpatRaster-class] such as
 #'   the result of a call to [sky_grid_segmentation()].
 #'
 #' @return An object of the class [SpatRaster-class] containing binary

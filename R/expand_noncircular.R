@@ -2,17 +2,17 @@
 #'
 #' Expand a non-circular hemispherical photograph.
 #'
-#' @param caim [SpatRaster-class]. The return of a call to
-#'   [read_caim()].
+#' @param caim [SpatRaster-class]. The return of a call to [read_caim()] or
+#'   [read_caim_raw()].
 #' @inheritParams ootb_mblt
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
 #'   zenith. See [calc_zenith_colrow()].
 #'
 #' @family Lens Functions
 #'
-#' @return An object of class [SpatRaster-class] that is the result of
-#'   adding margins (`NA` pixels) to `caim`. The zenith point depicted
-#'   in the picture should be in the center of the image or very close to it.
+#' @return An object of class [SpatRaster-class] that is the result of adding
+#'   margins (`NA` pixels) to `caim`. The zenith point depicted in the picture
+#'   should be in the center of the image or very close to it.
 #'
 #' @export
 #'
@@ -21,7 +21,7 @@
 #'
 #'  # ====================================================================
 #'  # Non-circular Fisheye images from a Smartphone with an Auxiliary Lens
-#'  # (Also applicable to Non-circular iamges from DSLR cameras)
+#'  # (Also applicable to Non-circular images from DSLR cameras)
 #'  # ====================================================================
 #'
 #'  path <- system.file("external/APC_0581.jpg", package = "rcaiman")
@@ -49,7 +49,7 @@
 #'  m <- !is.na(caim$Red)
 #'  a <- azimuth_image(z)
 #'  caim[!m] <- 0
-#'  z <- normalize(z, 0, 90) * 30.15 # 60.3º diagonal FOV according to metadata
+#'  z <- normalize(z, 0, 90) * 30.15 #60.3º diagonal FOV according to metadata
 #'  plot(caim$Blue, col = seq(0,1,1/255) %>% grey())
 #'  m <- !is.na(caim$Red) & !is.na(z)
 #'  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

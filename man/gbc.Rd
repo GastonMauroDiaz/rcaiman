@@ -7,7 +7,7 @@
 gbc(DN_from_JPEG, gamma = 2.2)
 }
 \arguments{
-\item{DN_from_JPEG}{Numeric vector or object from the \linkS4class{SpatRaster}
+\item{DN_from_JPEG}{Numeric vector or object of the \linkS4class{SpatRaster}
 class. Digital numbers from a JPEG file (0 to 255, i.e., the standard 8-bit
 encoded).}
 
@@ -22,7 +22,7 @@ rescaled between \code{0} and \code{1} in a non-linear fashion.
 Gamma back correction of JPEG images
 }
 \details{
-Digital cameras usually use sRGB as color space, which is a standard
+Digital cameras usually use sRGB as color space. It is a standard
 developed to ensure accurate color and tone management. The transfer function
 of sRGB, known as gamma correction, is very close to a power function with
 the exponent 1/2.2. This is why a DN of a born-digital photograph that was

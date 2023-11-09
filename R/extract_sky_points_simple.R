@@ -4,11 +4,11 @@
 #'
 #' This function will automatically sample sky pixels following this simple
 #' strategy:
-#' * mask the region of `r` above 15 and below 75 degrees of zenith angle,
-#' * dividing the hemisphere into sectors of 15 degrees each
+#' * mask out the region of `r` above 15 and below 75 degrees of zenith angle,
+#' * divide the hemisphere into sectors of 15 degrees each
 #' (see [sectors_segmentation()]),
 #' * search for the maximum digital value in each sector (n = 24),
-#' * dividing the hemisphere into rings of 5 degrees each
+#' * divide the hemisphere into rings of 5 degrees each
 #' (see [rings_segmentation()],
 #' * search for the maximum digital value in each ring (n = 12)
 #' * combine these local maxima (n = 36).

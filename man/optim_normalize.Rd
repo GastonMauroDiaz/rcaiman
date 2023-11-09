@@ -4,19 +4,14 @@
 \alias{optim_normalize}
 \title{Optimize normalize parameters}
 \usage{
-optim_normalize(caim, m, mx = NULL, method = "BFGS")
+optim_normalize(caim, bin, method = "BFGS")
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
-\code{!is.na(caim$Red)}. See the Details section in \code{\link[=local_fuzzy_thresholding]{local_fuzzy_thresholding()}}
-to understand how this argument can modify the output.}
-
-\item{mx}{Numeric vector of length one. Maximum expected value. Default is
-equivalent to enter the maximum value from \code{r}.}
+\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
+\code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
@@ -60,6 +55,9 @@ Other Tool Functions:
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},

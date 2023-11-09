@@ -13,7 +13,7 @@ solar disk that can be obtained by calling to
 \code{extrac_sun_coord()} is \code{sun_coord}, then you should provide here
 this: \code{sun_coord$row_col}. See also
 \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide
-values based on date and time of acquisition and the R package 'suncalc'.}
+values based on date and time of acquisition and the \code{suncalc} package.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder. For instance,

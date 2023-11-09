@@ -28,7 +28,7 @@
 #'   cells to sample. The population is comprised of 1296 cells of \eqn{5 \times
 #'   5} degrees.
 #'
-#' @family Binarization Functions
+#' @family Tool Functions
 #'
 #' @export
 #' @return An object of class [SpatRaster-class] with values `0` and
@@ -36,20 +36,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize(., 0, 2^16)
+#' caim <- read_caim() %>% normalize(., 0, 20847)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' r <- caim$Blue
 #' r[is.na(r)] <- 0
 #' bin <- find_sky_pixels(r, z, a)
-#' plot(bin)
-#'
-#' g <- sky_grid_segmentation(z, a, 5)
-#' sky_points <- extract_sky_points(r, bin, g,
-#'                                  dist_to_plant = 3,
-#'                                  min_raster_dist = 15)
-#' dn <- extract_dn(r, sky_points, fun = median)
-#' bin <- find_sky_pixels_nonnull(r, dn, g) | bin
 #' plot(bin)
 #' }
 find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
@@ -72,6 +64,7 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   while ((count / cells_number) * 100 <= sample_size_pct) {
     if (prob < 0.9) {
       prob <- 1
+      warning(paste0("sample_size_pct was forced to ", sample_size_pct))
       sample_size_pct <- sample_size_pct - 1
       if (sample_size_pct < 5) {
         stop(paste(

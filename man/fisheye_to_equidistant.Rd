@@ -44,8 +44,8 @@ The pixel values and their image coordinates are treated as points to be
 reprojected and interpolated. To that end, this function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}}
 as workhorse function, so arguments \code{k}, \code{p}, and \code{rmax} are passed to it. If
 the user does not input values to these arguments, both \code{k} and \code{p} are
-automatically defined by default as follow. When a binarized image is
-provided as argument \code{r}, both parameters are set to \code{1}. Otherwise, they are
+automatically defined by default as follow: when a binarized image is
+provided as argument \code{r}, both parameters are set to \code{1}; otherwise, they are
 set to \code{9} and \code{2}, respectively.
 }
 \note{
@@ -64,10 +64,10 @@ bin <- ootb_mblt(r, z, a)$bin
 bin_equi <- fisheye_to_equidistant(bin, z, a)
 plot(bin)
 plot(bin_equi)
-#use write_bin(bin, "path/file_name") to have a file ready
-#for calculating LAI with CIMES, GLA, CAN-EYE, etc.
+# Use write_bin(bin, "path/file_name") to have a file ready
+# to calcute LAI with CIMES, GLA, CAN-EYE, etc.
 
-#It can be used to reproject RGB photographs
+# It can be used to reproject RGB photographs
 plotRGB(caim)
 caim <- fisheye_to_equidistant(caim, z, a)
 plotRGB(caim)

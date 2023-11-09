@@ -1,6 +1,6 @@
 #' Extract digital numbers
 #'
-#' It is a wrapper function around [terra::extract()].
+#' Wrapper function around [terra::extract()].
 #'
 #'
 #' @inheritParams fisheye_to_equidistant

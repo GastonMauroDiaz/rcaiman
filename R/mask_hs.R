@@ -25,7 +25,7 @@
 #' plot(m1 & m2)
 #' plot(m1 | m2)
 #'
-#' # if you want 15 degress at each side of 0
+#' # 15 degrees at each side of 0
 #' m1 <- mask_hs(a, 0, 15)
 #' m2 <- mask_hs(a, 345, 360)
 #' plot(m1 | m2)

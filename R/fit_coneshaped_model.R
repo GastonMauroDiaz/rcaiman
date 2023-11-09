@@ -40,9 +40,9 @@
 #'
 #' sky_points <- extract_rl(r, z, a, extract_sky_points_simple(r, z, a),
 #'                          NULL,
-#'                          use_window = FALSE)# this is important when
-#'                                             # extract_sky_points_simple()
-#'                                             # is used
+#'                          use_window = FALSE)#this is important when
+#'                                             #extract_sky_points_simple()
+#'                                             #is used
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' summary(model$model)
 #' sky_cs <- model$fun(z, a)
@@ -68,7 +68,7 @@ fit_coneshaped_model <- function(sky_points,
       model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE) +
         sin(Azimuth * pi / 180) + cos(Azimuth * pi / 180))
 
-      # only to avoid note from check, code is OK without this line.
+      # Only to avoid note from check, code is OK without this line.
       a <- b <- d <- e <- NA
 
       skyFun <- function(zenith, azimuth) {

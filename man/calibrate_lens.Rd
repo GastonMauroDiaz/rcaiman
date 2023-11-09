@@ -18,7 +18,7 @@ used to fit the model, \emph{model} is the fitted model (class \code{lm}, see
 \code{\link[stats:lm]{stats::lm()}}), \emph{horizon_radius} is the radius at 90º, \emph{lens_coef} is a
 numeric vector of length equal to the \code{degree} argument containing the
 polynomial model coefficients for predicting relative radius
-(\code{coefficients(fit)/horizon_radius}),
+(\code{coefficients(model)/horizon_radius}),
 \emph{zenith_colrow} are the raster coordinates of the zenith push pin,
 \emph{max_theta} is the maximum zenith angle in degrees, and \emph{max_theta_px} is
 the distance in pixels between the zenith and the maximum zenith angle in
@@ -110,7 +110,11 @@ calibration <- calibrate_lens(path)
 coefficients(calibration$model)
 calibration$lens_coef \%>\% signif(3)
 calibration$horizon_radius
-test_lens_coef(calibration$lens_coef)
+
+\dontrun{
+test_lens_coef(calibration$lens_coef) #MacOS and Windows tend to differ here
+test_lens_coef(c(0.628, 0.0399, -0.0217))
+}
 
 .fp <- function(theta, lens_coef) {
   x <- lens_coef[1:5]

@@ -105,11 +105,16 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL,
     }
   }
 
-  m2 <- !mask_sunlit_canopy(caim, m) & m
   ecaim <- enhance_caim(caim, m, sky_blue = sky_blue,
                         w_red = w_red, gamma = gamma, thr = NULL,
                         fuzziness = NULL)
-  bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+  if (is.null(gamma)) {
+    bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+  } else {
+    m2 <- !mask_sunlit_canopy(caim, m) & m
+    bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+  }
+
 
   if (is.null(z)) {
     seg <- qtree(caim, scale_parameter = 0.2)
@@ -121,7 +126,11 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL,
     g <- sky_grid_segmentation(z, a, 10)
   }
 
-  bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+  if (is.null(gamma)) {
+    bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+  } else {
+    bin <- apply_thr(ecaim, thr_isodata(ecaim[m2]))
+  }
 
   if (is.null(gamma)) {
     r <- caim$Blue

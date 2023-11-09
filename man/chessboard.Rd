@@ -2,7 +2,7 @@
 % Please edit documentation in R/chessboard.R
 \name{chessboard}
 \alias{chessboard}
-\title{Chessboard segmentation}
+\title{Do chessboard segmentation}
 \usage{
 chessboard(r, size)
 }
@@ -16,7 +16,7 @@ A single layer image of the class \linkS4class{SpatRaster} with integer
 values.
 }
 \description{
-Chessboard segmentation
+Do chessboard segmentation
 }
 \examples{
 caim <- read_caim()

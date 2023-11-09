@@ -22,8 +22,8 @@
 #' the sky. Then, it can be used to process all the others photograph taken with
 #' the same equipment, configuration, and protocol.
 #'
-#' [gbc()] internally used to back-correct the values passed to
-#' [local_fuzzy_thresholding()].
+#' Via the `gamma` argument, [gbc()] can be internally used to back-correct the
+#' values passed to [local_fuzzy_thresholding()].
 #'
 #' @note If you use this function in your research, please cite
 #'   \insertCite{Diaz2015;textual}{rcaiman} in addition to this package
@@ -33,9 +33,7 @@
 #' @inheritParams local_fuzzy_thresholding
 #' @inheritParams membership_to_color
 #' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
-#'   [mask_hs()]. Default (`NULL`) is the equivalent to enter
-#'   `!is.na(caim$Red)`. See the Details section in [local_fuzzy_thresholding()]
-#'   to understand how this argument can modify the output.
+#'   [mask_hs()].
 #' @param w_red Numeric vector of length one. Weight of the red channel. A
 #'   single layer image is calculated as a weighted average of the blue and red
 #'   channels. This layer is used as lightness information. The weight of the
@@ -46,6 +44,10 @@
 #'   [membership_to_color()]. Default (`NULL`) is the equivalent to enter
 #'   `sRGB(0.1, 0.4, 0.8)`--the HEX color code is #1A66CC, it can be entered
 #'   into a search engine (such as Mozilla Firefox) to see a color swatch.
+#'
+#' @note The default value of argument `m` is the equivalent to enter
+#'   `!is.na(caim$Red)`. See the Details section in [local_fuzzy_thresholding()]
+#'   to understand how this argument can modify the output.
 #'
 #' @export
 #' @references \insertAllCited{}
@@ -85,7 +87,7 @@
 #' # NOTE: see extract_dn() for an alternative method to obtain sky_blue
 #'
 #' as(sky_blue, "HSV") #saturatio (S) is low
-#' # To obtain same hue (H) but greater saturation, it only requires this:
+#' # To obtain same hue (H) but greater saturation
 #' sky_blue <- HSV(239, 0.85, 0.5) %>% as(., "sRGB") %>% as(., "LAB")
 #' hex(sky_blue)
 #'

@@ -11,9 +11,17 @@ ootb_sky_reconstruction(
   bin,
   filling_source = NULL,
   dist_to_plant = 3,
+  sun_coord = NULL,
   general_sky_type = NULL,
   twilight = TRUE,
-  method = "BFGS"
+  rmse = TRUE,
+  method = "BFGS",
+  try_grids = TRUE,
+  thin_points = TRUE,
+  refine_sun_coord = TRUE,
+  try_optims = TRUE,
+  force_sampling = TRUE,
+  interpolate = TRUE
 )
 }
 \arguments{
@@ -30,16 +38,19 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
 above-canopy image to complement the sky pixels detected through the gaps
-of \code{r}. If an incomplete above-canopy image is available, non-sky
-pixels should be turned \code{NA} or they will be considered as sky pixels
-erroneously. A photograph taken immediately after or before taking \code{r}
-under the open sky with the same equipment and configuration is a very good
-option but not recommended under fleeting clouds. The orientation relative
-to the North must be the same as for \code{r}. If it is set to \code{NULL}
-(default), only sky pixels from \code{r} will be used as input.}
+of \code{r}. A photograph taken immediately after or before taking \code{r} under the
+open sky with the same equipment and configuration is a very good option
+but not recommended under fleeting clouds. The orientation relative to the
+North must be the same as for \code{r}. If it is set to \code{NULL} (default), only
+sky pixels from \code{r} will be used as input.}
 
 \item{dist_to_plant}{Numeric vector of length one or \code{NULL}. See
 \code{\link[=extract_sky_points]{extract_sky_points()}}.}
+
+\item{sun_coord}{An object of class \emph{list}. The result of a call to
+\code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
+\code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values based on
+date and time of acquisition and the \code{suncalc} package.}
 
 \item{general_sky_type}{Character vector of length one. It could be any of
 these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
@@ -51,7 +62,32 @@ angles from 90 to 96 degrees will be tested (civic twilight). This is
 necessary since \code{\link[=extract_sun_coord]{extract_sun_coord()}} would mistakenly recognize the center
 of what can be seen of the solar corona as the solar disk.}
 
+\item{rmse}{Logical vector of length one. If it is \code{TRUE}, the criteria for
+selecting the best sky model is to choose the one with the lowest \strong{root
+mean square error (RMSE)} calculated by using the \code{sky_points} argument as
+the source of reference values. Otherwise, the criteria is to evaluate the
+whole image by calculating the \strong{out-of-range index} as \eqn{\sum_{i =
+  1}^{N}(r_i/sky_i)^2}, where \eqn{r} is the \code{r} argument, \eqn{sky} is the
+raster obtained from the fitted model with \code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}} and
+\code{zenith_dn}, \eqn{i} is the index that represents the position of a given
+pixel on the raster grid, and \eqn{N} is the total number of pixels that
+satisfy either of these inequalities: \eqn{r_i/sky_i<0} and
+\eqn{r_i/sky_i>1}.}
+
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
+
+\item{try_grids}{Logical vector of length one.}
+
+\item{thin_points}{Logical vector of length one.}
+
+\item{refine_sun_coord}{Logical vector of length one.}
+
+\item{try_optims}{Logical vector of length one.}
+
+\item{force_sampling}{Logical vector of length one.}
+
+\item{interpolate}{Logical vector of length one. If \code{TRUE},
+\code{\link[=interpolate_sky_points]{interpolate_sky_points()}} will be used.}
 }
 \value{
 If a filling source is not provided, the result is an object from the
@@ -61,9 +97,9 @@ the out-of-range index (see \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}
 were not involved in obtaining (2), (5) an object from the class \code{lm} (see
 \code{\link[stats:lm]{stats::lm()}}) that is the result of validating (1) with (4) and the method
 recommended by \insertCite{Pineiro2008;textual}{rcaiman}, and (6) a
-binarized image produced with (1) and the coefficients from (4). If a
-filling source is provided, only a reconstructed sky (\linkS4class{SpatRaster})
-is returned.
+binarized image produced with (1), the coefficients from (4) and
+\code{\link[=thr_mblt]{thr_mblt()}} with \code{\link[=apply_thr]{apply_thr()}}, using 'w=0.95'. If a filling source is
+provided, only a reconstructed sky (\linkS4class{SpatRaster}) is returned.
 }
 \description{
 Build an above canopy image from a single below canopy image
@@ -78,9 +114,8 @@ The pipeline is an automatic version of the
 Providing a \verb{filling source} triggers an alternative pipeline in which the
 sky is fully reconstructed with \code{\link[=interpolate_sky_points]{interpolate_sky_points()}} after a dense
 sampling (\eqn{1 \times 1} degree cells), which is supported by the fact that
-sky digital numbers will be available for almost every pixel, either from \code{r}
-gaps or from the filling source---an exception is a filling source with
-plenty of \code{NA} values, which should not be provided.
+sky digital numbers will be available for every pixel, either from \code{r} gaps
+or from the filling source.
 }
 \examples{
 \dontrun{
@@ -105,24 +140,11 @@ caim <- normalize(caim, mx = mx, force_range = TRUE)
 
 bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
 plot(bin)
-bin2 <- ootb_mblt(r, z, a, bin)$bin
-plot(bin2)
+bin <- ootb_mblt(r, z, a, bin)$bin
+plot(bin)
 
-.fun <- function(method, bin) {
-  ootb_sky_reconstruction(r, z, a, bin, method = method)
-}
 set.seed(7)
-l <- Map(.fun, rep(c("BFGS", "CG", "SANN"), 2),
-         as.list(c(rep(bin, 3), rep(bin2, 3))))
-
-cie_fit <- Map(function(sky) lm(sky$model$pred ~ sky$model$obs) \%>\%
-                 summary() \%>\% .$r.squared, l) \%>\% unlist()
-n <- Map(function(sky) sky$sky_points \%>\% nrow(), l) \%>\% unlist()
-
-r2 <- Map(function(sky) sky$validation \%>\% summary() \%>\% .$r.squared, l) \%>\%
-  unlist()
-oor <- Map(function(sky) sky$OOR, l) \%>\% unlist()
-i <- which.min(oor/r2)
+sky <- ootb_sky_reconstruction(r, z, a, bin)
 
 sky$sky
 sky$validation \%>\% summary()
@@ -148,7 +170,6 @@ plot((r/sky2)>1.1)
 \seealso{
 Other Sky Reconstruction Functions: 
 \code{\link{cie_sky_model_raster}()},
-\code{\link{extract_sun_coord}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

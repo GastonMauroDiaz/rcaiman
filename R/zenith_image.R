@@ -20,9 +20,9 @@ relative_radius_image <- function (diameter)
 
 
 
-#' Zenith image
+#' Build Zenith image
 #'
-#' Built a single layer-image with zenith angle values, assuming upwards-looking
+#' Build a single layer-image with zenith angle values, assuming upwards-looking
 #' hemispherical photography with the optical axis vertically aligned.
 #'
 #'
@@ -41,7 +41,7 @@ relative_radius_image <- function (diameter)
 #' @family Lens Functions
 #'
 #' @examples
-#' z <- zenith_image(1490, lens("Nikon_FCE9"))
+#' z <- zenith_image(600, lens("Nikon_FCE9"))
 #' plot(z)
 zenith_image <- function (diameter, lens_coef)
 {

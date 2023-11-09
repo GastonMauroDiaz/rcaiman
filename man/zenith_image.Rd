@@ -2,7 +2,7 @@
 % Please edit documentation in R/zenith_image.R
 \name{zenith_image}
 \alias{zenith_image}
-\title{Zenith image}
+\title{Build Zenith image}
 \usage{
 zenith_image(diameter, lens_coef)
 }
@@ -21,11 +21,11 @@ An object of class \linkS4class{SpatRaster} of zenith angles in degrees,
 showing a complete hemispherical view with the zenith on the center.
 }
 \description{
-Built a single layer-image with zenith angle values, assuming upwards-looking
+Build a single layer-image with zenith angle values, assuming upwards-looking
 hemispherical photography with the optical axis vertically aligned.
 }
 \examples{
-z <- zenith_image(1490, lens("Nikon_FCE9"))
+z <- zenith_image(600, lens("Nikon_FCE9"))
 plot(z)
 }
 \seealso{

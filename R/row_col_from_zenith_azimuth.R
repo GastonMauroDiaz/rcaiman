@@ -1,4 +1,4 @@
-#' Row and col numbers from zenith and azimuth angles
+#' Obtain row and col numbers from zenith and azimuth angles
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams zenith_image

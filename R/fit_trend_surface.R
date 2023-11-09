@@ -1,30 +1,31 @@
 #' Fit a trend surface to sky digital numbers
 #'
-#' Fit a trend surface using [spatial::surf.ls()] as workhorse
-#' function.
+#' Fit a trend surface using [spatial::surf.ls()] as workhorse function.
 #'
 #' This function is meant to be used after [fit_coneshaped_model()].
 #'
-#' This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
-#' heading *Estimation of the sky DN as a previous step for our method*. If you
-#' use this function in your research, please cite that paper in addition to
+#' This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under
+#' the heading *Estimation of the sky DN as a previous step for our method*. If
+#' you use this function in your research, please cite that paper in addition to
 #' this package (`citation("rcaiman"`).
 #'
 #'
 #' @inheritParams ootb_mblt
 #' @param filling_source [SpatRaster-class]. An actual or reconstructed
 #'   above-canopy image to complement the sky pixels detected through the gaps
-#'   of `r`. If an incomplete above-canopy image is available, non-sky
-#'   pixels should be turned `NA` or they will be considered as sky pixels
-#'   erroneously. A photograph taken immediately after or before taking `r`
-#'   under the open sky with the same equipment and configuration is a very good
-#'   option but not recommended under fleeting clouds. The orientation relative
-#'   to the North must be the same as for `r`. If it is set to `NULL`
-#'   (default), only sky pixels from `r` will be used as input.
+#'   of `r`. A photograph taken immediately after or before taking `r` under the
+#'   open sky with the same equipment and configuration is a very good option
+#'   but not recommended under fleeting clouds. The orientation relative to the
+#'   North must be the same as for `r`. If it is set to `NULL` (default), only
+#'   sky pixels from `r` will be used as input.
 #' @inheritParams spatial::surf.ls
 #'
-#' @return A list with an object of class [SpatRaster-class] and of class
-#'   `trls` (see [spatial::surf.ls()]).
+#' @note If an incomplete above-canopy image is available as filling source,
+#'   non-sky pixels should be turned `NA` or they will be erroneously considered
+#'   as sky pixels.
+#'
+#' @return A list with an object of class [SpatRaster-class] and of class `trls`
+#'   (see [spatial::surf.ls()]).
 #' @export
 #'
 #' @family Sky Reconstruction Functions
@@ -56,14 +57,6 @@
 #'
 #' sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)
 #' persp(terra::aggregate(sky_s$image, 10), theta = 90, phi = 45)
-#'
-#' #a quick pipeline
-#' bin <- find_sky_pixels(r, z, a)
-#' sky <- fit_trend_surface(r, z, a, bin)$image
-#' sky <- fix_reconstructed_sky(sky, z, r, bin)
-#' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- find_sky_pixels_nonnull(r, sky, g)
-#' plot(bin)
 #' }
 fit_trend_surface <- function(r,
                               z,

@@ -2,7 +2,7 @@
 % Please edit documentation in R/polar_qtree.R
 \name{polar_qtree}
 \alias{polar_qtree}
-\title{Quad-tree segmentation in the polar space}
+\title{Do quad-tree segmentation in the polar space}
 \usage{
 polar_qtree(r, z, a, scale_parameter = 0.2)
 }

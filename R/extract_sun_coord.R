@@ -33,7 +33,7 @@
 #'   coordinates of the solar disk (row and column), and the other is the
 #'   angular coordinates (zenith and azimuth angles in degrees).
 #'
-#' @family Sky Reconstruction Functions
+#' @family Tool Functions
 #'
 #' @export
 #'

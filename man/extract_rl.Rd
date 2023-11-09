@@ -22,7 +22,7 @@ package \insertCite{Lang2013}{rcaiman} can be used to manually digitize
 points. See \code{\link[=extract_dn]{extract_dn()}} and
 \code{\link[=read_manual_input]{read_manual_input()}} for details.}
 
-\item{no_of_points}{Numeric vector on length one. The number of near-zenith
+\item{no_of_points}{Numeric vector of length one. The number of near-zenith
 points required for the estimation of the zenith DN.}
 
 \item{z_thr}{Numeric vector on length one. The starting maximum zenith angle
@@ -62,7 +62,7 @@ file, use File>Save As...
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize(., 0, 2^16)
+caim <- read_caim() \%>\% normalize(., 0, 20847)
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 plotRGB(caim*255)
@@ -89,6 +89,9 @@ Other Tool Functions:
 \code{\link{extract_feature}()},
 \code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

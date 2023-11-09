@@ -2,7 +2,7 @@
 % Please edit documentation in R/sky_grid_segmentation.R
 \name{sky_grid_segmentation}
 \alias{sky_grid_segmentation}
-\title{Sky grid segmentation}
+\title{Do sky grid segmentation}
 \usage{
 sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
 }
@@ -27,7 +27,7 @@ height. The pattern is two opposite and converging straight sides and two
 opposite and parallel curvy sides.
 }
 \description{
-Segmenting the hemisphere view into segments of equal angular resolution for
+Segment the hemisphere view into segments of equal angular resolution for
 both zenith and azimuth angles.
 }
 \details{
@@ -39,7 +39,7 @@ calculated with: \eqn{sectorID \times 1000 + ringID}, where \eqn{sectorID} is
 the ID number of the sector and \eqn{ringID} is the ID number of the ring.
 }
 \examples{
-z <- zenith_image(1490, lens())
+z <- zenith_image(600, lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)

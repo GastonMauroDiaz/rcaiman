@@ -60,7 +60,7 @@
 #' @examples
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' #plot(caim$Blue)
+#' plot(caim$Blue)
 read_caim <- function(path = NULL, upper_left = NULL, width = NULL,
                       height = NULL) {
 

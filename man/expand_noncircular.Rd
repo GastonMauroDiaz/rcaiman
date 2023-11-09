@@ -7,8 +7,8 @@
 expand_noncircular(caim, z, zenith_colrow)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to
-\code{\link[=read_caim]{read_caim()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -16,9 +16,9 @@ expand_noncircular(caim, z, zenith_colrow)
 zenith. See \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} that is the result of
-adding margins (\code{NA} pixels) to \code{caim}. The zenith point depicted
-in the picture should be in the center of the image or very close to it.
+An object of class \linkS4class{SpatRaster} that is the result of adding
+margins (\code{NA} pixels) to \code{caim}. The zenith point depicted in the picture
+should be in the center of the image or very close to it.
 }
 \description{
 Expand a non-circular hemispherical photograph.
@@ -28,7 +28,7 @@ Expand a non-circular hemispherical photograph.
 
  # ====================================================================
  # Non-circular Fisheye images from a Smartphone with an Auxiliary Lens
- # (Also applicable to Non-circular iamges from DSLR cameras)
+ # (Also applicable to Non-circular images from DSLR cameras)
  # ====================================================================
 
  path <- system.file("external/APC_0581.jpg", package = "rcaiman")
@@ -56,7 +56,7 @@ Expand a non-circular hemispherical photograph.
  m <- !is.na(caim$Red)
  a <- azimuth_image(z)
  caim[!m] <- 0
- z <- normalize(z, 0, 90) * 30.15 # 60.3º diagonal FOV according to metadata
+ z <- normalize(z, 0, 90) * 30.15 #60.3º diagonal FOV according to metadata
  plot(caim$Blue, col = seq(0,1,1/255) \%>\% grey())
  m <- !is.na(caim$Red) & !is.na(z)
  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

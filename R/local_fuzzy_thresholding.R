@@ -1,4 +1,4 @@
-#' local fuzzy thresholding
+#' Local fuzzy thresholding
 #'
 #' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' It uses a threshold value as the location parameter of a logistic membership
@@ -58,7 +58,7 @@
 #'
 #' mem <- membership_to_color(caim, target_color)
 #' mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
-#' plot(mem_thr
+#' plot(mem_thr)
 #' }
 local_fuzzy_thresholding <- function (lightness,
                                       m,

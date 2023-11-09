@@ -35,7 +35,7 @@
 #'   [stats::lm()]), *horizon_radius* is the radius at 90º, *lens_coef* is a
 #'   numeric vector of length equal to the `degree` argument containing the
 #'   polynomial model coefficients for predicting relative radius
-#'   (`coefficients(fit)/horizon_radius`).
+#'   (`coefficients(model)/horizon_radius`).
 #'
 #' @export
 #' @family Lens Functions

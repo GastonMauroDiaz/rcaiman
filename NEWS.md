@@ -37,7 +37,7 @@ large data.frame naming.
 * `ootb_obia()` gains `w_red`.
 * `ootb_sky_reconstruction()` was updated.
 * `row_col_from_zenith_azimuth()` and `zenith_azimuth_from_row_col()` now uses
-different arguments because they were reprogrammed after observing errors in 
+different arguments because they were reprogrammed to overcome limitations in 
 azimuth angle computations and unintentional side effects.
 * `thr_mblt()` is former `thr_image()`.
 

@@ -58,7 +58,7 @@
 #' plot(sky)
 #' plot(r/sky)
 #'
-#' # a quick demonstration of how to use trend surface fitting to smooth the
+#' # A quick demonstration of how to use trend surface fitting to smooth the
 #' # interpolation
 #' persp(terra::aggregate(sky, 10), theta = 45, phi = 30)
 #' sky_s <- fit_trend_surface(sky, z, a, !is.na(z))

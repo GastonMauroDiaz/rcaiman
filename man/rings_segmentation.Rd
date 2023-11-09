@@ -2,7 +2,7 @@
 % Please edit documentation in R/rings_segmentation.R
 \name{rings_segmentation}
 \alias{rings_segmentation}
-\title{Rings segmentation}
+\title{Do rings segmentation}
 \usage{
 rings_segmentation(z, angle_width, return_angle = FALSE)
 }
@@ -21,11 +21,11 @@ An object from the class \linkS4class{SpatRaster} with segments
 shaped like concentric rings.
 }
 \description{
-Segmenting an hemispherical view by slicing the zenith angle from zero to 90º
+Segment an hemispherical view by slicing the zenith angle from zero to 90º
 in equals intervals.
 }
 \examples{
-z <- zenith_image(1490, lens())
+z <- zenith_image(600, lens())
 rings <- rings_segmentation(z, 15)
 plot(rings == 1)
 }

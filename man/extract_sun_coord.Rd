@@ -72,13 +72,24 @@ points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 }
 }
 \seealso{
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_model_raster}()},
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{fix_reconstructed_sky}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_sky_reconstruction}()}
+Other Tool Functions: 
+\code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
+\code{\link{defuzzify}()},
+\code{\link{extract_dn}()},
+\code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points_simple}()},
+\code{\link{extract_sky_points}()},
+\code{\link{find_sky_pixels_nonnull}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{masking}()},
+\code{\link{optim_normalize}()},
+\code{\link{percentage_of_clipped_highlights}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
+\code{\link{read_caim}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()}
 }
-\concept{Sky Reconstruction Functions}
+\concept{Tool Functions}
