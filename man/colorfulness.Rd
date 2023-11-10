@@ -22,15 +22,15 @@ Quantify the colorfulness of an image
 }
 \details{
 Quantify the colorfulness of an sRGB image using a bidimensional space formed
-by the green/red and the blue/yellow axes of the CIE \emph{La\emph{b}} space,
-symbolized with \emph{a*} and \emph{\emph{b}}, respectively. The colorfulness index (CI) is
-defined as
+by the green/red and the blue/yellow axes of the \emph{CIE LAB} space,
+symbolized with \emph{A} and \emph{B}, respectively. The colorfulness index
+(CI) is defined as
 
 \eqn{CI = \dfrac{A_o}{A_p} \cdot 100},
 
 where \eqn{A_o} and \eqn{A_p} are the observed and potential area of the
-\emph{a\emph{b}} plane. \eqn{A_o} refers to the colors from the image while \eqn{A_p}
-to the colors from the whole sRGB cube.
+\emph{AB} plane. \eqn{A_o} refers to the colors from the image while
+\eqn{A_p} to the colors from the whole sRGB cube.
 }
 \note{
 An early version of this function was used in

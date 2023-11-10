@@ -34,8 +34,8 @@
 #' leveled.
 #'
 #' The [line selection
-#' tool](https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2)
-#' of [ImageJ](https://imagej.nih.gov/ij/download.html) can be used to measure
+#' tool](https://imagej.net/ij/docs/guide/146-19.html#toc-Subsection-19.2)
+#' of [ImageJ](https://imagej.net/ij/) can be used to measure
 #' the distance in pixels between points on the image. Draw a line, and use the
 #' dropdown menu Analyze>Measure to obtain its length.
 #'

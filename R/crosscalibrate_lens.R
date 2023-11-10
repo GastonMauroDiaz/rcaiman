@@ -19,8 +19,9 @@
 #' @param path_to_csv_uncal,path_to_csv_cal Character vector of length one. Path
 #'   to a CSV file created with the
 #'   [point
-#'    selection tool of ‘ImageJ’ software](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool) (*cal* and *uncal* stand
-#'   for calibrated and uncalibrated, respectively).
+#'   selection tool of ‘ImageJ’
+#'   software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
+#'   (*cal* and *uncal* stand for calibrated and uncalibrated, respectively).
 #' @param zenith_colrow_uncal,zenith_colrow_cal Numeric vector of length two.
 #'   Raster coordinates of the zenith. See
 #'   [calc_zenith_colrow()] (*cal* and *uncal* stand

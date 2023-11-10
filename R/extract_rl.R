@@ -10,7 +10,7 @@
 #'@inheritParams ootb_mblt
 #'@param sky_points An object of class *data.frame*. The result of a call
 #'  to [extract_sky_points()]. As an alternative, both
-#'  [ImageJ](https://imagej.nih.gov/ij/download.html) and HSP software
+#'  [ImageJ](https://imagej.net/ij/) and HSP software
 #'  package \insertCite{Lang2013}{rcaiman} can be used to manually digitize
 #'  points. See [extract_dn()] and
 #'  [read_manual_input()] for details.
@@ -36,11 +36,11 @@
 #'
 #' @note
 #' The [point selection tool of ‘ImageJ’
-#' software](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
-#' can be used to manually digitize points and create a CSV file from which to read
-#' coordinates (see Examples). After digitizing the points on the image, use the
-#' dropdown menu Analyze>Measure to open the Results window. To obtain the CSV
-#' file, use File>Save As...
+#' software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
+#' can be used to manually digitize points and create a CSV file from which to
+#' read coordinates (see Examples). After digitizing the points on the image,
+#' use the dropdown menu Analyze>Measure to open the Results window. To obtain
+#' the CSV file, use File>Save As...
 #'
 #'@family Tool Functions
 #'

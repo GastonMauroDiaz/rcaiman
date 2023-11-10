@@ -14,8 +14,8 @@ Letters](https://ieeexplore.ieee.org/document/7103294?arnumber=7103294),
 Research](https://cdnsciencepub.com/doi/full/10.1139/cjfr-2018-0006),
 and [Methods in Ecology and
 Evolution](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.14059).
-It supports non-circular hemispherical photography, as the ones usually
-obtained with auxiliary fisheye lenses attached to smartphones.
+It supports non-circular hemispherical photography such as the ones
+usually obtained with auxiliary fisheye lenses attached to smartphones.
 
 For digital cover photography, please refer to the [coverR
 package](https://link.springer.com/article/10.1007/s00468-022-02338-5),

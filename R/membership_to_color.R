@@ -22,8 +22,8 @@
 #'
 #' This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' It computes the degree of membership to a color using two Gaussian membership
-#' functions and the axes _a*_ and _b*_ from the
-#' _CIE L*a*b*_ color space. The lightness dimension is not
+#' functions and the axes \emph{A} and \emph{B} from the
+#' \emph{CIE LAB} color space. The lightness dimension is not
 #' considered in the calculations.
 #'
 #' If you use this function in your research, please cite
@@ -34,7 +34,7 @@
 #' @param target_color [color-class].
 #' @param sigma Numeric vector of length one. Use `NULL` (default) to estimate
 #'   it automatically as the euclidean distance between `target_color` and grey
-#'   in the _CIE L*a*b*_ color space.
+#'   in the \emph{CIE LAB} color space.
 #'
 #'
 #' @return It returns an object from the class [SpatRaster-class]. First layer

@@ -8,7 +8,7 @@ calc_zenith_colrow(path_to_csv)
 }
 \arguments{
 \item{path_to_csv}{Character vector. Path to a CSV file created with the
-\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
+\href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
 }
 \value{
 Numeric vector of length two. Raster coordinates of the zenith,
@@ -35,7 +35,7 @@ photographs without removing the cap. The cap must be rotated about 30º
 before taking each photograph.(\strong{NOTE:}
 The method implemented here does not support multiple holes).
 
-The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
 should be used to manually digitize the white dots and create a CSV file to
 feed this function. After digitizing the points on the image, use the
 dropdown menu Analyze>Measure to open the Results window. To obtain the CSV

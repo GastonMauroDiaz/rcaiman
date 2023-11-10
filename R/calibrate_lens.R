@@ -18,7 +18,7 @@
 #'
 #' ### Materials
 #'
-#' * this package and [ImageJ](https://imagej.nih.gov/ij/download.html)
+#' * this package and [ImageJ](https://imagej.net/ij/download.html)
 #' * camera and lens
 #' * tripod
 #' * standard yoga mat
@@ -53,7 +53,7 @@
 #'
 #' Take a photo and transfer it to the computer, open it with ImageJ, and use
 #' the [point selection
-#' tool](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
+#' tool](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
 #' to digitize the push pins, starting from the zenith push pin and not skipping
 #' any shown push pin. End with an additional point where the image meets the
 #' surrounding black (or the last pixel in case there is not blackness because
@@ -80,7 +80,7 @@
 #'
 #' @param path_to_csv Character vector. Path to a CSV file created with the
 #'   [point selection tool of ‘ImageJ’
-#'   software](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool).
+#'   software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool).
 #' @param degree Numeric vector of length one. Polynomial model degree.
 #'
 #' @return An object of class *list* with named elements. *ds* is the dataset

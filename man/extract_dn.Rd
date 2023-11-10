@@ -33,7 +33,7 @@ for obtaining  the \code{sky_blue} argument for \code{\link[=enhance_caim]{enhan
 Wrapper function around \code{\link[terra:extract]{terra::extract()}}.
 }
 \note{
-The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
 can be used to manually digitize points and create a CSV file from which to read
 coordinates (see Examples). After digitizing the points on the image, use the
 dropdown menu Analyze>Measure to open the Results window. To obtain the CSV

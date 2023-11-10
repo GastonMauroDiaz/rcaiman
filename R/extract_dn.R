@@ -21,7 +21,7 @@
 #'
 #' @note
 #' The [point selection tool of ‘ImageJ’
-#' software](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
+#' software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
 #' can be used to manually digitize points and create a CSV file from which to read
 #' coordinates (see Examples). After digitizing the points on the image, use the
 #' dropdown menu Analyze>Measure to open the Results window. To obtain the CSV

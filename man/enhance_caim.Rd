@@ -29,7 +29,7 @@ into a search engine (such as Mozilla Firefox) to see a color swatch.}
 
 \item{sigma}{Numeric vector of length one. Use \code{NULL} (default) to estimate
 it automatically as the euclidean distance between \code{target_color} and grey
-in the \emph{CIE L\emph{a}b*} color space.}
+in the \emph{CIE LAB} color space.}
 
 \item{w_red}{Numeric vector of length one. Weight of the red channel. A
 single layer image is calculated as a weighted average of the blue and red
@@ -48,8 +48,8 @@ midpoint between the maximum and minimum values of \code{lightness}.}
 correction to the lightness information (see Details and argument \code{w_red}).}
 }
 \value{
-An object of class \linkS4class{SpatRaster}--with same pixel dimensions
-than \code{caim}--that should show more contrast between the sky and plant
+An object of class \linkS4class{SpatRaster} (with same pixel dimensions
+than \code{caim}) that should show more contrast between the sky and plant
 pixels than any of the individual bands from \code{caim}; if not, different
 parameters should be tested.
 }

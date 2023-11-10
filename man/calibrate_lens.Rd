@@ -8,7 +8,7 @@ calibrate_lens(path_to_csv, degree = 3)
 }
 \arguments{
 \item{path_to_csv}{Character vector. Path to a CSV file created with the
-\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
+\href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
 
 \item{degree}{Numeric vector of length one. Polynomial model degree.}
 }
@@ -42,7 +42,7 @@ as a handbook.
 \subsection{Step-by-step guide for producing a CSV file to feed this function}{
 \subsection{Materials}{
 \itemize{
-\item this package and \href{https://imagej.nih.gov/ij/download.html}{ImageJ}
+\item this package and \href{https://imagej.net/ij/download.html}{ImageJ}
 \item camera and lens
 \item tripod
 \item standard yoga mat
@@ -78,7 +78,7 @@ account. In practice, the latter is achieved by aligning the camera body with
 the orthogonal frame made by the quarter circle.
 
 Take a photo and transfer it to the computer, open it with ImageJ, and use
-the \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool}
+the \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool}
 to digitize the push pins, starting from the zenith push pin and not skipping
 any shown push pin. End with an additional point where the image meets the
 surrounding black (or the last pixel in case there is not blackness because

@@ -17,7 +17,7 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{sky_points}{An object of class \emph{data.frame}. The result of a call
 to \code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
-\href{https://imagej.nih.gov/ij/download.html}{ImageJ} and HSP software
+\href{https://imagej.net/ij/}{ImageJ} and HSP software
 package \insertCite{Lang2013}{rcaiman} can be used to manually digitize
 points. See \code{\link[=extract_dn]{extract_dn()}} and
 \code{\link[=read_manual_input]{read_manual_input()}} for details.}
@@ -54,11 +54,11 @@ The search for near-zenith points starts in the region  ranged between
 zenith angle till the required number of points is reached.
 }
 \note{
-The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
-can be used to manually digitize points and create a CSV file from which to read
-coordinates (see Examples). After digitizing the points on the image, use the
-dropdown menu Analyze>Measure to open the Results window. To obtain the CSV
-file, use File>Save As...
+The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+can be used to manually digitize points and create a CSV file from which to
+read coordinates (see Examples). After digitizing the points on the image,
+use the dropdown menu Analyze>Measure to open the Results window. To obtain
+the CSV file, use File>Save As...
 }
 \examples{
 \dontrun{

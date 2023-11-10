@@ -37,6 +37,7 @@ strategy:
 }
 }
 \examples{
+\dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
@@ -45,6 +46,7 @@ r <- gbc(caim$Blue)
 sky_points <- extract_sky_points_simple(r, z, a)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+}
 
 }
 \seealso{

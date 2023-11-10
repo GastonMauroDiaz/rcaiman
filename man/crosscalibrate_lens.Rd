@@ -17,8 +17,8 @@ crosscalibrate_lens(
 \arguments{
 \item{path_to_csv_uncal, path_to_csv_cal}{Character vector of length one. Path
 to a CSV file created with the
-\href{https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software} (\emph{cal} and \emph{uncal} stand
-for calibrated and uncalibrated, respectively).}
+\href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+(\emph{cal} and \emph{uncal} stand for calibrated and uncalibrated, respectively).}
 
 \item{zenith_colrow_uncal, zenith_colrow_cal}{Numeric vector of length two.
 Raster coordinates of the zenith. See

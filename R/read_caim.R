@@ -12,7 +12,7 @@
 #'
 #' Use `upper_left`, `width`, and `height` to read a particular region from the
 #' file. Although any image editor can be used to obtain those parameters, this
-#' function was tested with [‘ImageJ’](https://imagej.nih.gov/ij/), so it might
+#' function was tested with [‘ImageJ’](https://imagej.net/ij/), so it might
 #' be wise to use it.
 #'
 #' **TIP**: For obtaining `upper_left`, `width`, and

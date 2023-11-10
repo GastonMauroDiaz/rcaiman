@@ -52,8 +52,8 @@
 #' @export
 #' @references \insertAllCited{}
 #' @family Pre-processing Functions
-#' @return An object of class [SpatRaster-class]--with same pixel dimensions
-#'   than `caim`--that should show more contrast between the sky and plant
+#' @return An object of class [SpatRaster-class] (with same pixel dimensions
+#'   than `caim`) that should show more contrast between the sky and plant
 #'   pixels than any of the individual bands from `caim`; if not, different
 #'   parameters should be tested.
 #'

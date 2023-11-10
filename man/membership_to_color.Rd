@@ -14,7 +14,7 @@ membership_to_color(caim, target_color, sigma = NULL)
 
 \item{sigma}{Numeric vector of length one. Use \code{NULL} (default) to estimate
 it automatically as the euclidean distance between \code{target_color} and grey
-in the \emph{CIE L\emph{a}b*} color space.}
+in the \emph{CIE LAB} color space.}
 }
 \value{
 It returns an object from the class \linkS4class{SpatRaster}. First layer
@@ -24,8 +24,8 @@ grey. Both memberships are calculated with same \code{sigma}.
 \description{
 This function was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 It computes the degree of membership to a color using two Gaussian membership
-functions and the axes \emph{a*} and \emph{b*} from the
-\emph{CIE L\emph{a}b*} color space. The lightness dimension is not
+functions and the axes \emph{A} and \emph{B} from the
+\emph{CIE LAB} color space. The lightness dimension is not
 considered in the calculations.
 }
 \details{

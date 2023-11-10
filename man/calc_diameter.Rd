@@ -50,8 +50,8 @@ coordinates with the 0º \eqn{\theta} mark and check if the optical axis is
 leveled.
 }
 
-The \href{https://imagej.nih.gov/ij/docs/guide/146-19.html#toc-Subsection-19.2}{line selection tool}
-of \href{https://imagej.nih.gov/ij/download.html}{ImageJ} can be used to measure
+The \href{https://imagej.net/ij/docs/guide/146-19.html#toc-Subsection-19.2}{line selection tool}
+of \href{https://imagej.net/ij/}{ImageJ} can be used to measure
 the distance in pixels between points on the image. Draw a line, and use the
 dropdown menu Analyze>Measure to obtain its length.
 

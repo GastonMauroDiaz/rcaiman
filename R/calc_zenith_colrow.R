@@ -17,7 +17,7 @@
 #' The method implemented here does not support multiple holes).
 #'
 #' The [point selection tool of ‘ImageJ’
-#' software](https://imagej.nih.gov/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
+#' software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
 #' should be used to manually digitize the white dots and create a CSV file to
 #' feed this function. After digitizing the points on the image, use the
 #' dropdown menu Analyze>Measure to open the Results window. To obtain the CSV

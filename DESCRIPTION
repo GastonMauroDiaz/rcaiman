@@ -1,8 +1,8 @@
 Package: rcaiman
 Type: Package
 Title: CAnopy IMage ANalysis
-Version: 1.2.0
-Date: 2023-05-22
+Version: 1.2.1
+Date: 2023-11-10
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))

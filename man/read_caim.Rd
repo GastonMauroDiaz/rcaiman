@@ -41,7 +41,7 @@ for \code{\link[terra:rast]{terra::rast()}}, format compatibility is heritages f
 
 Use \code{upper_left}, \code{width}, and \code{height} to read a particular region from the
 file. Although any image editor can be used to obtain those parameters, this
-function was tested with \href{https://imagej.nih.gov/ij/}{‘ImageJ’}, so it might
+function was tested with \href{https://imagej.net/ij/}{‘ImageJ’}, so it might
 be wise to use it.
 
 \strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
