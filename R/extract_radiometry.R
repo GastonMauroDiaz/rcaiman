@@ -20,7 +20,7 @@
 #' guide pixel sampling. The book holder also facilitated the alignment of the
 #' screen with the dotted lines of the printed quarter-circle.
 #'
-#' ![](light_source.jpg "Portable light source")
+#' ![](lightSource.jpg "Portable light source")
 #'
 #' As a general guideline, a wide variety of mobile devices could be used as
 #' light sources, but if scattered data points are obtained with it, then other
@@ -36,7 +36,7 @@
 #' photographs should be taken **without changing the camera configuration or
 #' the light conditions**.
 #'
-#' ![](calibration_board_vignetting.jpg "Obtaining radiometric data")
+#' ![](calibrationBoardVignetting.jpg "Obtaining radiometric data")
 #'
 #' This code exemplify how to use the function to obtain the data and base R
 #' functions to obtain the vignetting function (\eqn{f_v}).

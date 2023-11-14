@@ -64,7 +64,7 @@ gentle, the yoga mat will allow you to do that without damaging the table. Of
 course, other materials could be used to obtain the same result, such as
 cardboard, foam, nails, etc.
 
-\figure{calibration_board.jpg}{Calibration board}
+\figure{calibrationBoard.jpg}{Calibration board}
 
 Place the camera on the tripod. Align its optical axis with the table while
 looking for getting an image showing the overlapping of the three pairs of
@@ -86,7 +86,7 @@ it is not a circular hemispherical image. There is no need to follow the line
 formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
 the window Results. To obtain the CSV, use File>Save As...
 
-\figure{push_pins_imageJ.jpg}{Points digitization with ImageJ}
+\figure{pushpinsImageJ.jpg}{Points digitization with ImageJ}
 
 Use \code{\link[=test_lens_coef]{test_lens_coef()}} to test if coefficients are OK.
 }

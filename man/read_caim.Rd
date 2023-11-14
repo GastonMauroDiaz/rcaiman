@@ -65,7 +65,9 @@ write_caim(r*2^16-2, "example.tif", 16)
 }
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
+zenith_colrow <- c(1250, 1020)
+diameter <- 745*2
+caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
 plot(caim$Blue)
 }
 \seealso{

@@ -42,7 +42,7 @@ distribution. In addition, the latter was used to draw on in order to
 guide pixel sampling. The book holder also facilitated the alignment of the
 screen with the dotted lines of the printed quarter-circle.
 
-\figure{light_source.jpg}{Portable light source}
+\figure{lightSource.jpg}{Portable light source}
 
 As a general guideline, a wide variety of mobile devices could be used as
 light sources, but if scattered data points are obtained with it, then other
@@ -58,7 +58,7 @@ regulated to obtain light-source pixels with middle grey values. The nine
 photographs should be taken \strong{without changing the camera configuration or
 the light conditions}.
 
-\figure{calibration_board_vignetting.jpg}{Obtaining radiometric data}
+\figure{calibrationBoardVignetting.jpg}{Obtaining radiometric data}
 
 This code exemplify how to use the function to obtain the data and base R
 functions to obtain the vignetting function (\eqn{f_v}).

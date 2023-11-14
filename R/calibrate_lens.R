@@ -38,7 +38,7 @@
 #' course, other materials could be used to obtain the same result, such as
 #' cardboard, foam, nails, etc.
 #'
-#' ![](calibration_board.jpg "Calibration board")
+#' ![](calibrationBoard.jpg "Calibration board")
 #'
 #' Place the camera on the tripod. Align its optical axis with the table while
 #' looking for getting an image showing the overlapping of the three pairs of
@@ -61,7 +61,7 @@
 #' formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
 #' the window Results. To obtain the CSV, use File>Save As...
 #'
-#' ![](push_pins_imageJ.jpg "Points digitization with ImageJ")
+#' ![](pushpinsImageJ.jpg "Points digitization with ImageJ")
 #'
 #' Use [test_lens_coef()] to test if coefficients are OK.
 #'
