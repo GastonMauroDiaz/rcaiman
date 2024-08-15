@@ -63,7 +63,7 @@ extract_sky_points <- function(r, bin, g,
   if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
   # remove the pixels with NA neighbors because HSP extract with 3x3 window
-  NA_count <- terra::focal(!bin, w = 3, fun = "sum")
+  # NA_count <- terra::focal(!bin, w = 3, fun = "sum")
 
   no_col <- no_row <- bin
   terra::values(no_col) <- .col(dim(bin)[1:2])
@@ -75,7 +75,8 @@ extract_sky_points <- function(r, bin, g,
     stopifnot(.is_integerish(dist_to_plant))
     .this_requires_EBImage()
     kern <- EBImage::makeBrush(dist_to_plant, "box")
-    dist_to_plant_img <- NA_count == 0
+    # dist_to_plant_img <- NA_count == 0
+    dist_to_plant_img <- bin
     dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
       terra::setValues(dist_to_plant_img, .)
     dist_to_plant_img[is.na(dist_to_plant_img)] <- 0

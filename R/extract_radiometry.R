@@ -33,7 +33,7 @@
 #' configuration should be in manual mode and set with the aperture (f/number)
 #' for which a vignetting function is required. The shutter speed should be
 #' regulated to obtain light-source pixels with middle grey values. The nine
-#' photographs should be taken **without changing the camera configuration or
+#' photographs should be taken **without changing the camera configuration and
 #' the light conditions**.
 #'
 #' ![](calibrationBoardVignetting.jpg "Obtaining radiometric data")

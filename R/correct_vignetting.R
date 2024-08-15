@@ -5,7 +5,7 @@
 #'   function (\eqn{f_v}) of the type \eqn{f_v = 1 + a \cdot \theta +
 #'   b \cdot \theta^2 + ... + m \cdot \theta^n}, where \eqn{\theta} is the
 #'   zenith angle, \eqn{a, b, c} and \eqn{m} are the coefficients. The maximum
-#'   polynomial degree supported is fifth. See [extract_radiometry()] for
+#'   polynomial degree supported is sixth. See [extract_radiometry()] for
 #'   additional details.
 #'
 #' @return The argument `r` but with corrected values.
@@ -22,13 +22,14 @@
 #' r
 correct_vignetting <- function(r, z, lens_coef_v) {
   # only to avoid note from check, code is OK without this line.
-  a <- b <- d <- e <- NA
+  a <- b <- d <- e <- f <- NA
 
   .fv <- function(theta, lens_coef_v) {
-    x <- lens_coef_v[1:5]
+    x <- lens_coef_v[1:6]
     x[is.na(x)] <- 0
-    for (i in 1:5) assign(letters[i], x[i])
-    1 + a * theta + b * theta^2 + c * theta^3 + d * theta^4 + e * theta^5
+    for (i in 1:6) assign(letters[i], x[i])
+    1 + a * theta + b * theta^2 + c * theta^3 +
+      d * theta^4 + e * theta^5 + f * theta^6
   }
   r <- r / .fv(z * pi / 180, lens_coef_v)
   r[is.na(z)] <- 0

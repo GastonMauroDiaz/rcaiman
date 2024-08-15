@@ -2,21 +2,20 @@
 #'
 #' Out-of-the-box version of the model-based local thresholding (MBLT) algorithm
 #'
-#' This function is a hard-coded version of a MBLT pipeline. The MBLT approach
-#' proposes a linear relationship between background value and optimal threshold
-#' value. This function uses statistical models for sky reconstruction that are
-#' able to explain smooth changes in sky brightness, so this function works best
-#' under clear skies or overcast conditions. After the reconstruction, local
+#' The MBLT approach proposes a linear relationship between background value and
+#' optimal threshold value. This function is a hard-coded version of a MBLT
+#' pipeline. It uses statistical models for sky reconstruction of the type able
+#' to explain smooth changes in sky brightness. Therefore, it works best under
+#' clear skies or overcast conditions. After the reconstruction, local
 #' thresholds are linearly predicted from sky brightness values (see
 #' [thr_mblt()]).
 #'
-#' As a high-level summary, the function starts producing a working binarized
-#' image and ends with a refined binarized image.
-#'
-#' The pipeline combines these main functions [extract_sky_points_simple()] or
-#' [extract_sky_points()], [fit_coneshaped_model()], and [fit_trend_surface()].
-#' The code can be easily inspected by calling `ootb_mblt` without parenthesis.
-#' Advanced users can use that code as a template.
+#' As a high-level summary, the pipeline starts producing a working binarized
+#' image and ends with a refined binarized image. It combines these main
+#' functions [extract_sky_points_simple()] or [extract_sky_points()],
+#' [fit_coneshaped_model()], and [fit_trend_surface()]. The code can be easily
+#' inspected by calling `ootb_mblt` without parenthesis. Advanced users can use
+#' the code as a template.
 #'
 #' The MBLT algorithm was first presented in
 #' \insertCite{Diaz2018;textual}{rcaiman}. The version presented here differs
@@ -41,16 +40,16 @@
 #' find dark canopy elements against a bright sky almost everywhere in the
 #' picture and, therefore, the result will fit user expectations. However, if a
 #' hemispherical photograph taken under the open sky is provided, this algorithm
-#' would be still searching black objects against a light background, so the
+#' will be still searching for black objects against a light background, so the
 #' darker portions of the sky will be taken as objects, i.e., canopy. As a
-#' consequence, this will not fit users expectations since they are looking for
-#' the classes *Gap* and *No-gap*, no matter if one of those are not in the
+#' consequence, this will not fit users expectations since users will be looking
+#' for the classes *Gap* and *No-gap*, no matter if one of those are not in the
 #' picture itself. This kind of error could happen with photographs of open
 #' forests for the same working principle.
 #'
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2018;textual}{rcaiman} in addition to this package
-#' (`citation("rcaiman"`).
+#' (`citation("rcaiman")`).
 #'
 #' @param r [SpatRaster-class]. A normalized greyscale image. Typically, the
 #'   blue channel extracted from a canopy photograph. Please see [read_caim()]

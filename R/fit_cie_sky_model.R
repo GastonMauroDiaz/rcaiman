@@ -52,9 +52,9 @@
 #'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
 #'   date and time of acquisition and the `suncalc` package.
 #' @inheritParams cie_sky_model_raster
-#' @param custom_sky_coef Numeric vector of length five. Custom starting
-#'   coefficients of the sky model. By default, they are drawn from standard
-#'   skies.
+#' @param custom_sky_coef Numeric vector of length five or a numeric matrix with
+#'   five columns. Custom starting coefficients of the sky model. By default,
+#'   they are drawn from standard skies.
 #' @param std_sky_no Numeric vector. Standard sky number from
 #'   \insertCite{Li2016;textual}{rcaiman}'s Table 1.
 #' @param general_sky_type Character vector of length one. It could be any of
@@ -74,8 +74,7 @@
 #'   raster obtained from the fitted model with [cie_sky_model_raster()] and
 #'   `zenith_dn`, \eqn{i} is the index that represents the position of a given
 #'   pixel on the raster grid, and \eqn{N} is the total number of pixels that
-#'   satisfy either of these inequalities: \eqn{r_i/sky_i<0} and
-#'   \eqn{r_i/sky_i>1}.
+#'   satisfy: \eqn{r_i/sky_i<0} or \eqn{r_i/sky_i>1}.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertAllCited{}
@@ -165,6 +164,10 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     call. = FALSE)
   }
 
+  stopifnot(general_sky_type == "Overcast" |
+            general_sky_type == "Partly cloudy" |
+            general_sky_type == "Clear" |
+            is.null(general_sky_type))
   stopifnot(is.data.frame(sky_points))
   stopifnot(length(sun_coord$zenith_azimuth) == 2)
   .check_if_r_z_and_a_are_ok(r, z, a)
@@ -175,10 +178,18 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
   if (!is.null(custom_sky_coef)) {
-    stopifnot(length(custom_sky_coef) == 5)
-    stopifnot(is.numeric(custom_sky_coef))
-    skies[1, 1:5] <- custom_sky_coef
-    skies <- skies[1,]
+    if (is.vector(custom_sky_coef)) {
+      stopifnot(length(custom_sky_coef) == 5)
+      stopifnot(is.numeric(custom_sky_coef))
+      skies <- skies[1,]
+      skies[1, 1:5] <- custom_sky_coef
+    } else {
+      stopifnot(ncol(custom_sky_coef) == 5)
+      custom_sky_coef <- as.matrix(custom_sky_coef)
+      stopifnot(is.numeric(custom_sky_coef))
+      skies <- skies[1:nrow(custom_sky_coef),]
+      skies <- skies[,1:5] <- custom_sky_coef
+    }
     skies$general_sky_type <- "custom"
     skies$description <- "custom"
   }
@@ -263,20 +274,19 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
   if (!rmse) {
     .calc_oor_index <- function(x) {
       if (length(x$coef) != 5) {
-        sky <- terra::rast(z)
-        sky[] <- 2
+        out.of.range_ratio <- 1e+10*ncell(r)
       } else {
         relative_luminance <- cie_sky_model_raster(z, a,
                                                    x$sun_coord$zenith_azimuth,
                                                    x$coef)
         sky <- relative_luminance * x$zenith_dn
-      }
 
-      ratio <- r / sky
-      ratio[is.infinite(ratio)] <- 10000
-      out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
-      out.of.range_ratio <- sum(out.of.range_ratio[]^2,
-                                na.rm = TRUE)
+        ratio <- r / sky
+        ratio[is.infinite(ratio)] <- 1e+10
+        out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
+        out.of.range_ratio <- sum(out.of.range_ratio[]^2,
+                                  na.rm = TRUE)
+      }
       out.of.range_ratio
     }
     error <- Map(.calc_oor_index, fit) %>% unlist()

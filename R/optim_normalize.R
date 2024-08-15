@@ -1,7 +1,8 @@
-#' Optimize normalize parameters
+#' Optimize a parameter of the function [normalize()]
 #'
-#' Wrapper function for [bbmle::mle2()]. Optimize normalize parameters by
-#' maximizing [colorfulness()] and minimizing saturation.
+#' Wrapper function for [bbmle::mle2()]. Optimize the `mx` argument of the
+#' function [normalize()] by maximizing [colorfulness()] and minimizing
+#' saturation.
 #'
 #' @inheritParams enhance_caim
 #' @inheritParams ootb_mblt
@@ -35,6 +36,12 @@
 #' percentage_of_clipped_highlights(ncaim$Blue, m)
 #' }
 optim_normalize <- function(caim, bin, method = "BFGS")  {
+  if (!requireNamespace("bbmle", quietly = TRUE)) {
+    stop(paste("Package \"bbmle\" needed for this function to work.",
+               "Please install it."
+    ),
+    call. = FALSE)
+  }
   terra::compareGeom(caim, bin)
   stopifnot(terra::nlyr(caim) == 3)
 

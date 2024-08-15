@@ -64,14 +64,10 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   while ((count / cells_number) * 100 <= sample_size_pct) {
     if (prob < 0.9) {
       prob <- 1
-      warning(paste0("sample_size_pct was forced to ", sample_size_pct))
+      warning(paste0("'sample_size_pct' was forced to ", sample_size_pct))
       sample_size_pct <- sample_size_pct - 1
       if (sample_size_pct < 5) {
-        stop(paste(
-          "The function is not working properly.",
-          "The problem might be related to inputs.",
-          "Please, make sure they are OK."
-        ))
+        stop("The 'sample_size_pct' can not be forced below 5")
       }
     }
     prob <- prob - 0.025
@@ -84,7 +80,7 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   prob <- prob + 0.025
   while ((count / cells_number) * 100 <= sample_size_pct) {
     if (prob < 0.895) {
-      stop("please, report error 001")
+      stop("'prob' reached 0.895")
     }
     prob <- prob - 0.01
     bin <- regional_thresholding(r, g30, "Diaz2018", 0, 1, prob)
