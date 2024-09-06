@@ -1,3 +1,11 @@
+* fit_sky_cie optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore. 
+* Delete find_sky_pixels_nonnull() since was deamed obsolete.
+* Delete extrac_sky_points_simple() since was deamed obsolete.
+* Change ootb_mblt() as a result of deleting extract_sky_points_simple().
+* Fix rotation argument of azimuth_image()
+* Change the order in the arguments of calc_co() to homogeneize criteria within the package
+* `ootb_sky_reconstruction()` reached a stable version.
+
 # rcaiman 1.2.0
 
 ## Breaking changes

@@ -11,7 +11,7 @@
 #' The proposed automatic edition consists of:
 #' * flattening the values below
 #' the minimum value from the data source defined by `r` and
-#' `bin`and
+#' `bin` and
 #' * forcing the values toward the horizon to become gradually
 #' the median value from the data source.
 #'
@@ -36,12 +36,12 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' r <- caim$Blue
-#' caim <- normalize(caim, 0, 20847, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' r <- normalize(caim$Blue)
 #' bin <- find_sky_pixels(r, z, a)
 #' sky <- fit_trend_surface(r, z, a, bin)$image
+#' plot(sky)
 #' sky <- fix_reconstructed_sky(sky, z, r, bin)
 #' plot(sky)
 #' }

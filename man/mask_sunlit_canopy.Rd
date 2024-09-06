@@ -11,7 +11,8 @@ mask_sunlit_canopy(caim, m = NULL)
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}.}
+\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{!is.na(caim$Red)}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.

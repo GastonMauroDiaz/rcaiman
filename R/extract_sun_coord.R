@@ -41,12 +41,16 @@
 #' \dontrun{
 #' caim <- read_caim()
 #' r <- caim$Blue
-#' caim <- normalize(caim, 0, 20847, TRUE)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' mx <- optim_normalize(caim, bin)
+#' caim <- normalize(caim, 0, mx, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #' plotRGB(caim*255)
-#' bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
+#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sun_coord <- extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
 #' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],

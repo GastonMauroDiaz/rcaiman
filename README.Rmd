@@ -29,6 +29,8 @@ Evolution](https://besjournals.onlinelibrary.wiley.com/doi/10.1111/2041-210X.140
 It supports non-circular hemispherical photography such as the ones usually
 obtained with auxiliary fisheye lenses attached to smartphones.
 
+It offers a simple method to calibrate fisheye lense, more details [here](https://www.sciencedirect.com/science/article/abs/pii/S0168192324001357?via%3Dihub).
+
 For digital cover photography, please refer to the [coverR
 package](https://link.springer.com/article/10.1007/s00468-022-02338-5), although
 you might find some functions from *rcaiman* useful, such as *enhance_caim()*.

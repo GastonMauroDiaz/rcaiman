@@ -57,10 +57,10 @@ regional_thresholding <- function(r,
                                   slope = NULL,
                                   prob = NULL) {
   .is_single_layer_raster(r, "r")
-  .was_normalized(r)
   .is_single_layer_raster(segmentation, "segmentation")
   stopifnot(class(method) == "character")
   stopifnot(length(method) == 1)
+  if (!is.null(intercept)) .was_normalized(r)
   if (!is.null(intercept)) stopifnot(length(intercept) == 1)
   if (!is.null(slope)) stopifnot(length(slope) == 1)
   if (!is.null(prob)) stopifnot(length(prob) == 1)
@@ -105,6 +105,7 @@ regional_thresholding <- function(r,
   }
   segs <- unique(terra::values(segmentation)) %>% as.numeric()
   segs <- segs[!is.na(segs)]
+  segs <- segs[segs != 0]
   Map(.binarize_per_ring, segs)
   bin
 }

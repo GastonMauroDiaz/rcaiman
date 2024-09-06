@@ -54,7 +54,7 @@ azimuth_image <- function (z, orientation = 0)
                  "Please install it."),
            call. = FALSE)
     }
-    picture_cw_rotation <- orientation
+    picture_cw_rotation <- -orientation
     v <- imager::as.cimg(as.array(z)) %>% suppressWarnings()
     v <- imager::rotate_xy(v, -picture_cw_rotation,
                            ncol(z) / 2, nrow(z) / 2, interpolation = 0)

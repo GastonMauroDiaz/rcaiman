@@ -20,7 +20,7 @@
 
 .check_if_r_z_and_a_are_ok <- function(r, z, a) {
   .is_single_layer_raster(r, "r")
-  .was_normalized(r)
+  # .was_normalized(r)
   .is_single_layer_raster(z, "z")
   .is_single_layer_raster(a, "a")
   stopifnot(ncol(z) == nrow(z))

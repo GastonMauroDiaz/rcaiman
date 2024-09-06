@@ -166,7 +166,8 @@ extract_radiometry <- function(l,
   grDevices::x11()
   plot(r, legend = FALSE, col = grDevices::grey((1:255)/255))
   .show_popup(
-   "Mark two points to zoom in to the area of interest."
+   "Mark two points to zoom in to the area of interest.
+   Think these points as the opposite corners of a rectangle."
   )
   r <- terra::crop(r, terra::draw())
   z <- terra::crop(z, r)

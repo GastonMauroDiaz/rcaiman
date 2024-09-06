@@ -24,15 +24,15 @@
 #' sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
 #' sky_points <- manual_input$sky_points
 #' rl <- extract_rl(r, z, a, sky_points)
-#' model <- fit_cie_sky_model(r, z, a, rl$sky_points, rl$zenith_dn, sun_coord)
+#' model <- fit_cie_sky_model(rl, sun_coord)
 #' cie_sky <- model$relative_luminance * model$zenith_dn
 #' plot(r/cie_sky)
 #'
 #' r <- read_caim("manipulate/IMG_1013.pgm")
 #' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-#' cie_sky_manual <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
-#' cie_sky_manual <- cie_sky_manual * manual_input$zenith_dn
-#' plot(r/cie_sky_manual)
+#' cie_sky_m <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
+#' cie_sky_m <- cie_sky_manual * manual_input$zenith_dn
+#' plot(r/cie_sky_m)
 #' ````
 #'
 #'
@@ -45,8 +45,9 @@
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
-#' @param zenith_dn Numeric vector of length one. Zenith digital number, see
-#'   [extract_rl()] for how to obtain it.
+#'
+#' @param rl An object of class *list*. The result of a call to
+#'   [extract_rl()] or an object with same structure and names.
 #' @param sun_coord An object of class *list*. The result of a call to
 #'   [extract_sun_coord()] or an object with same structure and names. See also
 #'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
@@ -65,27 +66,19 @@
 #'   angles from 90 to 96 degrees will be tested (civic twilight). This is
 #'   necessary since [extract_sun_coord()] would mistakenly recognize the center
 #'   of what can be seen of the solar corona as the solar disk.
-#' @param rmse Logical vector of length one. If it is `TRUE`, the criteria for
-#'   selecting the best sky model is to choose the one with the lowest __root
-#'   mean square error (RMSE)__ calculated by using the `sky_points` argument as
-#'   the source of reference values. Otherwise, the criteria is to evaluate the
-#'   whole image by calculating the __out-of-range index__ as \eqn{\sum_{i =
-#'   1}^{N}(r_i/sky_i)^2}, where \eqn{r} is the `r` argument, \eqn{sky} is the
-#'   raster obtained from the fitted model with [cie_sky_model_raster()] and
-#'   `zenith_dn`, \eqn{i} is the index that represents the position of a given
-#'   pixel on the raster grid, and \eqn{N} is the total number of pixels that
-#'   satisfy: \eqn{r_i/sky_i<0} or \eqn{r_i/sky_i>1}.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertAllCited{}
 #'
-#' @return object from the class _list_. The result includes the following: (1)
+#' @return object from the class *list*. The result includes the following: (1)
 #'   the output produced by [bbmle::mle2()], (2) the 5 coefficients, (3 and 4)
 #'   observed and predicted values, (5) the digital number at the zenith, (6)
 #'   the sun coordinates --zenith and azimuth angle in degrees--, and (7) the
 #'   description of the standard sky from which the initial coefficients were
 #'   drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
-#'   coefficients.
+#'   coefficients. If [bbmle::mle2()] does not converge, (1) will be `NA` and
+#'   (2) the coefficients of a standard sky (the one with less RMSE when more
+#'   than one is tried).
 #'
 #' @family  Sky Reconstruction Functions
 #'
@@ -109,53 +102,33 @@
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
 #' xy <- c(210, 451) #originally captured with click() after x11()
-#' sun_coord <- zenith_azimuth_from_row_col(z, z, c(nrow(z) - xy[2],xy[1]))
+#' sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
 #' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 #'        col = 3, pch = 1)
 #'
 #' rl <- extract_rl(caim$Blue, z, a, sky_points)
 #'
 #' set.seed(7)
-#' model <- fit_cie_sky_model(caim$Blue, z, a, rl$sky_points,
-#'                            rl$zenith_dn, sun_coord,
+#' model <- fit_cie_sky_model(rl, sun_coord,
 #'                            general_sky_type = "Clear",
-#'                            rmse = FALSE,
 #'                            twilight = FALSE,
-#'                            method = "SANN")
+#'                            method = "BFGS")
 #' summary(model$mle2_output)
 #' plot(model$obs, model$pred)
 #' abline(0,1)
-#' r2 <- lm(model$pred~model$obs) %>% summary(.) %>% .$r.squared
-#' r2
+#' lm(model$pred~model$obs) %>% summary()
+#'
 #' sky_cie <- cie_sky_model_raster(z, a,
 #'                                 model$sun_coord$zenith_azimuth,
 #'                                 model$coef) * model$zenith_dn
 #' plot(sky_cie)
 #' plot(caim$Blue/sky_cie)
-#'
-#' # A quick demonstration of how to use interpolation to improve sky modelling
-#' # after Lang et al. (2010)
-#' sky <- interpolate_sky_points(rl$sky_points, caim$Blue, rmax = ncol(caim)/7)
-#' plot(sky)
-#' sky <- sky * rl$zenith_dn * (1 - r2) + sky_cie * r2
-#' sky <- terra::cover(sky, sky_cie)
-#' plot(sky)
-#' plot(caim$Blue/sky)
-#'
-#' # how to provide a custom starting coefficient
-#' model <- fit_cie_sky_model(caim$Blue, z, a, rl$sky_points,
-#'                            rl$zenith_dn, sun_coord,
-#'                            custom_sky_coef = model$coef,
-#'                            method = "SANN")
-#' plot(model$obs, model$pred, ylim = range(model$obs))
-#' abline(0,1)
 #' }
-fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
+fit_cie_sky_model <- function(rl, sun_coord,
                               custom_sky_coef = NULL,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               twilight = TRUE,
-                              rmse = FALSE,
                               method = "BFGS") {
   if (!requireNamespace("bbmle", quietly = TRUE)) {
     stop(paste("Package \"bbmle\" needed for this function to work.",
@@ -168,12 +141,11 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
             general_sky_type == "Partly cloudy" |
             general_sky_type == "Clear" |
             is.null(general_sky_type))
-  stopifnot(is.data.frame(sky_points))
+  stopifnot(is.data.frame(rl$sky_points))
   stopifnot(length(sun_coord$zenith_azimuth) == 2)
-  .check_if_r_z_and_a_are_ok(r, z, a)
 
-  AzP <- .degree2radian(sky_points$a)
-  Zp <- .degree2radian(sky_points$z)
+  AzP <- .degree2radian(rl$sky_points$a)
+  Zp <- .degree2radian(rl$sky_points$z)
 
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
@@ -188,7 +160,7 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
       custom_sky_coef <- as.matrix(custom_sky_coef)
       stopifnot(is.numeric(custom_sky_coef))
       skies <- skies[1:nrow(custom_sky_coef),]
-      skies <- skies[,1:5] <- custom_sky_coef
+      skies[,1:5] <- custom_sky_coef
     }
     skies$general_sky_type <- "custom"
     skies$description <- "custom"
@@ -202,9 +174,14 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     # **Note**: when the .c or .e parameters are negative, the sun can be darker
     # than the sky, which does not make sense. So, the code avoids that
     # possibility by using abs()
+    # ** New note**: Positive values of b create unrealistic values at the
+    # horizon. Positive values of d produce negative values, which are
+    # unrealistc
     flog <- function(.a, .b, .c, .d, .e, S) {
-      media <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, abs(.c), .d, abs(.e))
-      - sum(stats::dnorm(sky_points$rl, mean = media, sd = exp(S)))
+      x <- .cie_sky_model(AzP, Zp, AzS, Zs,
+                          .a, -abs(.b), abs(.c), -abs(.d), abs(.e))
+      .calc_rmse(x - rl$sky_points$rl)
+      # .calc_rmse(1 - rl$sky_points$rl/x )
     }
 
     fit <- NA
@@ -213,38 +190,42 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
                                     .b = as.numeric(skies[i,2]),
                                     .c = as.numeric(skies[i,3]),
                                     .d = as.numeric(skies[i,4]),
-                                    .e = as.numeric(skies[i,5]),
-                                    S = 0), method = method),
+                                    .e = as.numeric(skies[i,5])), method = method),
       silent = TRUE
     )
 
+
     if (any(try(fit@details$convergence, silent = TRUE), is.na(fit))) {
-      return(list(mle2_output = NA,
-                  coef = NA,
-                  obs = NA,
-                  pred = NA,
-                  relative_luminance = NA,
-                  zenith_dn = zenith_dn,
-                  sun_coord = sun_coord,
-                  sky_type = NA))
-    } else {
+      fit <- NA
+      coef <- as.numeric(skies[i,1:5])
+      names(coef) <- c(".a", ".b", ".c", ".d", ".e")
       pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
                              .a = as.numeric(skies[i,1]),
                              .b = as.numeric(skies[i,2]),
                              .c = as.numeric(skies[i,3]),
                              .d = as.numeric(skies[i,4]),
                              .e = as.numeric(skies[i,5]))
-      coef <- fit@coef[-6]
+    } else {
+      coef <- fit@coef
       coef[c(3,5)] <- abs(coef[c(3,5)])
-      return(list(mle2_output = fit,
-                  coef = coef,
-                  obs = sky_points$rl,
-                  pred = pred,
-                  zenith_dn = zenith_dn,
-                  sun_coord = sun_coord,
-                  sky_type = paste0(skies[i,"general_sky_type"], ", ",
-                                    skies[i,"description"])))
+      coef[c(2,4)] <- -abs(coef[c(2,4)])
+      pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
+                             .a = fit@coef[1],
+                             .b = fit@coef[2],
+                             .c = fit@coef[3],
+                             .d = fit@coef[4],
+                             .e = fit@coef[5])
     }
+
+    list(mle2_output = fit,
+         coef = coef,
+         obs = rl$sky_points$rl,
+         pred = pred,
+         zenith_dn = rl$zenith_dn,
+         sun_coord = sun_coord,
+         sky_type = paste0(skies[i,"general_sky_type"], ", ",
+                           skies[i,"description"]))
+
   }
 
   if (!is.null(std_sky_no)) {
@@ -271,37 +252,13 @@ fit_cie_sky_model <- function(r, z, a, sky_points, zenith_dn, sun_coord,
     }
   }
 
-  if (!rmse) {
-    .calc_oor_index <- function(x) {
-      if (length(x$coef) != 5) {
-        out.of.range_ratio <- 1e+10*ncell(r)
-      } else {
-        relative_luminance <- cie_sky_model_raster(z, a,
-                                                   x$sun_coord$zenith_azimuth,
-                                                   x$coef)
-        sky <- relative_luminance * x$zenith_dn
 
-        ratio <- r / sky
-        ratio[is.infinite(ratio)] <- 1e+10
-        out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
-        out.of.range_ratio <- sum(out.of.range_ratio[]^2,
-                                  na.rm = TRUE)
-      }
-      out.of.range_ratio
-    }
-    error <- Map(.calc_oor_index, fit) %>% unlist()
-  } else {
-    error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
-  }
+  error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
 
-  if (all(is.na(error))) {
-    return(fit[[1]])
-  } else {
-    model <- fit[[which.min(error)]]
-    if (model$sun_coord$zenith_azimuth[1] >= 90) {
-        model$sun_coord$row_col <- c(NA, NA)
-    }
-    return(model)
+  model <- fit[[which.min(error)]]
+  if (model$sun_coord$zenith_azimuth[1] >= 90) {
+      model$sun_coord$row_col <- c(NA, NA)
   }
+  model
 }
 

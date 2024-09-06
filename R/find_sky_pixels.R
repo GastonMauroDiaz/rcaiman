@@ -46,6 +46,7 @@
 #' }
 find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   .check_if_r_z_and_a_are_ok(r, z, a)
+  .was_normalized(r)
   stopifnot(length(sample_size_pct) == 1)
 
   if (sample_size_pct > 60) {

@@ -2,7 +2,7 @@
 % Please edit documentation in R/optim_normalize.R
 \name{optim_normalize}
 \alias{optim_normalize}
-\title{Optimize normalize parameters}
+\title{Optimize a parameter of the function \code{\link[=normalize]{normalize()}}}
 \usage{
 optim_normalize(caim, bin, method = "BFGS")
 }
@@ -20,8 +20,9 @@ Numeric vector of length one. The values for using as \code{mx} argument
 with \code{\link[=normalize]{normalize()}}.
 }
 \description{
-Wrapper function for \code{\link[bbmle:mle2]{bbmle::mle2()}}. Optimize normalize parameters by
-maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing saturation.
+Wrapper function for \code{\link[bbmle:mle2]{bbmle::mle2()}}. Optimize the \code{mx} argument of the
+function \code{\link[=normalize]{normalize()}} by maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing
+saturation.
 }
 \examples{
 \dontrun{
@@ -53,16 +54,14 @@ Other Tool Functions:
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
-\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels_nonnull}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
-\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }

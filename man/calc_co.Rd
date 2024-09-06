@@ -4,17 +4,17 @@
 \alias{calc_co}
 \title{Calculate canopy openness}
 \usage{
-calc_co(bin, m = NULL, z, a, angle_width)
+calc_co(bin, z, a, m = NULL, angle_width = 10)
 }
 \arguments{
 \item{bin}{\linkS4class{SpatRaster}. Binarized hemispherical canopy image.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
-
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link[=mask_hs]{mask_hs()}}.}
 
 \item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 constrain is rooted in the requirement of a value able to divide both the
@@ -58,7 +58,7 @@ a <- azimuth_image(z)
 m <- mask_hs(z, 0, 70)
 bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 plot(bin)
-calc_co(bin, m, z, a, 10)
+calc_co(bin, z, a, m, 10)
 
 }
 \references{

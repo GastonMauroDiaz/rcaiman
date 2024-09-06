@@ -7,7 +7,7 @@
 #'
 #' The technique described under the headline ‘Optical center characterization’
 #' of the [user manual of the software
-#' Can-Eye](https://www6.paca.inrae.fr/can-eye/content/download/3052/30819/version/4/file/CAN_EYE_User_Manual.pdf)
+#' Can-Eye](https://can-eye.paca.hub.inrae.fr/documentation/documentation)
 #' can be used to acquire the data for determining the zenith coordinates. This
 #' technique was used by \insertCite{Pekin2009;textual}{rcaiman}, among others.
 #' Briefly, it consists in drilling a small hole in the cap of the fisheye lens

@@ -55,7 +55,7 @@ should be taken with the light source located in the equivalent to 0, 10, 20,
 configuration should be in manual mode and set with the aperture (f/number)
 for which a vignetting function is required. The shutter speed should be
 regulated to obtain light-source pixels with middle grey values. The nine
-photographs should be taken \strong{without changing the camera configuration or
+photographs should be taken \strong{without changing the camera configuration and
 the light conditions}.
 
 \figure{calibrationBoardVignetting.jpg}{Obtaining radiometric data}

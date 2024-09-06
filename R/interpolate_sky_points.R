@@ -41,12 +41,16 @@
 #' \dontrun{
 #' caim <- read_caim()
 #' r <- caim$Blue
-#' caim <- normalize(caim, 0, 20847, TRUE)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' mx <- optim_normalize(caim, bin)
+#' caim <- normalize(caim, 0, mx, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
+#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 3)
@@ -58,15 +62,6 @@
 #' plot(sky)
 #' plot(r/sky)
 #'
-#' # A quick demonstration of how to use trend surface fitting to smooth the
-#' # interpolation
-#' persp(terra::aggregate(sky, 10), theta = 45, phi = 30)
-#' sky_s <- fit_trend_surface(sky, z, a, !is.na(z))
-#' persp(terra::aggregate(sky_s$image, 10), theta = 45, phi = 30)
-#' plot(sky_s$image)
-#' plot(r)
-#' plot(r/sky_s$image)
-#' plot(apply_thr(r/sky_s$image, 0.5))
 #' }
 interpolate_sky_points <- function(sky_points,
                                    r,

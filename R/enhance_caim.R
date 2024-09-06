@@ -33,7 +33,8 @@
 #' @inheritParams local_fuzzy_thresholding
 #' @inheritParams membership_to_color
 #' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
-#'   [mask_hs()].
+#'   [mask_hs()]. Default (`NULL`) is the equivalent to enter
+#'   `!is.na(caim$Red)`.
 #' @param w_red Numeric vector of length one. Weight of the red channel. A
 #'   single layer image is calculated as a weighted average of the blue and red
 #'   channels. This layer is used as lightness information. The weight of the
@@ -64,14 +65,11 @@
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' mn <- quantile(caim$Blue[m], 0.01)
-#' mx <- quantile(caim$Blue[m], 0.99)
-#' r <- normalize(caim$Blue, mn, mx, TRUE)
+#' r <- normalize(caim$Blue)
 #'
-#' bin <- find_sky_pixels(r, z, a)
-#' mblt <- ootb_mblt(r, z, a, bin)
-#'
-#' mx <- optim_normalize(caim, mblt$bin)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' mx <- optim_normalize(caim, bin)
 #' mn <- min(caim[m])
 #'
 #' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)

@@ -52,28 +52,27 @@ as sky pixels.
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-r <- caim$Blue
-caim <- normalize(caim, 0, 20847, TRUE)
-z <- zenith_image(ncol(caim), lens())
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
+z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-m <- !is.na(z)
+r <- gbc(caim$Blue)
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
 
-bin <- ootb_obia(caim, z, a, m, HSV(239, 0.85, 0.5), gamma = NULL)
+bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
+bin <- bin & mask_hs(z, 0, 80)
+sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
+sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
 
-g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 5)
-plot(bin)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-rl <- extract_rl(r, z, a, sky_points)
-
-model <- fit_coneshaped_model(rl$sky_points)
+model <- fit_coneshaped_model(sky_points$sky_points)
 summary(model$model)
 sky_cs <- model$fun(z, a)
-persp(terra::aggregate(sky_cs, 10), theta = 90, phi = 45)
+plot(sky_cs)
+plot(r/sky_cs)
 
-sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)
-persp(terra::aggregate(sky_s$image, 10), theta = 90, phi = 45)
+sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)$image
+plot(sky_s)
+plot(r/sky_s)
 }
 }
 \references{

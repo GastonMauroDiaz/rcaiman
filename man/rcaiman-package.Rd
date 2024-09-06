@@ -6,7 +6,7 @@
 \alias{rcaiman-package}
 \title{rcaiman: CAnopy IMage ANalysis}
 \description{
-Classify hemispherical photographs of the plant canopy with algorithms specially developed for such a task and well documented in Díaz and Lencinas (2015) \doi{10.1109/lgrs.2015.2425931} and Díaz and Lencinas (2018) \doi{10.1139/cjfr-2018-0006}. It supports non-circular hemispherical photography, such as those acquired with 15mm lenses or with auxiliary fish-eye lenses attached to mobile devices. For smartphone-based hemispherical photography see Díaz (2023) \doi{10.1111/2041-210x.14059}. Most of the functions also support restricted view photography.
+Tools for pre-processing and processing canopy photographs with support for raw data reading. Works with images taken with both regular and fisheye lenses (all types). Includes algorithms specifically designed to mitigate errors caused by direct sunlight.
 }
 \seealso{
 Useful links:

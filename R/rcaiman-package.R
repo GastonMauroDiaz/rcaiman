@@ -9,6 +9,7 @@ NULL
 #' @import terra
 #' @import filenamer
 #' @importFrom magrittr %>%
+#' @importFrom magrittr subtract
 #' @importFrom stats lm poly coefficients IQR sd splinefun
 #' @importFrom colorspace sRGB
 #' @importClassesFrom lidR LAS

@@ -37,17 +37,19 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
 #'
-#' sky_points <- extract_rl(r, z, a, extract_sky_points_simple(r, z, a),
-#'                          NULL,
-#'                          use_window = FALSE)#this is important when
-#'                                             #extract_sky_points_simple()
-#'                                             #is used
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
+#' bin <- bin & mask_hs(z, 0, 80)
+#' sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
+#' sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+#'
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' summary(model$model)
 #' sky_cs <- model$fun(z, a)
 #' plot(r/sky_cs)
 #' plot(sky_cs)
+#' plot(r/sky_cs > 0.5)
 #'
 #' z <- zenith_image(50, lens())
 #' a <- azimuth_image(z)

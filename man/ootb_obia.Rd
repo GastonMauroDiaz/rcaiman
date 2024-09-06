@@ -73,31 +73,6 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-# ==============================================
-# Circular Hemispherical Photo (from a raw file)
-# ==============================================
-
-caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
-a <- azimuth_image(z)
-m <- !is.na(z)
-
-mn <- quantile(caim$Blue[m], 0.01)
-mx <- quantile(caim$Blue[m], 0.99)
-r <- normalize(caim$Blue, mn, mx, TRUE)
-
-bin <- find_sky_pixels(r, z, a)
-mblt <- ootb_mblt(r, z, a, bin)
-plot(mblt$bin)
-
-mx <- optim_normalize(caim, mblt$bin)
-ncaim <- normalize(caim, mx = mx, force_range = TRUE)
-plotRGB(ncaim*255)
-plotRGB(normalize(caim)*255)
-percentage_of_clipped_highlights(ncaim$Blue, m)
-
-bin2 <- ootb_obia(ncaim, z, a, gamma = NULL)
-plot(bin2)
 
 # =====================================
 # Hemispherical Photo from a Smartphone

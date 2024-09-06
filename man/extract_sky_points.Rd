@@ -49,11 +49,16 @@ the final step.
 \dontrun{
 caim <- read_caim()
 r <- caim$Blue
-caim <- normalize(caim, 0, 20847, TRUE)
+bin <- regional_thresholding(r, rings_segmentation(z, 30),
+                             method = "thr_isodata")
+mx <- optim_normalize(caim, bin)
+caim <- normalize(caim, 0, mx, TRUE)
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
+m <- !is.na(z)
 plotRGB(caim*255)
-bin <- ootb_obia(caim, z, a, HSV(239, 0.85, 0.5), gamma = NULL)
+ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_plant = 3,
@@ -72,16 +77,14 @@ Other Tool Functions:
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
-\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels_nonnull}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
-\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }

@@ -6,24 +6,24 @@
 #' functions [fit_cie_sky_model()] and [interpolate_sky_points()].
 #'
 #' The pipeline is an automatic version of the
-#' \insertCite{Lang2010;textual}{rcaiman} method.
+#' \insertCite{Lang2010;textual}{rcaiman} method. A paper for thoroughly
+#' presenting and testing this pipeline is under preparation.
 #'
-#' Providing a `filling source` triggers an alternative pipeline in which the
-#' sky is fully reconstructed with [interpolate_sky_points()] after a dense
-#' sampling (\eqn{1 \times 1} degree cells), which is supported by the fact that
-#' sky digital numbers will be available for every pixel, either from `r` gaps
-#' or from the filling source.
+#' The __out-of-range index__ is calculated as foollow:
+#'
+#' \eqn{\sum_{i = 1}^{N}(r_i/sky_i)^2},
+#'
+#' where \eqn{r} is the `r` argument, \eqn{sky} is the
+#' raster obtained from the fitted model with [cie_sky_model_raster()] and
+#' `zenith_dn`, \eqn{i} is the index that represents the position of a given
+#' pixel on the raster grid, and \eqn{N} is the total number of pixels that
+#' satisfy: \eqn{r_i/sky_i<0} or \eqn{r_i/sky_i>1}.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
-#' @inheritParams fit_cie_sky_model
-#' @param dist_to_plant Numeric vector of length one or `NULL`. See
-#'   [extract_sky_points()].
-#' @param try_grids Logical vector of length one.
-#' @param thin_points Logical vector of length one.
-#' @param refine_sun_coord Logical vector of length one.
-#' @param try_optims Logical vector of length one.
-#' @param force_sampling Logical vector of length one.
+#' @inheritParams extract_sky_points
+#' @param m [SpatRaster-class]. A mask, check [mask_hs()].
+#' @param refine_sun_coord Logical vector of length one
 #' @param interpolate Logical vector of length one. If `TRUE`,
 #'   [interpolate_sky_points()] will be used.
 #'
@@ -33,15 +33,15 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @return If a filling source is not provided, the result is an object from the
-#'   class _list_ that includes the following: (1) the reconstructed sky
-#'   ([SpatRaster-class]), (2) the output produced by [fit_cie_sky_model()], (3)
-#'   the general sky type resulting from finding to which types belong the
-#'   standard sky with the coefficients closer to the fitted coefficients (it
-#'   may be different to the `general_sky_type' argument when it is provided)
-#'   (4) the sky points used to fit (2), and (5) the out-of-range index (see
-#'   [fit_cie_sky_model()]). If a filling source is provided, only a
-#'   reconstructed sky ([SpatRaster-class]) is returned.
+#' @return An object from the class _list_ that includes the following: (1) the
+#'   reconstructed sky ([SpatRaster-class]), (2) the output produced by
+#'   [fit_cie_sky_model()], (3) an object from the class _list_ that includes an
+#'   object from the class `lm` (see [stats::lm()]) and the RMSE, both being the
+#'   result of validating (2) with a k-fold approach and following
+#'   \insertCite{Pineiro2008;textual}{rcaiman},(4) the `dist_to_plant` argument
+#'   used when [fit_cie_sky_model()] was called, (5) the `sky_points` argument
+#'   used when [extract_rl()] was called,  and (6) the out-of-range index (see
+#'   details).
 #'
 #'
 #' @examples
@@ -51,429 +51,273 @@
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' r <- normalize(caim$Blue)
+#' r <- caim$Blue
 #'
-#' bin <- find_sky_pixels(r, z, a)
-#' bin <- ootb_mblt(r, z, a, bin)
-#' plot(bin$bin)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' g <- sky_grid_segmentation(z, a, 10)
+#' sun_coord <- extract_sun_coord(r, z, a, bin, g)
+#' sun_coord$zenith_azimuth
 #'
-#' mx <- optim_normalize(caim, m)
+#' .a <- azimuth_image(z, orientation = sun_coord$zenith_azimuth[2]+90)
+#' seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
+#' bin <- regional_thresholding(r, seg, method = "thr_isodata")
+#' plot(bin)
 #'
-#' r <- normalize(caim$Blue)
+#'
+#' mx <- optim_normalize(caim, bin)
 #' caim <- normalize(caim, mx = mx, force_range = TRUE)
-#'
 #' ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #'
-#' dist_to_plant <- optimize_dist_to_plant(r, z, a, !is.na(z), bin)
 #' set.seed(7)
-#' sky <- ootb_sky_reconstruction(r, z, a, bin,
-#'                                dist_to_plant = dist_to_plant,
-#'                                try_grids = FALSE,
-#'                                thin_points = FALSE,
-#'                                refine_sun_coord = FALSE,
-#'                                force_sampling = FALSE,
-#'                                try_optims = FALSE,
-#'                                interpolate = TRUE)
-#' sky$oor
+#' sky <- ootb_sky_reconstruction(r, z, a, m, bin)
+#'
+#' sky$sky
 #' plot(sky$sky)
-#' plot(r/sky$sky)
-#' plot(r/sky$sky>1.05)
-#' sky$general_sky_type
+#' sky$model_validation$rmse
+#' plot(r/sky$sky>1.15)
+#' plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
+#' abline(0,1)
+#'
+#' plot(bin)
+#' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
+#'
+#' # masking the sunlit canopy and running again
+#' .a <- azimuth_image(z, sky$model$sun_coord$zenith_azimuth[2])
+#' m_fuzzy <- (normalize((abs((.a-180)))^1.8) + normalize(sqrt(90-z))) / 2
+#' sun_theta <- sky$model$sun_coord$zenith_azimuth[1]
+#' m_fuzzy <- normalize(m_fuzzy, 0, (90-sun_theta)/90, TRUE)
+#'
+#' sky_cie <- cie_sky_model_raster(z, a, sky$model$sun_coord$zenith_azimuth,
+#'                                 sky$model$coef)
+#' .bin <- !apply_thr(sky_cie, thr_isodata(sky_cie[m])) & bin
+#' .caim <- read_caim()
+#' .mx <- optim_normalize(.caim, .bin)
+#' .caim <- normalize(.caim, mx = .mx, force_range = TRUE)
+#'
+#' mem <- membership_to_color(.caim, HSV(239, 0.85, 0.5))
+#' mem <- mem$membership_to_target_color
+#' mem <- normalize(sqrt(mem*0.1), 0, 1)
+#' m_fuzzy <- m * m_fuzzy + mem * (1 - m_fuzzy)
+#' bin <- apply_thr(m_fuzzy*ecaim, thr_isodata(ecaim[m]))
+#'
+#' set.seed(7)
+#' g <- sky_grid_segmentation(z, a, 5)
+#' sky <- ootb_sky_reconstruction(r, z, a, m, bin, g, refine_sun_coord = TRUE)
+#'
+#' sky$sky
+#' plot(sky$sky)
+#' sky$model_validation$rmse
+#' plot(r/sky$sky>1.15)
+#' plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
+#' abline(0,1)
+#'
+#' plot(bin)
+#' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 #' }
-ootb_sky_reconstruction <- function(r, z, a, bin,
-                                    filling_source = NULL,
-                                    dist_to_plant = 3,
-                                    sun_coord = NULL,
-                                    custom_sky_coef = NULL,
-                                    std_sky_no = NULL,
-                                    general_sky_type = NULL,
-                                    twilight = TRUE,
-                                    rmse = TRUE,
-                                    method = "BFGS",
-                                    try_grids = TRUE,
-                                    thin_points = TRUE,
-                                    refine_sun_coord = TRUE,
-                                    force_sampling = TRUE,
-                                    try_optims = TRUE,
+ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
+                                    refine_sun_coord = FALSE,
                                     interpolate = TRUE
                                     ) {
-  if (is.null(filling_source)) {
 
-    if (try_grids == TRUE) {
-      if (!requireNamespace("imager", quietly = TRUE)) {
-        stop(paste("Package \"imager\" needed for this function to work.",
-                   "Please install it."),
-             call. = FALSE)
-      }
-    }
+  .is_single_layer_raster(m, "m")
+  .is_logic_and_NA_free(m)
+  stopifnot(compareGeom(r, m) == TRUE)
 
-    if (dist_to_plant != 1) {
-      size <- dist_to_plant * 2
-    } else {
-      size <- dist_to_plant
-    }
-    .this_requires_EBImage()
-    kern <- EBImage::makeBrush(dist_to_plant, "box")
-    dist_to_plant_img <- bin
-    dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
-      terra::setValues(dist_to_plant_img, .)
-    dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
-    dist_to_plant_img <- as.logical(dist_to_plant_img)
+  path <- system.file("external", package = "rcaiman")
+  skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
 
-    g <- sky_grid_segmentation(z, a, 10)
-    if (is.null(sun_coord)) sun_coord <- extract_sun_coord(r, z, a, bin, g)
-    sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
-    rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1)
-    if (sd(rl$sky_points$rl) < 0.01) {
-      warning("Overexposed image")
-      try_grids = FALSE
-      thin_points = FALSE
-      refine_sun_coord = FALSE
-      try_optims = FALSE
-    }
-
-    .get_r2 <- function(model) {
-      r2 <- NA
-      fit <- try(lm(model$pred~model$obs), silent = TRUE)
-      if (is(fit)[1] == "lm") {
-        if (coefficients(fit)[2] > 0 | sd(model$pred) == 0) {
-          r2 <- suppressWarnings(summary(fit)) %>% .$r.squared
-        }
-      }
-      if (is.na(r2)) r2 <- 0
-      r2
-    }
-
-    .get_sky_cie <- function(model) {
-      if (suppressWarnings(is.null(model) | length(model$coef) != 5)) {
-        sky_cie <- terra::rast(z)
-        sky_cie[] <- 1e-10
-        names(sky_cie) <- "failed CIE sky"
-      } else {
-        sky_cie <- cie_sky_model_raster(z, a,
-                                        model$sun_coord$zenith_azimuth,
-                                        model$coef) * model$zenith_dn
-        names(sky_cie) <- "CIE sky"
-      }
-      sky_cie
-    }
-
-    .get_cie_fit_index <- function(model, in_gaps = TRUE) {
-      r2 <- .get_r2(model)
-      if (r2 == 0) {
-        return(1e+10)
-      } else {
-        if (in_gaps) {
-          ratio <- r/.get_sky_cie(model)
-          fit <- lm(model$pred~model$obs)
-          return(1 - r2 +
-                   abs(0 - coef(fit)[1]) +
-                   abs(1 - coef(fit)[2]) +
-                   abs(1 - median(ratio[dist_to_plant_img]))
-                 )
-        } else {
-          fit <- lm(model$pred~model$obs)
-          return(1 - r2 +
-                   abs(0 - coef(fit)[1]) +
-                   abs(1 - coef(fit)[2])
-          )
-        }
-      }
-    }
-
-    .calc_oor_index <- function(sky) {
-      ratio <- r / sky
-      ratio[is.infinite(ratio)] <- 1e+10
-      out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
-      out.of.range_ratio <- sum(out.of.range_ratio[]^2,
-                                na.rm = TRUE)
-      out.of.range_ratio
-    }
-
-    path <- system.file("external", package = "rcaiman")
-    skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
-    .find_std_sky_no <- function(model) {
-      coef <- model$coef
-      delta <- skies[, 1:5]
-      for (i in 1:nrow(skies)) {
-        delta[i,] <- delta[i,] - coef
-      }
-      apply(delta^2, 1, sum) %>% which.min()
-    }
-
-    .find_general_sky_type <- function(model) {
-      std_sky_no <- .find_std_sky_no(model)
-      skies[std_sky_no, "general_sky_type"]
-    }
-
-    .calc_noise <- function(general_sky_type = NULL) {
-      if (is.null(general_sky_type)) {
-        .sd <- apply((skies[, 1:5]), 2, sd)
-      } else {
-        u <- skies[,"general_sky_type"] == general_sky_type
-        .sd <- apply((skies[u, 1:5]), 2, sd)
-      }
-      Map(function(i) rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
-    }
-
-    model <- fit_cie_sky_model(r, z, a,
-                               rl$sky_points,
-                               rl$zenith_dn,
-                               sun_coord,
-                               custom_sky_coef = custom_sky_coef,
-                               std_sky_no = custom_sky_coef,
-                               general_sky_type = general_sky_type,
-                               twilight = twilight,
-                               rmse = rmse,
-                               method = method)
-
-    if (any(try_grids, thin_points, refine_sun_coord,
-            force_sampling, try_optims)) {
-      .model <- model
-      .g <- g
-      .rl <- rl
-    }
-
-    # START Try several grids ####
-    if (try_grids) {
-      general_sky_type <- .find_general_sky_type(model)
-      .chessboard <- function(size) {
-        cb <- chessboard(r, size)
-        cb[is.na(z)] <- 0
-        cb
-      }
-      ges <- list(
-        sky_grid_segmentation(z, azimuth_image(z, 5), 10),
-        sky_grid_segmentation(z, a, 30),
-        sky_grid_segmentation(z, a, 15),
-        sky_grid_segmentation(z, a, 7.5),
-        .chessboard(round(ncol(r)/30)),
-        .chessboard(round(ncol(r)/20)),
-        .chessboard(round(ncol(r)/10))
-      )
-      .get_rl <- function(g) {
-        sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
-        extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1)
-      }
-      rls <- Map(.get_rl, ges)
-      .run_fit <- function(m, rl) {
-        fit_cie_sky_model(r, z, a,
-                          rl$sky_points,
-                          rl$zenith_dn,
-                          sun_coord,
-                          general_sky_type = general_sky_type,
-                          twilight = FALSE,
-                          rmse = TRUE,
-                          method = method)
-      }
-      models <- Map(.run_fit, !is.na(z), rls)
-      models[[length(models)+1]] <- model
-      rls[[length(rls)+1]] <- rl
-      ges[[length(ges)+1]] <- g
-      cie_fit_index <- Map(.get_cie_fit_index, models)
-      i <- which.min(cie_fit_index)
-      model <- models[[i]]
-      rl <- rls[[i]]
-      g <- ges[[i]]
-    }
-    # END Try several grids ####
-
-    # START model improvement by the thinning of points ####
-    if (thin_points) {
-      general_sky_type <- .find_general_sky_type(model)
-      .improve_model <- function() {
-        cie_fit_index <- .get_cie_fit_index(model)
-        error <- model$obs - model$pred
-        i <- stats::kmeans(error, 2)
-        i <- which.min(i$centers %>% abs()) == i$cluster
-        model.2 <- fit_cie_sky_model(r, z, a,
-                                     rl$sky_points[i,],
-                                     rl$zenith_dn,
-                                     sun_coord,
-                                     general_sky_type = general_sky_type,
-                                     twilight = FALSE,
-                                     rmse = TRUE,
-                                     method = method)
-        if (!(is.na(model$coef) %>% any())) {
-          if (cie_fit_index < .get_cie_fit_index(model2)) {
-            return(FALSE)
-          } else {
-            rl$sky_points <<- rl$sky_points[i,]
-            model <<-model.2
-            return(TRUE)
-          }
-        } else {
-          return(FALSE)
-        }
-      }
-
-      while(.improve_model() &
-            length(rl$sky_points$dn) > 20 ) NA
-    }
-    # END model improvement by the thinning of points ####
-
-    # START model improvement by sun_coord refinement ####
-    if (refine_sun_coord) {
-      std_sky_no <- .find_std_sky_no(model)
-      .refine_sun_coord <- function(zenith, azimuth) {
-        sun_coord <- row_col_from_zenith_azimuth(z, a, c(zenith, azimuth))
-        model <- fit_cie_sky_model(r, z, a,
-                                   rl$sky_points,
-                                   rl$zenith_dn,
-                                   sun_coord,
-                                   std_sky_no = std_sky_no,
-                                   twilight = FALSE,
-                                   method = method)
-        .get_cie_fit_index(model)
-      }
-      fit <- bbmle::mle2(.refine_sun_coord,
-                         list(zenith = sun_coord$zenith_azimuth[1],
-                              azimuth = sun_coord$zenith_azimuth[2]),
-                         method = "BFGS")
-      sun_coord <- row_col_from_zenith_azimuth(z, a, fit@coef)
-    }
-    # END model improvement by sun coord refinement ####
-
-    sky_cie <- .get_sky_cie(model)
-
-    # START model improvement by sampling on the areas out-of-range ####
-    sky_points.2 <- NULL
-    if (force_sampling) {
-      ratio <- r / sky_cie
-      ratio[is.infinite(ratio)] <- 1e+10
-      out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
-      sky_points.2 <- extract_sky_points(out.of.range_ratio, bin, g,
-                                         dist_to_plant)
-      sky_points.2 <- rbind(rl$sky_points[ , c("row", "col")], sky_points.2)
-      rl.2 <- extract_rl(r, z, a, sky_points.2, g, no_of_points = NULL,
-                         use_window = dist_to_plant != 1)
-      rl.2$sky_points$rl <- rl.2$sky_points$rl/rl$zenith_dn
-      rl.2$zenith_dn <- rl$zenith_dn
-
-      model.2 <- NULL
-      try(model2 <- fit_cie_sky_model(r, z, a,
-                                      rl.2$sky_points,
-                                      rl$zenith_dn,
-                                      model$sun_coord,
-                                      custom_sky_coef = model$coef,
-                                      twilight = FALSE,
-                                      method = method))
-
-      models <- list(model,model.2)
-      cie_fit_index <- Map(.get_cie_fit_index, models)
-      i <- which.min(cie_fit_index)
-      if (i == 2) {
-        rl <- rl.2
-        model <- models[[i]]
-        sky_cie <- .get_sky_cie(model)
-      }
-    }
-    # END model improvement by sampling on the areas out-of-range ####
-
-    # START model improvement by testing optimization methods ####
-    if (try_optims) {
-      # general_sky_type <- skies[std_sky_no,"general_sky_type"]
-      # std_sky_no <- .find_std_sky_no(model)
-      .fun <- function(i) {
-       model.2 <- NULL
-        try(model2 <- fit_cie_sky_model(r, z, a,
-                                        rl$sky_points,
-                                        rl$zenith_dn,
-                                        model$sun_coord,
-                                        # std_sky_no = std_sky_no,
-                                        custom_sky_coef = model$coef +
-                                          .calc_noise(),
-                                        method = i))
-       model.2
-      }
-      .methods <- c(rep("SANN", 5), rep("BFGS",5), rep("CG",5))
-      models <- Map(.fun, .methods)
-      models[[length(models)+1]] <- model
-      cie_fit_index <- Map(.get_cie_fit_index, models)
-      i <- which.min(cie_fit_index)
-      # oor <- Map(function(x) .calc_oor_index(.get_sky_cie(x)), models)
-      # i <- which.min(oor)
-      model <- models[[i]]
-      sky_cie <- .get_sky_cie(model)
-      method <- .methods[i]
-    }
-    # END model improvement by testing optimization methods ####
-
-    if (any(try_grids, thin_points, refine_sun_coord,
-            force_sampling, try_optims)) {
-      if (.calc_oor_index(.get_sky_cie(.model)) <
-          .calc_oor_index(.get_sky_cie(model))) {
-        model <- .model
-        #g <- .g
-        rl <- .rl
-      }
-    }
-
-    general_sky_type <- .find_general_sky_type(model)
-
-    # START R^2 computation with the K-fold method ####
-    folds <- seq_along(rl$sky_points$row)
-    folds <- split(folds, 1:5) %>% suppressWarnings()
-    r2 <- c()
-    for (i in 1:5) {
-      model.2 <- fit_cie_sky_model(r, z, a, rl$sky_points[-folds[[i]],],
-                             rl$zenith_dn,
-                             sun_coord,
-                             custom_sky_coef = model$coef +
-                               .calc_noise(general_sky_type),
-                             twilight = FALSE,
-                             method = method)
-      x <- extract_dn(sky_cie, rl$sky_points[folds[[i]],1:2])[,3]
-      y <- extract_dn(r, rl$sky_points[folds[[i]],1:2])[,3]
-      fit <- lm(x~y)
-      r2 <- c(r2,
-              as.numeric(try(summary(fit)$r.squared, silent = TRUE)) %>%
-                suppressWarnings())
-    }
-    r2 <- median(r2, na.rm = TRUE)
-    # END R^2 computation with the K-fold method ####
-
-    # START interpolate ####
-    if (interpolate) {
-      if (general_sky_type == "Clear" | general_sky_type == "Overcast") {
-        sky <- interpolate_sky_points(rl$sky_points, r, k = 10,
-                                      rmax = ncol(r)/7)
-        sky <- sky * rl$zenith_dn * (1 - r2) + sky_cie * r2
-        sky <- terra::cover(sky, sky_cie)
-        names(sky) <- "Weighted average (k = 10)"
-      }
-      if (general_sky_type == "Partly cloudy") {
-        sky <- interpolate_sky_points(rl$sky_points, r, k = 3,
-                                      rmax = ncol(r)/7)
-        sky <- sky * rl$zenith_dn * (1 - r2) + sky_cie * r2
-        sky <- terra::cover(sky, sky_cie)
-        names(sky) <- "Weighted average (k = 3)"
-      }
-    } else {
-      sky <- sky_cie
-    }
-    # END interpolate ####
-
-    sky <- list(sky = sky,
-                model = model,
-                general_sky_type = general_sky_type,
-                sky_points = rl$sky_points,
-                model_validation = fit,
-                oor = .calc_oor_index(sky))
-  } else {
-    terra::compareGeom(r, filling_source)
-    r[!bin] <- filling_source[!bin]
-    sky_points <- extract_sky_points(r, !is.na(z),
-                                     sky_grid_segmentation(z, a, 1),
-                                     dist_to_plant = NULL,
-                                     min_raster_dist = NULL)
-    sky_points <- extract_rl(r, z, a, sky_points, NULL,
-                             use_window = FALSE)$sky_points
-    sky_points <- sky_points[!is.na(sky_points$rl),]
-    sky <- interpolate_sky_points(sky_points, r)
-    sky[is.na(z)] <- 0
-    names(sky) <- "Reconstructed sky"
+  .noise <- function(w = 1) {
+    .sd <- apply((skies[, 1:5]), 2, sd) * w
+    Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
   }
-  sky
+
+  .get_custom_coef_matrix <- function(n, w) {
+    custom_sky_coef <- matrix(model$coef + .noise(w), ncol = 5)
+    for (i in 1:n) {
+      custom_sky_coef <- rbind(custom_sky_coef,
+                               model$coef + .noise(w))
+    }
+  }
+
+  .get_sky_cie <- function(model) {
+    sky_cie <- cie_sky_model_raster(z, a,
+                                    model$sun_coord$zenith_azimuth,
+                                    model$coef) * model$zenith_dn
+    names(sky_cie) <- "CIE sky"
+    sky_cie
+  }
+
+  .get_metric <- function(model) {
+    .calc_rmse(model$pred - model$obs)
+  }
+
+  if (is.null(g)) {
+    g <- sky_grid_segmentation(z, a, 10)
+    i <- grep("001", g[])
+    g[i] <- 1000
+  }
+
+  # START optimize dist_to_plant ####
+  g30 <- sky_grid_segmentation(z, a, 30)
+  g30[!m] <- 0
+  dist_to_plant <- 11
+  sampling_pct <- 0
+  while (sampling_pct < 100 & dist_to_plant > 3) {
+    dist_to_plant <- dist_to_plant-2
+    sky_points <- extract_sky_points(r, bin, g, dist_to_plant = dist_to_plant)
+    v <- cellFromRowCol(r, sky_points$row, sky_points$col) %>%
+      xyFromCell(r, .) %>% vect()
+    sampling_pct <- (extract(g30, v)[,2] %>% unique() %>% length()) /
+      (unique(g30)[,1] %>% length() %>% subtract(1)) * 100
+  }
+  if (sampling_pct < 75) {
+    dist_to_plant <- 1
+  }
+  # END optimize dist_to_plant ####
+
+  sun_coord <- extract_sun_coord(r, z, a, bin, g)
+  sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
+  rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1)
+  if (sd(rl$sky_points$rl) < 0.01) {
+    warning("Overexposed image")
+  }
+
+  method <- c("BFGS", "CG", "SANN")
+  models <- Map(function(x) fit_cie_sky_model(rl, sun_coord, method = x),
+                method)
+  metric <- Map(.get_metric, models)
+  i <- which.min(metric)
+  model <- models[[i]]
+  method <- method[i]
+  sun_coord <- model$sun_coord
+
+  # START sampling on the areas out-of-range ####
+  if (dist_to_plant != 1) {
+    # .bin <- bin
+    model.2 <- model
+    model$pred <- model$obs * 1e+10
+    rl.2 <- rl
+    while (.get_metric(model) - .get_metric(model.2) > 0.0001) {
+      model <- model.2
+      rl <- rl.2
+
+      ratio <- r / .get_sky_cie(model)
+      ratio[is.infinite(ratio)] <- 1e+10
+      out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
+
+      v <- terra::cellFromRowCol(r, rl$sky_points$row, rl$sky_points$col) %>%
+        xyFromCell(r, .) %>% vect()
+      v <- terra::buffer(v, dist_to_plant)
+      bin[v] <- 0
+      bin <- bin & out.of.range_ratio != 0
+      if (calc_co(bin, z, a, m) > 0.05) {
+        sky_points.2 <- extract_sky_points(out.of.range_ratio, bin, g,
+                                           dist_to_plant + 2)
+        sky_points.2 <- rbind(rl$sky_points[ , c("row", "col")], sky_points.2)
+        rl.2 <- extract_rl(r, z, a, sky_points.2, g, no_of_points = NULL,
+                           use_window = dist_to_plant != 1)
+        rl.2$sky_points$rl <- rl.2$sky_points$rl/rl$zenith_dn
+        rl.2$zenith_dn <- rl$zenith_dn
+
+        model.2 <- fit_cie_sky_model(rl.2, sun_coord,
+                                     custom_sky_coef = model$coef,
+                                     twilight = FALSE,
+                                     method = method)
+      }
+    }
+    # bin <- .bin
+  }
+  # END sampling on the areas out-of-range ####
+
+  # START sun_coord refinement ####
+  if (refine_sun_coord) {
+    .refine_sun_coord <- function(zenith, azimuth) {
+      sun_coord$zenith_azimuth <- c(zenith, azimuth)
+      model <- fit_cie_sky_model(rl, sun_coord,
+                                 custom_sky_coef = model$coef,
+                                 twilight = FALSE,
+                                 method = method)
+      .get_metric(model)
+    }
+    fit <- bbmle::mle2(.refine_sun_coord,
+                       list(zenith = sun_coord$zenith_azimuth[1],
+                            azimuth = sun_coord$zenith_azimuth[2]),
+                       method = "BFGS")
+    sun_coord$zenith_azimuth <- fit@coef
+    model <- fit_cie_sky_model(rl, sun_coord,
+                               custom_sky_coef = model$coef,
+                               twilight = FALSE,
+                               method = method)
+    sun_coord <- model$sun_coord
+  }
+  # END sun coord refinement ####
+
+
+  # START K-fold method ####
+  ## k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
+  k <- 10
+  folds <- seq_along(rl$sky_points$row)
+  folds <- split(folds, 1:k) %>% suppressWarnings()
+  x <- c()
+  y <- c()
+  for (i in 1:k) {
+    rl.2 <- rl
+    rl.2$sky_points <- rl$sky_points[-folds[[i]],]
+    model.2 <- fit_cie_sky_model(rl.2, sun_coord,
+                           custom_sky_coef = model$coef + .noise(0.1),
+                           twilight = FALSE,
+                           method = method)
+    x <- c(x, extract_dn(.get_sky_cie(model.2)/rl$zenith_dn,
+                         rl$sky_points[folds[[i]], c("row", "col")],
+                         use_window = dist_to_plant != 1)[,3])
+    y <- c(y, extract_dn(r/rl$zenith_dn,
+                         rl$sky_points[folds[[i]], c("row", "col")],
+                         use_window = dist_to_plant != 1)[,3])
+  }
+  reg <- lm(x~y) #following Pineiro2008 10.1016/j.ecolmodel.2008.05.006
+
+  # END K-fold method ####
+
+  sky_cie <- .get_sky_cie(model)
+  rmse <- .calc_rmse(1 - reg$model$x/reg$model$y)
+
+  # START interpolate ####
+  if (interpolate) {
+      w <-  1 - (rmse / (0.15 + rmse)) #Michaelis Menten
+      r2 <- summary(reg) %>% .$r.squared
+      if (!is.numeric(r2)) r2 <- 0
+      k <- 2 + round(r2 * 10)
+      p <- abs(model$coef[1]) + log(model$coef[3]+1)
+      p <- 2 + sqrt(p)
+      sky <- interpolate_sky_points(rl$sky_points, r, k = k, p = p,
+                                    rmax = ncol(r)/7) * rl$zenith_dn
+      sky <- sky * (1 - w) + sky_cie * w
+      sky <- terra::cover(sky, sky_cie)
+      names(sky) <- paste0("Weighted average, ",
+                           "w=", round(w, 2), ", ",
+                           "k=", k, ", ",
+                           "p=", round(p, 2))
+  } else {
+    sky <- sky_cie
+  }
+  # END interpolate ####
+
+  .calc_oor_index <- function(sky) {
+    ratio <- r / sky
+    ratio[is.infinite(ratio)] <- 1e+10
+    out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
+    out.of.range_ratio <- sum(out.of.range_ratio[]^2,
+                              na.rm = TRUE)
+    out.of.range_ratio
+  }
+
+  list(sky = sky,
+       model = model,
+       model_validation = list(reg = reg, rmse = rmse),
+       dist_to_plant = dist_to_plant,
+       sky_points = rl$sky_points,
+       oor_index = .calc_oor_index(sky)
+       )
 }

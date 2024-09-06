@@ -20,7 +20,8 @@ enhance_caim(
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}.}
+\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{!is.na(caim$Red)}.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to be passed to
 \code{\link[=membership_to_color]{membership_to_color()}}. Default (\code{NULL}) is the equivalent to enter
@@ -96,14 +97,11 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 
-mn <- quantile(caim$Blue[m], 0.01)
-mx <- quantile(caim$Blue[m], 0.99)
-r <- normalize(caim$Blue, mn, mx, TRUE)
+r <- normalize(caim$Blue)
 
-bin <- find_sky_pixels(r, z, a)
-mblt <- ootb_mblt(r, z, a, bin)
-
-mx <- optim_normalize(caim, mblt$bin)
+bin <- regional_thresholding(r, rings_segmentation(z, 30),
+                             method = "thr_isodata")
+mx <- optim_normalize(caim, bin)
 mn <- min(caim[m])
 
 sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)

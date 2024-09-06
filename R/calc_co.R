@@ -44,9 +44,9 @@
 #' m <- mask_hs(z, 0, 70)
 #' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #' plot(bin)
-#' calc_co(bin, m, z, a, 10)
+#' calc_co(bin, z, a, m, 10)
 #'
-calc_co <- function(bin, m = NULL, z, a, angle_width) {
+calc_co <- function(bin, z, a, m = NULL, angle_width = 10) {
   g <- sky_grid_segmentation(z, a, angle_width)
   g[!m] <- 0
   ds <- extract_feature(bin, g, return_raster = FALSE)

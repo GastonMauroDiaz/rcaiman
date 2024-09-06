@@ -4,7 +4,7 @@
 \alias{ootb_mblt}
 \title{Out-of-the-box model-based local thresholding}
 \usage{
-ootb_mblt(r, z, a, bin = NULL, fix_cs_sky = FALSE, w = 0.5)
+ootb_mblt(r, z, a, bin, w = 0.5)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -18,9 +18,6 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
-\item{fix_cs_sky}{Logical vector of length one. If it is \code{TRUE},
-\code{\link[=fix_reconstructed_sky]{fix_reconstructed_sky()}} is used to fix the cone-shaped sky.}
-
 \item{w}{Numeric vector of length one. Weighting parameter from
 \insertCite{Diaz2018;textual}{rcaiman}'s Equation 1. See \code{\link[=thr_mblt]{thr_mblt()}}}
 }
@@ -33,31 +30,29 @@ Object from class list containing the binarized image (named
 Out-of-the-box version of the model-based local thresholding (MBLT) algorithm
 }
 \details{
-This function is a hard-coded version of a MBLT pipeline. The MBLT approach
-proposes a linear relationship between background value and optimal threshold
-value. This function uses statistical models for sky reconstruction that are
-able to explain smooth changes in sky brightness, so this function works best
-under clear skies or overcast conditions. After the reconstruction, local
+The MBLT approach proposes a linear relationship between background value and
+optimal threshold value. This function is a hard-coded version of a MBLT
+pipeline. It uses statistical models for sky reconstruction of the type able
+to explain smooth changes in sky brightness. Therefore, it works best under
+clear skies or overcast conditions. After the reconstruction, local
 thresholds are linearly predicted from sky brightness values (see
 \code{\link[=thr_mblt]{thr_mblt()}}).
 
-As a high-level summary, the function starts producing a working binarized
-image and ends with a refined binarized image.
-
-The pipeline combines these main functions \code{\link[=extract_sky_points_simple]{extract_sky_points_simple()}} or
-\code{\link[=extract_sky_points]{extract_sky_points()}}, \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}, and \code{\link[=fit_trend_surface]{fit_trend_surface()}}.
-The code can be easily inspected by calling \code{ootb_mblt} without parenthesis.
-Advanced users can use that code as a template.
+As a high-level summary, the pipeline starts with a working binarized
+image and ends with a refined binarized image. It combines these main
+functions \code{\link[=extract_sky_points]{extract_sky_points()}},
+\code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}, and \code{\link[=fit_trend_surface]{fit_trend_surface()}}. The code can be easily
+inspected by calling \code{ootb_mblt} without parenthesis. Advanced users can use
+the code as a template.
 
 The MBLT algorithm was first presented in
 \insertCite{Diaz2018;textual}{rcaiman}. The version presented here differs
 from the original in the following main aspects:
 \itemize{
 \item The original version used a global thresholding method to provide sky
-points to the cone-shaped model. This one uses \code{\link[=extract_sky_points_simple]{extract_sky_points_simple()}}.
-Nevertheless, a binarized image can be provided through the \code{bin} argument,
-triggering the use of \code{\link[=extract_sky_points]{extract_sky_points()}} instead of
-\code{\link[=extract_sky_points_simple]{extract_sky_points_simple()}}.
+points to the cone-shaped model. This one uses \code{\link[=extract_sky_points]{extract_sky_points()}} as a
+way to improve the extraction of pure sky points from working binarized
+images.
 \item \code{intercept} and \code{slope} are automatically obtained using data from sky
 points and a linear model for accuracy evaluation after
 \insertCite{Pineiro2008;textual}{rcaiman}. This approach handles inaccuracies
@@ -73,20 +68,20 @@ regular canopy hemispherical images are provided as input, the algorithm will
 find dark canopy elements against a bright sky almost everywhere in the
 picture and, therefore, the result will fit user expectations. However, if a
 hemispherical photograph taken under the open sky is provided, this algorithm
-would be still searching black objects against a light background, so the
+will be still searching for black objects against a light background, so the
 darker portions of the sky will be taken as objects, i.e., canopy. As a
-consequence, this will not fit users expectations since they are looking for
-the classes \emph{Gap} and \emph{No-gap}, no matter if one of those are not in the
+consequence, this will not fit users expectations since users will be looking
+for the classes \emph{Gap} and \emph{No-gap}, no matter if one of those are not in the
 picture itself. This kind of error could happen with photographs of open
 forests for the same working principle.
 
 If you use this function in your research, please cite
 \insertCite{Diaz2018;textual}{rcaiman} in addition to this package
-(\verb{citation("rcaiman"}).
+(\code{citation("rcaiman")}).
 }
 \note{
 If \code{NULL} is provided as the \code{w} argument, the weight is calculated as the
-coefficient of determination (\eqn{R^2}) of linear model for accuracy
+coefficient of determination (\eqn{R^2}) of the linear model for accuracy
 evaluation \insertCite{Pineiro2008}{rcaiman}.
 }
 \examples{
@@ -100,7 +95,6 @@ r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
 bin <- find_sky_pixels(r, z, a)
 bin <- ootb_mblt(r, z, a, bin)
 plot(bin$bin)
-
 }
 }
 \references{

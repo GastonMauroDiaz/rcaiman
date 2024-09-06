@@ -38,11 +38,16 @@
 #' \dontrun{
 #' caim <- read_caim()
 #' r <- caim$Blue
-#' caim <- normalize(caim, 0, 20847, TRUE)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' mx <- optim_normalize(caim, bin)
+#' caim <- normalize(caim, 0, mx, TRUE)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
+#' m <- !is.na(z)
 #' plotRGB(caim*255)
-#' bin <- ootb_obia(caim, z, a, HSV(239, 0.85, 0.5), gamma = NULL)
+#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_points <- extract_sky_points(r, bin, g,
 #'                                  dist_to_plant = 3,
@@ -53,6 +58,29 @@
 extract_sky_points <- function(r, bin, g,
                               dist_to_plant = 3,
                               min_raster_dist = 3) {
+
+
+  .filter <- function(ds, col_names, thr) {
+    d <- as.matrix(stats::dist(ds[, col_names]))
+    indices <- c()
+    i <- 0
+    while (i < nrow(d)) {
+      i <- i + 1
+      indices <- c(indices, row.names(d)[i]) #include the point itself (p)
+      x <- names(d[i, d[i,] <= thr])
+      if (!is.null(x)) {
+        # this exclude from future search all the points near p,
+        # including itself
+        rows2crop <- (1:nrow(d))[match(x, rownames(d))]
+        cols2crop <- (1:ncol(d))[match(x, colnames(d))]
+        d <- d[-rows2crop, -cols2crop]
+      }
+      if (is.vector(d)) d <- matrix(d)
+    }
+    ds[indices,]
+  }
+
+
   .is_single_layer_raster(r)
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
@@ -96,44 +124,15 @@ extract_sky_points <- function(r, bin, g,
     names(ds) <- c("col", "row", "g", "dn")
   }
 
-  indices <- tapply(1:nrow(ds), ds$g,
+  if (nrow(ds) != 0) {
+      i <- tapply(1:nrow(ds), ds$g,
                     function(x) {
-                      # browsser()
                       x[which.max(ds$dn[x])]
-
-                      # indices <- ds$dn[x] >= quantile(ds$dn[x], 0.9)
-                      # sample(x[indices], 1)
-
-                      # dn <- ds$dn[x]
-                      # indices <- dn >= quantile(dn, 0.9)
-                      # i <- which.min(dn[indices])
-                      # x[i]
                     })
-  ds <- ds[indices,]
-
-
-  # filtering
-  .filter <- function(ds, col_names, thr) {
-    d <- as.matrix(stats::dist(ds[, col_names]))
-    indices <- c()
-    i <- 0
-    while (i < nrow(d)) {
-      i <- i + 1
-      indices <- c(indices, row.names(d)[i]) #include the point itself (p)
-      x <- names(d[i, d[i,] <= thr])
-      if (!is.null(x)) {
-        # this exclude from future search all the points near p,
-        # including itself
-        rows2crop <- (1:nrow(d))[match(x, rownames(d))]
-        cols2crop <- (1:ncol(d))[match(x, colnames(d))]
-        d <- d[-rows2crop, -cols2crop]
+      ds <- ds[i,]
+      if (!is.null(min_raster_dist) & nrow(ds) > 1) {
+        ds <- .filter(ds, c("col", "row"), min_raster_dist)
       }
-    }
-    ds[indices,]
-  }
-
-  if (!is.null(min_raster_dist)) {
-    ds <- .filter(ds, c("col", "row"), min_raster_dist)
   }
   ds[,c(2, 1)]
 }

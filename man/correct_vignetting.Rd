@@ -15,7 +15,7 @@ correct_vignetting(r, z, lens_coef_v)
 function (\eqn{f_v}) of the type \eqn{f_v = 1 + a \cdot \theta +
   b \cdot \theta^2 + ... + m \cdot \theta^n}, where \eqn{\theta} is the
 zenith angle, \eqn{a, b, c} and \eqn{m} are the coefficients. The maximum
-polynomial degree supported is fifth. See \code{\link[=extract_radiometry]{extract_radiometry()}} for
+polynomial degree supported is sixth. See \code{\link[=extract_radiometry]{extract_radiometry()}} for
 additional details.}
 }
 \value{
@@ -40,17 +40,15 @@ Other Tool Functions:
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
-\code{\link{extract_sky_points_simple}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels_nonnull}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
-\code{\link{read_caim_raw}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }

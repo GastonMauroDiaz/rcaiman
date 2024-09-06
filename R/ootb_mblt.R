@@ -10,9 +10,9 @@
 #' thresholds are linearly predicted from sky brightness values (see
 #' [thr_mblt()]).
 #'
-#' As a high-level summary, the pipeline starts producing a working binarized
+#' As a high-level summary, the pipeline starts with a working binarized
 #' image and ends with a refined binarized image. It combines these main
-#' functions [extract_sky_points_simple()] or [extract_sky_points()],
+#' functions [extract_sky_points()],
 #' [fit_coneshaped_model()], and [fit_trend_surface()]. The code can be easily
 #' inspected by calling `ootb_mblt` without parenthesis. Advanced users can use
 #' the code as a template.
@@ -22,10 +22,9 @@
 #' from the original in the following main aspects:
 #'
 #' * The original version used a global thresholding method to provide sky
-#' points to the cone-shaped model. This one uses [extract_sky_points_simple()].
-#' Nevertheless, a binarized image can be provided through the `bin` argument,
-#' triggering the use of [extract_sky_points()] instead of
-#' [extract_sky_points_simple()].
+#' points to the cone-shaped model. This one uses [extract_sky_points()] as a
+#' way to improve the extraction of pure sky points from working binarized
+#' images.
 #' * `intercept` and `slope` are automatically obtained using data from sky
 #' points and a linear model for accuracy evaluation after
 #' \insertCite{Pineiro2008;textual}{rcaiman}. This approach handles inaccuracies
@@ -58,15 +57,13 @@
 #' @param a [SpatRaster-class] built with [azimuth_image()].
 #' @param bin [SpatRaster-class]. This should be a preliminary binarization of
 #'   `r` useful for masking pixels that are very likely pure sky pixels.
-#' @param fix_cs_sky Logical vector of length one. If it is `TRUE`,
-#'   [fix_reconstructed_sky()] is used to fix the cone-shaped sky.
 #' @param w Numeric vector of length one. Weighting parameter from
 #'   \insertCite{Diaz2018;textual}{rcaiman}'s Equation 1. See [thr_mblt()]
 #'
 #' @note
 #'
 #' If `NULL` is provided as the `w` argument, the weight is calculated as the
-#' coefficient of determination (\eqn{R^2}) of linear model for accuracy
+#' coefficient of determination (\eqn{R^2}) of the linear model for accuracy
 #' evaluation \insertCite{Pineiro2008}{rcaiman}.
 #'
 #' @export
@@ -89,29 +86,15 @@
 #' bin <- find_sky_pixels(r, z, a)
 #' bin <- ootb_mblt(r, z, a, bin)
 #' plot(bin$bin)
-#'
 #' }
-ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE, w = 0.5) {
+ootb_mblt <- function(r, z, a, bin, w = 0.5) {
   .check_if_r_z_and_a_are_ok(r, z, a)
+  .was_normalized(r)
 
-  .fast <- function() {
-    sky_points <- extract_sky_points_simple(r, z, a)
-    sky_points <- extract_rl(r, z, a, sky_points, NULL, use_window = FALSE)
-    fit_coneshaped_model(sky_points$sky_points)
-  }
-
-  g <- sky_grid_segmentation(z, a, 10)
-  if (!is.null(bin)) {
-    try(sky_points <- extract_sky_points(r, bin, g), silent = TRUE)
-    if (exists("sky_points")) {
-      sky_points <- extract_rl(r, z, a, sky_points, NULL)
-      model <- fit_coneshaped_model(sky_points$sky_points)
-    } else {
-      model <- .fast()
-    }
-  } else {
-    model <- .fast()
-  }
+  g <- sky_grid_segmentation(z, a, 3)
+  sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 1)
+  sky_points <- extract_rl(r, z, a, sky_points, NULL)
+  model <- fit_coneshaped_model(sky_points$sky_points)
 
   if (is.null(model)) {
     sky_cs <- z
@@ -124,7 +107,6 @@ ootb_mblt <- function(r, z, a, bin = NULL, fix_cs_sky = FALSE, w = 0.5) {
     mblt <- coefficients(lm(x~y))
   }
 
-  if (fix_cs_sky) sky_cs <- fix_reconstructed_sky(sky_cs, z, r, bin)
   sky_cs <- normalize(sky_cs, 0, 1, TRUE)
   bin <- apply_thr(r, thr_mblt(sky_cs, mblt[1]*255, mblt[2] * 0.5))
   sky_s <- fit_trend_surface(r, z, a, bin,

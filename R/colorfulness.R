@@ -17,9 +17,6 @@
 #'   \insertCite{Martin2020;textual}{rcaiman}.
 #'
 #' @inheritParams enhance_caim
-#' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
-#'   [mask_hs()]. Default (`NULL`) is the equivalent to enter
-#'   `!is.na(caim$Red)`.
 #'
 #' @return A numeric vector of length one.
 #'
