@@ -35,7 +35,8 @@
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
 #' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
-#' bin <- ootb_mblt(r, z, a)$bin
+#' bin <- find_sky_pixels(r, z, a)
+#' bin <- ootb_mblt(r, z, a, bin)$bin
 #' bin_equi <- fisheye_to_equidistant(bin, z, a)
 #' plot(bin)
 #' plot(bin_equi)

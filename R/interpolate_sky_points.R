@@ -40,15 +40,16 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' r <- caim$Blue
+#' r <- caim$Blue %>% normalize()
+#' z <- zenith_image(ncol(caim), lens())
+#' a <- azimuth_image(z)
+#' m <- !is.na(z)
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
 #' mx <- optim_normalize(caim, bin)
 #' caim <- normalize(caim, 0, mx, TRUE)
-#' z <- zenith_image(ncol(caim), lens())
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
 #'
+#' sky_blue <- HSV(239, 0.85, 0.5)
 #' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #'

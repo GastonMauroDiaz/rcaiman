@@ -52,6 +52,7 @@ If you use this function in your research, please cite
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
+m <- !is.na(z)
 
 caim <- normalize(caim)
 
