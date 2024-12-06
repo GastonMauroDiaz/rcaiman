@@ -91,13 +91,29 @@ extract_sky_points <- function(r, bin, g,
   if (!is.null(dist_to_plant)) stopifnot(length(dist_to_plant) == 1)
   if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
+  #new feature
+  # cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
+  # r <- normalize(-cv) * r
+
+  #new feature
+  nw <- extract_feature(bin, g, sum, return_raster = FALSE)
+  tol <- sum(nw != 0) / 3
+  size <- extract_feature(g, g, length, return_raster = FALSE) %>% min()
+  w <- 1
+  while (sum(nw > size) < tol & w > 0) {
+    w <- w - 0.01
+    size <- size * w
+  }
+  nw <- extract_feature(bin, g, sum, return_raster = TRUE)
+  nw <- nw > size
+  g[!nw] <- 0
+
   # remove the pixels with NA neighbors because HSP extract with 3x3 window
   # NA_count <- terra::focal(!bin, w = 3, fun = "sum")
 
   no_col <- no_row <- bin
   terra::values(no_col) <- .col(dim(bin)[1:2])
   terra::values(no_row) <- .row(dim(bin)[1:2])
-
 
   # systematic sampling using a sky grid by taking the maximum from each cell
   if (!is.null(dist_to_plant)) {
@@ -116,7 +132,6 @@ extract_sky_points <- function(r, bin, g,
                      g = g[dist_to_plant_img],
                      dn = r[dist_to_plant_img])
     names(ds) <- c("col", "row", "g", "dn")
-
   } else {
     ds <- data.frame(col = no_col[bin],
                      row = no_row[bin],

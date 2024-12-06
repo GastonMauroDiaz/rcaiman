@@ -88,7 +88,8 @@ fisheye_to_equidistant <- function(r, z, a,
       if (is.null(k)) k <- 1
       if (is.null(p)) p <- 1
 
-      las <- .make_fake_las(cart[,1], cart[,2], cart[,3])
+      res <- res * 1000
+      las <- .make_fake_las(cart[,1]*1000, cart[,2]*1000, cart[,3])
       las@data$Classification <- 2
       lidR::crs(las) <- 7589
 
@@ -104,16 +105,16 @@ fisheye_to_equidistant <- function(r, z, a,
     } else {
       if (is.null(k)) k <- 9
       if (is.null(p)) p <- 2
-      if (max(cart[,3]) < 1000) {
+      if (max(cart[,3]) < 250) {
         const <- 10000
       } else {
         const <- 1
       }
 
-      las <- .make_fake_las(cart[,1], cart[,2], cart[,3]*const)
+      res <- res * 1000
+      las <- .make_fake_las(cart[,1]*1000, cart[,2]*1000, cart[,3]*const)
       las@data$Classification <- 2
       lidR::crs(las) <- 7589
-
       ir <- suppressWarnings(
         lidR::rasterize_terrain(las, res = res,
                                 algorithm = lidR::knnidw(k = k,

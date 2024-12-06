@@ -43,6 +43,7 @@ extract_feature <- function(r, segmentation,
   .is_single_layer_raster(segmentation, "segmentation")
   stopifnot(any(class(fun) == "function", class(fun) == "standardGeneric"))
   stopifnot(class(return_raster) == "logical")
+  stopifnot(compareGeom(r, segmentation) == TRUE)
 
   if (ignore_label_0 == TRUE) segmentation[segmentation == 0] <- NA
 

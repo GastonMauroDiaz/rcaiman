@@ -17,6 +17,8 @@
 #'   constrain is rooted in the requirement of a value able to divide both the
 #'   `0` to `360` and `0` to `90` ranges into a whole number
 #'   of segments.
+#' @param first_ring_different Logical vector of length one. If it is `TRUE`,
+#'   the first ring (the one containing the zenith) is not divided into cells.
 #' @param sequential Logical vector of length one. If it is `TRUE`, the
 #'   segments are labeled with sequential numbers. By default (`FALSE`),
 #'   labeling numbers are not sequential (see Details).
@@ -39,7 +41,9 @@
 #' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
 #' plot(g, col = col)
 #' }
-sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
+sky_grid_segmentation <- function(z, a, angle_width,
+                                  first_ring_different = FALSE,
+                                  sequential = FALSE) {
   stopifnot(length(sequential) == 1)
   stopifnot(class(sequential) == "logical")
   stopifnot(length(angle_width) == 1)
@@ -56,6 +60,10 @@ sky_grid_segmentation <- function(z, a, angle_width, sequential = FALSE) {
   fun <- function(s, r) s * 1000 + r
   g <- fun(sectors_segmentation(a, angle_width),
            rings_segmentation(z, angle_width))
+
+  for (i in seq(1, 360/angle_width)*1000 + 1) {
+    g[g == i] <- 1000
+  }
 
   if (sequential) {
     from <- unique(terra::values(g))

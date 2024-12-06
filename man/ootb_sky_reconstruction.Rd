@@ -11,6 +11,8 @@ ootb_sky_reconstruction(
   m,
   bin,
   g = NULL,
+  sor_filter_cv = FALSE,
+  sor_filter_dn = FALSE,
   refine_sun_coord = FALSE,
   interpolate = TRUE
 )
@@ -31,6 +33,10 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
 \code{\link[=chessboard]{chessboard()}}.}
+
+\item{sor_filter_cv}{Logical vector of length one}
+
+\item{sor_filter_dn}{Logical vector of length one}
 
 \item{refine_sun_coord}{Logical vector of length one}
 
@@ -96,7 +102,8 @@ ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 
 set.seed(7)
-sky <- ootb_sky_reconstruction(r, z, a, m, bin)
+sky <- ootb_sky_reconstruction(r, z, a, m, bin,
+                               sor_filter_cv = TRUE, sor_filter_dn = TRUE)
 
 sky$sky
 plot(sky$sky)
@@ -108,38 +115,6 @@ abline(0,1)
 plot(bin)
 points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 
-# masking the sunlit canopy and running again
-.a <- azimuth_image(z, sky$model$sun_coord$zenith_azimuth[2])
-m_fuzzy <- (normalize((abs((.a-180)))^1.8) + normalize(sqrt(90-z))) / 2
-sun_theta <- sky$model$sun_coord$zenith_azimuth[1]
-m_fuzzy <- normalize(m_fuzzy, 0, (90-sun_theta)/90, TRUE)
-
-sky_cie <- cie_sky_model_raster(z, a, sky$model$sun_coord$zenith_azimuth,
-                                sky$model$coef)
-.bin <- !apply_thr(sky_cie, thr_isodata(sky_cie[m])) & bin
-.caim <- read_caim()
-.mx <- optim_normalize(.caim, .bin)
-.caim <- normalize(.caim, mx = .mx, force_range = TRUE)
-
-mem <- membership_to_color(.caim, HSV(239, 0.85, 0.5))
-mem <- mem$membership_to_target_color
-mem <- normalize(sqrt(mem*0.1), 0, 1)
-m_fuzzy <- m * m_fuzzy + mem * (1 - m_fuzzy)
-bin <- apply_thr(m_fuzzy*ecaim, thr_isodata(ecaim[m]))
-
-set.seed(7)
-g <- sky_grid_segmentation(z, a, 5)
-sky <- ootb_sky_reconstruction(r, z, a, m, bin, g, refine_sun_coord = TRUE)
-
-sky$sky
-plot(sky$sky)
-sky$model_validation$rmse
-plot(r/sky$sky>1.15)
-plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
-abline(0,1)
-
-plot(bin)
-points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 }
 }
 \references{

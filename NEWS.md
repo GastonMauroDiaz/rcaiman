@@ -1,9 +1,11 @@
-* fit_sky_cie optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore. 
-* Delete find_sky_pixels_nonnull() since was deamed obsolete.
-* Delete extrac_sky_points_simple() since was deamed obsolete.
-* Change ootb_mblt() as a result of deleting extract_sky_points_simple().
-* Fix rotation argument of azimuth_image()
-* Change the order in the arguments of calc_co() to homogeneize criteria within the package
+* `extract_sky_points()` is now more robust
+* `sky_grid_segmentation()` gains the argument `first_ring_different`
+* `fit_sky_cie()` optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore. 
+* Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
+* Delete `extrac_sky_points_simple()` since it was deamed obsolete.
+* Change `ootb_mblt()` as a result of deleting `extract_sky_points_simple()`.
+* Fix rotation argument of `azimuth_image()`
+* Change the order in the arguments of `calc_co()` to homogeneize criteria within the package
 * `ootb_sky_reconstruction()` reached a stable version.
 
 # rcaiman 1.2.0
@@ -55,6 +57,7 @@ azimuth angle computations and unintentional side effects.
 ## New features
 
 * `ootb_obia()` gains `gamma`
+
 ## Minor improvements and fixes
 * `ootb_mblt()` now can detect when `find_sky_pixels()` fails to deliver a good
 mask, and switch to find a mask by applying a global threshold calculated with

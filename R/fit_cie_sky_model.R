@@ -180,7 +180,8 @@ fit_cie_sky_model <- function(rl, sun_coord,
     flog <- function(.a, .b, .c, .d, .e, S) {
       x <- .cie_sky_model(AzP, Zp, AzS, Zs,
                           .a, -abs(.b), abs(.c), -abs(.d), abs(.e))
-      .calc_rmse(x - rl$sky_points$rl)
+      median(abs(x - rl$sky_points$rl))
+      # .calc_rmse(x - rl$sky_points$rl)
       # .calc_rmse(1 - rl$sky_points$rl/x )
     }
 

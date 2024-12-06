@@ -4,7 +4,13 @@
 \alias{sky_grid_segmentation}
 \title{Do sky grid segmentation}
 \usage{
-sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
+sky_grid_segmentation(
+  z,
+  a,
+  angle_width,
+  first_ring_different = FALSE,
+  sequential = FALSE
+)
 }
 \arguments{
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
@@ -15,6 +21,9 @@ sky_grid_segmentation(z, a, angle_width, sequential = FALSE)
 constrain is rooted in the requirement of a value able to divide both the
 \code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
 of segments.}
+
+\item{first_ring_different}{Logical vector of length one. If it is \code{TRUE},
+the first ring (the one containing the zenith) is not divided into cells.}
 
 \item{sequential}{Logical vector of length one. If it is \code{TRUE}, the
 segments are labeled with sequential numbers. By default (\code{FALSE}),

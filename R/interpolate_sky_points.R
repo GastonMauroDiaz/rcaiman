@@ -82,10 +82,18 @@ interpolate_sky_points <- function(sky_points,
 
   cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
   xy <- terra::xyFromCell(r, cells)
+
+  if (max(sky_points[,col_id]) < 250) {
+    const <- 10000
+  } else {
+    const <- 1
+  }
+
+
   las <- .make_fake_las(
     c(xy[, 1]     , 0 - rmax, 0 - rmax       , xmax(r) + rmax, xmax(r) + rmax),
     c(xy[, 2]     , 0 - rmax, ymax(r) + rmax , ymax(r) + rmax, 0 - rmax),
-    c(sky_points[,col_id] * 10000, 0       , 0              ,              0, 0)
+    c(sky_points[,col_id] * const, 0       , 0              ,              0, 0)
   )
   las@data$Classification <- 2
   lidR::crs(las) <- 7589
@@ -97,7 +105,7 @@ interpolate_sky_points <- function(sky_points,
                                                          rmax = rmax)
                                 )
          )
-  ir <- terra::resample(ir, r) / 10000
+  ir <- terra::resample(ir, r) / const
 
 
   p <- terra::vect(xy, "points")
