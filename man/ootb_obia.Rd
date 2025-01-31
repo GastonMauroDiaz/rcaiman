@@ -69,7 +69,7 @@ Use the default values of \code{z} and \code{a} to process restricted view photo
 If you use this function in your research, please cite
 \insertCite{Diaz2015;textual}{rcaiman} or
 \insertCite{Diaz2023;textual}{rcaiman} in addition to this package
-(\verb{citation("rcaiman"}).
+(\verb{citation("rcaiman"})).
 }
 \examples{
 \dontrun{

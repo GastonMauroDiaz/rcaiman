@@ -24,7 +24,7 @@
 #' If you use this function in your research, please cite
 #' \insertCite{Diaz2015;textual}{rcaiman} or
 #' \insertCite{Diaz2023;textual}{rcaiman} in addition to this package
-#' (`citation("rcaiman"`).
+#' (`citation("rcaiman"`)).
 #'
 #' @inheritParams enhance_caim
 #' @inheritParams ootb_mblt

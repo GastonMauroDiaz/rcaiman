@@ -14,7 +14,8 @@ ootb_sky_reconstruction(
   sor_filter_cv = FALSE,
   sor_filter_dn = FALSE,
   refine_sun_coord = FALSE,
-  interpolate = TRUE
+  interpolate = TRUE,
+  input_sky_points = NULL
 )
 }
 \arguments{
@@ -42,6 +43,11 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{interpolate}{Logical vector of length one. If \code{TRUE},
 \code{\link[=interpolate_sky_points]{interpolate_sky_points()}} will be used.}
+
+\item{input_sky_points}{An object of class \emph{data.frame} with the same
+structure than the result of a call to \code{\link[=extract_sky_points]{extract_sky_points()}}. The
+\href{https://imagej.net/ij/}{ImageJ} software package can be used to manually
+digitize points. See \code{\link[=extract_dn]{extract_dn()}} for details.}
 }
 \value{
 An object from the class \emph{list} that includes the following: (1) the
@@ -111,6 +117,9 @@ sky$model_validation$rmse
 plot(r/sky$sky>1.15)
 plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
 abline(0,1)
+error <- sky$model_validation$reg$model$x - sky$model_validation$reg$model$y
+plot(sky$sky_points$z, error,
+                     xlab = "zenith angle", ylab = "relative radiance error")
 
 plot(bin)
 points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)

@@ -42,6 +42,11 @@
 #' functions to obtain the vignetting function (\eqn{f_v}).
 #'
 #' ````
+#' zenith_colrow <- c(1500, 997)*2
+#' diameter <- 947*4
+#' z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
+#' a <- azimuth_image(z)
+#'
 #' .read_raw <- function(path_to_raw_file) {
 #'   r <- read_caim_raw(path_to_raw_file, z, a, zenith_colrow,
 #'                      radius = 500, only_blue = TRUE)

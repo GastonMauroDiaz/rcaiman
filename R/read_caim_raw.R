@@ -1,10 +1,11 @@
 #' Read a canopy image from a raw file
 #'
-#' Function that complements [read_caim()]
+#' Function that complements [read_caim()].
 #'
-#' This function facilitates the integration of the `rawpy` Python package into
-#' the R environment via the `reticulate` package. This integration allows
-#' `rcaiman` to access and pre-process raw data.
+#' This function facilitates the integration of the [`rawpy` Python
+#' package](https://pypi.org/project/rawpy/) into the R environment via the
+#' `reticulate` package. This integration allows `rcaiman` to access and
+#' pre-process raw data.
 #'
 #' Here is a step-by-step guide to assist users in setting up the environment
 #' for efficient processing:
@@ -67,16 +68,22 @@
 #' By following these steps, users can easily set up their environment to access
 #' raw data efficiently, but it is not the only way of doing it.
 #'
+#' See the help page of [read_caim()] and [fisheye_to_equidistant()] as a
+#' complement to this help page. Further details about raw files can be found in
+#' \insertCite{Diaz2024;textual}{rcaiman}.
 #'
-#' @param path Character vector of length one.Path to a raw file, including file
-#'   extension.
+#' @param path Character vector of length one. Path to a raw file, including
+#'   file extension.
 #' @inheritParams read_caim
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams expand_noncircular
 #' @param only_blue Logical vector of length one. If `TRUE`, only values from
 #'   the blue or cyan wavelength will be processed.
 #' @param offset_value numeric vector. This values will replace the
-#' `black_level_per_channel` metadata obtained with `rawpy`.
+#'   [`black_level_per_channel`](https://www.libraw.org/docs/API-datastruct-eng.html#datastream_data:~:text=Per%2Dchannel%20black%20level%20correction)
+#'   metadata obtained with `rawpy`.
+#'
+#' @references \insertAllCited{}
 #'
 #' @return An object from class [SpatRaster-class]. Single-layer raster if
 #'   `only_blue` is equal to `TRUE`. Otherwise, a raster with as many layers as
@@ -84,7 +91,32 @@
 #'   from the color description metadata.
 #' @export
 #' @family Tool Functions
-read_caim_raw <- function(path = NULL,
+#' #' @examples
+#' \dontrun{
+#' file_name <- tempfile(fileext = ".NEF")
+#' download.file("https://osf.io/s49py/download", file_name, mode = "wb")
+#'
+#' #geometric and radiometric correction
+#' zenith_colrow <- c(1290, 988)/2
+#' diameter <- 756
+#' z <- zenith_image(diameter, lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' m <- !is.na(z)
+#' caim <- read_caim_raw(file_name, only_blue = TRUE)
+#' caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
+#' caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
+#' caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
+#'
+#' #only geometric correction
+#' zenith_colrow <- c(1290, 988)
+#' z <- zenith_image(745*2, lens("Nikon_FCE9"))
+#' a <- azimuth_image(z)
+#' r <- read_caim_raw(file_name, z, a, zenith_colrow,
+#'                    radius = 300, only_blue = TRUE)
+#'
+#' file.remove(file_name)
+#' }
+read_caim_raw <- function(path,
                           z = NULL,
                           a = NULL,
                           zenith_colrow = NULL,

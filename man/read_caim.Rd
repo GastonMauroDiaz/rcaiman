@@ -52,15 +52,18 @@ other distros.
 \note{
 The example image was obtained with this code:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1290, 988)
-z <- zenith_image(745*2, lens("Nikon_FCE9"))
+\if{html}{\out{<div class="sourceCode">}}\preformatted{# to dowload the raw file go to https://osf.io/s49py/download
+zenith_colrow <- c(1290, 988)/2
+diameter <- 756
+z <- zenith_image(diameter, lens("Nikon_FCE9"))
 a <- azimuth_image(z)
-r <- read_caim_raw("DSCN4606.NEF", z, a, zenith_colrow, radius = 300)
-z <- zenith_image(ncol(r), lens())
-r <- correct_vignetting(r, z, c(0.0638, -0.101))
-r <- c(mean(r$Y, r$M), r$G, r$C)
-r <- normalize(r, -1)
-write_caim(r*2^16-2, "example.tif", 16)
+m <- !is.na(z)
+caim <- read_caim_raw("DSCN4606.NEF")
+caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
+caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
+caim <- c(mean(caim$Y, caim$M), caim$G, caim$C)
+caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
+write_caim(caim, "example.tif", 16)
 }\if{html}{\out{</div>}}
 }
 \examples{
@@ -85,7 +88,6 @@ Other Tool Functions:
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
-\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }

@@ -5,7 +5,7 @@
 \title{Read a canopy image from a raw file}
 \usage{
 read_caim_raw(
-  path = NULL,
+  path,
   z = NULL,
   a = NULL,
   zenith_colrow = NULL,
@@ -18,8 +18,8 @@ read_caim_raw(
 )
 }
 \arguments{
-\item{path}{Character vector of length one.Path to a raw file, including file
-extension.}
+\item{path}{Character vector of length one. Path to a raw file, including
+file extension.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -43,7 +43,8 @@ hemispherical image (i.e., the output).}
 the blue or cyan wavelength will be processed.}
 
 \item{offset_value}{numeric vector. This values will replace the
-\code{black_level_per_channel} metadata obtained with \code{rawpy}.}
+\href{https://www.libraw.org/docs/API-datastruct-eng.html#datastream_data:~:text=Per\%2Dchannel\%20black\%20level\%20correction}{\code{black_level_per_channel}}
+metadata obtained with \code{rawpy}.}
 }
 \value{
 An object from class \linkS4class{SpatRaster}. Single-layer raster if
@@ -52,12 +53,12 @@ there are distinct colors in the Color Filter Array. Layer names are taken
 from the color description metadata.
 }
 \description{
-Function that complements \code{\link[=read_caim]{read_caim()}}
+Function that complements \code{\link[=read_caim]{read_caim()}}.
 }
 \details{
-This function facilitates the integration of the \code{rawpy} Python package into
-the R environment via the \code{reticulate} package. This integration allows
-\code{rcaiman} to access and pre-process raw data.
+This function facilitates the integration of the \href{https://pypi.org/project/rawpy/}{\code{rawpy} Python package} into the R environment via the
+\code{reticulate} package. This integration allows \code{rcaiman} to access and
+pre-process raw data.
 
 Here is a step-by-step guide to assist users in setting up the environment
 for efficient processing:
@@ -116,25 +117,38 @@ the .Renviron file. This is an example \verb{RETICULATE_PYTHON = ~/.virtualenvs/
 
 By following these steps, users can easily set up their environment to access
 raw data efficiently, but it is not the only way of doing it.
+
+See the help page of \code{\link[=read_caim]{read_caim()}} and \code{\link[=fisheye_to_equidistant]{fisheye_to_equidistant()}} as a
+complement to this help page. Further details about raw files can be found in
+\insertCite{Diaz2024;textual}{rcaiman}.
 }
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
-\code{\link{masking}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\references{
+\insertAllCited{}
 }
-\concept{Tool Functions}
+\concept{Tool Functions
+#' @examples
+\dontrun{
+file_name <- tempfile(fileext = ".NEF")
+download.file("https://osf.io/s49py/download", file_name, mode = "wb")
+
+#geometric and radiometric correction
+zenith_colrow <- c(1290, 988)/2
+diameter <- 756
+z <- zenith_image(diameter, lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+m <- !is.na(z)
+caim <- read_caim_raw(file_name, only_blue = TRUE)
+caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
+caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
+caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
+
+#only geometric correction
+zenith_colrow <- c(1290, 988)
+z <- zenith_image(745*2, lens("Nikon_FCE9"))
+a <- azimuth_image(z)
+r <- read_caim_raw(file_name, z, a, zenith_colrow,
+                   radius = 300, only_blue = TRUE)
+
+file.remove(file_name)
+}}

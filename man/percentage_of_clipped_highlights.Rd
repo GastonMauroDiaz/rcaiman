@@ -41,7 +41,6 @@ Other Tool Functions:
 \code{\link{optim_normalize}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()}
 }
