@@ -16,7 +16,7 @@
 #' @return Numeric vector of length equal to AzP length.
 .cie_sky_model <- function(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e) {
   # calculate angular distance between sky point and Sun
-  Chi <- .calc_angular_distance(Zp, AzP, Zs, AzS)
+  Chi <- .calc_spherical_distance(Zp, AzP, Zs, AzS)
 
   # Gradation function
   Phi_Z <- 1 + .a * exp(.b / cos(Zp))

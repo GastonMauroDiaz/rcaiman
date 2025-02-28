@@ -20,7 +20,7 @@
 #'
 #' @inheritParams ootb_mblt
 #' @param segmentation [SpatRaster-class]. The result of segmenting `r`.
-#'   Arguably, the result of a call to [rings_segmentation()] will be the
+#'   Arguably, the result of calling [rings_segmentation()] will be the
 #'   preferred choice for fisheye images.
 #' @param method Character vector of length one. See details for current
 #'   options.

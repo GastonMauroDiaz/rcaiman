@@ -91,7 +91,7 @@
 #'   from the color description metadata.
 #' @export
 #' @family Tool Functions
-#' #' @examples
+#' @examples
 #' \dontrun{
 #' file_name <- tempfile(fileext = ".NEF")
 #' download.file("https://osf.io/s49py/download", file_name, mode = "wb")

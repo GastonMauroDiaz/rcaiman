@@ -98,7 +98,7 @@ ootb_mblt <- function(r, z, a, bin, w = 0.5) {
 
   if (is.null(model)) {
     sky_cs <- z
-    terra::values(sky_cs) <- median(sky_points$sky_points$dn)
+    terra::values(sky_cs) <- stats::median(sky_points$sky_points$dn)
     mblt <- c(0,1)
   } else {
     sky_cs <- model$fun(z, a)

@@ -14,9 +14,20 @@
 
 .calc_rmse <- function(x) sqrt(mean(x^2))
 
-.calc_angular_distance <- function(z1, a1, z2, a2) {
+.calc_spherical_distance <- function(z1, a1, z2, a2, radians = TRUE) {
   #https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
-  acos(pmax(pmin(cos(z1) * cos(z2) + sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
+  if (radians) {
+    d <- acos(pmax(pmin(cos(z1) * cos(z2) +
+                          sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
+  } else {
+    z1 <- z1 * pi/180
+    a1   <- a1 * pi/180
+    z2 <- z2 * pi/180
+    a2   <- a2 * pi/180
+    d <- acos(pmax(pmin(cos(z1) * cos(z2) +
+                          sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
+  }
+  d
 }
 
 .extension <- function(file_name, new_extension = "tif") {
@@ -65,6 +76,14 @@
 
   # Run the event loop
   tcltk::tkwait.window(win)
+}
+
+.get_sky_cie <- function(z, a, model) {
+  sky_cie <- cie_sky_model_raster(z, a,
+                                  model$sun_coord$zenith_azimuth,
+                                  model$coef) * model$zenith_dn
+  names(sky_cie) <- "CIE sky"
+  sky_cie
 }
 
 

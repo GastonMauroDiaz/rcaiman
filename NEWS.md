@@ -1,74 +1,68 @@
+* interpolate_and_merge()
+* fit_cie_sky_model() change output and behavor
+* New `calc_oor_index()` allows calculating the out-of-range index independently of `ootb_sky_reconstruction()`.
+* New `sor_filter()` allows a flexible method for filtering sky points.
+* New `calc_sngd()` allows to evaluate image quality
+* New `write_report()` allows to archive a report on sky reconstruction accurary
+* `sky_grid_segmentation()` gains `first_ring_different` to avoid the very small cells typical of the near zenith cells.
+* `extract_rl` gains 'min_spherical_distance' which allows more control over sky sampling.
+* delete `fix_reconstructed_sky`
 * `extract_sky_points()` is now more robust
 * `sky_grid_segmentation()` gains the argument `first_ring_different`
-* `fit_sky_cie()` optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore. 
+* `fit_sky_cie()` optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore.
 * Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
 * Delete `extrac_sky_points_simple()` since it was deamed obsolete.
 * Change `ootb_mblt()` as a result of deleting `extract_sky_points_simple()`.
 * Fix rotation argument of `azimuth_image()`
 * Change the order in the arguments of `calc_co()` to homogeneize criteria within the package
 * `ootb_sky_reconstruction()` reached a stable version.
-
 # rcaiman 1.2.0
-
 ## Breaking changes
-
-* `ootb_mblt()` was updated and results from this version will be different to 
+* `ootb_mblt()` was updated and results from this version will be different to
 those from previous version.
-
 ## New features
-
 * New `calc_co()` provides canopy openness calculation for hemispherical images.
-* New `correct_vignetting()` to correct the vignetting effect and doing so 
+* New `correct_vignetting()` to correct the vignetting effect and doing so
 standardize radiometry.
 * New `crop_caim()` allows cropping after reading, complementing `read_caim()`.
 * New `crosscalibrate_lens()` allows geometrical cross-calibration.
 * New `extract_radiometry()` helps to built a function to correct the vignetting
 effect with `correct_vignetting()`.
-* New `extract_sky_points_simple()` to obtain sky points without the need of a 
+* New `extract_sky_points_simple()` to obtain sky points without the need of a
 working binarized image.
-* `fisheye_to_equidistant()` is now able to interpolate. It gains the `m` 
+* `fisheye_to_equidistant()` is now able to interpolate. It gains the `m`
 argument.
-
 ## Minor improvements and fixes
-
 * `calc_zenith_colrow()` is former `calc_zenith_raster_coord()`.
 * `calibrate_lens` gains a more extensive output.
 * `extract_rl()` default values were changed.
 * Fix `extrac_sky_points()`. Now, `dist_to_plan` works as intended.
 * `find_sky_pixels_nonnull()` gains `intercept` and `w`.
-* `fit_cie_sky_model()` output was simplified, it does not return a raster 
+* `fit_cie_sky_model()` output was simplified, it does not return a raster
 anymore. It has to be calculated from the model with `cie_sky_model_raster()`.
 * `interpolate_sky_points()` changes `g` for `r`. This acknowledge a change made
 in the code but not reflected in the arguments or documentation. The change was
 to approximate the function as much as possible to the Lang et al. (2010) method
 in which this function was based.
-* Fix an issue in `extract_sky_points()` due to a change on the behavior of 
+* Fix an issue in `extract_sky_points()` due to a change on the behavior of
 large data.frame naming.
 * `ootb_obia()` gains `w_red`.
 * `ootb_sky_reconstruction()` was updated.
 * `row_col_from_zenith_azimuth()` and `zenith_azimuth_from_row_col()` now uses
-different arguments because they were reprogrammed to overcome limitations in 
+different arguments because they were reprogrammed to overcome limitations in
 azimuth angle computations and unintentional side effects.
 * `thr_mblt()` is former `thr_image()`.
-
-
 # rcaiman 1.1.1
-
 ## New features
-
 * `ootb_obia()` gains `gamma`
-
 ## Minor improvements and fixes
 * `ootb_mblt()` now can detect when `find_sky_pixels()` fails to deliver a good
 mask, and switch to find a mask by applying a global threshold calculated with
 IsoData.This last method will works well since the failure of
 `find_sky_pixels()` is associated with extremely open forest, in which
 circumstances it will not produce comission errors.
-
 # rcaiman 1.0.7
-
 ## Breaking changes
-
 * Now *rcaiman* depends on *terra* package instead of *raster* since key
 dependencies of the latter package are on the course of losing maintenance by
 2023 (<https://r-spatial.org/book/sp-raster.html>). This implied changes in the
@@ -79,9 +73,7 @@ this new version.
 function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
 If possible, results from scripts using `local_fuzzy_thresholding()` or
 `enhace_caim()` should be recalculated with this new version.
-
 ## New features
-
 * New HSP functions family enables a dynamic workflow between R and the HSP
 software package (<doi:10.2478/fsmu-2013-0008>).
 * `azimuth_image()` gains `rotation`, which allows processing images
@@ -120,7 +112,6 @@ Then, those coefficients can be used to produce and image with
 by `extract_rl()` and returns a function that can easily produce a raster when
 *SpatRaster* objects are provided as arguments. As a result, the function is
 faster and more versatile.
-
   ```R
 r <- read_caim()
 z <- zenith_image(ncol(r), lens("Nikon_FCE9"))
@@ -149,9 +140,7 @@ build an above canopy image from a single below canopy image, by means of
 * New `qtree()` provides classical quad-tree segmentation
 * New `thr_isodata()` is an alternative implementation of the IsoData method
 from the autothresholdr package.
-
 ## Minor improvements and fixes
-
 * Examples of restricted view photography were added, broadening the scope of
 the package since most new users search for code templates on the examples in
 order to get started.
@@ -178,7 +167,6 @@ arguments, `bin` and `fix_sky_cs`, which allows quick customization.
 * `read_caim()` now is allowed to read any raster image that `terra::raster()`
 can read. Of course, the georeferencing is turned off by assigning a local
 projection and manipulating extension and resolution, as usual.
-
   ```R
 f <- system.file("ex/elev.tif", package="terra")
 read_caim(f)

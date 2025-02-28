@@ -6,7 +6,7 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams rings_segmentation
 #'
-#' @return An object from the class [SpatRaster-class] with segments
+#' @return An object of the class [SpatRaster-class] with segments
 #'   shaped like pizza slices.
 #' @export
 #'

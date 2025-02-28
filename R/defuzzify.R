@@ -1,20 +1,21 @@
 #' Defuzzify a fuzzy classification
 #'
 #' This function translates degree of membership into Boolean logic using a
-#' regional approach. The result will ensure that the fuzzy and Boolean version
-#' will agree at the chosen level of aggregation (controlled by the argument
-#' `segmentation`). This method makes perfect sense to translate a subpixel
-#' classification of gap fraction (or a linear ratio) into a binary product.
+#' regional approach. The output ensures that the fuzzy and Boolean versions
+#' remain consistent at the specified level of aggregation (controlled by the
+#' argument `segmentation`). This method makes perfect sense to translate a
+#' subpixel classification of gap fraction (or a linear ratio) into a binary
+#' product.
 #'
 #' @note
 #'
 #' This method is also available in the HSP software package
 #' \insertCite{Lang2013}{rcaiman}.
 #'
-#' @param mem An object of the class [SpatRaster-class]. Degree of
-#'   membership.
-#' @param segmentation An object of the class [SpatRaster-class] such as
-#'   the result of a call to [sky_grid_segmentation()].
+#' @param mem A [SpatRaster-class] object representing the degree of membership
+#'   in a fuzzy classification.
+#' @param segmentation An object of the class [SpatRaster-class] such as an
+#'   object returned by [sky_grid_segmentation()].
 #'
 #' @return An object of the class [SpatRaster-class] containing binary
 #'   information.

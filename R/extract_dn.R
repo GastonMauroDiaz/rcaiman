@@ -41,7 +41,7 @@
 #' sky_points <- extract_dn(caim, sky_points)
 #' head(sky_points)
 #'
-#' # ImageJ can be used to digitize points
+#' # See fit_cie_sky_model() for details on the CSV file
 #' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
 #' sky_points <- read.csv(path)

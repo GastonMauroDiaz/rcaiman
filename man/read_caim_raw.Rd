@@ -123,11 +123,7 @@ complement to this help page. Further details about raw files can be found in
 \insertCite{Diaz2024;textual}{rcaiman}.
 }
 }
-\references{
-\insertAllCited{}
-}
-\concept{Tool Functions
-#' @examples
+\examples{
 \dontrun{
 file_name <- tempfile(fileext = ".NEF")
 download.file("https://osf.io/s49py/download", file_name, mode = "wb")
@@ -151,4 +147,34 @@ r <- read_caim_raw(file_name, z, a, zenith_colrow,
                    radius = 300, only_blue = TRUE)
 
 file.remove(file_name)
-}}
+}
+}
+\references{
+\insertAllCited{}
+}
+\seealso{
+Other Tool Functions: 
+\code{\link{calc_oor_index}()},
+\code{\link{calc_sngd}()},
+\code{\link{colorfulness}()},
+\code{\link{correct_vignetting}()},
+\code{\link{defuzzify}()},
+\code{\link{expand_sky_points}()},
+\code{\link{extract_dn}()},
+\code{\link{extract_feature}()},
+\code{\link{extract_rl}()},
+\code{\link{extract_sky_points}()},
+\code{\link{extract_sun_coord}()},
+\code{\link{find_general_sky_type}()},
+\code{\link{find_sky_pixels}()},
+\code{\link{masking}()},
+\code{\link{optim_normalize}()},
+\code{\link{percentage_of_clipped_highlights}()},
+\code{\link{read_bin}()},
+\code{\link{read_caim}()},
+\code{\link{sor_filter}()},
+\code{\link{write_bin}()},
+\code{\link{write_caim}()},
+\code{\link{write_report}()}
+}
+\concept{Tool Functions}

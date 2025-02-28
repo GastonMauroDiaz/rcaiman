@@ -9,29 +9,25 @@
 #' \insertCite{Lang2010;textual}{rcaiman} method. A paper for thoroughly
 #' presenting and testing this pipeline is under preparation.
 #'
-#' The __out-of-range index__ is calculated as foollow:
-#'
-#' \eqn{\sum_{i = 1}^{N}(r_i/sky_i)^2},
-#'
-#' where \eqn{r} is the `r` argument, \eqn{sky} is the
-#' raster obtained from the fitted model with [cie_sky_model_raster()] and
-#' `zenith_dn`, \eqn{i} is the index that represents the position of a given
-#' pixel on the raster grid, and \eqn{N} is the total number of pixels that
-#' satisfy: \eqn{r_i/sky_i<0} or \eqn{r_i/sky_i>1}.
-#'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
 #' @inheritParams extract_sky_points
 #' @param m [SpatRaster-class]. A mask, check [mask_hs()].
 #' @param refine_sun_coord Logical vector of length one
-#' @param sor_filter_cv Logical vector of length one
-#' @param sor_filter_dn Logical vector of length one
+#' @param sor_filter_cv Logical vector of length one. If `TRUE`, [sor_filter()]
+#'   will be applied internally to filter out points using local variability at
+#'   the scale of the \eqn{3 \times 3} window using for data extraction as the
+#'   criterion. Local means not farther than 30 degrees.
+#' @param sor_filter_dn Logical vector of length one. If `TRUE`, [sor_filter()]
+#'   will be applied internally to filter out points using local darkness as the
+#'   criterion. Local means not farther than 20 degrees.
 #' @param interpolate Logical vector of length one. If `TRUE`,
 #'   [interpolate_sky_points()] will be used.
 #' @param input_sky_points An object of class *data.frame* with the same
-#'   structure than the result of a call to [extract_sky_points()]. The
-#'   [ImageJ](https://imagej.net/ij/) software package can be used to manually
-#'   digitize points. See [extract_dn()] for details.
+#'   structure than the output of [extract_sky_points()]. This argument is
+#'   convinient to provide manually digitized points, see [fit_cie_sky_model()]
+#'   for details.
+#' @inheritParams extract_rl
 #'
 #' @export
 #'
@@ -39,15 +35,15 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object from the class _list_ that includes the following: (1) the
+#' @return An object of the class _list_ that includes the following: (1) the
 #'   reconstructed sky ([SpatRaster-class]), (2) the output produced by
-#'   [fit_cie_sky_model()], (3) an object from the class _list_ that includes an
-#'   object from the class `lm` (see [stats::lm()]) and the RMSE, both being the
+#'   [fit_cie_sky_model()], (3) an object of the class _list_ that includes an
+#'   object of the class `lm` (see [stats::lm()]) and the RMSE, both being the
 #'   result of validating (2) with a k-fold approach and following
 #'   \insertCite{Pineiro2008;textual}{rcaiman},(4) the `dist_to_plant` argument
 #'   used when [fit_cie_sky_model()] was called, (5) the `sky_points` argument
 #'   used when [extract_rl()] was called,  and (6) the out-of-range index (see
-#'   details).
+#'   [calc_oor_index()]).
 #'
 #'
 #' @examples
@@ -68,17 +64,18 @@
 #' .a <- azimuth_image(z, orientation = sun_coord$zenith_azimuth[2]+90)
 #' seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
 #' bin <- regional_thresholding(r, seg, method = "thr_isodata")
-#' plot(bin)
-#'
 #'
 #' mx <- optim_normalize(caim, bin)
 #' caim <- normalize(caim, mx = mx, force_range = TRUE)
 #' ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+#' plot(bin)
 #'
 #' set.seed(7)
-#' sky <- ootb_sky_reconstruction(r, z, a, m, bin,
-#'                                sor_filter_cv = TRUE, sor_filter_dn = TRUE)
+#' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+#' sky <- ootb_sky_reconstruction(r, z, a, m, bin & mask_hs(z, 0, 80), g,
+#'                                sor_filter_cv = TRUE, sor_filter_dn = TRUE,
+#'                                min_spherical_dist = 3)
 #'
 #' sky$sky
 #' plot(sky$sky)
@@ -87,18 +84,20 @@
 #' plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
 #' abline(0,1)
 #' error <- sky$model_validation$reg$model$x - sky$model_validation$reg$model$y
-#' plot(sky$sky_points$z, error,
+#' plot(sky$sky_points$z[!sky$sky_points$outliers], error,
 #'                      xlab = "zenith angle", ylab = "relative radiance error")
+#' abline(h = 0)
 #'
 #' plot(bin)
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 #'
 #' }
-ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
+ootb_sky_reconstruction <- function(r, z, a, m, bin, g,
                                     sor_filter_cv = FALSE,
                                     sor_filter_dn = FALSE,
                                     refine_sun_coord = FALSE,
                                     interpolate = TRUE,
+                                    min_spherical_dist = NULL,
                                     input_sky_points = NULL
                                     ) {
 
@@ -114,53 +113,78 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
     Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
   }
 
-  .get_sky_cie <- function(model) {
-    sky_cie <- cie_sky_model_raster(z, a,
-                                    model$sun_coord$zenith_azimuth,
-                                    model$coef) * model$zenith_dn
-    names(sky_cie) <- "CIE sky"
-    sky_cie
-  }
-
   .get_metric <- function(model) {
-    median(abs(model$pred - model$obs))
+    stats::median(abs(model$pred - model$obs))
   }
 
-  if (is.null(g)) {
-    g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+  if (is.null(bin) & (is.null(input_sky_points) | is.logical(refine_sun_coord)))
+  {
+    stop("When no preliminary binarization is provided through
+          the 'bin' argument, then sun coordinates should be provided through
+          the 'refine_sun_coord' argument and sky points through the
+          'input_sky_points' argunment. See fit_cie_sky_model() for
+          more details.")
   }
 
-  # START optimize dist_to_plant ####
-  g30 <- sky_grid_segmentation(z, a, 30)
-  g30[!m] <- 0
-  dist_to_plant <- 11
-  sampling_pct <- 0
-  while (sampling_pct < 100 & dist_to_plant > 3) {
-    dist_to_plant <- dist_to_plant-2
-    sky_points <- extract_sky_points(r, bin, g, dist_to_plant = dist_to_plant)
-    v <- cellFromRowCol(r, sky_points$row, sky_points$col) %>%
-      xyFromCell(r, .) %>% vect()
-    sampling_pct <- (extract(g30, v)[,2] %>% unique() %>% length()) /
-      (unique(g30)[,1] %>% length() %>% subtract(1)) * 100
+  if (!is.null(bin)) {
+    if (!is.null(g)) {
+      # START optimize dist_to_plant ####
+      g30 <- sky_grid_segmentation(z, a, 30)
+      g30[!m] <- 0
+      dist_to_plant <- 11
+      sampling_pct <- 0
+      while (sampling_pct < 100 & dist_to_plant > 3) {
+        dist_to_plant <- dist_to_plant-2
+        sky_points <- extract_sky_points(r, bin, g,
+                                         dist_to_plant = dist_to_plant)
+        v <- cellFromRowCol(r, sky_points$row, sky_points$col) %>%
+          xyFromCell(r, .) %>% vect()
+        sampling_pct <- (extract(g30, v)[,2] %>% unique() %>% length()) /
+          (unique(g30)[,1] %>% length() %>% subtract(1)) * 100
+      }
+      if (sampling_pct < 75) {
+        dist_to_plant <- 1
+      }
+      # END optimize dist_to_plant ####
+      if (is.logical(refine_sun_coord)) {
+        sun_coord <- extract_sun_coord(r, z, a, bin, g)
+      } else {
+        sun_coord <- refine_sun_coord
+        refine_sun_coord <- FALSE
+      }
+      sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
+    } else {
+      if (is.logical(refine_sun_coord)) {
+        g10 <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+        sun_coord <- extract_sun_coord(r, z, a, bin, g10)
+      } else {
+        sun_coord <- refine_sun_coord
+        refine_sun_coord <- FALSE
+      }
+      dist_to_plant <- 3
+      sky_points <- extract_sky_points(r, bin, g, dist_to_plant = dist_to_plant)
+    }
+  } else {
+    sky_points <- input_sky_points
+    input_sky_points <- NULL
+    refine_sun_coord <- FALSE
+    dist_to_plant <- 3
   }
-  if (sampling_pct < 75) {
-    dist_to_plant <- 1
-  }
-  # END optimize dist_to_plant ####
 
-  sun_coord <- extract_sun_coord(r, z, a, bin, g)
-  sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
+
   if (!is.null(input_sky_points)) {
     sky_points <- rbind(input_sky_points, sky_points)
   }
-  rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1)
+  rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1,
+                   min_spherical_dist = min_spherical_dist)
   if (sd(rl$sky_points$rl) < 0.01) {
     warning("Overexposed image")
   }
 
   method <- c("BFGS", "CG", "SANN")
-  models <- Map(function(x) fit_cie_sky_model(rl, sun_coord, method = x),
-                method)
+  models <- Map(function(x) fit_cie_sky_model(rl, sun_coord,
+                                              twilight = TRUE,
+                                              method = x), method)
   metric <- Map(.get_metric, models)
   i <- which.min(metric)
   model <- models[[i]]
@@ -168,7 +192,7 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
   sun_coord <- model$sun_coord
 
   # START sampling on the out-of-range zone ####
-  if (dist_to_plant != 1) {
+  if (dist_to_plant != 1 & !is.null(g) & !is.null(bin)) {
     model.2 <- model
     model$pred <- model$obs * 1e+10
     rl.2 <- rl
@@ -176,7 +200,7 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
       model <- model.2
       rl <- rl.2
 
-      ratio <- r / .get_sky_cie(model)
+      ratio <- r / .get_sky_cie(z, a, model)
       ratio[is.infinite(ratio)] <- 1e+10
       out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
       out.of.range_ratio[is.na(out.of.range_ratio)] <- 0
@@ -191,7 +215,8 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
                                            dist_to_plant + 2)
         sky_points.2 <- rbind(rl$sky_points[ , c("row", "col")], sky_points.2)
         rl.2 <- extract_rl(r, z, a, sky_points.2, g, no_of_points = NULL,
-                           use_window = dist_to_plant != 1)
+                           use_window = dist_to_plant != 1,
+                           min_spherical_dist = min_spherical_dist)
         rl.2$sky_points$rl <- rl.2$sky_points$rl/rl$zenith_dn
         rl.2$zenith_dn <- rl$zenith_dn
 
@@ -224,48 +249,19 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
     }
     ds[indices,]
   }
-  if (!is.null(input_sky_points)) {
-    rl$sky_points <- rbind(rl$sky_points[1:nrow(input_sky_points)],
-      .filter(rl$sky_points[(nrow(input_sky_points)+1):
-                              nrow(rl$sky_points)], c("col", "row"), 3)
-      )
-  } else {
-    rl$sky_points <- .filter(rl$sky_points, c("col", "row"), 3)
-  }
+  rl$sky_points <- .filter(rl$sky_points, c("col", "row"), 0.1) #rem identicals
 
-  .sor_filter <- function(sky_points, r, fun_ct, fun_d, k, s) {
-    central_tendency <- numeric(nrow(sky_points))
-    dispersion <- numeric(nrow(sky_points))
-    for (i in 1:nrow(sky_points)) {
-      spatial_distances <- sqrt((sky_points$row - sky_points[i, "row"])^2 +
-                                  (sky_points$col - sky_points[i, "col"])^2)
-      phi1 <- sky_points$a * pi/180
-      phi2 <- sky_points[i, "a"] * pi/180
-      theta1 <- sky_points$z * pi/180
-      theta2 <- sky_points[i, "z"] * pi/180
-      spherical_distance <- ncol(r)/2 *
-        acos(sin(phi1) * sin(phi2) + cos(phi1) *
-               cos(phi2) * cos(theta1 - theta2)) %>% suppressWarnings()
-      spherical_distance[is.nan(spherical_distance)] <-
-        spatial_distances[is.nan(spherical_distance)]
-      ds <- extract_dn(r, sky_points[, c("row", "col")])
-      # u <- ds[order(spatial_distances), ][2:k + 1, 3]
-      u <- ds[order(spherical_distance), ][2:k + 1, 3]
-      central_tendency[i] <- fun_ct(u, na.rm = TRUE)
-      dispersion[i] <- fun_d(u, na.rm = TRUE)
-    }
-    abs(ds[,3] - central_tendency) < (dispersion * s)
-  }
   if (sor_filter_cv == TRUE) {
     cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-    u <- .sor_filter(rl$sky_points, cv, mean, sd, 20, 1.5)
+    u <- sor_filter(rl$sky_points, cv, rmax = 30, thr = 0,
+                    cutoff_side = "right")
     if (!is.null(input_sky_points)) {
       u[1:nrow(input_sky_points)] <- TRUE
     }
     rl$sky_points <- rl$sky_points[u, ]
   }
   if (sor_filter_dn == TRUE) {
-    u <- .sor_filter(rl$sky_points, r, median, IQR, 5, 1.5)
+    u <- sor_filter(rl$sky_points, r, rmax = 20, thr = 2, cutoff_side = "left")
     if (!is.null(input_sky_points)) {
       u[1:nrow(input_sky_points)] <- TRUE
     }
@@ -280,7 +276,7 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
 
   # START sun_coord refinement ####
   if (refine_sun_coord) {
-    .refine_sun_coord <- function(zenith, azimuth) {
+     .refine_sun_coord <- function(zenith, azimuth) {
       sun_coord$zenith_azimuth <- c(zenith, azimuth)
       model <- fit_cie_sky_model(rl, sun_coord,
                                  custom_sky_coef = model$coef,
@@ -301,6 +297,13 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
   }
   # END sun coord refinement ####
 
+  method <- c("BFGS", "CG", "SANN")
+  models <- Map(function(x) fit_cie_sky_model(rl, sun_coord, method = x,
+                                              twilight = FALSE),
+                method)
+  metric <- Map(.get_metric, models)
+  i <- which.min(metric)
+  model <- models[[i]]
 
   # START K-fold method ####
   ## k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
@@ -316,47 +319,36 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
                            custom_sky_coef = model$coef + .noise(0.1),
                            twilight = FALSE,
                            method = method)
-    x <- c(x, extract_dn(.get_sky_cie(model.2)/rl$zenith_dn,
+    x <- c(x, extract_dn(.get_sky_cie(z, a, model.2)/rl$zenith_dn,
                          rl$sky_points[folds[[i]], c("row", "col")],
                          use_window = dist_to_plant != 1)[,3])
     y <- c(y, extract_dn(r/rl$zenith_dn,
                          rl$sky_points[folds[[i]], c("row", "col")],
                          use_window = dist_to_plant != 1)[,3])
   }
+
+  #following Leys2013 10.1016/j.jesp.2013.03.013
+  error <- y - x
+  u <- abs((error - stats::median(error)) / stats::mad(error)) < 3
+  x <- x[u]
+  y <- y[u]
+
   reg <- lm(x~y) #following Pineiro2008 10.1016/j.ecolmodel.2008.05.006
   # END K-fold method ####
 
-  sky_cie <- .get_sky_cie(model)
-  error <- median(abs(1 - reg$model$y/reg$model$x))
+  rl$sky_points$outliers <- !u
+
   # START interpolate ####
   if (interpolate) {
-      w <-  1 - stats::plogis(error, 0.042, 0.05) + stats::plogis(0, 0.042, 0.05)
-      r2 <- summary(reg) %>% .$r.squared
-      if (!is.numeric(r2)) r2 <- 0
-      k <- 2 + round(r2 * 10)
-      p <- abs(model$coef[1]) + log(model$coef[3]+1)
-      p <- 2 + sqrt(p)
-      sky <- interpolate_sky_points(rl$sky_points, r, k = k, p = p,
-                                    rmax = ncol(r)/7) * rl$zenith_dn
-      sky <- sky * (1 - w) + sky_cie * w
-      sky <- terra::cover(sky, sky_cie)
-      names(sky) <- paste0("Weighted average, ",
-                           "w=", round(w, 2), ", ",
-                           "k=", k, ", ",
-                           "p=", round(p, 2))
+    sky <- interpolate_and_merge(r, z, a, rl$sky_points[, c("row", "col")],
+                                 list(model_validation = list(reg = reg),
+                                      model = model,
+                                      sky = .get_sky_cie(z, a, model)),
+                                 expand = FALSE)
   } else {
-    sky <- sky_cie
+    sky <- .get_sky_cie(z, a, model)
   }
   # END interpolate ####
-
-  .calc_oor_index <- function(sky) {
-    ratio <- r / sky
-    ratio[is.infinite(ratio)] <- 1e+10
-    out.of.range_ratio <- ratio - normalize(ratio, 0, 1, TRUE)
-    out.of.range_ratio <- sum(out.of.range_ratio[]^2,
-                              na.rm = TRUE)
-    out.of.range_ratio
-  }
 
   list(sky = sky,
        model = model,
@@ -364,6 +356,6 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g = NULL,
                                rmse = .calc_rmse(reg$model$y - reg$model$x)),
        dist_to_plant = dist_to_plant,
        sky_points = rl$sky_points,
-       oor_index = .calc_oor_index(sky)
+       oor_index = calc_oor_index(r, sky)
        )
 }

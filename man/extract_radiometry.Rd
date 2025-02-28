@@ -16,7 +16,7 @@ considering the equidistant projection distortion. Therefore, it will be
 visualized as an ellipse at any other place but the image center.}
 }
 \value{
-An object from the class \code{data.frame} with columns \emph{theta} (zenith
+An object of the class \code{data.frame} with columns \emph{theta} (zenith
 angle in radians) and \emph{radiometry} (digital number (DN) or relative digital
 number (RDN), depending on argument \code{z_thr}.
 }

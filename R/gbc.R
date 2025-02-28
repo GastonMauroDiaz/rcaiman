@@ -7,7 +7,7 @@
 #' of sRGB, known as gamma correction, is very close to a power function with
 #' the exponent 1/2.2. This is why a DN of a born-digital photograph that was
 #' encoded in sRGB has a non-linear relationship with luminance despite
-#' having the sensor a linear response.
+#' having the sensor a linear response to it.
 #'
 #'
 #' @param DN_from_JPEG Numeric vector or object of the [SpatRaster-class]
@@ -16,8 +16,8 @@
 #' @param gamma Numeric vector of length one. Gamma value. Please see
 #'   \insertCite{Diaz2018;textual}{rcaiman} for details.
 #'
-#' @return The same class as `DN_from_JPEG`, with dimension unchanged but values
-#'   rescaled between `0` and `1` in a non-linear fashion.
+#' @return The same class as the `DN_from_JPEG` argument, with dimension
+#'   unchanged but values rescaled between `0` and `1` in a non-linear fashion.
 #' @export
 #'
 #' @family Pre-processing Functions

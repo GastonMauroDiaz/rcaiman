@@ -17,7 +17,7 @@ the pixels that belong to a segment are labeled with an ID number.
 Otherwise, the angle mean of the segment is assigned to the pixels.}
 }
 \value{
-An object from the class \linkS4class{SpatRaster} with segments
+An object of the class \linkS4class{SpatRaster} with segments
 shaped like concentric rings.
 }
 \description{

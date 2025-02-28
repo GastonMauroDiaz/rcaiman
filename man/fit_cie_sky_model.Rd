@@ -15,8 +15,8 @@ fit_cie_sky_model(
 )
 }
 \arguments{
-\item{rl}{An object of class \emph{list}. The result of a call to
-\code{\link[=extract_rl]{extract_rl()}} or an object with same structure and names.}
+\item{rl}{An object of class \emph{list}. The result of a call to \code{\link[=extract_rl]{extract_rl()}}
+or an object with same structure and names.}
 
 \item{sun_coord}{An object of class \emph{list}. The result of a call to
 \code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
@@ -37,21 +37,21 @@ these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
 \item{twilight}{Logical vector of length one. If it is \code{TRUE} and the initial
 standard parameters belong to the "Clear" general sky type, sun zenith
 angles from 90 to 96 degrees will be tested (civic twilight). This is
-necessary since \code{\link[=extract_sun_coord]{extract_sun_coord()}} would mistakenly recognize the center
+necessary since \code{\link[=extract_sun_coord]{extract_sun_coord()}} can mistakenly recognize the center
 of what can be seen of the solar corona as the solar disk.}
 
 \item{method}{Optimization method to use. See \code{\link{optim}}.}
 }
 \value{
-object from the class \emph{list}. The result includes the following: (1)
-the output produced by \code{\link[bbmle:mle2]{bbmle::mle2()}}, (2) the 5 coefficients, (3 and 4)
-observed and predicted values, (5) the digital number at the zenith, (6)
-the sun coordinates --zenith and azimuth angle in degrees--, and (7) the
-description of the standard sky from which the initial coefficients were
-drawn. See \insertCite{Li2016;textual}{rcaiman} to know more about these
-coefficients. If \code{\link[bbmle:mle2]{bbmle::mle2()}} does not converge, (1) will be \code{NA} and
-(2) the coefficients of a standard sky (the one with less RMSE when more
-than one is tried).
+An object of the class \emph{list}. The result includes the following: (1)
+the output produced by \code{\link[bbmle:mle2]{bbmle::mle2()}}, (2) the 5 coefficients of the CIE
+model, (3) observed values, (4) predicted values, (5) the digital number at
+the zenith, (6) the sun coordinates (zenith and azimuth angle in degrees),
+(7) the optimization method (see \code{\link[bbmle:mle2]{bbmle::mle2()}}), and the initial values
+for optimizer (see \code{\link[bbmle:mle2]{bbmle::mle2()}}). To lear more about these initial
+values, see \insertCite{Li2016;textual}{rcaiman}. If \code{\link[bbmle:mle2]{bbmle::mle2()}} does
+not converge, (1) will be \code{NA} and (2) will contain the coefficients of a
+standard sky (the one with less RMSE when more than one is tried).
 }
 \description{
 Use maximum likelihood to estimate the coefficients of the CIE sky model that
@@ -90,9 +90,25 @@ plot(r/cie_sky_m)
 }\if{html}{\out{</div>}}
 }
 \note{
+The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
+can be used to manually digitize points and create a CSV file from which to
+read coordinates (see Examples). After digitizing the points on the image,
+use the dropdown menu Analyze>Measure to open the Results window. To obtain
+the CSV file, use File>Save As...
+
+The \href{https://qgis.org/}{QGIS software} can also be used to manually digitize
+points. In order to do that, drag and drop the image in an empty project,
+create an new vector layer, digitize points manually, save the editions, and
+close the project. To create the new vector layer go to the dropdown menu
+Layer>Create Layer>New Geopackage Layer...
+
+Choose "point" in the Geometry type dropdown list and make sure the CRS is
+EPSG:7589. To be able to input the points, remember to click first on the
+Toogle Editing icon, and then on the Add Points Feature icon.
+
 If you use this function in your research, please cite
 \insertCite{Lang2010;textual}{rcaiman} in addition to this package
-(\verb{citation("rcaiman"}).
+(\verb{citation("rcaiman"})).
 }
 \examples{
 \dontrun{
@@ -100,7 +116,7 @@ caim <- read_caim() \%>\% normalize()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-# Manual method after Lang et al. (2010)
+# Manual method following Lang et al. (2010)
 # ImageJ can be used to digitize points
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
@@ -111,7 +127,18 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-xy <- c(210, 451) #originally captured with click() after x11()
+# Idem for QGIS
+path <- system.file("external/sky_points.gpkg",
+                    package = "rcaiman")
+sky_points <- terra::vect(path)
+sky_points <- terra::extract(caim, sky_points, cells = TRUE)
+sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\% as.data.frame()
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+plot(caim$Blue)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+
+xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
 sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
 points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
        col = 3, pch = 1)
@@ -122,7 +149,7 @@ set.seed(7)
 model <- fit_cie_sky_model(rl, sun_coord,
                            general_sky_type = "Clear",
                            twilight = FALSE,
-                           method = "BFGS")
+                           method = "CG")
 summary(model$mle2_output)
 plot(model$obs, model$pred)
 abline(0,1)
@@ -143,7 +170,7 @@ Other Sky Reconstruction Functions:
 \code{\link{cie_sky_model_raster}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()},
 \code{\link{ootb_sky_reconstruction}()}
 }

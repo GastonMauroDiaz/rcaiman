@@ -96,11 +96,10 @@ extract_sun_coord <- function(r, z, a, bin, g,
   zenith <- extract_feature(z, labeled_m, fun, return_raster = FALSE) %>%
     .degree2radian()
   za <- data.frame(zenith, azimuth)
-
   d <- c()
   for (i in 1:nrow(za)) {
     d <- c(d,
-           .calc_angular_distance(za[sun, 1], za[sun, 2], za[i, 1], za[i, 2]))
+           .calc_spherical_distance(za[sun, 1], za[sun, 2], za[i, 1], za[i, 2]))
   }
 
   indices <- d > .degree2radian(max_angular_dist)

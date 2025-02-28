@@ -19,7 +19,7 @@ blue channel extracted from a canopy photograph. Please see \code{\link[=read_ca
 and \code{\link[=normalize]{normalize()}}.}
 
 \item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting \code{r}.
-Arguably, the result of a call to \code{\link[=rings_segmentation]{rings_segmentation()}} will be the
+Arguably, the result of calling \code{\link[=rings_segmentation]{rings_segmentation()}} will be the
 preferred choice for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current

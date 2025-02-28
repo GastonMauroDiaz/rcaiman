@@ -15,8 +15,8 @@ encoded).}
 \insertCite{Diaz2018;textual}{rcaiman} for details.}
 }
 \value{
-The same class as \code{DN_from_JPEG}, with dimension unchanged but values
-rescaled between \code{0} and \code{1} in a non-linear fashion.
+The same class as the \code{DN_from_JPEG} argument, with dimension
+unchanged but values rescaled between \code{0} and \code{1} in a non-linear fashion.
 }
 \description{
 Gamma back correction of JPEG images
@@ -27,7 +27,7 @@ developed to ensure accurate color and tone management. The transfer function
 of sRGB, known as gamma correction, is very close to a power function with
 the exponent 1/2.2. This is why a DN of a born-digital photograph that was
 encoded in sRGB has a non-linear relationship with luminance despite
-having the sensor a linear response.
+having the sensor a linear response to it.
 }
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")

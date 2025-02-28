@@ -153,8 +153,9 @@ calibrate_lens <- function(path_to_csv, degree = 3) {
       ds <- rbind(ds, l[[i]]$ds)
     }
     zenith_colrow <- Map(function(x) x$zenith_colrow, l) %>% unlist() %>%
-      matrix(., ncol = 2, byrow = TRUE) %>% apply(., 2, median)
-    max_theta_px <- Map(function(x) x$max_theta_px, l) %>% unlist() %>% median()
+      matrix(., ncol = 2, byrow = TRUE) %>% apply(., 2, stats::median)
+    max_theta_px <- Map(function(x) x$max_theta_px, l) %>% unlist() %>%
+      stats::median()
     l <- list(ds = ds,
               zenith_colrow = zenith_colrow,
               max_theta_px = max_theta_px)

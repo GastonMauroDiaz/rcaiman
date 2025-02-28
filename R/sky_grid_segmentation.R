@@ -23,7 +23,7 @@
 #'   segments are labeled with sequential numbers. By default (`FALSE`),
 #'   labeling numbers are not sequential (see Details).
 #'
-#' @return An object from the class [SpatRaster-class] with segments
+#' @return An object of the class [SpatRaster-class] with segments
 #'   shaped like windshields, though some of them will look elongated in
 #'   height. The pattern is two opposite and converging straight sides and two
 #'   opposite and parallel curvy sides.
@@ -40,6 +40,9 @@
 #' g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 #' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
 #' plot(g, col = col)
+#'
+#' g <- terra::focal(g, 3, sd)
+#' plot(g != 0)
 #' }
 sky_grid_segmentation <- function(z, a, angle_width,
                                   first_ring_different = FALSE,
@@ -52,7 +55,7 @@ sky_grid_segmentation <- function(z, a, angle_width,
                             6,   5,     3.75, 3,
                             2.5, 1.875, 1,    0.5))) {
     stop(
-      paste0("angle_width should be 30, 15, 10, 7.5,",
+      paste0("angle_width should be 30, 15, 10, 7.5, ",
              "6, 5, 3.75, 3, 2.5, 1.875, 1 or 0.5 degrees.")
     )
   }
@@ -61,8 +64,10 @@ sky_grid_segmentation <- function(z, a, angle_width,
   g <- fun(sectors_segmentation(a, angle_width),
            rings_segmentation(z, angle_width))
 
-  for (i in seq(1, 360/angle_width)*1000 + 1) {
-    g[g == i] <- 1000
+  if (first_ring_different) {
+    for (i in seq(1, 360/angle_width)*1000 + 1) {
+      g[g == i] <- 1000
+    }
   }
 
   if (sequential) {

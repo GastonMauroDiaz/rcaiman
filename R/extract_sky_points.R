@@ -57,8 +57,8 @@
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
 extract_sky_points <- function(r, bin, g,
-                              dist_to_plant = 3,
-                              min_raster_dist = 3) {
+                               dist_to_plant = 3,
+                               min_raster_dist = 3) {
 
 
   .filter <- function(ds, col_names, thr) {
@@ -81,13 +81,14 @@ extract_sky_points <- function(r, bin, g,
     ds[indices,]
   }
 
-
   .is_single_layer_raster(r)
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
-  .is_single_layer_raster(g, "g")
+  if (!is.null(g)) {
+    .is_single_layer_raster(g, "g")
+    terra::compareGeom(r, g)
+  }
   terra::compareGeom(r, bin)
-  terra::compareGeom(r, g)
   if (!is.null(dist_to_plant)) stopifnot(length(dist_to_plant) == 1)
   if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
@@ -95,60 +96,94 @@ extract_sky_points <- function(r, bin, g,
   # cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
   # r <- normalize(-cv) * r
 
-  #new feature
-  nw <- extract_feature(bin, g, sum, return_raster = FALSE)
-  tol <- sum(nw != 0) / 3
-  size <- extract_feature(g, g, length, return_raster = FALSE) %>% min()
-  w <- 1
-  while (sum(nw > size) < tol & w > 0) {
-    w <- w - 0.01
-    size <- size * w
-  }
-  nw <- extract_feature(bin, g, sum, return_raster = TRUE)
-  nw <- nw > size
-  g[!nw] <- 0
+  if (!is.null(g)) {
+    # new feature
+    nw <- extract_feature(bin, g, sum, return_raster = FALSE)
+    # tol <- sum(nw != 0) / 3
+    tol <- mean(nw[nw != 0])
+    size <- extract_feature(g, g, length, return_raster = FALSE) %>% min()
+    w <- 1
+    while (sum(nw > size) < tol & w > 0) {
+      w <- w - 0.01
+      size <- size * w
+    }
+    nw <- extract_feature(bin, g, sum, return_raster = TRUE)
+    nw <- nw > size
+    g[!nw] <- 0
 
-  # remove the pixels with NA neighbors because HSP extract with 3x3 window
-  # NA_count <- terra::focal(!bin, w = 3, fun = "sum")
+    # remove the pixels with NA neighbors because HSP extract with 3x3 window
+    # NA_count <- terra::focal(!bin, w = 3, fun = "sum")
 
-  no_col <- no_row <- bin
-  terra::values(no_col) <- .col(dim(bin)[1:2])
-  terra::values(no_row) <- .row(dim(bin)[1:2])
+    no_col <- no_row <- bin
+    terra::values(no_col) <- .col(dim(bin)[1:2])
+    terra::values(no_row) <- .row(dim(bin)[1:2])
 
-  # systematic sampling using a sky grid by taking the maximum from each cell
-  if (!is.null(dist_to_plant)) {
-    stopifnot(.is_integerish(dist_to_plant))
-    .this_requires_EBImage()
-    kern <- EBImage::makeBrush(dist_to_plant, "box")
-    # dist_to_plant_img <- NA_count == 0
-    dist_to_plant_img <- bin
-    dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
-      terra::setValues(dist_to_plant_img, .)
-    dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
-    dist_to_plant_img <- as.logical(dist_to_plant_img)
+    # systematic sampling using a sky grid by taking the maximum from each cell
+    if (!is.null(dist_to_plant)) {
+      stopifnot(.is_integerish(dist_to_plant))
+      .this_requires_EBImage()
+      kern <- EBImage::makeBrush(dist_to_plant, "box")
+      # dist_to_plant_img <- NA_count == 0
+      dist_to_plant_img <- bin
+      dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
+        terra::setValues(dist_to_plant_img, .)
+      dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
+      dist_to_plant_img <- as.logical(dist_to_plant_img)
 
-    ds <- data.frame(col = no_col[dist_to_plant_img],
-                     row = no_row[dist_to_plant_img],
-                     g = g[dist_to_plant_img],
-                     dn = r[dist_to_plant_img])
-    names(ds) <- c("col", "row", "g", "dn")
+      ds <- data.frame(col = no_col[dist_to_plant_img],
+                       row = no_row[dist_to_plant_img],
+                       g = g[dist_to_plant_img],
+                       dn = r[dist_to_plant_img])
+      names(ds) <- c("col", "row", "g", "dn")
+    } else {
+      ds <- data.frame(col = no_col[bin],
+                       row = no_row[bin],
+                       g = g[bin],
+                       dn = r[bin])
+      names(ds) <- c("col", "row", "g", "dn")
+    }
+
+    if (nrow(ds) != 0) {
+        i <- tapply(1:nrow(ds), ds$g,
+                      function(x) {
+                        x[which.max(ds$dn[x])]
+                      })
+        ds <- ds[i,]
+        if (!is.null(min_raster_dist) & nrow(ds) > 1) {
+          ds <- .filter(ds, c("col", "row"), min_raster_dist)
+        }
+    }
+    sky_points <- ds[,c(2, 1)]
+
   } else {
-    ds <- data.frame(col = no_col[bin],
-                     row = no_row[bin],
-                     g = g[bin],
-                     dn = r[bin])
-    names(ds) <- c("col", "row", "g", "dn")
-  }
 
-  if (nrow(ds) != 0) {
-      i <- tapply(1:nrow(ds), ds$g,
-                    function(x) {
-                      x[which.max(ds$dn[x])]
-                    })
-      ds <- ds[i,]
-      if (!is.null(min_raster_dist) & nrow(ds) > 1) {
-        ds <- .filter(ds, c("col", "row"), min_raster_dist)
-      }
+    .this_requires_EBImage()
+
+    bwlabels <- EBImage::bwlabel(as.array(bin))
+    shape <- EBImage::computeFeatures.shape(bwlabels)
+    bwlabels <- terra::setValues(bin, bwlabels)
+    shape <- terra::subst(bwlabels, 1:nrow(shape), shape)
+    shape[shape$s.area > 200 | shape$s.area == 0] <- NA
+    shape <- (shape$s.area / (shape$s.radius.sd + 1)) < 9
+    bin[shape] <- 0
+
+    if (!is.null(dist_to_plant)) {
+      stopifnot(.is_integerish(dist_to_plant))
+      kern <- EBImage::makeBrush(dist_to_plant, "box")
+      dist_to_plant_img <- bin
+      dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
+        terra::setValues(dist_to_plant_img, .)
+      dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
+      dist_to_plant_img <- as.logical(dist_to_plant_img)
+      bin <- dist_to_plant_img
+    }
+
+    lmax <- terra::focal(r*bin, 9, "max")
+    lmax <- (lmax == r) * bin
+    lmax[is.na(lmax)] <- 0
+    i <- lmax[] %>% as.numeric() %>% as.logical()
+    sky_points <- rowColFromCell(lmax, cells(lmax)[i]) %>% as.data.frame()
+    colnames(sky_points) <- c("row", "col")
   }
-  ds[,c(2, 1)]
+  sky_points
 }

@@ -16,7 +16,7 @@ the upper left corner of a region of interest (ROI). These coordinates
 should be in the raster coordinates system. This system works like a
 spreadsheet, i.e, when going down through the vertical axis, the \emph{row}
 number increases (\strong{IMPORTANT}: column and row must be provided instead of
-row and column, as is the norm for objects from the class \emph{data.frame} and
+row and column, as is the norm for objects of the class \emph{data.frame} and
 others alike)}
 
 \item{width, height}{An integer vector of length one. The size of the boxy ROI
@@ -75,20 +75,27 @@ plot(caim$Blue)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_oor_index}()},
+\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
+\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
+\code{\link{read_caim_raw}()},
+\code{\link{sor_filter}()},
 \code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\code{\link{write_caim}()},
+\code{\link{write_report}()}
 }
 \concept{Tool Functions}

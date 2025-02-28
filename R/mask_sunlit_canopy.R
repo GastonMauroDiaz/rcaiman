@@ -30,7 +30,7 @@ mask_sunlit_canopy <- function(caim, m = NULL) {
                           sum(m[], na.rm = TRUE)) * 100
   if (sunlit_canopy_pct > 0.1) {
     sunlit_canopy <- caim[sunlit_canopy] %>%
-      apply(., 2, median) %>%
+      apply(., 2, stats::median) %>%
       as.numeric() %>%
       matrix(., ncol = 3)
     mem <- membership_to_color(caim, sRGB(sunlit_canopy))

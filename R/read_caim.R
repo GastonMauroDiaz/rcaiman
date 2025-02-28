@@ -28,7 +28,7 @@
 #'   should be in the raster coordinates system. This system works like a
 #'   spreadsheet, i.e, when going down through the vertical axis, the *row*
 #'   number increases (**IMPORTANT**: column and row must be provided instead of
-#'   row and column, as is the norm for objects from the class *data.frame* and
+#'   row and column, as is the norm for objects of the class *data.frame* and
 #'   others alike)
 #' @param width,height An integer vector of length one. The size of the boxy ROI
 #'   whose upper left corner is the `upper_left` argument.

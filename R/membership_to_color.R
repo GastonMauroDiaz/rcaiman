@@ -37,7 +37,7 @@
 #'   in the \emph{CIE LAB} color space.
 #'
 #'
-#' @return It returns an object from the class [SpatRaster-class]. First layer
+#' @return It returns an object of the class [SpatRaster-class]. First layer
 #'   is the membership to the target color. Second layer is the membership to
 #'   grey. Both memberships are calculated with same `sigma`.
 #'

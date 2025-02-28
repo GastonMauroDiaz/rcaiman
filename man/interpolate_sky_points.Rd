@@ -18,8 +18,8 @@ was obtained.}
 
 \item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
 
-\item{rmax}{Numeric vector of length one. Maximum radius where to search for
-\emph{knn}.}
+\item{rmax}{Numeric vector of length one. Maximum radius for searching
+k-nearest neighbors (knn).}
 
 \item{col_id}{Numeric vector of length one. ID of the column with the values
 to interpolate.}
@@ -71,7 +71,6 @@ sky_points <- extract_dn(r, sky_points)
 sky <- interpolate_sky_points(sky_points, r, col_id = 3)
 plot(sky)
 plot(r/sky)
-
 }
 }
 \references{
@@ -83,7 +82,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_and_merge}()},
 \code{\link{ootb_sky_reconstruction}()}
 }
 \concept{Sky Reconstruction Functions}

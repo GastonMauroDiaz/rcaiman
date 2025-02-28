@@ -7,11 +7,11 @@
 defuzzify(mem, segmentation)
 }
 \arguments{
-\item{mem}{An object of the class \linkS4class{SpatRaster}. Degree of
-membership.}
+\item{mem}{A \linkS4class{SpatRaster} object representing the degree of membership
+in a fuzzy classification.}
 
-\item{segmentation}{An object of the class \linkS4class{SpatRaster} such as
-the result of a call to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
+\item{segmentation}{An object of the class \linkS4class{SpatRaster} such as an
+object returned by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 }
 \value{
 An object of the class \linkS4class{SpatRaster} containing binary
@@ -19,10 +19,11 @@ information.
 }
 \description{
 This function translates degree of membership into Boolean logic using a
-regional approach. The result will ensure that the fuzzy and Boolean version
-will agree at the chosen level of aggregation (controlled by the argument
-\code{segmentation}). This method makes perfect sense to translate a subpixel
-classification of gap fraction (or a linear ratio) into a binary product.
+regional approach. The output ensures that the fuzzy and Boolean versions
+remain consistent at the specified level of aggregation (controlled by the
+argument \code{segmentation}). This method makes perfect sense to translate a
+subpixel classification of gap fraction (or a linear ratio) into a binary
+product.
 }
 \note{
 This method is also available in the HSP software package
@@ -53,20 +54,27 @@ plot(abs(bin$bin - bin2))
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_oor_index}()},
+\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
+\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
+\code{\link{sor_filter}()},
 \code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\code{\link{write_caim}()},
+\code{\link{write_report}()}
 }
 \concept{Tool Functions}

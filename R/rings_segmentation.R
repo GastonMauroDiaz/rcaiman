@@ -10,7 +10,7 @@
 #'   the pixels that belong to a segment are labeled with an ID number.
 #'   Otherwise, the angle mean of the segment is assigned to the pixels.
 #'
-#' @return An object from the class [SpatRaster-class] with segments
+#' @return An object of the class [SpatRaster-class] with segments
 #'   shaped like concentric rings.
 #' @export
 #'

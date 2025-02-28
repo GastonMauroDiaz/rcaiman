@@ -30,7 +30,7 @@ segments are labeled with sequential numbers. By default (\code{FALSE}),
 labeling numbers are not sequential (see Details).}
 }
 \value{
-An object from the class \linkS4class{SpatRaster} with segments
+An object of the class \linkS4class{SpatRaster} with segments
 shaped like windshields, though some of them will look elongated in
 height. The pattern is two opposite and converging straight sides and two
 opposite and parallel curvy sides.
@@ -56,6 +56,9 @@ plot(g == 24005)
 g <- sky_grid_segmentation(z, a, 15, sequential = TRUE)
 col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
 plot(g, col = col)
+
+g <- terra::focal(g, 3, sd)
+plot(g != 0)
 }
 }
 \seealso{

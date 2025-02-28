@@ -10,11 +10,12 @@ ootb_sky_reconstruction(
   a,
   m,
   bin,
-  g = NULL,
+  g,
   sor_filter_cv = FALSE,
   sor_filter_dn = FALSE,
   refine_sun_coord = FALSE,
   interpolate = TRUE,
+  min_spherical_dist = NULL,
   input_sky_points = NULL
 )
 }
@@ -35,30 +36,40 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
 \code{\link[=chessboard]{chessboard()}}.}
 
-\item{sor_filter_cv}{Logical vector of length one}
+\item{sor_filter_cv}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
+will be applied internally to filter out points using local variability at
+the scale of the \eqn{3 \times 3} window using for data extraction as the
+criterion. Local means not farther than 30 degrees.}
 
-\item{sor_filter_dn}{Logical vector of length one}
+\item{sor_filter_dn}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
+will be applied internally to filter out points using local darkness as the
+criterion. Local means not farther than 20 degrees.}
 
 \item{refine_sun_coord}{Logical vector of length one}
 
 \item{interpolate}{Logical vector of length one. If \code{TRUE},
 \code{\link[=interpolate_sky_points]{interpolate_sky_points()}} will be used.}
 
+\item{min_spherical_dist}{Numeric vector of length one. This parameter
+filters out points based on their proximity on a spherical surface.
+Essentially, this is the spherical counterpart of the \code{min_raster_dist}
+argument from \code{\link[=extract_sky_points]{extract_sky_points()}}. The distance is expressed in degrees.}
+
 \item{input_sky_points}{An object of class \emph{data.frame} with the same
-structure than the result of a call to \code{\link[=extract_sky_points]{extract_sky_points()}}. The
-\href{https://imagej.net/ij/}{ImageJ} software package can be used to manually
-digitize points. See \code{\link[=extract_dn]{extract_dn()}} for details.}
+structure than the output of \code{\link[=extract_sky_points]{extract_sky_points()}}. This argument is
+convinient to provide manually digitized points, see \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}
+for details.}
 }
 \value{
-An object from the class \emph{list} that includes the following: (1) the
+An object of the class \emph{list} that includes the following: (1) the
 reconstructed sky (\linkS4class{SpatRaster}), (2) the output produced by
-\code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, (3) an object from the class \emph{list} that includes an
-object from the class \code{lm} (see \code{\link[stats:lm]{stats::lm()}}) and the RMSE, both being the
+\code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, (3) an object of the class \emph{list} that includes an
+object of the class \code{lm} (see \code{\link[stats:lm]{stats::lm()}}) and the RMSE, both being the
 result of validating (2) with a k-fold approach and following
 \insertCite{Pineiro2008;textual}{rcaiman},(4) the \code{dist_to_plant} argument
 used when \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}} was called, (5) the \code{sky_points} argument
 used when \code{\link[=extract_rl]{extract_rl()}} was called,  and (6) the out-of-range index (see
-details).
+\code{\link[=calc_oor_index]{calc_oor_index()}}).
 }
 \description{
 Build an above canopy image from a single below canopy image
@@ -70,16 +81,6 @@ functions \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}} and \code{\link[
 The pipeline is an automatic version of the
 \insertCite{Lang2010;textual}{rcaiman} method. A paper for thoroughly
 presenting and testing this pipeline is under preparation.
-
-The \strong{out-of-range index} is calculated as foollow:
-
-\eqn{\sum_{i = 1}^{N}(r_i/sky_i)^2},
-
-where \eqn{r} is the \code{r} argument, \eqn{sky} is the
-raster obtained from the fitted model with \code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}} and
-\code{zenith_dn}, \eqn{i} is the index that represents the position of a given
-pixel on the raster grid, and \eqn{N} is the total number of pixels that
-satisfy: \eqn{r_i/sky_i<0} or \eqn{r_i/sky_i>1}.
 }
 \examples{
 \dontrun{
@@ -99,17 +100,18 @@ sun_coord$zenith_azimuth
 .a <- azimuth_image(z, orientation = sun_coord$zenith_azimuth[2]+90)
 seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
 bin <- regional_thresholding(r, seg, method = "thr_isodata")
-plot(bin)
-
 
 mx <- optim_normalize(caim, bin)
 caim <- normalize(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+plot(bin)
 
 set.seed(7)
-sky <- ootb_sky_reconstruction(r, z, a, m, bin,
-                               sor_filter_cv = TRUE, sor_filter_dn = TRUE)
+g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+sky <- ootb_sky_reconstruction(r, z, a, m, bin & mask_hs(z, 0, 80), g,
+                               sor_filter_cv = TRUE, sor_filter_dn = TRUE,
+                               min_spherical_dist = 3)
 
 sky$sky
 plot(sky$sky)
@@ -118,8 +120,9 @@ plot(r/sky$sky>1.15)
 plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
 abline(0,1)
 error <- sky$model_validation$reg$model$x - sky$model_validation$reg$model$y
-plot(sky$sky_points$z, error,
+plot(sky$sky_points$z[!sky$sky_points$outliers], error,
                      xlab = "zenith angle", ylab = "relative radiance error")
+abline(h = 0)
 
 plot(bin)
 points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
@@ -135,7 +138,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{fix_reconstructed_sky}()},
+\code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()}
 }
 \concept{Sky Reconstruction Functions}

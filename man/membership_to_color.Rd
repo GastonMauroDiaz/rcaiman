@@ -17,7 +17,7 @@ it automatically as the euclidean distance between \code{target_color} and grey
 in the \emph{CIE LAB} color space.}
 }
 \value{
-It returns an object from the class \linkS4class{SpatRaster}. First layer
+It returns an object of the class \linkS4class{SpatRaster}. First layer
 is the membership to the target color. Second layer is the membership to
 grey. Both memberships are calculated with same \code{sigma}.
 }

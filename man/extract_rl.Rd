@@ -4,7 +4,16 @@
 \alias{extract_rl}
 \title{Extract relative luminance}
 \usage{
-extract_rl(r, z, a, sky_points, no_of_points = 3, z_thr = 5, use_window = TRUE)
+extract_rl(
+  r,
+  z,
+  a,
+  sky_points,
+  no_of_points = 3,
+  z_thr = 5,
+  use_window = TRUE,
+  min_spherical_dist = NULL
+)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -15,12 +24,11 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{An object of class \emph{data.frame}. The result of a call
-to \code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
-\href{https://imagej.net/ij/}{ImageJ} and HSP software
-package \insertCite{Lang2013}{rcaiman} can be used to manually digitize
-points. See \code{\link[=extract_dn]{extract_dn()}} and
-\code{\link[=read_manual_input]{read_manual_input()}} for details.}
+\item{sky_points}{An object of class \emph{data.frame}. The result of a call to
+\code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
+\href{https://imagej.net/ij/}{ImageJ} and HSP software package
+\insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
+\code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.}
 
 \item{no_of_points}{Numeric vector of length one. The number of near-zenith
 points required for the estimation of the zenith DN.}
@@ -28,53 +36,53 @@ points required for the estimation of the zenith DN.}
 \item{z_thr}{Numeric vector on length one. The starting maximum zenith angle
 used to search for near-zenith points.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
- \times 3} window will be used to extract the digital number from
-\code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
+window will be used to extract the digital number from \code{r}.}
+
+\item{min_spherical_dist}{Numeric vector of length one. This parameter
+filters out points based on their proximity on a spherical surface.
+Essentially, this is the spherical counterpart of the \code{min_raster_dist}
+argument from \code{\link[=extract_sky_points]{extract_sky_points()}}. The distance is expressed in degrees.}
 }
 \value{
-A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle}
-from the class \emph{numeric}, and \emph{sky_points} from the class
+A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle} from the
+class \emph{numeric}, and \emph{sky_points} of the class
 \emph{data.frame}; \emph{zenith_dn} is the estimated zenith digital number,
 \emph{max_zenith_angle} is the maximum zenith angle reached in the search
 for near-zenith sky points, and \emph{sky_points} is the input argument
 \code{sky_points} with the additional columns: \emph{a}, \emph{z},
 \emph{dn}, and \emph{rl}, which stand for azimuth and zenith angle in
-degrees, digital number, and relative luminance, respectively. If
-\code{NULL} is provided as \code{no_of_points}, then \emph{zenith_dn} is
-forced to one and, therefore, \emph{dn} and \emph{rl} will be identical.
+degrees, digital number, and relative luminance, respectively. If \code{NULL} is
+provided as \code{no_of_points}, then \emph{zenith_dn} is forced to one and,
+therefore, \emph{dn} and \emph{rl} will be identical.
 }
 \description{
 Extract the luminance relative to the zenith digital number
 }
 \details{
-The search for near-zenith points starts in the region  ranged between
-\code{0} and \code{z_thr}. If the number of near-zenith points is less than
-\code{no_of_points}, the region increases by steps of \code{2} degrees of
-zenith angle till the required number of points is reached.
-}
-\note{
-The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
-can be used to manually digitize points and create a CSV file from which to
-read coordinates (see Examples). After digitizing the points on the image,
-use the dropdown menu Analyze>Measure to open the Results window. To obtain
-the CSV file, use File>Save As...
+The search for near-zenith points starts in the region  ranged between \code{0}
+and \code{z_thr}. If the number of near-zenith points is less than \code{no_of_points},
+the region increases by steps of \code{2} degrees of zenith angle till the
+required number of points is reached.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize(., 0, 20847)
+caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-plotRGB(caim*255)
 
+# See fit_cie_sky_model() for details on the CSV file
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
 sky_points <- read.csv(path)
 sky_points <- sky_points[c("Y", "X")]
 colnames(sky_points) <- c("row", "col")
 head(sky_points)
+
+plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-extract_rl(caim$Blue, z, a, sky_points, 1)
+rl <- extract_rl(caim$Blue, z, a, sky_points, 1, min_spherical_dist = 10)
+points(rl$sky_points$col, nrow(caim) - rl$sky_points$row, col = 3, pch = 0)
 }
 }
 \references{
@@ -82,20 +90,27 @@ extract_rl(caim$Blue, z, a, sky_points, 1)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_oor_index}()},
+\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
+\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
+\code{\link{sor_filter}()},
 \code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\code{\link{write_caim}()},
+\code{\link{write_report}()}
 }
 \concept{Tool Functions}

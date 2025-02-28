@@ -24,8 +24,8 @@
 #'   was obtained.
 #' @param k Numeric vector of length one. Number of k-nearest neighbors.
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
-#' @param rmax Numeric vector of length one. Maximum radius where to search for
-#'   *knn*.
+#' @param rmax Numeric vector of length one. Maximum radius for searching
+#'   k-nearest neighbors (knn).
 #' @param col_id Numeric vector of length one. ID of the column with the values
 #'   to interpolate.
 #'
@@ -62,7 +62,6 @@
 #' sky <- interpolate_sky_points(sky_points, r, col_id = 3)
 #' plot(sky)
 #' plot(r/sky)
-#'
 #' }
 interpolate_sky_points <- function(sky_points,
                                    r,

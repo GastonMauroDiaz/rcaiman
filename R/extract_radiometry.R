@@ -143,7 +143,7 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object from the class `data.frame` with columns *theta* (zenith
+#' @return An object of the class `data.frame` with columns *theta* (zenith
 #'   angle in radians) and *radiometry* (digital number (DN) or relative digital
 #'   number (RDN), depending on argument `z_thr`.
 #' @export
@@ -230,7 +230,7 @@ extract_radiometry <- function(l,
 
   p <- vect(z, "polygons")
   plot(p, add = TRUE)
-  dns <- terra::extract(r, p, fun = median)
+  dns <- terra::extract(r, p, fun = stats::median)
   theta <- theta*pi/180
   radiometry <- dns[, 2]
   ds <- data.frame(theta, radiometry)

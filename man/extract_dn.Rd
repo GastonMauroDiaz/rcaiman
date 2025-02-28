@@ -12,9 +12,8 @@ extract_dn(r, img_points, use_window = TRUE, fun = NULL)
 \item{img_points}{The result of a call to \code{\link[=extract_sky_points]{extract_sky_points()}},
 or an object of the same class and structure.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3
- \times 3} window will be used to extract the digital number from
-\code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
+window will be used to extract the digital number from \code{r}.}
 
 \item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
@@ -51,7 +50,7 @@ sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
 
-# ImageJ can be used to digitize points
+# See fit_cie_sky_model() for details on the CSV file
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
 sky_points <- read.csv(path)
@@ -65,20 +64,27 @@ extract_dn(caim, sky_points, fun = median)
 }
 \seealso{
 Other Tool Functions: 
+\code{\link{calc_oor_index}()},
+\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rl}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
+\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
+\code{\link{read_caim_raw}()},
+\code{\link{sor_filter}()},
 \code{\link{write_bin}()},
-\code{\link{write_caim}()}
+\code{\link{write_caim}()},
+\code{\link{write_report}()}
 }
 \concept{Tool Functions}
