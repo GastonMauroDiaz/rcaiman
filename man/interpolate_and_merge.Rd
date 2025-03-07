@@ -4,7 +4,7 @@
 \alias{interpolate_and_merge}
 \title{Interpolate sky data into a raster and merge it with a sky model raster}
 \usage{
-interpolate_and_merge(r, z, a, sky_points, ootb_sky, expand = TRUE)
+interpolate_and_merge(r, z, a, sky_points, ootb_sky, rmax_tune = 1)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -15,76 +15,60 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{An object of class \emph{data.frame}. The result of a call to
-\code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
-\href{https://imagej.net/ij/}{ImageJ} and HSP software package
-\insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
-\code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.}
+\item{sky_points}{An object of class \code{data.frame}. The output of
+\code{\link[=extract_sky_points]{extract_sky_points()}} or \link{expand_sky_points}.}
 
 \item{ootb_sky}{An object of the class \code{list} that is the result of calling
-\code{\link[=ootb_sky_reconstruction]{ootb_sky_reconstruction()}}.}
+\code{\link[=ootb_fit_cie_sky_model]{ootb_fit_cie_sky_model()}}.}
 
-\item{expand}{Logical vector of length one. If \code{TRUE}, \code{\link[=expand_sky_points]{expand_sky_points()}}
-will be applied internally.}
+\item{rmax_tune}{Numeric vector of length one. It must be a positive integer.
+It is used to fine tune the \code{rmax} argument that is computed internally
+(see Details).}
 }
 \value{
 An object of class \linkS4class{SpatRaster}.
 }
 \description{
 This function is part of the efforts to automate the method proposed by
-\insertCite{Lang2010;textual}{rcaiman}. See \code{\link[=ootb_sky_reconstruction]{ootb_sky_reconstruction()}} for
-further details.
+\insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly
+presenting and testing this pipeline is under preparation.
 }
 \examples{
 \dontrun{
 caim <- read_caim()
-bsi <- (caim$Blue-caim$Red) / (caim$Blue+caim$Red)
-
+r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- !is.na(z)
 
-r <- caim$Blue
+path <- system.file("external/ootb_sky.txt", package = "rcaiman")
+ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
 
-bin <- regional_thresholding(r, rings_segmentation(z, 30),
-                             method = "thr_isodata")
-g <- sky_grid_segmentation(z, a, 10)
-sun_coord <- extract_sun_coord(r, z, a, bin, g)
-sun_coord$zenith_azimuth
+sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points[,c("row", "col")],
+                             ootb_sky)
 
-.a <- azimuth_image(z, orientation = sun_coord$zenith_azimuth[2]+90)
-seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
-bin <- regional_thresholding(r, seg, method = "thr_isodata")
-
-mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, mx = mx, force_range = TRUE)
-ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
-bin <- apply_thr(ecaim, thr_isodata(ecaim[m])) & bsi > 0.1
-
-set.seed(7)
-g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
-sky <- ootb_sky_reconstruction(r, z, a, m, bin & mask_hs(z, 0, 80), g,
-                               sor_filter_cv = TRUE, sor_filter_dn = TRUE,
-                               min_spherical_dist = 3)
-
-ratio <- r/sky$sky
-.r <- normalize(ecaim *
-                  normalize(ratio, 0, 1, TRUE) * normalize(bsi, 0, 1, TRUE))
-bin <- apply_thr(.r, thr_isodata(.r[m]))
+bin <- apply_thr(r/sky$sky, 0.75)
+plot(bin)
 
 g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 3,
                                  min_raster_dist = 9)
 
-plot(bin)
-points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
+points(ootb_sky$sky_points$col, nrow(caim) - ootb_sky$sky_points$row,
+       col = 2, pch = 10)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 4, pch = 10)
+sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)$sky_points
+i <- sor_filter(sky_points, r, k = 3)
 
-plot(sky$sky)
-sky2 <- interpolate_and_merge(r, z, a, sky_points, sky)
-plot(sky2)
-calc_oor_index(r, sky2)
-sky$oor_index
+sky2 <- interpolate_and_merge(r, z, a, sky_points[i, c("row", "col")],
+                              ootb_sky, rmax_tune = 0.75)
+plot(sky2$sky)
+
+sky_points <- expand_sky_points(r, z, a, sky_points[i, c("row", "col")],
+                                angle_width = 1.875,
+                                k= 3, rmax = 20)
+sky_points <- sor_filter(sky_points) \%>\% sky_points[. ,]
+sky2 <- interpolate_and_merge(r, z, a, sky_points, ootb_sky, rmax_tune = 0.75)
+plot(sky2$sky)
 }
 }
 \references{
@@ -97,6 +81,6 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{interpolate_sky_points}()},
-\code{\link{ootb_sky_reconstruction}()}
+\code{\link{ootb_fit_cie_sky_model}()}
 }
 \concept{Sky Reconstruction Functions}

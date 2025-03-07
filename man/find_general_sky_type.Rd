@@ -2,18 +2,19 @@
 % Please edit documentation in R/find_general_sky_type.R
 \name{find_general_sky_type}
 \alias{find_general_sky_type}
-\title{Find the general sky type closer to a given set of coeficients}
+\title{Find the general sky type attributable to a given set of coefficients}
 \usage{
 find_general_sky_type(model)
 }
 \arguments{
-\item{model}{the result of calling \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.}
+\item{model}{An object of the class \emph{list}. The result of calling
+\code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.}
 }
 \value{
 A character vector of length one.
 }
 \description{
-Find the general sky type closer to a given set of coeficients
+Find the general sky type attributable to a given set of coefficients
 }
 \examples{
 \dontrun{
@@ -61,9 +62,10 @@ Other Tool Functions:
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

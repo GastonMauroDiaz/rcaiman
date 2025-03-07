@@ -1,6 +1,5 @@
 .is_even <- function(x) round(x/2) == x/2
 .is_whole <- function(x) round(x) == x
-.is_integerish <- function(x) x == round(x)
 
 .was_normalized <- function(r, name = "r") {
   if (.get_max(r) > 1)

@@ -8,7 +8,7 @@
 #' required number of points is reached.
 #'
 #' @inheritParams ootb_mblt
-#' @param sky_points An object of class *data.frame*. The result of a call to
+#' @param sky_points An object of class *data.frame*. The output of
 #'   [extract_sky_points()]. As an alternative, both
 #'   [ImageJ](https://imagej.net/ij/) and HSP software package
 #'   \insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
@@ -144,7 +144,7 @@ extract_rl <- function(r, z, a, sky_points,
   if (is.null(no_of_points)) {
     zenith_dn <- 1
   } else {
-    .is_integerish(no_of_points)
+    .is_whole(no_of_points)
     stopifnot(length(no_of_points) == 1)
     zenith_dn <- c()
     unlock <- TRUE

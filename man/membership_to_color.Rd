@@ -7,7 +7,7 @@
 membership_to_color(caim, target_color, sigma = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{target_color}{\linkS4class{color}.}

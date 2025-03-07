@@ -7,7 +7,7 @@
 mask_sunlit_canopy(caim, m = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check

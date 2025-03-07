@@ -1,0 +1,57 @@
+#' Write out-of-the-box CIEF sky model fitting
+#'
+#' @inheritParams interpolate_and_merge
+#' @param name Character vector of length one. File name without extension. If
+#'   needed, a file path can be added to the names. For example:
+#'   `"C:/Users/Doe/Documents/DSCN4500"`.
+#'
+#' @returns No return value. Called for side effects.
+#' @export
+#'
+#' @family Tool Functions
+#'
+write_ootb_sky_model <- function(ootb_sky, name) {
+
+  sink(paste0(name, ".txt"))
+  .print <- function(x) cat(x, "\n")  # Usa cat() para evitar [1]
+
+  .print("v0.2")
+
+  paste0(rep("-", 80), collapse = "") %>% .print()
+  ootb_sky$model$mle2_output %>% summary() %>% suppressWarnings() %>% print()
+  paste0(rep("-", 80), collapse = "") %>% .print()
+
+  ootb_sky$model$sun_coord$zenith_azimuth[1] %>% paste("sun_theta:", .) %>% .print()
+  ootb_sky$model$sun_coord$zenith_azimuth[2] %>% paste("sun_phi:", .) %>% .print()
+  ootb_sky$model$zenith_dn %>% paste("zenith_dn:", .)%>% .print()
+  ootb_sky$model$start[1] %>% paste("start_a:", .) %>% .print()
+  ootb_sky$model$start[2] %>% paste("start_b:", .) %>% .print()
+  ootb_sky$model$start[3] %>% paste("start_c:", .) %>% .print()
+  ootb_sky$model$start[4] %>% paste("start_d:", .) %>% .print()
+  ootb_sky$model$start[5] %>% paste("start_e:", .) %>% .print()
+  ootb_sky$model$method %>% unname %>% paste("method:", .) %>% .print()
+  ootb_sky$model$coef[1] %>% unname %>% paste("fit_a:", .) %>% .print()
+  ootb_sky$model$coef[2] %>% unname %>% paste("fit_b:", .) %>% .print()
+  ootb_sky$model$coef[3] %>% unname %>% paste("fit_c:", .) %>% .print()
+  ootb_sky$model$coef[4] %>% unname %>% paste("fit_d:", .) %>% .print()
+  ootb_sky$model$coef[5] %>% unname %>% paste("fit_e:", .) %>% .print()
+
+  paste0(rep("-", 80), collapse = "") %>% .print()
+  ootb_sky$model_validation$lm %>% summary() %>% print()
+  paste0(rep("-", 80), collapse = "") %>% .print()
+
+  ootb_sky$sky_points %>% nrow() %>% paste("sky_points_no:", .) %>% .print()
+  ootb_sky$sky_points$outliers %>% sum() %>% paste("outliers_no:", .) %>%  .print()
+  ootb_sky$model_validation$rmse %>% paste("RMSE:", .) %>% .print()
+  ootb_sky$model_validation$r_squared %>% paste("r_squared:", .) %>% .print()
+
+  sink()
+
+  # Save sky points
+  utils::write.csv2(ootb_sky$sky_points, paste0(name, "_fit", ".csv"))
+
+  # Save data for model validation
+  df <- data.frame(predicted = ootb_sky$model_validation$predicted,
+                   observed = ootb_sky$model_validation$observed)
+  utils::write.csv2(df, paste0(name, "_val", ".csv"))
+}

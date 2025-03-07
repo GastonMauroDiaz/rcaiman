@@ -1,13 +1,15 @@
-#' Out-of-the-box sky reconstruction
-#'
-#' Build an above canopy image from a single below canopy image
+#' Out-of-the-box fit CIE sky model
 #'
 #' This function is a hard-coded version of a pipeline that uses these main
-#' functions [fit_cie_sky_model()] and [interpolate_sky_points()].
+#' functions [extract_sun_coord()], [extract_sky_points()], [sor_filter()],
+#' [extract_rl()] and [fit_cie_sky_model()].
 #'
-#' The pipeline is an automatic version of the
-#' \insertCite{Lang2010;textual}{rcaiman} method. A paper for thoroughly
-#' presenting and testing this pipeline is under preparation.
+#' This function is part of the efforts to automate the method proposed by
+#' \insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly presenting and
+#' testing this pipeline is under preparation.
+#'
+#' The validation of the CIE sky model is done with a k-fold approach (k = 10)
+#' following \insertCite{Pineiro2008;textual}{rcaiman}
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
@@ -21,8 +23,6 @@
 #' @param sor_filter_dn Logical vector of length one. If `TRUE`, [sor_filter()]
 #'   will be applied internally to filter out points using local darkness as the
 #'   criterion. Local means not farther than 20 degrees.
-#' @param interpolate Logical vector of length one. If `TRUE`,
-#'   [interpolate_sky_points()] will be used.
 #' @param input_sky_points An object of class *data.frame* with the same
 #'   structure than the output of [extract_sky_points()]. This argument is
 #'   convinient to provide manually digitized points, see [fit_cie_sky_model()]
@@ -35,15 +35,22 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object of the class _list_ that includes the following: (1) the
-#'   reconstructed sky ([SpatRaster-class]), (2) the output produced by
-#'   [fit_cie_sky_model()], (3) an object of the class _list_ that includes an
-#'   object of the class `lm` (see [stats::lm()]) and the RMSE, both being the
-#'   result of validating (2) with a k-fold approach and following
-#'   \insertCite{Pineiro2008;textual}{rcaiman},(4) the `dist_to_plant` argument
-#'   used when [fit_cie_sky_model()] was called, (5) the `sky_points` argument
-#'   used when [extract_rl()] was called,  and (6) the out-of-range index (see
-#'   [calc_oor_index()]).
+#' @return A _list_ with the following components:
+#' \itemize{
+#'   \item An object of the [SpatRaster-class]) with the predicted digital
+#'   number values.
+#'   \item The output produced by [fit_cie_sky_model()].
+#'   \item A _list_ containing the result of model validation:
+#'     \itemize{
+#'       \item An object of class `lm` (see [stats::lm()]).
+#'       \item the coefficient of determination (\eqn{r^2}).
+#'       \item predicted values.
+#'       \item observed vales.
+#'       \item The root mean squared error (RMSE).
+#'     }
+#'   \item The `dist_to_plant` argument used in [fit_cie_sky_model()].
+#'   \item The `sky_points` argument used in [extract_rl()].
+#' }
 #'
 #'
 #' @examples
@@ -73,33 +80,33 @@
 #'
 #' set.seed(7)
 #' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
-#' sky <- ootb_sky_reconstruction(r, z, a, m, bin & mask_hs(z, 0, 80), g,
-#'                                sor_filter_cv = TRUE, sor_filter_dn = TRUE,
-#'                                min_spherical_dist = 3)
+#' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , g,
+#'                               sor_filter_cv = TRUE, sor_filter_dn = TRUE,
+#'                               refine_sun_coord = TRUE,
+#'                               min_spherical_dist = 3)
 #'
 #' sky$sky
 #' plot(sky$sky)
 #' sky$model_validation$rmse
 #' plot(r/sky$sky>1.15)
-#' plot(sky$model_validation$reg$model$x, sky$model_validation$reg$model$y)
+#' plot(sky$model_validation$predicted, sky$model_validation$observed)
 #' abline(0,1)
-#' error <- sky$model_validation$reg$model$x - sky$model_validation$reg$model$y
+#' error <- sky$model_validation$predicted - sky$model_validation$observed
 #' plot(sky$sky_points$z[!sky$sky_points$outliers], error,
-#'                      xlab = "zenith angle", ylab = "relative radiance error")
+#'      xlab = "zenith angle", ylab = "relative radiance error")
 #' abline(h = 0)
 #'
 #' plot(bin)
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 #'
 #' }
-ootb_sky_reconstruction <- function(r, z, a, m, bin, g,
-                                    sor_filter_cv = FALSE,
-                                    sor_filter_dn = FALSE,
-                                    refine_sun_coord = FALSE,
-                                    interpolate = TRUE,
-                                    min_spherical_dist = NULL,
-                                    input_sky_points = NULL
-                                    ) {
+ootb_fit_cie_sky_model <- function(r, z, a, m, bin, g,
+                                   sor_filter_cv = FALSE,
+                                   sor_filter_dn = FALSE,
+                                   refine_sun_coord = FALSE,
+                                   min_spherical_dist = NULL,
+                                   input_sky_points = NULL
+                                   ) {
 
   .is_single_layer_raster(m, "m")
   .is_logic_and_NA_free(m)
@@ -253,7 +260,8 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g,
 
   if (sor_filter_cv == TRUE) {
     cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-    u <- sor_filter(rl$sky_points, cv, rmax = 30, thr = 0,
+    u <- sor_filter(rl$sky_points, k = 10,
+                    cv, rmax = 30, thr = 0,
                     cutoff_side = "right")
     if (!is.null(input_sky_points)) {
       u[1:nrow(input_sky_points)] <- TRUE
@@ -261,7 +269,8 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g,
     rl$sky_points <- rl$sky_points[u, ]
   }
   if (sor_filter_dn == TRUE) {
-    u <- sor_filter(rl$sky_points, r, rmax = 20, thr = 2, cutoff_side = "left")
+    u <- sor_filter(rl$sky_points, k = 5,
+                    rmax = 20, thr = 2, cutoff_side = "left")
     if (!is.null(input_sky_points)) {
       u[1:nrow(input_sky_points)] <- TRUE
     }
@@ -338,24 +347,14 @@ ootb_sky_reconstruction <- function(r, z, a, m, bin, g,
 
   rl$sky_points$outliers <- !u
 
-  # START interpolate ####
-  if (interpolate) {
-    sky <- interpolate_and_merge(r, z, a, rl$sky_points[, c("row", "col")],
-                                 list(model_validation = list(reg = reg),
-                                      model = model,
-                                      sky = .get_sky_cie(z, a, model)),
-                                 expand = FALSE)
-  } else {
-    sky <- .get_sky_cie(z, a, model)
-  }
-  # END interpolate ####
-
-  list(sky = sky,
+  list(sky = .get_sky_cie(z, a, model),
        model = model,
-       model_validation = list(reg = reg,
+       model_validation = list(lm = reg,
+                               predicted = reg$model$x,
+                               observed = reg$model$y,
+                               r_squared = summary(reg) %>% .$r.squared,
                                rmse = .calc_rmse(reg$model$y - reg$model$x)),
        dist_to_plant = dist_to_plant,
-       sky_points = rl$sky_points,
-       oor_index = calc_oor_index(r, sky)
+       sky_points = rl$sky_points
        )
 }

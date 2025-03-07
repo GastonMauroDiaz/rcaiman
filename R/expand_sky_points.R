@@ -3,6 +3,7 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams sor_filter
+#' @inheritParams extract_rl
 #' @inheritParams interpolate_sky_points
 #'
 #' @returns An object of the class *data.frame*. It is the input argument
@@ -50,14 +51,12 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
   g <- sky_grid_segmentation(z, a, angle_width, first_ring_different = TRUE)
   g <- terra::focal(g, 3, function(x) length(unique(x)))
   bin <- g==4
-  bin <- bin & mask_hs(z, 0, 85)
+  bin <- bin & mask_hs(z, 0, 90-angle_width*0.9)
 
   bwlabels <- EBImage::bwlabel(as.array(bin))
   bwlabels <- terra::setValues(bin, bwlabels)
 
   sky_points2 <- extract_sky_points(r, bin, bwlabels, dist_to_plant = NULL)
-  sky_points2$row <- jitter(sky_points2$row, 25)
-  sky_points2$col <- jitter(sky_points2$col, 25)
 
   sky_points2 <- extract_rl(r, z, a, sky_points2, NULL)$sky_points
   sky_points <- extract_rl(r, z, a, sky_points, NULL)$sky_points
@@ -72,20 +71,24 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
     sorted_indices <- order(spherical_distance)
     w <- spherical_distance[sorted_indices][2:(k + 1)]
     m <- w <= rmax
-    if (any(m)) {
+    w <- w
+    if (all(m)) {
       w <- 1 / w^p
       u <- ds[sorted_indices[2:(k + 1)], 3]
-      return(sum(u[m] * (w[m] / sum(w[m]))))
+      return(sum(u * (w / sum(w))))
     } else {
       return(NA)
     }
   }
 
-  new_value <- vapply(seq_len(nrow(sky_points2)),
-                      calculate_dn, numeric(1)) %>% unlist
+  # new_value <- vapply(seq_len(nrow(sky_points2)),
+  #                     calculate_dn, numeric(1)) %>% unlist
+  new_value <- Map(calculate_dn, seq_len(nrow(sky_points2))) %>% unlist()
 
   sky_points2$dn <- new_value
   sky_points2 <- sky_points2[!is.na(new_value),]
+  initial <- c(rep(TRUE, nrow(sky_points)), rep(FALSE, nrow(sky_points2)))
   sky_points <- rbind(sky_points, sky_points2)
-  sky_points[, -ncol(sky_points)]
+  sky_points <- sky_points[, -ncol(sky_points)] #remove the rl column
+  cbind(sky_points, initial)
 }

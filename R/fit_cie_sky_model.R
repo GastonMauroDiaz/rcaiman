@@ -63,9 +63,9 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #'
-#' @param rl An object of class *list*. The result of a call to [extract_rl()]
+#' @param rl An object of class *list*. The output of [extract_rl()]
 #'   or an object with same structure and names.
-#' @param sun_coord An object of class *list*. The result of a call to
+#' @param sun_coord An object of class *list*. The output of
 #'   [extract_sun_coord()] or an object with same structure and names. See also
 #'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
 #'   date and time of acquisition and the `suncalc` package.
@@ -271,7 +271,7 @@ fit_cie_sky_model <- function(rl, sun_coord,
 
   fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
-  if (twilight) { #& sun_coord$zenith_azimuth[1] > 65
+  if (twilight & sun_coord$zenith_azimuth[1] > 65) {
     indices <- match(11:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]
     if (length(indices) != 0) {

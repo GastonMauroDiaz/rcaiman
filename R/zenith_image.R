@@ -46,7 +46,7 @@ relative_radius_image <- function (diameter)
 zenith_image <- function (diameter, lens_coef)
 {
   # Assign zenith angle by inverting relative radius(R) with a Look Up Table
-  stopifnot(.is_integerish(diameter))
+  stopifnot(.is_whole(diameter))
   stopifnot(.is_even(diameter))
 
   x <- relative_radius_image(diameter)

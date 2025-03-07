@@ -1,0 +1,61 @@
+v0.2 
+-------------------------------------------------------------------------------- 
+Maximum likelihood estimation
+
+Call:
+bbmle::mle2(minuslogl = flog, start = list(.a = as.numeric(skies[i, 
+    1]), .b = as.numeric(skies[i, 2]), .c = as.numeric(skies[i, 
+    3]), .d = as.numeric(skies[i, 4]), .e = as.numeric(skies[i, 
+    5])), method = method)
+
+Coefficients:
+    Estimate Std. Error  z value     Pr(z)    
+.a -0.987316   0.067283 -14.6740 < 2.2e-16 ***
+.b -0.387341   0.068851  -5.6258 1.846e-08 ***
+.c  1.915438   0.464421   4.1244 3.718e-05 ***
+.d -2.456141   0.665477  -3.6908 0.0002236 ***
+.e  1.109948   0.181708   6.1084 1.006e-09 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+-2 log L: 0.06314055 
+-------------------------------------------------------------------------------- 
+sun_theta: 62.955284425311 
+sun_phi: 28.0996457549199 
+zenith_dn: 528.148148148148 
+start_a: 1.1 
+start_b: -0.8 
+start_c: 2 
+start_d: -1.5 
+start_e: 0.15 
+method: BFGS 
+fit_a: -0.987315838163426 
+fit_b: -0.387341310230699 
+fit_c: 1.91543819245145 
+fit_d: -2.45614111973284 
+fit_e: 1.10994790805501 
+-------------------------------------------------------------------------------- 
+
+Call:
+lm(formula = x ~ y)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.32749 -0.06285 -0.01243  0.06152  0.32761 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -0.02670    0.05192  -0.514     0.61    
+y            1.01716    0.03375  30.138   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1253 on 44 degrees of freedom
+Multiple R-squared:  0.9538,	Adjusted R-squared:  0.9527 
+F-statistic: 908.3 on 1 and 44 DF,  p-value: < 2.2e-16
+
+-------------------------------------------------------------------------------- 
+sky_points_no: 59 
+outliers_no: 13 
+RMSE: 0.12290763898547 
+r_squared: 0.953796365992007 

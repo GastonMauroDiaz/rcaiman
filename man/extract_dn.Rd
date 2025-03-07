@@ -9,7 +9,7 @@ extract_dn(r, img_points, use_window = TRUE, fun = NULL)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
 
-\item{img_points}{The result of a call to \code{\link[=extract_sky_points]{extract_sky_points()}},
+\item{img_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}},
 or an object of the same class and structure.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
@@ -82,9 +82,10 @@ Other Tool Functions:
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

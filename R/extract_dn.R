@@ -4,7 +4,7 @@
 #'
 #'
 #' @inheritParams fisheye_to_equidistant
-#' @param img_points The result of a call to [extract_sky_points()],
+#' @param img_points The output of [extract_sky_points()],
 #'   or an object of the same class and structure.
 #' @inheritParams extract_rl
 #' @inheritParams extract_feature

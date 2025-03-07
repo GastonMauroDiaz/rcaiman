@@ -172,9 +172,10 @@ Other Tool Functions:
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

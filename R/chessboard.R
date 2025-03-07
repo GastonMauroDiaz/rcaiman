@@ -17,7 +17,7 @@
 chessboard <- function(r, size) {
   is(r, "SpatRaster")
   stopifnot(length(size) == 1)
-  stopifnot(.is_integerish(size))
+  stopifnot(.is_whole(size))
 
   x <- ncol(r)/size %>% trunc()
   y <- nrow(r)/size %>% trunc()

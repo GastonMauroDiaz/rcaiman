@@ -2,7 +2,7 @@
 #'
 #' Expand a non-circular hemispherical photograph.
 #'
-#' @param caim [SpatRaster-class]. The return of a call to [read_caim()] or
+#' @param caim [SpatRaster-class]. The output of [read_caim()] or
 #'   [read_caim_raw()].
 #' @inheritParams ootb_mblt
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
@@ -11,8 +11,8 @@
 #' @family Lens Functions
 #'
 #' @return An object of class [SpatRaster-class] that is the result of adding
-#'   margins (`NA` pixels) to `caim`. The zenith point depicted in the picture
-#'   should be in the center of the image or very close to it.
+#'   margins (`NA` pixels) to the argument `caim`. The zenith point depicted in
+#'   the picture should be in the center of the image or very close to it.
 #'
 #' @export
 #'

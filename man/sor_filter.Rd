@@ -4,17 +4,22 @@
 \alias{sor_filter}
 \title{Statistical outlier removal filter}
 \usage{
-sor_filter(sky_points, r, k = 20, rmax = 20, thr = 2, cutoff_side = "both")
+sor_filter(
+  sky_points,
+  r = NULL,
+  k = 20,
+  rmax = 20,
+  thr = 2,
+  cutoff_side = "both"
+)
 }
 \arguments{
-\item{sky_points}{An object of class \emph{data.frame}. The result of a call to
-\code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
-\href{https://imagej.net/ij/}{ImageJ} and HSP software package
-\insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
-\code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.}
+\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rl]{extract_rl()}} or a
+\emph{data.frame} with same structure and names.}
 
 \item{r}{\linkS4class{SpatRaster}. An image with the same raster grid as the one
-from which \code{sky_points} was obtained.}
+from which \code{sky_points} was obtained. If \code{NULL} is provided instead, the
+\code{dn} column from the \code{sky_points} argument will be used.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
@@ -29,6 +34,10 @@ distance is then calculated and used to filter out points farther than
 
 \item{cutoff_side}{Character vector of length one. See
 \insertCite{Leys2013;textual}{rcaiman}.}
+}
+\value{
+Logical vector of length equal to the number of row of argument
+\code{sky_points}.
 }
 \description{
 Statistical outlier removal filter
@@ -47,15 +56,14 @@ g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_plant = 3,
                                  min_raster_dist = 10)
-plot(bin)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+plot(r)
+points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
 sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
-i <- sor_filter(sky_points$sky_points, r, rmax = 10, thr = 1,
+i <- sor_filter(sky_points$sky_points, k = 5, rmax = 20, thr = 2,
                 cutoff_side = "left")
-sky_points <- sky_points$sky_points[i, c("row", "col")]
-plot(bin)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
+sky_points <- sky_points$sky_points[!i, c("row", "col")]
+points(sky_points$col, nrow(caim) - sky_points$row, col = "red",
+       pch = "X", cex = 1.5)
 }
 }
 \references{
@@ -82,8 +90,9 @@ Other Tool Functions:
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

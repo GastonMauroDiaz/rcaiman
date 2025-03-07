@@ -1,26 +1,21 @@
-* interpolate_and_merge()
-* fit_cie_sky_model() change output and behavor
-* New `calc_oor_index()` allows calculating the out-of-range index independently of `ootb_sky_reconstruction()`.
+* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `interpolate_and_merge()`, and `calc_oor_index()`.
+* New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.
 * New `sor_filter()` allows a flexible method for filtering sky points.
-* New `calc_sngd()` allows to evaluate image quality
-* New `write_report()` allows to archive a report on sky reconstruction accurary
+* New `calc_sngd()` and `find_general_sky_type()` allow to evaluate image quality
 * `sky_grid_segmentation()` gains `first_ring_different` to avoid the very small cells typical of the near zenith cells.
 * `extract_rl` gains 'min_spherical_distance' which allows more control over sky sampling.
-* delete `fix_reconstructed_sky`
-* `extract_sky_points()` is now more robust
+* delete `fix_reconstructed_sky()` since it was deamed obsolete.
+* `extract_sky_points()` is now more robust.
 * `sky_grid_segmentation()` gains the argument `first_ring_different`
-* `fit_sky_cie()` optimization was redesigned and improved. Arguments r, z, a, sky_points, and zenith_dn were replaced  for rl. Argument rmse was removed since opting for the OOR index instead of RMSE is not an option anymore.
+* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rl`. Argument `rmse` was removed since opting for the OOR index instead of RMSE is not an option anymore. The output of this new version will be different from previous versions since the target function changed as well as the selection of the best fit.
 * Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
 * Delete `extrac_sky_points_simple()` since it was deamed obsolete.
 * Change `ootb_mblt()` as a result of deleting `extract_sky_points_simple()`.
 * Fix rotation argument of `azimuth_image()`
 * Change the order in the arguments of `calc_co()` to homogeneize criteria within the package
-* `ootb_sky_reconstruction()` reached a stable version.
-# rcaiman 1.2.0
-## Breaking changes
+# rcaiman 1.2.0 ## Breaking changes
 * `ootb_mblt()` was updated and results from this version will be different to
-those from previous version.
-## New features
+those from previous version. ## New features
 * New `calc_co()` provides canopy openness calculation for hemispherical images.
 * New `correct_vignetting()` to correct the vignetting effect and doing so
 standardize radiometry.
@@ -31,8 +26,7 @@ effect with `correct_vignetting()`.
 * New `extract_sky_points_simple()` to obtain sky points without the need of a
 working binarized image.
 * `fisheye_to_equidistant()` is now able to interpolate. It gains the `m`
-argument.
-## Minor improvements and fixes
+argument. ## Minor improvements and fixes
 * `calc_zenith_colrow()` is former `calc_zenith_raster_coord()`.
 * `calibrate_lens` gains a more extensive output.
 * `extract_rl()` default values were changed.
@@ -52,17 +46,15 @@ large data.frame naming.
 different arguments because they were reprogrammed to overcome limitations in
 azimuth angle computations and unintentional side effects.
 * `thr_mblt()` is former `thr_image()`.
-# rcaiman 1.1.1
-## New features
+# rcaiman 1.1.1 ## New features
 * `ootb_obia()` gains `gamma`
 ## Minor improvements and fixes
 * `ootb_mblt()` now can detect when `find_sky_pixels()` fails to deliver a good
 mask, and switch to find a mask by applying a global threshold calculated with
 IsoData.This last method will works well since the failure of
 `find_sky_pixels()` is associated with extremely open forest, in which
-circumstances it will not produce comission errors.
-# rcaiman 1.0.7
-## Breaking changes
+circumstances it will not produce comission errors. # rcaiman 1.0.7 ## Breaking
+changes
 * Now *rcaiman* depends on *terra* package instead of *raster* since key
 dependencies of the latter package are on the course of losing maintenance by
 2023 (<https://r-spatial.org/book/sp-raster.html>). This implied changes in the
@@ -72,8 +64,7 @@ this new version.
 * A major bug on `local_fuzzy_thresholding()` was fixed. This affected the main
 function `enhance_caim()` since it internally uses `local_fuzzy_thresholding()`.
 If possible, results from scripts using `local_fuzzy_thresholding()` or
-`enhace_caim()` should be recalculated with this new version.
-## New features
+`enhace_caim()` should be recalculated with this new version. ## New features
 * New HSP functions family enables a dynamic workflow between R and the HSP
 software package (<doi:10.2478/fsmu-2013-0008>).
 * `azimuth_image()` gains `rotation`, which allows processing images
@@ -139,8 +130,7 @@ build an above canopy image from a single below canopy image, by means of
 * New `polar_qtree()` provides quad-tree segmentation in the polar space.
 * New `qtree()` provides classical quad-tree segmentation
 * New `thr_isodata()` is an alternative implementation of the IsoData method
-from the autothresholdr package.
-## Minor improvements and fixes
+from the autothresholdr package. ## Minor improvements and fixes
 * Examples of restricted view photography were added, broadening the scope of
 the package since most new users search for code templates on the examples in
 order to get started.

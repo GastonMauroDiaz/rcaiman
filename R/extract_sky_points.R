@@ -120,7 +120,7 @@ extract_sky_points <- function(r, bin, g,
 
     # systematic sampling using a sky grid by taking the maximum from each cell
     if (!is.null(dist_to_plant)) {
-      stopifnot(.is_integerish(dist_to_plant))
+      stopifnot(.is_whole(dist_to_plant))
       .this_requires_EBImage()
       kern <- EBImage::makeBrush(dist_to_plant, "box")
       # dist_to_plant_img <- NA_count == 0
@@ -168,7 +168,7 @@ extract_sky_points <- function(r, bin, g,
     bin[shape] <- 0
 
     if (!is.null(dist_to_plant)) {
-      stopifnot(.is_integerish(dist_to_plant))
+      stopifnot(.is_whole(dist_to_plant))
       kern <- EBImage::makeBrush(dist_to_plant, "box")
       dist_to_plant_img <- bin
       dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%

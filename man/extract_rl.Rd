@@ -24,7 +24,7 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{An object of class \emph{data.frame}. The result of a call to
+\item{sky_points}{An object of class \emph{data.frame}. The output of
 \code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
 \href{https://imagej.net/ij/}{ImageJ} and HSP software package
 \insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
@@ -108,9 +108,10 @@ Other Tool Functions:
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

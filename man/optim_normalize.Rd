@@ -7,7 +7,7 @@
 optim_normalize(caim, bin, method = "BFGS")
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
@@ -66,9 +66,10 @@ Other Tool Functions:
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
+\code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
-\code{\link{write_report}()}
+\code{\link{write_ootb_sky_model}()}
 }
 \concept{Tool Functions}

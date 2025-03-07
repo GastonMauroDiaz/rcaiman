@@ -7,7 +7,7 @@
 expand_noncircular(caim, z, zenith_colrow)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The return of a call to \code{\link[=read_caim]{read_caim()}} or
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
@@ -17,8 +17,8 @@ zenith. See \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} that is the result of adding
-margins (\code{NA} pixels) to \code{caim}. The zenith point depicted in the picture
-should be in the center of the image or very close to it.
+margins (\code{NA} pixels) to the argument \code{caim}. The zenith point depicted in
+the picture should be in the center of the image or very close to it.
 }
 \description{
 Expand a non-circular hemispherical photograph.

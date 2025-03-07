@@ -74,7 +74,7 @@ interpolate_sky_points <- function(sky_points,
   stopifnot(length(p) == 1)
   stopifnot(length(rmax) == 1)
   stopifnot(length(col_id) == 1)
-  stopifnot(.is_integerish(k))
+  stopifnot(.is_whole(k))
   stopifnot(is.numeric(p))
   stopifnot(is.numeric(rmax))
   stopifnot(is.data.frame(sky_points))

@@ -1,6 +1,7 @@
-#' Find the general sky type closer to a given set of coeficients
+#' Find the general sky type attributable to a given set of coefficients
 #'
-#' @param model the result of calling [fit_cie_sky_model()].
+#' @param model An object of the class _list_. The result of calling
+#'   [fit_cie_sky_model()].
 #'
 #' @returns A character vector of length one.
 #' @export

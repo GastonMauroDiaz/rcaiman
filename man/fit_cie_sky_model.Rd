@@ -15,10 +15,10 @@ fit_cie_sky_model(
 )
 }
 \arguments{
-\item{rl}{An object of class \emph{list}. The result of a call to \code{\link[=extract_rl]{extract_rl()}}
+\item{rl}{An object of class \emph{list}. The output of \code{\link[=extract_rl]{extract_rl()}}
 or an object with same structure and names.}
 
-\item{sun_coord}{An object of class \emph{list}. The result of a call to
+\item{sun_coord}{An object of class \emph{list}. The output of
 \code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
 \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values based on
 date and time of acquisition and the \code{suncalc} package.}
@@ -172,6 +172,6 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_trend_surface}()},
 \code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()},
-\code{\link{ootb_sky_reconstruction}()}
+\code{\link{ootb_fit_cie_sky_model}()}
 }
 \concept{Sky Reconstruction Functions}
