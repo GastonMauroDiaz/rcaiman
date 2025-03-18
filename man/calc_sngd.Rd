@@ -15,8 +15,8 @@ calc_sngd(caim, z, a, bin, angle = 60, kern_size = 3)
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. It should be the result of binarizing an
-enhaced canopy image (see \code{\link[=enhance_caim]{enhance_caim()}}, \code{\link[=apply_thr]{apply_thr()}}, and
-\code{\link[=thr_isodata]{thr_isodata()}})}
+enhaced canopy image and post-processing it to remove microgaps. See
+the example.}
 
 \item{angle}{Numeric vector of length one. Zenith angle in degrees. The
 canopy below this value of zenith angle will not be analyzed.}
@@ -52,10 +52,11 @@ bin <- regional_thresholding(r, seg, method = "thr_isodata")
 
 mx <- optim_normalize(caim, bin)
 caim <- normalize(caim, mx = mx, force_range = TRUE)
-ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
+ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+bin <- apply_thr(terra::focal(bin, 3, median), 0.5)
 
-calc_sngd(.caim, z, a, bin)
+calc_sngd(.caim, z, a, bin, kern_size = 3)
 }
 }
 \seealso{

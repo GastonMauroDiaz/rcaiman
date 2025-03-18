@@ -114,12 +114,8 @@ sky_blue <- apply(sky_blue_sample[], 2, median) \%>\%
 hex(sky_blue)
 # Use hex() to obtain the HEX color code. To see a color swatch, enter the
 # HEX code into a search engine (such as Mozilla Firefox).
-# NOTE: see extract_dn() for an alternative method to obtain sky_blue
-
-as(sky_blue, "HSV") #saturatio (S) is low
-# To obtain same hue (H) but greater saturation
-sky_blue <- HSV(239, 0.85, 0.5) \%>\% as(., "sRGB") \%>\% as(., "LAB")
-hex(sky_blue)
+# NOTE: see extract_dn() for a better method to obtain sky_blue
+sky_blue <- polarLAB(50, 17, 293)
 
 caim <- normalize(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)

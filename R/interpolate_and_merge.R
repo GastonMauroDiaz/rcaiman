@@ -1,9 +1,11 @@
 #' Interpolate sky data into a raster and merge it with a sky model raster
 #'
 #' This function is part of the efforts to automate the method proposed by
-#' \insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly
-#' presenting and testing this pipeline is under preparation.
+#' \insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly presenting and
+#' testing this pipeline is under preparation.
 #'
+#' @param r [SpatRaster-class]. Typically, the blue channel extracted from a
+#'   canopy photograph. The image from which `sky_points` was obtained.
 #' @inheritParams ootb_mblt
 #' @param sky_points An object of class `data.frame`. The output of
 #'   [extract_sky_points()] or [expand_sky_points].
@@ -12,7 +14,6 @@
 #' @param rmax_tune Numeric vector of length one. It must be a positive integer.
 #'   It is used to fine tune the `rmax` argument that is computed internally
 #'   (see Details).
-#'
 #'
 #' @family Sky Reconstruction Functions
 #'
@@ -62,7 +63,7 @@
 interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
                                   rmax_tune = 1) {
   model <- ootb_sky$model
-  sky_cie <- cie_sky_model_raster(z, a,
+  sky_cie <- cie_sky_image(z, a,
                                   model$sun_coord$zenith_azimuth,
                                   model$coef) * model$zenith_dn
   names(sky_cie) <- "CIE sky"
@@ -92,6 +93,8 @@ interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   rmax <- pmax(ncol(r)/14,
                ncol(r)/7 * (1 - stats::median(res)/max(obs))) %>%
     round()
+  rmax <- rmax * rmax_tune
+
 
   if (expand) {
     sky_points <- sky_points2
@@ -115,24 +118,6 @@ interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
        w = w,
        k=  k,
        p = p,
-       rmax = rmax * rmax_tune)
+       rmax = rmax)
 }
 
-
-# param weighted_average A logical vector of length one. If `FALSE`, the
-#   residuals of the CIE sky model (\eqn{residuals=model-data}) are
-#   interpolated instead of the sky digital numbers (the data), and the final
-#   sky reconstruction is obtained by subtracting the interpolated residuals to
-#   the CIE sky model instead of by calculating a weighted average
-#   parameterized by the user, as when the method proposed by
-#   \insertCite{Lang2010;textual}{rcaiman} are followed.
-# residu <- sky_cie - r
-# sky_points <- extract_dn(residu, sky_points)
-# residu_i <- interpolate_sky_points(sky_points, r, k = k, p = p,
-#                                    rmax = rmax, col_id = 3)
-# sky <- sky_cie - residu_i
-# sky <- terra::cover(sky, sky_cie)
-# names(sky) <- paste0("Residual interpolation, ",
-#                      "k=", k, ", ",
-#                      "p=", round(p, 2), ", ",
-#                      "rmax=", rmax/3)

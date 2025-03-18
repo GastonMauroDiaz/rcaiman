@@ -49,7 +49,7 @@
 #' mx <- optim_normalize(caim, bin)
 #' caim <- normalize(caim, 0, mx, TRUE)
 #'
-#' sky_blue <- HSV(239, 0.85, 0.5)
+#' sky_blue <- polarLAB(50, 17, 293)
 #' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #'

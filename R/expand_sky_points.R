@@ -1,14 +1,27 @@
 #' Expand sky points
 #'
+#' Expand sky points using a _k_ neharest neightbord approach
+#'
+#'
+#'
 #' @inheritParams ootb_mblt
 #' @inheritParams sky_grid_segmentation
-#' @inheritParams sor_filter
 #' @inheritParams extract_rl
+#' @inheritParams sor_filter
 #' @inheritParams interpolate_sky_points
 #'
-#' @returns An object of the class *data.frame*. It is the input argument
-#'   `sky_points` with the additional columns: *a*, *z*, and *dn* and additional
-#'   rows obtained by knn interpolation.
+#' @returns An object of the class _data.frame_. It is the input argument
+#'   `sky_points` with the following additional data:
+#' \itemize{
+#'   \item Rows resulting of interpolating the `sky_points` argument.
+#'   \item Columns _a_, _z_, _dn_, and _initial_.
+#'      \itemize{
+#'        \item _a_, the azimuthal angle.
+#'        \item _z_:, the zenithal angle.
+#'        \item _dn_, the digital number.
+#'        \item _initial_, if 'TRUE' the point is from the `sky_points` argument.
+#'      }
+#' }
 #'
 #' @family Tool Functions
 #'
@@ -81,8 +94,6 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
     }
   }
 
-  # new_value <- vapply(seq_len(nrow(sky_points2)),
-  #                     calculate_dn, numeric(1)) %>% unlist
   new_value <- Map(calculate_dn, seq_len(nrow(sky_points2))) %>% unlist()
 
   sky_points2$dn <- new_value

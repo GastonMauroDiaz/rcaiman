@@ -51,8 +51,8 @@
 #' # parameters are from http://dx.doi.org/10.1016/j.energy.2016.02.054
 #' sky_coef <- skies[4,1:5]
 #' sun_coord <- c(45, 0)
-#' plot(cie_sky_model_raster(z, a, sun_coord, sky_coef))
-cie_sky_model_raster <- function(z, a, sun_coord, sky_coef) {
+#' plot(cie_sky_image(z, a, sun_coord, sky_coef))
+cie_sky_image <- function(z, a, sun_coord, sky_coef) {
   .is_single_layer_raster(z)
   .is_single_layer_raster(a)
   stopifnot(.get_max(z) <= 90)

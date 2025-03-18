@@ -24,8 +24,11 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rl]{extract_rl()}} or a
-\emph{data.frame} with same structure and names.}
+\item{sky_points}{An object of class \emph{data.frame}. The output of
+\code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
+\href{https://imagej.net/ij/}{ImageJ} and HSP software package
+\insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
+\code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.}
 
 \item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 constrain is rooted in the requirement of a value able to divide both the
@@ -40,15 +43,26 @@ of segments.}
 k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 similar to the use of relative radius in image mapping. The spherical
 distance is then calculated and used to filter out points farther than
-\code{rmax}. The distance is expressed in degrees.}
+\code{rmax}.The distance is expressed in degrees. If an insufficient number of
+neighbors are found within the search radius, the point is retained due to
+a lack of evidence for removal.}
 }
 \value{
 An object of the class \emph{data.frame}. It is the input argument
-\code{sky_points} with the additional columns: \emph{a}, \emph{z}, and \emph{dn} and additional
-rows obtained by knn interpolation.
+\code{sky_points} with the following additional data:
+\itemize{
+\item Rows resulting of interpolating the \code{sky_points} argument.
+\item Columns \emph{a}, \emph{z}, \emph{dn}, and \emph{initial}.
+\itemize{
+\item \emph{a}, the azimuthal angle.
+\item \emph{z}:, the zenithal angle.
+\item \emph{dn}, the digital number.
+\item \emph{initial}, if 'TRUE' the point is from the \code{sky_points} argument.
+}
+}
 }
 \description{
-Expand sky points
+Expand sky points using a \emph{k} neharest neightbord approach
 }
 \examples{
 \dontrun{

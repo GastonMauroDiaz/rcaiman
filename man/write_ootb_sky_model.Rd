@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_ootb_sky_model.R
 \name{write_ootb_sky_model}
 \alias{write_ootb_sky_model}
-\title{Write out-of-the-box CIEF sky model fitting}
+\title{Write out-of-the-box CIE sky model fitting}
 \usage{
 write_ootb_sky_model(ootb_sky, name)
 }
@@ -18,7 +18,7 @@ needed, a file path can be added to the names. For example:
 No return value. Called for side effects.
 }
 \description{
-Write out-of-the-box CIEF sky model fitting
+Write out-of-the-box CIE sky model fitting
 }
 \seealso{
 Other Tool Functions: 

@@ -25,7 +25,7 @@ Refer to the Details section of function
 \code{\link[=write_sky_points]{write_sky_points()}}.
 }
 \seealso{
-\code{\link[=cie_sky_model_raster]{cie_sky_model_raster()}}
+\code{\link[=cie_sky_image]{cie_sky_image()}}
 
 Other HSP Functions: 
 \code{\link{read_manual_input}()},

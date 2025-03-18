@@ -82,7 +82,7 @@ plot(r/sky_s)
 \code{\link[=thr_mblt]{thr_mblt()}}
 
 Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_model_raster}()},
+\code{\link{cie_sky_image}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{interpolate_and_merge}()},

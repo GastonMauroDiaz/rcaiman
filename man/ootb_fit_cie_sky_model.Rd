@@ -62,14 +62,7 @@ A \emph{list} with the following components:
 \item An object of the \linkS4class{SpatRaster}) with the predicted digital
 number values.
 \item The output produced by \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
-\item A \emph{list} containing the result of model validation:
-\itemize{
-\item An object of class \code{lm} (see \code{\link[stats:lm]{stats::lm()}}).
-\item the coefficient of determination (\eqn{r^2}).
-\item predicted values.
-\item observed vales.
-\item The root mean squared error (RMSE).
-}
+\item The output produced by \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
 \item The \code{dist_to_plant} argument used in \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The \code{sky_points} argument used in \code{\link[=extract_rl]{extract_rl()}}.
 }
@@ -77,15 +70,12 @@ number values.
 \description{
 This function is a hard-coded version of a pipeline that uses these main
 functions \code{\link[=extract_sun_coord]{extract_sun_coord()}}, \code{\link[=extract_sky_points]{extract_sky_points()}}, \code{\link[=sor_filter]{sor_filter()}},
-\code{\link[=extract_rl]{extract_rl()}} and \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
+\code{\link[=extract_rl]{extract_rl()}}, \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, and \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
 }
 \details{
 This function is part of the efforts to automate the method proposed by
 \insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly presenting and
 testing this pipeline is under preparation.
-
-The validation of the CIE sky model is done with a k-fold approach (k = 10)
-following \insertCite{Pineiro2008;textual}{rcaiman}
 }
 \examples{
 \dontrun{
@@ -108,8 +98,9 @@ bin <- regional_thresholding(r, seg, method = "thr_isodata")
 
 mx <- optim_normalize(caim, bin)
 caim <- normalize(caim, mx = mx, force_range = TRUE)
-ecaim <- enhance_caim(caim, m, HSV(239, 0.85, 0.5))
+ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+bin <- bin & mask_hs(z, 0, 85)
 plot(bin)
 
 set.seed(7)
@@ -140,7 +131,7 @@ points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 }
 \seealso{
 Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_model_raster}()},
+\code{\link{cie_sky_image}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

@@ -69,7 +69,7 @@ persp(sky_cs, theta = 90, phi = 20)
 \code{\link[=thr_mblt]{thr_mblt()}}
 
 Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_model_raster}()},
+\code{\link{cie_sky_image}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_trend_surface}()},
 \code{\link{interpolate_and_merge}()},

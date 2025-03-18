@@ -1,15 +1,42 @@
-#' Statistical outlier removal filter
+#' Statistical outlier removal (SOR) filter
+#'
+#' Statistical outlier removal (SOR) filter
+#'
+#' This algorithm is based on the homonymous filter from the [PCL
+#' library](https://pointclouds.org/). Distances are computed on a spherical
+#' surface and expressed in degrees to avoid distortions due to projection. The
+#' number of neighbors used for evaluation is controlled by the `k` argument, while
+#' the `rmax` argument sets the maximum search radius for finding these neighbors.
+#' Points are projected onto a unit-radius sphere, similar to the use of relative
+#' radius in image mapping. The spherical distance is then calculated, and points
+#' farther than rmax are excluded from the neighbor set. If an insufficient
+#' number of neighbors are found within rmax, the point is retained due to a
+#' lack of evidence for removal. The decision criterion follows
+#' \insertCite{Leys2013;textual}{rcaiman}:
+#'
+#' \eqn{M - thr \times MAD < x_i < M + thr \times MAD}
+#'
+#' where \eqn{x_i} is the value associated with a given sky point, \eqn{M} and
+#' \eqn{MAD} are the median and median absolute deviation, respectively,
+#' computed from the values associated with the neighbors of \eqn{x_i}, and
+#' \eqn{thr} is the user-defined threshold.
+#'
+#' The argument `cutoff_side` controls which side of the inequality is
+#' tested—either one side or both.
 #'
 #' @inheritParams fit_coneshaped_model
 #' @param r [SpatRaster-class]. An image with the same raster grid as the one
-#'   from which `sky_points` was obtained. If `NULL` is provided instead, the
-#'   `dn` column from the `sky_points` argument will be used.
+#'   from which the argument `sky_points` was obtained. The function will
+#'   extract values from it using `sky_points`. If `NULL` is provided, the _dn_
+#'   column from `sky_points` will be used instead.
 #' @inheritParams interpolate_sky_points
 #' @param rmax Numeric vector of length one. The maximum radius for searching
 #'   k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 #'   similar to the use of relative radius in image mapping. The spherical
 #'   distance is then calculated and used to filter out points farther than
-#'   `rmax`. The distance is expressed in degrees.
+#'   `rmax`.The distance is expressed in degrees. If an insufficient number of
+#'   neighbors are found within the search radius, the point is retained due to
+#'   a lack of evidence for removal.
 #' @param thr Numeric vector of length one. See
 #'   \insertCite{Leys2013;textual}{rcaiman}.
 #' @param cutoff_side Character vector of length one. See
@@ -63,11 +90,11 @@ sor_filter <- function(sky_points,
   stopifnot(ncol(sky_points) > 2)
 
   if (is.null(r)) {
+    stopifnot(!is.na(charmatch("dn", names(sky_points))))
     ds <- sky_points[, c("row", "col", "dn")]
   } else {
     ds <- extract_dn(r, sky_points[, c("row", "col")])
   }
-
 
   calculate_sor <- function(i) {
     spherical_distance <- .calc_spherical_distance(sky_points$z,

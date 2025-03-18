@@ -2,7 +2,7 @@
 % Please edit documentation in R/sor_filter.R
 \name{sor_filter}
 \alias{sor_filter}
-\title{Statistical outlier removal filter}
+\title{Statistical outlier removal (SOR) filter}
 \usage{
 sor_filter(
   sky_points,
@@ -18,8 +18,9 @@ sor_filter(
 \emph{data.frame} with same structure and names.}
 
 \item{r}{\linkS4class{SpatRaster}. An image with the same raster grid as the one
-from which \code{sky_points} was obtained. If \code{NULL} is provided instead, the
-\code{dn} column from the \code{sky_points} argument will be used.}
+from which the argument \code{sky_points} was obtained. The function will
+extract values from it using \code{sky_points}. If \code{NULL} is provided, the \emph{dn}
+column from \code{sky_points} will be used instead.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
@@ -27,7 +28,9 @@ from which \code{sky_points} was obtained. If \code{NULL} is provided instead, t
 k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 similar to the use of relative radius in image mapping. The spherical
 distance is then calculated and used to filter out points farther than
-\code{rmax}. The distance is expressed in degrees.}
+\code{rmax}.The distance is expressed in degrees. If an insufficient number of
+neighbors are found within the search radius, the point is retained due to
+a lack of evidence for removal.}
 
 \item{thr}{Numeric vector of length one. See
 \insertCite{Leys2013;textual}{rcaiman}.}
@@ -40,7 +43,29 @@ Logical vector of length equal to the number of row of argument
 \code{sky_points}.
 }
 \description{
-Statistical outlier removal filter
+Statistical outlier removal (SOR) filter
+}
+\details{
+This algorithm is based on the homonymous filter from the \href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
+surface and expressed in degrees to avoid distortions due to projection. The
+number of neighbors used for evaluation is controlled by the \code{k} argument, while
+the \code{rmax} argument sets the maximum search radius for finding these neighbors.
+Points are projected onto a unit-radius sphere, similar to the use of relative
+radius in image mapping. The spherical distance is then calculated, and points
+farther than rmax are excluded from the neighbor set. If an insufficient
+number of neighbors are found within rmax, the point is retained due to a
+lack of evidence for removal. The decision criterion follows
+\insertCite{Leys2013;textual}{rcaiman}:
+
+\eqn{M - thr \times MAD < x_i < M + thr \times MAD}
+
+where \eqn{x_i} is the value associated with a given sky point, \eqn{M} and
+\eqn{MAD} are the median and median absolute deviation, respectively,
+computed from the values associated with the neighbors of \eqn{x_i}, and
+\eqn{thr} is the user-defined threshold.
+
+The argument \code{cutoff_side} controls which side of the inequality is
+tested—either one side or both.
 }
 \examples{
 \dontrun{

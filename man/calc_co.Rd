@@ -39,8 +39,9 @@ where \eqn{GF(\phi_i, \theta_i)} is the gap fraction of the cell \eqn{i},
 the cell \eqn{i}, \eqn{n} is the number of cells on the ring delimited by
 \eqn{\theta_1} and \eqn{\theta_2}, and \eqn{N} is the total number of cells.
 
-When a mask is provided through the \code{m} argument, the equation is modified as
-follow:
+When a mask is applied using the \code{m} argument, the equation is adjusted to
+account for the reduced portion of the image that contributes to the
+calculation:
 
 \eqn{
 \frac{
@@ -49,7 +50,12 @@ cos(\theta_2))/n]
 }{ \sum_{i = 1}^{N} (cos(\theta_1) - cos(\theta_2))/n}
 }.
 
-This allows the masking of any individual cell.
+The denominator ensures that the canopy openness remains correctly scaled
+even when part of the image is masked. Without this normalization, the total
+openness could be underestimated since the summation in the numerator will be
+one only when the full hemisphere of an totally unobstructed image is
+included. Therefore, masking requires the normalization provided by the
+denominator.
 }
 \examples{
 caim <- read_caim()

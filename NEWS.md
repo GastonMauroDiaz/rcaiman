@@ -1,7 +1,8 @@
-* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `interpolate_and_merge()`, and `calc_oor_index()`.
+* `cie_sky_model_raster()` rename to `cie_sky_image()`  
+* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `interpolate_and_merge()`, `validate_cie_sky_model()`, and `calc_oor_index()`.
 * New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.
 * New `sor_filter()` allows a flexible method for filtering sky points.
-* New `calc_sngd()` and `find_general_sky_type()` allow to evaluate image quality
+* New `calc_sngd()` and `find_general_sky_type()` allow to evaluate light conditions during survey.
 * `sky_grid_segmentation()` gains `first_ring_different` to avoid the very small cells typical of the near zenith cells.
 * `extract_rl` gains 'min_spherical_distance' which allows more control over sky sampling.
 * delete `fix_reconstructed_sky()` since it was deamed obsolete.

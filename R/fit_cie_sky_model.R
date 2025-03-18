@@ -30,7 +30,7 @@
 #'
 #' r <- read_caim("manipulate/IMG_1013.pgm")
 #' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-#' cie_sky_m <- cie_sky_model_raster(z, a, sun_coord$zenith_azimuth, sky_coef)
+#' cie_sky_m <- cie_sky_image(z, a, sun_coord$zenith_azimuth, sky_coef)
 #' cie_sky_m <- cie_sky_manual * manual_input$zenith_dn
 #' plot(r/cie_sky_m)
 #' ````
@@ -63,13 +63,13 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #'
-#' @param rl An object of class *list*. The output of [extract_rl()]
-#'   or an object with same structure and names.
+#' @param rl An object of class *list*. The output of [extract_rl()] or an
+#'   object with same structure and names.
 #' @param sun_coord An object of class *list*. The output of
 #'   [extract_sun_coord()] or an object with same structure and names. See also
 #'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
 #'   date and time of acquisition and the `suncalc` package.
-#' @inheritParams cie_sky_model_raster
+#' @inheritParams cie_sky_image
 #' @param custom_sky_coef Numeric vector of length five or a numeric matrix with
 #'   five columns. Custom starting coefficients of the sky model. By default,
 #'   they are drawn from standard skies.
@@ -78,11 +78,16 @@
 #' @param general_sky_type Character vector of length one. It could be any of
 #'   these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman} for additional details.
-#' @param twilight Logical vector of length one. If it is `TRUE` and the initial
-#'   standard parameters belong to the "Clear" general sky type, sun zenith
-#'   angles from 90 to 96 degrees will be tested (civic twilight). This is
-#'   necessary since [extract_sun_coord()] can mistakenly recognize the center
-#'   of what can be seen of the solar corona as the solar disk.
+#' @param twilight Numeric vector of length one. Sun zenith angle (in degrees).
+#'   If the sun zenith angle provided through the `sun_coord` argument is below
+#'   this value, sun zenith angles from 90 to 96 degrees (civic twilight) will
+#'   be tested when selecting initial optimization parameters from the general
+#'   sky types _Clear_ or _Partially Cloudy_ (specifically, for standard sky
+#'   numbers 7 to 15). This adjustment is necessary because
+#'   [extract_sun_coord()] can mistakenly identify the visible center of the
+#'   solar corona as the solar disk. Since [extract_sun_coord()] cannot output a
+#'   zenith angle below 90 degrees, setting this value to 90 is equivalent to
+#'   disabling this step.
 #' @inheritParams bbmle::mle2
 #'
 #' @references \insertAllCited{}
@@ -139,14 +144,14 @@
 #' set.seed(7)
 #' model <- fit_cie_sky_model(rl, sun_coord,
 #'                            general_sky_type = "Clear",
-#'                            twilight = FALSE,
+#'                            twilight = 90,
 #'                            method = "CG")
 #' summary(model$mle2_output)
 #' plot(model$obs, model$pred)
 #' abline(0,1)
 #' lm(model$pred~model$obs) %>% summary()
 #'
-#' sky_cie <- cie_sky_model_raster(z, a,
+#' sky_cie <- cie_sky_image(z, a,
 #'                                 model$sun_coord$zenith_azimuth,
 #'                                 model$coef) * model$zenith_dn
 #' plot(sky_cie)
@@ -156,7 +161,7 @@ fit_cie_sky_model <- function(rl, sun_coord,
                               custom_sky_coef = NULL,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
-                              twilight = TRUE,
+                              twilight = 60,
                               method = "BFGS") {
   if (!requireNamespace("bbmle", quietly = TRUE)) {
     stop(paste("Package \"bbmle\" needed for this function to work.",
@@ -271,8 +276,8 @@ fit_cie_sky_model <- function(rl, sun_coord,
 
   fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
-  if (twilight & sun_coord$zenith_azimuth[1] > 65) {
-    indices <- match(11:15, as.numeric(rownames(skies)))
+  if (sun_coord$zenith_azimuth[1] > twilight) {
+    indices <- match(7:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]
     if (length(indices) != 0) {
       skies <- skies[indices,]
@@ -300,7 +305,8 @@ fit_cie_sky_model <- function(rl, sun_coord,
            invalid_coef = 10^10,
            no_fit = 10^9,
            no_convergence = 10^8,
-           valid = x$mle2_output@details$value)
+           valid = x$mle2_output %>% summary() %>% .@m2logL %>%
+             suppressWarnings())
   }
 
   error <- Map(.get_loglik, fit) %>% unlist()

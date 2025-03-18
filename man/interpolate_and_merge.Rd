@@ -7,9 +7,8 @@
 interpolate_and_merge(r, z, a, sky_points, ootb_sky, rmax_tune = 1)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+\item{r}{\linkS4class{SpatRaster}. Typically, the blue channel extracted from a
+canopy photograph. The image from which \code{sky_points} was obtained.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -30,8 +29,8 @@ An object of class \linkS4class{SpatRaster}.
 }
 \description{
 This function is part of the efforts to automate the method proposed by
-\insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly
-presenting and testing this pipeline is under preparation.
+\insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly presenting and
+testing this pipeline is under preparation.
 }
 \examples{
 \dontrun{
@@ -76,7 +75,7 @@ plot(sky2$sky)
 }
 \seealso{
 Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_model_raster}()},
+\code{\link{cie_sky_image}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},

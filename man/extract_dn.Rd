@@ -50,16 +50,46 @@ sky_points <- extract_sky_points(r, bin, g)
 sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
 
-# See fit_cie_sky_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
+# See fit_cie_sky_model() for details on below file
+path <- system.file("external/sky_points.gpkg",
                     package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
+sky_points <- terra::vect(path)
+sky_points <- terra::extract(caim, sky_points, cells = TRUE)
+sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\%
+  as.data.frame()
 colnames(sky_points) <- c("row", "col")
 head(sky_points)
-plot(bin)
+plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-extract_dn(caim, sky_points, fun = median)
+
+bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
+bin <- bin & mask_hs(z, 0, 85)
+mx <- optim_normalize(caim, bin)
+caim <- normalize(caim, mx = mx, force_range = TRUE)
+m <- !is.na(z)
+
+sky_blue <- extract_dn(caim, sky_points, fun = median)
+as(sky_blue, "polarLAB")
+ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+plot(ecaim)
+.refine_sky_blue <- function(chroma) {
+  ecaim <- enhance_caim(caim, m, polarLAB(50, chroma, 293))
+  z <- -extract_dn(ecaim, sky_points, fun = sum)
+  if (is.na(z)) z <- 0
+  z
+}
+chroma <- seq(0, 1, 0.05) * 100
+z <- Map(.refine_sky_blue, chroma) \%>\% unlist()
+plot(chroma, z, type = "l")
+
+fit <- bbmle::mle2(.refine_sky_blue, list(chroma = 17),
+                   method = "L-BFGS-B", lower = 0, upper = 100)
+fit@details$convergence
+summary(fit)
+fit@coef
+ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
+plot(ecaim)
+apply_thr(ecaim, thr_isodata(ecaim[m])) \%>\% plot()
 }
 }
 \seealso{

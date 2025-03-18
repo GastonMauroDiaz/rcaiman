@@ -79,11 +79,18 @@
 }
 
 .get_sky_cie <- function(z, a, model) {
-  sky_cie <- cie_sky_model_raster(z, a,
+  sky_cie <- cie_sky_image(z, a,
                                   model$sun_coord$zenith_azimuth,
                                   model$coef) * model$zenith_dn
   names(sky_cie) <- "CIE sky"
   sky_cie
+}
+
+.noise <- function(w = 1) {
+  path <- system.file("external", package = "rcaiman")
+  skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+  .sd <- apply((skies[, 1:5]), 2, sd) * w
+  Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
 }
 
 

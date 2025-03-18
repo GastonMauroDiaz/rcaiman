@@ -40,7 +40,7 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 
-sky_blue <- HSV(239, 0.85, 0.5)
+sky_blue <- polarLAB(50, 17, 293)
 mem <- membership_to_color(caim, sky_blue)
 plot(mem)
 }
