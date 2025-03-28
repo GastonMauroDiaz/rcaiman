@@ -1,0 +1,28 @@
+#' Optimize distance to black
+#'
+#' @inheritParams ootb_fit_cie_sky_model
+#'
+#' @returns Numeric vector of length one.
+#' @export
+#'
+#' @family Tool Functions
+#'
+optim_dist_to_black <- function(r, z, a, m, bin, g) {
+  g30 <- sky_grid_segmentation(z, a, 30)
+  g30[!m] <- 0
+  dist_to_black <- 11
+  sampling_pct <- 0
+  while (sampling_pct < 100 & dist_to_black > 3) {
+    dist_to_black <- dist_to_black - 2
+    sky_points <- extract_sky_points(r, bin, g,
+                                     dist_to_black = dist_to_black)
+    v <- cellFromRowCol(r, sky_points$row, sky_points$col) %>%
+      xyFromCell(r, .) %>% vect()
+    sampling_pct <- (extract(g30, v)[,2] %>% unique() %>% length()) /
+      (unique(g30)[,1] %>% length() %>% subtract(1)) * 100
+  }
+  if (sampling_pct < 75) {
+    dist_to_black <- 1
+  }
+  dist_to_black
+}

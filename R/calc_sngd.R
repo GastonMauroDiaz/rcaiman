@@ -8,7 +8,7 @@
 #' @param angle Numeric vector of length one. Zenith angle in degrees. The
 #'   canopy below this value of zenith angle will not be analyzed.
 #' @param kern_size Numeric vector of length one. Controls the morphological
-#'   operation used to remove pixels on the canopy silhouette, which are likely
+#'   operation used to remove pixels on the canopy silhouette contour, which are likely
 #'   to be mixed pixeles.
 #'
 #' @family Tool Functions

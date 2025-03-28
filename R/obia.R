@@ -1,6 +1,6 @@
 #' Do object-based image analysis of canopy photographs
 #'
-#' Object-based image analysis targeting the canopy  silhouette.
+#' Object-based image analysis targeting the canopy  silhouette contour.
 #'
 #' This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.
 #' This version is simpler since it relies on a better working binarized image.

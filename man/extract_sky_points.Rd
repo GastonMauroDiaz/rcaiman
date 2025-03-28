@@ -4,7 +4,7 @@
 \alias{extract_sky_points}
 \title{Extract sky points}
 \usage{
-extract_sky_points(r, bin, g, dist_to_plant = 3, min_raster_dist = 3)
+extract_sky_points(r, bin, g, dist_to_black = 3, min_raster_dist = 3)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -17,7 +17,7 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
 \code{\link[=chessboard]{chessboard()}}.}
 
-\item{dist_to_plant, min_raster_dist}{Numeric vector of length one or \code{NULL}.}
+\item{dist_to_black, min_raster_dist}{Numeric vector of length one or \code{NULL}.}
 }
 \value{
 An object of the class \emph{data.frame} with two columns named
@@ -29,11 +29,11 @@ Extract sky points for model fitting
 \details{
 This function will automatically sample sky pixels from the sky regions
 delimited by \code{bin}. The density and distribution of the sampling points is
-controlled by the arguments \code{g}, \code{dist_to_plant}, and \code{min_raster_dist}.
+controlled by the arguments \code{g}, \code{dist_to_black}, and \code{min_raster_dist}.
 
 As the first step, sky pixels from \code{r} are evaluated to find the pixel with
-maximum digital value (local maximum) per cell of the \code{g} argument. The
-\code{dist_to_plant} argument allows users to establish a buffer zone for \code{bin},
+maximum digital value per cell of the \code{g} argument. The
+\code{dist_to_black} argument allows users to establish a buffer zone for \code{bin},
 meaning a size reduction of the original sky regions.
 
 The final step is filtering these local maximum values by evaluating the
@@ -62,7 +62,7 @@ ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g,
-                                 dist_to_plant = 3,
+                                 dist_to_black = 3,
                                  min_raster_dist = 10)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
@@ -77,6 +77,7 @@ Other Tool Functions:
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{display_caim}()},
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
@@ -85,6 +86,7 @@ Other Tool Functions:
 \code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
+\code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},

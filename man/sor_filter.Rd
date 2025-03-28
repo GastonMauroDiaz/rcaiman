@@ -40,7 +40,8 @@ a lack of evidence for removal.}
 }
 \value{
 Logical vector of length equal to the number of row of argument
-\code{sky_points}.
+\code{sky_points}. If it is \code{TRUE}, the point is not an outlier, which is a
+design decision to facilitate coding.
 }
 \description{
 Statistical outlier removal (SOR) filter
@@ -79,7 +80,7 @@ bin <- regional_thresholding(r, rings_segmentation(z, 30),
 bin <- bin & mask_hs(z, 0, 80)
 g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
-                                 dist_to_plant = 3,
+                                 dist_to_black = 3,
                                  min_raster_dist = 10)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
@@ -101,6 +102,7 @@ Other Tool Functions:
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{display_caim}()},
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
@@ -110,6 +112,7 @@ Other Tool Functions:
 \code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
+\code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},

@@ -1,7 +1,7 @@
 #' Fit CIE sky model
 #'
-#' Use maximum likelihood to estimate the coefficients of the CIE sky model that
-#' best fit to data sampled from a canopy photograph.
+#' Use general-purpuse optimization to find the parameters of the CIE sky model
+#' that best fit data sampled from a canopy photograph.
 #'
 #' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 #' the best result would be obtained with data showing a linear relation between
@@ -34,8 +34,6 @@
 #' cie_sky_m <- cie_sky_manual * manual_input$zenith_dn
 #' plot(r/cie_sky_m)
 #' ````
-#'
-#'
 #' @note
 #'
 #' The [point selection tool of ‘ImageJ’
@@ -76,31 +74,38 @@
 #' @param std_sky_no Numeric vector. Standard sky number from
 #'   \insertCite{Li2016;textual}{rcaiman}'s Table 1.
 #' @param general_sky_type Character vector of length one. It could be any of
-#'   these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
+#'   these: `"Overcast"`, `"Clear"`, or `"Partly cloudy"`. See Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman} for additional details.
 #' @param twilight Numeric vector of length one. Sun zenith angle (in degrees).
 #'   If the sun zenith angle provided through the `sun_coord` argument is below
-#'   this value, sun zenith angles from 90 to 96 degrees (civic twilight) will
-#'   be tested when selecting initial optimization parameters from the general
-#'   sky types _Clear_ or _Partially Cloudy_ (specifically, for standard sky
-#'   numbers 7 to 15). This adjustment is necessary because
-#'   [extract_sun_coord()] can mistakenly identify the visible center of the
-#'   solar corona as the solar disk. Since [extract_sun_coord()] cannot output a
-#'   zenith angle below 90 degrees, setting this value to 90 is equivalent to
-#'   disabling this step.
-#' @inheritParams bbmle::mle2
+#'   this value, sun zenith angles from 85 to 96 degrees will be tested when
+#'   selecting initial optimization parameters from the general sky types
+#'   _Clear_ or _Partially Cloudy_ (specifically, for standard sky numbers 7 to
+#'   15). This adjustment is necessary because [extract_sun_coord()] can
+#'   mistakenly identify the visible center of the solar corona as the solar
+#'   disk. Since [extract_sun_coord()] cannot output a zenith angle below 90
+#'   degrees, setting this value to 90 is equivalent to disabling this step.
+#'   Actually, [extract_sun_coord()] cannot output a value very close to 90,
+#'   therefore the testing start at 85, civic twilight is from 90 to 96 degrees.
+#' @inheritParams stats::optim
+#' @param loss Character vector of length one. Specifies the error metric to
+#'   use. Options are `"MAE"` (Mean Absolute Error) or `"RMSE"` (Root Mean
+#'   Squared Error). Defaults to `"MAE"`. `"MAE"` is more robust to inaccurate
+#'   sky points and outliers, such as those found in cloudy skies.
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object of the class *list*. The result includes the following: (1)
-#'   the output produced by [bbmle::mle2()], (2) the 5 coefficients of the CIE
-#'   model, (3) observed values, (4) predicted values, (5) the digital number at
-#'   the zenith, (6) the sun coordinates (zenith and azimuth angle in degrees),
-#'   (7) the optimization method (see [bbmle::mle2()]), and the initial values
-#'   for optimizer (see [bbmle::mle2()]). To lear more about these initial
-#'   values, see \insertCite{Li2016;textual}{rcaiman}. If [bbmle::mle2()] does
-#'   not converge, (1) will be `NA` and (2) will contain the coefficients of a
-#'   standard sky (the one with less RMSE when more than one is tried).
+#' @return A _list_ with the following components:
+#' \itemize{
+#'   \item The output produced by [stats::optim]
+#'   \item The 5 coefficients of the CIE model
+#'   \item Observed values
+#'   \item Predicted values
+#'   \item The estimated digital number at the zenith
+#'   \item The sun coordinates
+#'   \item The method used for optimization
+#'   \item The starting parameters
+#' }
 #'
 #' @family  Sky Reconstruction Functions
 #'
@@ -162,13 +167,8 @@ fit_cie_sky_model <- function(rl, sun_coord,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               twilight = 60,
-                              method = "BFGS") {
-  if (!requireNamespace("bbmle", quietly = TRUE)) {
-    stop(paste("Package \"bbmle\" needed for this function to work.",
-               "Please install it."
-    ),
-    call. = FALSE)
-  }
+                              method = "BFGS",
+                              loss = "MAE") {
 
   stopifnot(general_sky_type == "Overcast" |
             general_sky_type == "Partly cloudy" |
@@ -177,9 +177,7 @@ fit_cie_sky_model <- function(rl, sun_coord,
   stopifnot(is.data.frame(rl$sky_points))
   stopifnot(length(sun_coord$zenith_azimuth) == 2)
 
-  AzP <- .degree2radian(rl$sky_points$a)
-  Zp <- .degree2radian(rl$sky_points$z)
-
+  # Manage the set of start parameter according to user choice
   path <- system.file("external", package = "rcaiman")
   skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
   if (!is.null(custom_sky_coef)) {
@@ -198,125 +196,111 @@ fit_cie_sky_model <- function(rl, sun_coord,
     skies$general_sky_type <- "custom"
     skies$description <- "custom"
   }
+  if (!is.null(std_sky_no)) {
+    skies <- skies[std_sky_no,]
+  } else if (!is.null(general_sky_type)) {
+    indices <- skies$general_sky_type == general_sky_type
+    skies <- skies[indices,]
+  }
 
+  # Retrieve coordinates and convert to radians
+  AzP <- .degree2radian(rl$sky_points$a)
+  Zp <- .degree2radian(rl$sky_points$z)
+
+  # Try all start parameters (brute force approach)
   .fun <- function(i) {
+    # This has to be inside the function because of the twilight code chunk
     sun_a_z <- .degree2radian(rev(sun_coord$zenith_azimuth))
     AzS <- sun_a_z[1]
     Zs <- sun_a_z[2]
 
-    # **Note**: when the .c or .e parameters are negative, the sun can be darker
-    # than the sky, which does not make sense. So, the code avoids that
+    # **Note 1**: when the .c or .e parameters are negative, the sun can be
+    # darker than the sky, which does not make sense. So, the code avoids that
     # possibility by using abs()
-    # **New note**: Positive values of b create unrealistic values at the
+    # **Note 2**: Positive values of b create unrealistic values at the
     # horizon. Positive values of d produce negative values, which are
     # unrealistc
-    flog <- function(.a, .b, .c, .d, .e, S) {
-      x <- .cie_sky_model(AzP, Zp, AzS, Zs,
-                          .a, -abs(.b), abs(.c), -abs(.d), abs(.e))
-      stats::median(abs(x - rl$sky_points$rl)) #because some points might be wrong
-      # .calc_rmse(x - rl$sky_points$rl)
-      # .calc_rmse(1 - rl$sky_points$rl/x )
+    fcost <- function(params) {
+      .a <- params[1]
+      .b <- -abs(params[2])
+      .c <- abs(params[3])
+      .d <- -abs(params[4])
+      .e <- abs(params[5])
+
+      x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      residuals <- x - rl$sky_points$rl
+
+      if (loss == "MAE") {
+        return(stats::median(abs(residuals)))
+      } else if (loss == "RMSE") {
+        return(sqrt(mean(residuals^2)))
+      } else {
+        stop("The argument 'loss' must be 'MAE' or 'RMSE'")
+      }
     }
 
-    fit <- NA
-    try(
-      fit <- bbmle::mle2(flog, list(.a = as.numeric(skies[i,1]),
-                                    .b = as.numeric(skies[i,2]),
-                                    .c = as.numeric(skies[i,3]),
-                                    .d = as.numeric(skies[i,4]),
-                                    .e = as.numeric(skies[i,5])), method = method),
-      silent = TRUE
+    start_params <- skies[i, 1:5] %>% as.numeric()
+    fit <- tryCatch(
+      stats::optim(par = start_params,
+            fn = fcost,
+            method = method),
+      error = function(e) list(par = start_params,
+                               convergence = NULL)
     )
 
-    if (any(try(fit@details$convergence, silent = TRUE), is.na(fit))) {
-      fit <- NA
-      coef <- as.numeric(skies[i,1:5])
-      names(coef) <- c(".a", ".b", ".c", ".d", ".e")
-      pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
-                             .a = as.numeric(skies[i,1]),
-                             .b = as.numeric(skies[i,2]),
-                             .c = as.numeric(skies[i,3]),
-                             .d = as.numeric(skies[i,4]),
-                             .e = as.numeric(skies[i,5]))
-    } else {
-      coef <- fit@coef
-      coef[c(3,5)] <- abs(coef[c(3,5)])
-      coef[c(2,4)] <- -abs(coef[c(2,4)])
-      pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
-                             .a = fit@coef[1],
-                             .b = fit@coef[2],
-                             .c = fit@coef[3],
-                             .d = fit@coef[4],
-                             .e = fit@coef[5])
-    }
+    coef <- fit$par
+    names(coef) <- c("a", "b", "c", "d", "e")
+    coef[c(3,5)] <- abs(coef[c(3,5)])
+    coef[c(2,4)] <- -abs(coef[c(2,4)])
+    pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
+                           .a = coef[1],
+                           .b = coef[2],
+                           .c = coef[3],
+                           .d = coef[4],
+                           .e = coef[5])
 
-    if (is.vector(custom_sky_coef)) {
-      .start <- custom_sky_coef
-    } else {
-      .start <- as.numeric(skies[i,1:5]) %>% as.vector()
-    }
-
-    list(mle2_output = fit,
+    list(opt_result = fit,
          coef = coef,
          obs = rl$sky_points$rl,
          pred = pred,
          zenith_dn = rl$zenith_dn,
          sun_coord = sun_coord,
          method = method,
-         start = .start)
+         start = start_params)
   }
 
-  if (!is.null(std_sky_no)) {
-    skies <- skies[std_sky_no,]
-  }
-  if (!is.null(general_sky_type) & is.null(std_sky_no)) {
-    indices <- skies$general_sky_type == general_sky_type
-    skies <- skies[indices,]
-  }
+  opt_result <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
-  fit <- suppressWarnings(Map(.fun, 1:nrow(skies)))
-
+  # Force the sun low and add that to the results
+  civic_twilight <-  c(seq(85, 96, 1)) #a bit above horizon because bbox method
   if (sun_coord$zenith_azimuth[1] > twilight) {
     indices <- match(7:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]
     if (length(indices) != 0) {
       skies <- skies[indices,]
-      civic_twilight <-  c(seq(90, 96, 1))
       for (i in seq_along(civic_twilight)) {
         sun_coord$zenith_azimuth <-  c(civic_twilight[i],
                                       sun_coord$zenith_azimuth[2])
-        fit <- c(fit, suppressWarnings(Map(.fun, 1:nrow(skies))))
+        opt_result <- c(opt_result, suppressWarnings(Map(.fun, 1:nrow(skies))))
       }
     }
   }
 
-  .get_loglik <- function(x) {
-    status <- if (length(x$coef) != 5) {
-      "invalid_coef"
-    } else if (!inherits(x$mle2_output, "mle2")) {
-      "no_fit"
-    } else if (x$mle2_output@details$convergence != 0) {
-      "no_convergence"
-    } else {
-      "valid"
+  # Choose the best result
+  .get_metric <- function(x) {
+    residuals <- x$pred - x$obs
+    if (loss == "MAE") {
+      return(stats::median(abs(residuals)))
+    } else if (loss == "RMSE") {
+      return(sqrt(mean(residuals^2)))
     }
-
-    switch(status,
-           invalid_coef = 10^10,
-           no_fit = 10^9,
-           no_convergence = 10^8,
-           valid = x$mle2_output %>% summary() %>% .@m2logL %>%
-             suppressWarnings())
   }
 
-  error <- Map(.get_loglik, fit) %>% unlist()
-  i <- which.min(error)
-  if (error[i] > 10^7) {
-    error <- Map(function(x) .calc_rmse(x$pred - x$obs), fit) %>% unlist()
-  }
+  metric <- Map(.get_metric, opt_result) %>% unlist()
+  i <- which.min(metric)
+  model <- opt_result[[i]]
 
-  model <- fit[[i]]
-  if (model$sun_coord$zenith_azimuth[1] >= 90) {
+  if (model$sun_coord$zenith_azimuth[1] >= min(civic_twilight)) {
       model$sun_coord$row_col <- c(NA, NA)
   }
   model

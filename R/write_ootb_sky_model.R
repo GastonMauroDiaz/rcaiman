@@ -41,7 +41,7 @@ write_ootb_sky_model <- function(ootb_sky, name) {
   paste0(rep("-", 80), collapse = "") %>% .print()
 
   ootb_sky$sky_points %>% nrow() %>% paste("sky_points_no:", .) %>% .print()
-  ootb_sky$sky_points$outliers %>% sum() %>% paste("outliers_no:", .) %>%  .print()
+  ootb_sky$sky_points$is_outlier %>% sum() %>% paste("outliers_no:", .) %>%  .print()
   ootb_sky$model_validation$rmse %>% paste("RMSE:", .) %>% .print()
   ootb_sky$model_validation$r_squared %>% paste("r_squared:", .) %>% .print()
 

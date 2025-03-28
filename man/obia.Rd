@@ -29,7 +29,7 @@ containing foliage.}
 \linkS4class{SpatRaster}.
 }
 \description{
-Object-based image analysis targeting the canopy  silhouette.
+Object-based image analysis targeting the canopy  silhouette contour.
 }
 \details{
 This method was first presented in \insertCite{Diaz2015;textual}{rcaiman}.

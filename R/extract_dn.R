@@ -65,19 +65,19 @@
 #' plot(ecaim)
 #' .refine_sky_blue <- function(chroma) {
 #'   ecaim <- enhance_caim(caim, m, polarLAB(50, chroma, 293))
-#'   z <- -extract_dn(ecaim, sky_points, fun = sum)
-#'   if (is.na(z)) z <- 0
-#'   z
+#'   total_mu <- -extract_dn(ecaim, sky_points, fun = sum)
+#'   if (is.na(total_mu)) total_mu <- 0
+#'   total_mu
 #' }
 #' chroma <- seq(0, 1, 0.05) * 100
-#' z <- Map(.refine_sky_blue, chroma) %>% unlist()
-#' plot(chroma, z, type = "l")
+#' total_mu <- Map(.refine_sky_blue, chroma) %>% unlist()
+#' plot(chroma, total_mu, type = "l")
 #'
-#' fit <- bbmle::mle2(.refine_sky_blue, list(chroma = 17),
-#'                    method = "L-BFGS-B", lower = 0, upper = 100)
-#' fit@details$convergence
-#' summary(fit)
-#' fit@coef
+#' opt_result <- optim(17,
+#'                       .refine_sky_blue,
+#'                       method = "L-BFGS-B", lower = 0, upper = 100)
+#' opt_result$convergence
+#' opt_result$par
 #' ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 #' plot(ecaim)
 #' apply_thr(ecaim, thr_isodata(ecaim[m])) %>% plot()

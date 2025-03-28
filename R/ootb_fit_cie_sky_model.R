@@ -38,10 +38,9 @@
 #'   number values.
 #'   \item The output produced by [fit_cie_sky_model()].
 #'   \item The output produced by [validate_cie_sky_model()].
-#'   \item The `dist_to_plant` argument used in [fit_cie_sky_model()].
+#'   \item The `dist_to_black` argument used in [fit_cie_sky_model()].
 #'   \item The `sky_points` argument used in [extract_rl()].
 #' }
-#'
 #'
 #' @examples
 #' \dontrun{
@@ -83,7 +82,7 @@
 #' plot(sky$model_validation$predicted, sky$model_validation$observed)
 #' abline(0,1)
 #' error <- sky$model_validation$predicted - sky$model_validation$observed
-#' plot(sky$sky_points$z[!sky$sky_points$outliers], error,
+#' plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
 #'      xlab = "zenith angle", ylab = "relative radiance error")
 #' abline(h = 0)
 #'
@@ -107,49 +106,33 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, g,
     stats::median(abs(model$pred - model$obs))
   }
 
-  # START optimize dist_to_plant ####
-  g30 <- sky_grid_segmentation(z, a, 30)
-  g30[!m] <- 0
-  dist_to_plant <- 11
-  sampling_pct <- 0
-  while (sampling_pct < 100 & dist_to_plant > 3) {
-    dist_to_plant <- dist_to_plant-2
-    sky_points <- extract_sky_points(r, bin, g,
-                                     dist_to_plant = dist_to_plant)
-    v <- cellFromRowCol(r, sky_points$row, sky_points$col) %>%
-      xyFromCell(r, .) %>% vect()
-    sampling_pct <- (extract(g30, v)[,2] %>% unique() %>% length()) /
-      (unique(g30)[,1] %>% length() %>% subtract(1)) * 100
-  }
-  if (sampling_pct < 75) {
-    dist_to_plant <- 1
-  }
-  # END optimize dist_to_plant ####
-  sky_points <- extract_sky_points(r, bin, g, dist_to_plant)
+  dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
+
+  sky_points <- extract_sky_points(r, bin, g, dist_to_black)
   if (!is.null(input_sky_points)) {
     sky_points <- rbind(input_sky_points, sky_points)
   }
 
   sun_coord <- extract_sun_coord(r, z, a, bin, g)
 
-  rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_plant != 1,
+  rl <- extract_rl(r, z, a, sky_points, use_window = dist_to_black != 1,
                    min_spherical_dist = min_spherical_dist)
   if (sd(rl$sky_points$rl) < 0.01) {
     warning("Overexposed image")
   }
 
-  method <- c("BFGS", "CG", "SANN")
+  methods <- c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
   models <- Map(function(x) fit_cie_sky_model(rl, sun_coord,
                                               twilight = 60,
-                                              method = x), method)
+                                              method = x), methods)
   metric <- Map(.get_metric, models)
   i <- which.min(metric)
   model <- models[[i]]
-  method <- method[i]
+  method <- methods[i]
   sun_coord <- model$sun_coord
 
   # START sampling on the out-of-range zone ####
-  if (dist_to_plant != 1) {
+  if (dist_to_black != 1) {
     model.2 <- model
     model$pred <- model$obs * 1e+10
     rl.2 <- rl
@@ -164,15 +147,15 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, g,
 
       v <- terra::cellFromRowCol(r, rl$sky_points$row, rl$sky_points$col) %>%
         xyFromCell(r, .) %>% vect()
-      v <- terra::buffer(v, dist_to_plant)
+      v <- terra::buffer(v, dist_to_black)
       bin[v] <- 0
       bin <- bin & out.of.range_ratio != 0
       if (calc_co(bin, z, a, m) > 0.05) {
         sky_points.2 <- extract_sky_points(out.of.range_ratio, bin, g,
-                                           dist_to_plant + 2)
+                                           dist_to_black + 2)
         sky_points.2 <- rbind(rl$sky_points[ , c("row", "col")], sky_points.2)
         rl.2 <- extract_rl(r, z, a, sky_points.2, g, no_of_points = NULL,
-                           use_window = dist_to_plant != 1,
+                           use_window = dist_to_black != 1,
                            min_spherical_dist = min_spherical_dist)
         rl.2$sky_points$rl <- rl.2$sky_points$rl/rl$zenith_dn
         rl.2$zenith_dn <- rl$zenith_dn
@@ -213,7 +196,7 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, g,
     u <- sor_filter(rl$sky_points, cv,
                     k = 10,
                     rmax = 30,
-                    thr = 0,
+                    thr = 2,
                     cutoff_side = "right")
   } else {
     u <- rep(TRUE, nrow(sky_points))
@@ -242,45 +225,49 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, g,
 
   # START sun_coord refinement ####
   if (refine_sun_coord) {
-     .refine_sun_coord <- function(zenith, azimuth) {
-      sun_coord$zenith_azimuth <- c(zenith, azimuth)
-      model <- fit_cie_sky_model(rl, sun_coord,
-                                 custom_sky_coef = model$coef,
-                                 twilight = 90,
-                                 method = method)
-      .get_metric(model)
+    .refine_sun_coord <- function(param) {
+      zenith <- param[1] * 9
+      azimuth <- param[2] * 36
+      pred <- .cie_sky_model(AzP = rl$sky_points$a %>% .degree2radian(),
+                             Zp = rl$sky_points$z %>% .degree2radian(),
+                             AzS = azimuth %>% .degree2radian(),
+                             Zs =  zenith %>% .degree2radian(),
+                             model$coef[1], model$coef[2], model$coef[3],
+                             model$coef[4], model$coef[5])
+      .get_metric(list(pred = pred, obs = model$obs))
     }
-    fit <- bbmle::mle2(.refine_sun_coord,
-                       list(zenith = sun_coord$zenith_azimuth[1],
-                            azimuth = sun_coord$zenith_azimuth[2]),
-                       method = "BFGS")
-    sun_coord$zenith_azimuth <- fit@coef
+    try(fit <- stats::optim(c(sun_coord$zenith_azimuth[1]/9,
+                              sun_coord$zenith_azimuth[2]/36),
+                            .refine_sun_coord,
+                            lower = 0,
+                            upper = 10,
+                            method = "L-BFGS-B"), silent = TRUE)
+    try(sun_coord$zenith_azimuth <- c(fit$par[1]*9, fit$par[2]*36),
+        silent = TRUE)
     model <- fit_cie_sky_model(rl, sun_coord,
                                custom_sky_coef = model$coef,
                                twilight = 90,
                                method = method)
-    sun_coord <- model$sun_coord
   }
   # END sun coord refinement ####
 
-  method <- c("BFGS", "CG", "SANN")
   models <- Map(function(x) fit_cie_sky_model(rl, sun_coord, method = x,
                                               twilight = 90),
-                method)
+                methods)
   metric <- Map(.get_metric, models)
   i <- which.min(metric)
   model <- models[[i]]
 
   model_validation <- validate_cie_sky_model(r, z, a, rl, model,
-                                             use_window = dist_to_plant != 1,
+                                             use_window = dist_to_black != 1,
                                              k = 10)
 
-  rl$sky_points$outliers <- model_validation$outliers
+  rl$sky_points$is_outlier <- model_validation$is_outlier
 
   list(sky = .get_sky_cie(z, a, model),
        model = model,
        model_validation = model_validation,
-       dist_to_plant = dist_to_plant,
+       dist_to_black = dist_to_black,
        sky_points = rl$sky_points
        )
 }

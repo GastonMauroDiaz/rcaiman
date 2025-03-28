@@ -11,7 +11,8 @@ fit_cie_sky_model(
   std_sky_no = NULL,
   general_sky_type = NULL,
   twilight = 60,
-  method = "BFGS"
+  method = "BFGS",
+  loss = "MAE"
 )
 }
 \arguments{
@@ -31,36 +32,44 @@ they are drawn from standard skies.}
 \insertCite{Li2016;textual}{rcaiman}'s Table 1.}
 
 \item{general_sky_type}{Character vector of length one. It could be any of
-these: "Overcast", "Clear", or "Partly cloudy". See Table 1 from
+these: \code{"Overcast"}, \code{"Clear"}, or \code{"Partly cloudy"}. See Table 1 from
 \insertCite{Li2016;textual}{rcaiman} for additional details.}
 
 \item{twilight}{Numeric vector of length one. Sun zenith angle (in degrees).
 If the sun zenith angle provided through the \code{sun_coord} argument is below
-this value, sun zenith angles from 90 to 96 degrees (civic twilight) will
-be tested when selecting initial optimization parameters from the general
-sky types \emph{Clear} or \emph{Partially Cloudy} (specifically, for standard sky
-numbers 7 to 15). This adjustment is necessary because
-\code{\link[=extract_sun_coord]{extract_sun_coord()}} can mistakenly identify the visible center of the
-solar corona as the solar disk. Since \code{\link[=extract_sun_coord]{extract_sun_coord()}} cannot output a
-zenith angle below 90 degrees, setting this value to 90 is equivalent to
-disabling this step.}
+this value, sun zenith angles from 85 to 96 degrees will be tested when
+selecting initial optimization parameters from the general sky types
+\emph{Clear} or \emph{Partially Cloudy} (specifically, for standard sky numbers 7 to
+15). This adjustment is necessary because \code{\link[=extract_sun_coord]{extract_sun_coord()}} can
+mistakenly identify the visible center of the solar corona as the solar
+disk. Since \code{\link[=extract_sun_coord]{extract_sun_coord()}} cannot output a zenith angle below 90
+degrees, setting this value to 90 is equivalent to disabling this step.
+Actually, \code{\link[=extract_sun_coord]{extract_sun_coord()}} cannot output a value very close to 90,
+therefore the testing start at 85, civic twilight is from 90 to 96 degrees.}
 
-\item{method}{Optimization method to use. See \code{\link{optim}}.}
+\item{method}{The method to be used. See \sQuote{Details}.  Can be abbreviated.}
+
+\item{loss}{Character vector of length one. Specifies the error metric to
+use. Options are \code{"MAE"} (Mean Absolute Error) or \code{"RMSE"} (Root Mean
+Squared Error). Defaults to \code{"MAE"}. \code{"MAE"} is more robust to inaccurate
+sky points and outliers, such as those found in cloudy skies.}
 }
 \value{
-An object of the class \emph{list}. The result includes the following: (1)
-the output produced by \code{\link[bbmle:mle2]{bbmle::mle2()}}, (2) the 5 coefficients of the CIE
-model, (3) observed values, (4) predicted values, (5) the digital number at
-the zenith, (6) the sun coordinates (zenith and azimuth angle in degrees),
-(7) the optimization method (see \code{\link[bbmle:mle2]{bbmle::mle2()}}), and the initial values
-for optimizer (see \code{\link[bbmle:mle2]{bbmle::mle2()}}). To lear more about these initial
-values, see \insertCite{Li2016;textual}{rcaiman}. If \code{\link[bbmle:mle2]{bbmle::mle2()}} does
-not converge, (1) will be \code{NA} and (2) will contain the coefficients of a
-standard sky (the one with less RMSE when more than one is tried).
+A \emph{list} with the following components:
+\itemize{
+\item The output produced by \link[stats:optim]{stats::optim}
+\item The 5 coefficients of the CIE model
+\item Observed values
+\item Predicted values
+\item The estimated digital number at the zenith
+\item The sun coordinates
+\item The method used for optimization
+\item The starting parameters
+}
 }
 \description{
-Use maximum likelihood to estimate the coefficients of the CIE sky model that
-best fit to data sampled from a canopy photograph.
+Use general-purpuse optimization to find the parameters of the CIE sky model
+that best fit data sampled from a canopy photograph.
 }
 \details{
 This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,

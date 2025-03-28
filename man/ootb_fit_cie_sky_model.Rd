@@ -63,7 +63,7 @@ A \emph{list} with the following components:
 number values.
 \item The output produced by \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The output produced by \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
-\item The \code{dist_to_plant} argument used in \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
+\item The \code{dist_to_black} argument used in \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The \code{sky_points} argument used in \code{\link[=extract_rl]{extract_rl()}}.
 }
 }
@@ -117,7 +117,7 @@ plot(r/sky$sky>1.15)
 plot(sky$model_validation$predicted, sky$model_validation$observed)
 abline(0,1)
 error <- sky$model_validation$predicted - sky$model_validation$observed
-plot(sky$sky_points$z[!sky$sky_points$outliers], error,
+plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
      xlab = "zenith angle", ylab = "relative radiance error")
 abline(h = 0)
 

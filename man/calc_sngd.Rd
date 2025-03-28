@@ -22,7 +22,7 @@ the example.}
 canopy below this value of zenith angle will not be analyzed.}
 
 \item{kern_size}{Numeric vector of length one. Controls the morphological
-operation used to remove pixels on the canopy silhouette, which are likely
+operation used to remove pixels on the canopy silhouette contour, which are likely
 to be mixed pixeles.}
 }
 \value{
@@ -65,6 +65,7 @@ Other Tool Functions:
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{display_caim}()},
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
@@ -74,6 +75,7 @@ Other Tool Functions:
 \code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
+\code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},

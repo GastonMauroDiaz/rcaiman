@@ -67,56 +67,77 @@ extract_sun_coord <- function(r, z, a, bin, g,
   terra::compareGeom(g, r)
   stopifnot(length(max_angular_dist) == 1)
 
+  # Select cells with at least one extremely bright sky pixel
   g[!bin] <- NA
   r <- extract_feature(r, g, max)
   m <- r >= quantile(terra::values(r), 0.95, na.rm = TRUE)
   m[is.na(m)] <- 0
 
+  # Merge adjacent white segments
   labeled_m <- EBImage::bwlabel(as.array(m)[,,1])
   labeled_m <- terra::rast(labeled_m)
   terra::ext(labeled_m) <- terra::ext(r)
   terra::crs(labeled_m) <- terra::crs(r)
 
-  fun <- function(x) {
-    x <- unique(x)
+  # Calc membership to class "sun seed"
+  .fun <- function(x) {
+    x <- unique(x) # to count the cells instead of the pixels
     length(x)
   }
-  area <- extract_feature(g, labeled_m, fun, return_raster = FALSE) %>%
+  size <- extract_feature(g, labeled_m, .fun, return_raster = FALSE) %>%
     normalize()
   dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
     normalize()
   if (any(is.nan(dn))) dn[] <- 1
-  if (any(is.nan(area))) area[] <- 1
-  membership_posibility <- area * dn
+  if (any(is.nan(size))) size[] <- 1
+  membership_posibility <- size * dn
+
+  # Find sun seed
   sun <- which.max(membership_posibility)
 
-  fun <- function(x) mean(range(x))
-  azimuth <- extract_feature(a, labeled_m, fun, return_raster = FALSE) %>%
-    .degree2radian()
-  zenith <- extract_feature(z, labeled_m, fun, return_raster = FALSE) %>%
-    .degree2radian()
-  za <- data.frame(zenith, azimuth)
+  # Find sun corona
+  ## get coordinates of every object
+  no_col <- no_row <- r
+  terra::values(no_col) <- .col(dim(r)[1:2])
+  terra::values(no_row) <- .row(dim(r)[1:2])
+
+  .get_bbox_center <- function(x) mean(range(x))
+  row_col <- data.frame(row = extract_feature(no_row, labeled_m,
+                                              .get_bbox_center,
+                                              return_raster = FALSE),
+                        col = extract_feature(no_col, labeled_m,
+                                              .get_bbox_center,
+                                              return_raster = FALSE))
+
+  cells <- cellFromRowCol(r, row_col[,1], row_col[,2])
+  za <- data.frame(zenith = z[cells], azimuth = a[cells]) %>% .degree2radian()
+
+  ## calc distance to sun seed
   d <- c()
   for (i in 1:nrow(za)) {
     d <- c(d,
            .calc_spherical_distance(za[sun, 1], za[sun, 2], za[i, 1], za[i, 2]))
   }
+  seg_labels <- extract_feature(labeled_m, labeled_m, return_raster = FALSE)
 
-  indices <- d > .degree2radian(max_angular_dist)
-  rcl <- data.frame(names(zenith) %>% as.numeric(),
-                    names(zenith) %>% as.numeric())
-  rcl[indices, 2] <- 0
+  ## classify sun corona based on distance
+  i <- d > .degree2radian(max_angular_dist)
+  rcl <- data.frame(seg_labels[i], 0)
   m <- terra::classify(labeled_m, rcl)
   m <- m != 0
 
-  no_col <- no_row <- r
-  terra::values(no_col) <- .col(dim(r)[1:2])
-  terra::values(no_row) <- .row(dim(r)[1:2])
-
-  row_col <- data.frame(extract_feature(no_row, m, fun, return_raster = FALSE),
-                        extract_feature(no_col, m, fun, return_raster = FALSE))
+  # Calc coordinates of the sun corona
+  row_col <- data.frame(extract_feature(no_row, m,
+                                        .get_bbox_center,
+                                        return_raster = FALSE),
+                        extract_feature(no_col, m,
+                                        .get_bbox_center,
+                                        return_raster = FALSE))
   row_col <- round(row_col) %>% as.numeric()
   sun_coord <- c(z[row_col[1], row_col[2]] %>% as.numeric(),
                  a[row_col[1], row_col[2]] %>% as.numeric())
-  list(row_col = row_col, zenith_azimuth = round(sun_coord))
+
+
+  list(row_col = row_col,
+       zenith_azimuth = round(sun_coord))
 }

@@ -32,7 +32,8 @@
 #' @family Segmentation Functions
 #'
 #' @examples
-#' z <- zenith_image(600, lens())
+#' caim <- read_caim()
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 15)
 #' plot(g == 24005)
@@ -42,7 +43,12 @@
 #' plot(g, col = col)
 #'
 #' g <- terra::focal(g, 3, sd)
-#' plot(g != 0)
+#' g <- g != 0
+#' plot(g)
+#' plot(!g * caim$Blue)
+#' display_caim(!g * caim$Blue)
+#' display_caim(c(normalize(caim$Blue), g))
+#'
 #' }
 sky_grid_segmentation <- function(z, a, angle_width,
                                   first_ring_different = FALSE,

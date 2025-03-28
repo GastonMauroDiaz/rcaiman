@@ -92,5 +92,3 @@
   .sd <- apply((skies[, 1:5]), 2, sd) * w
   Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
 }
-
-

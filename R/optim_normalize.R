@@ -1,12 +1,12 @@
 #' Optimize a parameter of the function [normalize()]
 #'
-#' Wrapper function for [bbmle::mle2()]. Optimize the `mx` argument of the
+#' Wrapper function for [stats::optim()]. Optimize the `mx` argument of the
 #' function [normalize()] by maximizing [colorfulness()] and minimizing
 #' saturation.
 #'
 #' @inheritParams enhance_caim
 #' @inheritParams ootb_mblt
-#' @inheritParams bbmle::mle2
+#' @inheritParams stats::optim
 #'
 #' @family Tool Functions
 #'
@@ -36,26 +36,21 @@
 #' percentage_of_clipped_highlights(ncaim$Blue, m)
 #' }
 optim_normalize <- function(caim, bin, method = "BFGS")  {
-  if (!requireNamespace("bbmle", quietly = TRUE)) {
-    stop(paste("Package \"bbmle\" needed for this function to work.",
-               "Please install it."
-    ),
-    call. = FALSE)
-  }
+
   terra::compareGeom(caim, bin)
   stopifnot(terra::nlyr(caim) == 3)
 
-  names(caim) <- names(read_caim())
   caim[is.na(caim)] <- 0
   mx <- quantile(caim$Blue[bin], 0.99)
 
   .get_index <- function(mx) {
     .caim <- normalize(caim, mx = mx, force_range = TRUE)
-    area <- (sum(.caim$Blue[bin] == 0 | .caim$Blue[bin] == 1) / sum(bin[])) * 100
-    cf <- 0
-    try(cf <- colorfulness(.caim, bin), silent = TRUE)
-    (100 - cf) * area
+    f_area <- (sum(.caim$Blue[bin] == 0 | .caim$Blue[bin] == 1) / sum(bin[]))
+    tryCatch(cf <- colorfulness(.caim, bin),
+             error = function(e) 0)
+    (100 - cf) * (f_area * 100)
   }
-  fit <- bbmle::mle2(.get_index, list(mx = mx), method = method)
-  fit@coef
+  opt_result <- stats::optim(mx, .get_index, method = method)
+  mx <- opt_result$par %>% unname()
+  mx
 }

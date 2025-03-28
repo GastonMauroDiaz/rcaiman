@@ -13,14 +13,14 @@ optim_normalize(caim, bin, method = "BFGS")
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
-\item{method}{Optimization method to use. See \code{\link{optim}}.}
+\item{method}{The method to be used. See \sQuote{Details}.  Can be abbreviated.}
 }
 \value{
 Numeric vector of length one. The values for using as \code{mx} argument
 with \code{\link[=normalize]{normalize()}}.
 }
 \description{
-Wrapper function for \code{\link[bbmle:mle2]{bbmle::mle2()}}. Optimize the \code{mx} argument of the
+Wrapper function for \code{\link[stats:optim]{stats::optim()}}. Optimize the \code{mx} argument of the
 function \code{\link[=normalize]{normalize()}} by maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing
 saturation.
 }
@@ -53,6 +53,7 @@ Other Tool Functions:
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
+\code{\link{display_caim}()},
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
@@ -62,6 +63,7 @@ Other Tool Functions:
 \code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
+\code{\link{optim_dist_to_black}()},
 \code{\link{percentage_of_clipped_highlights}()},
 \code{\link{read_bin}()},
 \code{\link{read_caim}()},

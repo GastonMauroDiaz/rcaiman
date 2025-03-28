@@ -48,7 +48,8 @@ calculated with: \eqn{sectorID \times 1000 + ringID}, where \eqn{sectorID} is
 the ID number of the sector and \eqn{ringID} is the ID number of the ring.
 }
 \examples{
-z <- zenith_image(600, lens())
+caim <- read_caim()
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)
@@ -58,7 +59,12 @@ col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
 plot(g, col = col)
 
 g <- terra::focal(g, 3, sd)
-plot(g != 0)
+g <- g != 0
+plot(g)
+plot(!g * caim$Blue)
+display_caim(!g * caim$Blue)
+display_caim(c(normalize(caim$Blue), g))
+
 }
 }
 \seealso{

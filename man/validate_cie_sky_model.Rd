@@ -34,7 +34,7 @@ A \emph{list} with the following components:
 \item observed vales.
 \item the coefficient of determination (\eqn{r^2}).
 \item The root mean squared error (RMSE).
-\item A logical vector indicating outliers within the sky points set attached to the 'model' argument.
+\item A logical vector indicating is_outlier within the sky points set attached to the 'model' argument.
 }
 }
 \description{
@@ -46,7 +46,7 @@ The validation of the CIE sky model is done with a k-fold approach with k
 equal to 10, following \insertCite{Kohavi1995;textual}{rcaiman}, and for the
 values of relative luminance. The regression of the predicted vs. observed
 values was done following \insertCite{Pineiro2008;textual}{rcaiman}. The
-outliers were determined following \insertCite{Leys2013;textual}{rcaiman} and
+is_outlier were determined following \insertCite{Leys2013;textual}{rcaiman} and
 with threshold equal to 3.
 }
 \examples{

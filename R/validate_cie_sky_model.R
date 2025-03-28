@@ -7,14 +7,13 @@
 #' equal to 10, following \insertCite{Kohavi1995;textual}{rcaiman}, and for the
 #' values of relative luminance. The regression of the predicted vs. observed
 #' values was done following \insertCite{Pineiro2008;textual}{rcaiman}. The
-#' outliers were determined following \insertCite{Leys2013;textual}{rcaiman} and
+#' is_outlier were determined following \insertCite{Leys2013;textual}{rcaiman} and
 #' with threshold equal to 3.
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_cie_sky_model
 #' @param model An object of the class _list_. The output of
 #'   [fit_cie_sky_model()].
-#' @inheritParams bbmle::mle2
 #' @inheritParams extract_sky_points
 #' @inheritParams extract_rl
 #' @param k Numeric vector of length ones. Number of folds.
@@ -26,7 +25,7 @@
 #'   \item observed vales.
 #'   \item the coefficient of determination (\eqn{r^2}).
 #'   \item The root mean squared error (RMSE).
-#'   \item A logical vector indicating outliers within the sky points set attached to the 'model' argument.
+#'   \item A logical vector indicating is_outlier within the sky points set attached to the 'model' argument.
 #' }
 #' @export
 #' @family Tool Functions Functions
@@ -109,5 +108,5 @@ validate_cie_sky_model <- function(r, z, a, rl, model, use_window,
        observed = reg$model$y,
        r_squared = summary(reg) %>% .$r.squared,
        rmse = .calc_rmse(reg$model$y - reg$model$x),
-       outliers = !u)
+       is_outlier = !u)
 }

@@ -49,7 +49,7 @@ bin <- apply_thr(r/sky$sky, 0.75)
 plot(bin)
 
 g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
-sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 3,
+sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3,
                                  min_raster_dist = 9)
 
 points(ootb_sky$sky_points$col, nrow(caim) - ootb_sky$sky_points$row,

@@ -68,7 +68,6 @@ extract_rl <- function(r, z, a, sky_points,
   if (!is.null(min_spherical_dist)) {
     stopifnot(length(min_spherical_dist) == 1)
     stopifnot(is.numeric(min_spherical_dist))
-    min_spherical_dist <- .degree2radian(min_spherical_dist)
   }
 
   .dist_spherical <- function(zenith_azimuth) {
@@ -120,13 +119,20 @@ extract_rl <- function(r, z, a, sky_points,
   if(any(is.na(sky_points$z))) {
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
-                  "near the horizon using \"bin <- bin & mask_hs(z, 0, 80)\" ",
+                  "near the horizon using 'bin <- bin & mask_hs(z, 0, 80)' ",
                   "as a preprocessing step.")
            )
   }
 
   if (!is.null(min_spherical_dist)) {
-    sky_points <- sky_points[.filter(sky_points, min_spherical_dist), ]
+    i <- sor_filter(sky_points, r,
+                    k = 3,
+                    rmax = min_spherical_dist,
+                    thr = 0,
+                    cutoff_side = "left")
+    sky_points <- sky_points[i, ]
+    sky_points <- sky_points[.filter(sky_points, min_spherical_dist %>%
+                                       .degree2radian()), ]
     cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
   }
 
@@ -135,7 +141,7 @@ extract_rl <- function(r, z, a, sky_points,
     r_smooth <- terra::focal(r, 3, "mean")
     sky_points$dn <-  terra::extract(r_smooth, xy)[,]
     if(any(is.na(sky_points$dn))) {
-      warning("The kernel created NA values near the horizon.")
+      warning("The kernel created NA values.")
     }
   } else {
     sky_points$dn <-  r[cells][,]
@@ -154,7 +160,7 @@ extract_rl <- function(r, z, a, sky_points,
       unlock <- length(zenith_dn) < no_of_points
       if (z_thr >= 90) unlock <- FALSE
     }
-    if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from",
+    if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from ",
                                          "sky pixels from zenith angle up to ",
                                          z_thr))
     zenith_dn <- mean(zenith_dn)

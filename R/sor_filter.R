@@ -43,7 +43,8 @@
 #'   \insertCite{Leys2013;textual}{rcaiman}.
 #'
 #' @return Logical vector of length equal to the number of row of argument
-#'   `sky_points`.
+#'   `sky_points`. If it is `TRUE`, the point is not an outlier, which is a
+#'   design decision to facilitate coding.
 #'
 #' @family Tool Functions
 #'
@@ -63,7 +64,7 @@
 #' bin <- bin & mask_hs(z, 0, 80)
 #' g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 #' sky_points <- extract_sky_points(r, bin, g,
-#'                                  dist_to_plant = 3,
+#'                                  dist_to_black = 3,
 #'                                  min_raster_dist = 10)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
@@ -122,9 +123,9 @@ sor_filter <- function(sky_points,
 
   deviation <- (ds[, 3] - central_tendency) / dispersion
   i <- switch(cutoff_side,
-              right = deviation < thr,
-              left = deviation > -thr,
-              both = abs(deviation) < thr)
+              right = deviation <= thr,
+              left = deviation >= -thr,
+              both = abs(deviation) <= thr)
 
   i[is.na(i)] <- TRUE
   i

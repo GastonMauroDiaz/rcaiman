@@ -63,7 +63,7 @@ ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 
 g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(r, bin, g, dist_to_plant = 3)
+sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 sky_points <- extract_dn(r, sky_points)

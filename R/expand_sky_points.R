@@ -69,7 +69,7 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
   bwlabels <- EBImage::bwlabel(as.array(bin))
   bwlabels <- terra::setValues(bin, bwlabels)
 
-  sky_points2 <- extract_sky_points(r, bin, bwlabels, dist_to_plant = NULL)
+  sky_points2 <- extract_sky_points(r, bin, bwlabels, dist_to_black = NULL)
 
   sky_points2 <- extract_rl(r, z, a, sky_points2, NULL)$sky_points
   sky_points <- extract_rl(r, z, a, sky_points, NULL)$sky_points

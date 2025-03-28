@@ -4,11 +4,11 @@
 #'
 #' This function will automatically sample sky pixels from the sky regions
 #' delimited by `bin`. The density and distribution of the sampling points is
-#' controlled by the arguments `g`, `dist_to_plant`, and `min_raster_dist`.
+#' controlled by the arguments `g`, `dist_to_black`, and `min_raster_dist`.
 #'
 #' As the first step, sky pixels from `r` are evaluated to find the pixel with
-#' maximum digital value (local maximum) per cell of the `g` argument. The
-#' `dist_to_plant` argument allows users to establish a buffer zone for `bin`,
+#' maximum digital value per cell of the `g` argument. The
+#' `dist_to_black` argument allows users to establish a buffer zone for `bin`,
 #' meaning a size reduction of the original sky regions.
 #'
 #' The final step is filtering these local maximum values by evaluating the
@@ -23,7 +23,7 @@
 #' @inheritParams fit_trend_surface
 #' @param g [SpatRaster-class] built with [sky_grid_segmentation()] or
 #'   [chessboard()].
-#' @param dist_to_plant,min_raster_dist Numeric vector of length one or `NULL`.
+#' @param dist_to_black,min_raster_dist Numeric vector of length one or `NULL`.
 #'
 #'
 #' @family Tool Functions
@@ -51,15 +51,16 @@
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_points <- extract_sky_points(r, bin, g,
-#'                                  dist_to_plant = 3,
+#'                                  dist_to_black = 3,
 #'                                  min_raster_dist = 10)
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
 extract_sky_points <- function(r, bin, g,
-                               dist_to_plant = 3,
+                               dist_to_black = 3,
                                min_raster_dist = 3) {
 
+  .this_requires_EBImage()
 
   .filter <- function(ds, col_names, thr) {
     d <- as.matrix(stats::dist(ds[, col_names]))
@@ -89,61 +90,42 @@ extract_sky_points <- function(r, bin, g,
     terra::compareGeom(r, g)
   }
   terra::compareGeom(r, bin)
-  if (!is.null(dist_to_plant)) stopifnot(length(dist_to_plant) == 1)
+  if (!is.null(dist_to_black)) stopifnot(length(dist_to_black) == 1)
   if (!is.null(min_raster_dist)) stopifnot(length(min_raster_dist) == 1)
 
-  #new feature
-  # cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-  # r <- normalize(-cv) * r
+  if (!is.null(dist_to_black)) {
+    stopifnot(.is_whole(dist_to_black))
+    kern <- EBImage::makeBrush(dist_to_black, "box")
+    bin2 <- bin
+    bin2 <- EBImage::erode(as.array(bin2), kern) %>%
+      terra::setValues(bin2, .)
+    bin2[is.na(bin2)] <- 0
+    bin2 <- as.logical(bin2)
+  } else {
+    bin2 <- bin
+  }
 
   if (!is.null(g)) {
-    # new feature
-    nw <- extract_feature(bin, g, sum, return_raster = FALSE)
-    # tol <- sum(nw != 0) / 3
-    tol <- mean(nw[nw != 0])
-    size <- extract_feature(g, g, length, return_raster = FALSE) %>% min()
-    w <- 1
-    while (sum(nw > size) < tol & w > 0) {
-      w <- w - 0.01
-      size <- size * w
-    }
-    nw <- extract_feature(bin, g, sum, return_raster = TRUE)
-    nw <- nw > size
-    g[!nw] <- 0
+    # sky-grid approach
 
-    # remove the pixels with NA neighbors because HSP extract with 3x3 window
-    # NA_count <- terra::focal(!bin, w = 3, fun = "sum")
+    ## remove cells with not enough white pixels
+    nwp <- extract_feature(bin, g, sum, return_raster = FALSE)
+    mean_nwp <- mean(nwp[nwp != 0])
+    nwp <- extract_feature(bin, g, sum, return_raster = TRUE)
+    nwp <- nwp > mean_nwp/4
+    g[!nwp] <- 0
 
     no_col <- no_row <- bin
     terra::values(no_col) <- .col(dim(bin)[1:2])
     terra::values(no_row) <- .row(dim(bin)[1:2])
 
-    # systematic sampling using a sky grid by taking the maximum from each cell
-    if (!is.null(dist_to_plant)) {
-      stopifnot(.is_whole(dist_to_plant))
-      .this_requires_EBImage()
-      kern <- EBImage::makeBrush(dist_to_plant, "box")
-      # dist_to_plant_img <- NA_count == 0
-      dist_to_plant_img <- bin
-      dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
-        terra::setValues(dist_to_plant_img, .)
-      dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
-      dist_to_plant_img <- as.logical(dist_to_plant_img)
+    ds <- data.frame(col = no_col[bin2],
+                     row = no_row[bin2],
+                     g = g[bin2],
+                     dn = r[bin2])
+    names(ds) <- c("col", "row", "g", "dn")
 
-      ds <- data.frame(col = no_col[dist_to_plant_img],
-                       row = no_row[dist_to_plant_img],
-                       g = g[dist_to_plant_img],
-                       dn = r[dist_to_plant_img])
-      names(ds) <- c("col", "row", "g", "dn")
-    } else {
-      ds <- data.frame(col = no_col[bin],
-                       row = no_row[bin],
-                       g = g[bin],
-                       dn = r[bin])
-      names(ds) <- c("col", "row", "g", "dn")
-    }
-
-    if (nrow(ds) != 0) {
+    if (nrow(ds) != 0) { #to avoid crashing when there is no white pixels
         i <- tapply(1:nrow(ds), ds$g,
                       function(x) {
                         x[which.max(ds$dn[x])]
@@ -153,35 +135,30 @@ extract_sky_points <- function(r, bin, g,
           ds <- .filter(ds, c("col", "row"), min_raster_dist)
         }
     }
-    sky_points <- ds[,c(2, 1)]
+    sky_points <- ds[,c("row", "col")]
 
   } else {
+    # local-maximum approach
 
-    .this_requires_EBImage()
-
-    bwlabels <- EBImage::bwlabel(as.array(bin))
+    bwlabels <- EBImage::bwlabel(as.array(bin2))
     shape <- EBImage::computeFeatures.shape(bwlabels)
-    bwlabels <- terra::setValues(bin, bwlabels)
+    bwlabels <- terra::setValues(bin2, bwlabels)
     shape <- terra::subst(bwlabels, 1:nrow(shape), shape)
+
+    ## Remove large gaps and artifacts
     shape[shape$s.area > 200 | shape$s.area == 0] <- NA
-    shape <- (shape$s.area / (shape$s.radius.sd + 1)) < 9
-    bin[shape] <- 0
 
-    if (!is.null(dist_to_plant)) {
-      stopifnot(.is_whole(dist_to_plant))
-      kern <- EBImage::makeBrush(dist_to_plant, "box")
-      dist_to_plant_img <- bin
-      dist_to_plant_img <- EBImage::erode(as.array(dist_to_plant_img), kern) %>%
-        terra::setValues(dist_to_plant_img, .)
-      dist_to_plant_img[is.na(dist_to_plant_img)] <- 0
-      dist_to_plant_img <- as.logical(dist_to_plant_img)
-      bin <- dist_to_plant_img
-    }
+    ## Use effective circular area (ECA)
+    eca <- shape$s.area / (shape$s.radius.sd + 1)
+    bin2[eca < 9] <- 0
 
-    lmax <- terra::focal(r*bin, 9, "max")
-    lmax <- (lmax == r) * bin
+    ## find local maximum
+    lmax <- terra::focal(r*bin2, 9, "max")
+    lmax <- (lmax == r) * bin2
     lmax[is.na(lmax)] <- 0
     i <- lmax[] %>% as.numeric() %>% as.logical()
+
+    ## Create points
     sky_points <- rowColFromCell(lmax, cells(lmax)[i]) %>% as.data.frame()
     colnames(sky_points) <- c("row", "col")
   }
