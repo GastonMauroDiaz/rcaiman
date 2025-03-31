@@ -7,11 +7,9 @@
 calc_oor_index(r, sky)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+\item{r}{\linkS4class{SpatRaster}. The blue channel of a canopy photograph.}
 
-\item{sky}{\linkS4class{SpatRaster}. The relative radiance of the unobscured sky}
+\item{sky}{\linkS4class{SpatRaster}. The blue radiance of the unobscured sky}
 }
 \value{
 Numeric vector of length one.
@@ -22,8 +20,8 @@ The \strong{out-out-of-range} (OOR) index is calculated as foollow:
 \details{
 \eqn{\sum_{i = 1}^{N}(r_i/sky_i)^2},
 
-where \eqn{r} is a canopy image with relative radiance data, \eqn{sky} is an
-image with unobstructed sky relative radiance data, \eqn{i} is the index that
+where \eqn{r} is a canopy image with radiance data, \eqn{sky} is an
+image with unobstructed sky radiance data, \eqn{i} is the index that
 represents the position of a given pixel on the raster grid, and \eqn{N} is
 the total number of pixels that satisfy: \eqn{r_i/sky_i<0} or
 \eqn{r_i/sky_i>1}.
@@ -40,7 +38,7 @@ r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
 bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
 bin <- bin & mask_hs(z, 0, 80)
 sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 
 model <- fit_coneshaped_model(sky_points$sky_points)
 summary(model$model)
@@ -59,7 +57,7 @@ Other Tool Functions:
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_general_sky_type}()},

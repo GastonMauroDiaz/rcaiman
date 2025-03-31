@@ -46,7 +46,7 @@
 #' points(ootb_sky$sky_points$col, nrow(caim) - ootb_sky$sky_points$row,
 #'        col = 2, pch = 10)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 4, pch = 10)
-#' sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)$sky_points
+#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)$sky_points
 #' i <- sor_filter(sky_points, r, k = 3)
 #'
 #' sky2 <- interpolate_and_merge(r, z, a, sky_points[i, c("row", "col")],

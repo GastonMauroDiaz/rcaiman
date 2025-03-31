@@ -5,7 +5,7 @@
 \title{Fit CIE sky model}
 \usage{
 fit_cie_sky_model(
-  rl,
+  rr,
   sun_coord,
   custom_sky_coef = NULL,
   std_sky_no = NULL,
@@ -16,7 +16,7 @@ fit_cie_sky_model(
 )
 }
 \arguments{
-\item{rl}{An object of class \emph{list}. The output of \code{\link[=extract_rl]{extract_rl()}} or an
+\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or an
 object with same structure and names.}
 
 \item{sun_coord}{An object of class \emph{list}. The output of
@@ -91,8 +91,8 @@ manual_input <- read_manual_input(".", "IMG_1013" )
 sun_coord <- manual_input$sun_coord$row_col
 sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
 sky_points <- manual_input$sky_points
-rl <- extract_rl(r, z, a, sky_points)
-model <- fit_cie_sky_model(rl, sun_coord)
+rr <- extract_rel_radiance(r, z, a, sky_points)
+model <- fit_cie_sky_model(rr, sun_coord)
 cie_sky <- model$relative_luminance * model$zenith_dn
 plot(r/cie_sky)
 
@@ -126,7 +126,7 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
@@ -157,10 +157,10 @@ sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
 points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
        col = 3, pch = 1)
 
-rl <- extract_rl(caim$Blue, z, a, sky_points)
+rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 
 set.seed(7)
-model <- fit_cie_sky_model(rl, sun_coord,
+model <- fit_cie_sky_model(rr, sun_coord,
                            general_sky_type = "Clear",
                            twilight = 90,
                            method = "CG")

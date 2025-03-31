@@ -10,11 +10,12 @@ sor_filter(
   k = 20,
   rmax = 20,
   thr = 2,
-  cutoff_side = "both"
+  cutoff_side = "both",
+  use_window = TRUE
 )
 }
 \arguments{
-\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rl]{extract_rl()}} or a
+\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or a
 \emph{data.frame} with same structure and names.}
 
 \item{r}{\linkS4class{SpatRaster}. An image with the same raster grid as the one
@@ -37,6 +38,9 @@ a lack of evidence for removal.}
 
 \item{cutoff_side}{Character vector of length one. See
 \insertCite{Leys2013;textual}{rcaiman}.}
+
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
+window will be used to extract the digital number from \code{r}.}
 }
 \value{
 Logical vector of length equal to the number of row of argument
@@ -84,7 +88,7 @@ sky_points <- extract_sky_points(r, bin, g,
                                  min_raster_dist = 10)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
-sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 i <- sor_filter(sky_points$sky_points, k = 5, rmax = 20, thr = 2,
                 cutoff_side = "left")
 sky_points <- sky_points$sky_points[!i, c("row", "col")]
@@ -106,7 +110,7 @@ Other Tool Functions:
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_general_sky_type}()},

@@ -10,7 +10,7 @@ ootb_fit_cie_sky_model(
   a,
   m,
   bin,
-  g,
+  gs,
   sor_filter_cv = FALSE,
   sor_filter_dn = FALSE,
   refine_sun_coord = FALSE,
@@ -32,8 +32,8 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
-\item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
-\code{\link[=chessboard]{chessboard()}}.}
+\item{gs}{An object of the class \emph{list}. A list with the output of
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 
 \item{sor_filter_cv}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
 will be applied internally to filter out points using local variability at
@@ -64,13 +64,14 @@ number values.
 \item The output produced by \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The output produced by \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
 \item The \code{dist_to_black} argument used in \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
-\item The \code{sky_points} argument used in \code{\link[=extract_rl]{extract_rl()}}.
+\item The \code{sky_points} argument used in \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}.
 }
 }
 \description{
 This function is a hard-coded version of a pipeline that uses these main
 functions \code{\link[=extract_sun_coord]{extract_sun_coord()}}, \code{\link[=extract_sky_points]{extract_sky_points()}}, \code{\link[=sor_filter]{sor_filter()}},
-\code{\link[=extract_rl]{extract_rl()}}, \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, and \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
+\code{\link[=extract_rel_radiance]{extract_rel_radiance()}}, \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, and
+\code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
 }
 \details{
 This function is part of the efforts to automate the method proposed by

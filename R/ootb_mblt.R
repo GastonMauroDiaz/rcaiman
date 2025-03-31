@@ -93,7 +93,7 @@ ootb_mblt <- function(r, z, a, bin, w = 0.5) {
 
   g <- sky_grid_segmentation(z, a, 3)
   sky_points <- extract_sky_points(r, bin, g, dist_to_black = 1)
-  sky_points <- extract_rl(r, z, a, sky_points, NULL)
+  sky_points <- extract_rel_radiance(r, z, a, sky_points, NULL)
   model <- fit_coneshaped_model(sky_points$sky_points)
 
   if (is.null(model)) {

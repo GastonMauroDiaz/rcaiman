@@ -4,11 +4,11 @@
 \alias{interpolate_sky_points}
 \title{Interpolate sky points}
 \usage{
-interpolate_sky_points(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "rl")
+interpolate_sky_points(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "rr")
 }
 \arguments{
 \item{sky_points}{An object of class \emph{data.frame}. The data.frame returned by
-\code{\link[=extract_rl]{extract_rl()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
+\code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
 \emph{data.frame} with same basic structure and names.}
 
 \item{r}{\linkS4class{SpatRaster}. The image from which \code{sky_points}

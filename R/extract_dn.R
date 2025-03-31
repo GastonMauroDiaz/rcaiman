@@ -6,7 +6,7 @@
 #' @inheritParams fisheye_to_equidistant
 #' @param img_points The output of [extract_sky_points()],
 #'   or an object of the same class and structure.
-#' @inheritParams extract_rl
+#' @inheritParams extract_rel_radiance
 #' @inheritParams extract_feature
 #'
 #' @return An object of the class *data.frame*. It is the argument

@@ -4,25 +4,14 @@
 \alias{validate_cie_sky_model}
 \title{Validate CIE sky models}
 \usage{
-validate_cie_sky_model(r, z, a, rl, model, use_window, k = 10)
+validate_cie_sky_model(model, rr, k = 10)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
-
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{rl}{An object of class \emph{list}. The output of \code{\link[=extract_rl]{extract_rl()}} or an
-object with same structure and names.}
-
 \item{model}{An object of the class \emph{list}. The output of
 \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
-window will be used to extract the digital number from \code{r}.}
+\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or an
+object with same structure and names.}
 
 \item{k}{Numeric vector of length ones. Number of folds.}
 }
@@ -71,15 +60,14 @@ sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
 points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
        col = 3, pch = 1)
 
-rl <- extract_rl(caim$Blue, z, a, sky_points)
+rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 
 set.seed(7)
-model <- fit_cie_sky_model(rl, sun_coord,
+model <- fit_cie_sky_model(rr, sun_coord,
                            general_sky_type = "Clear",
                            twilight = FALSE,
                            method = "CG")
-model_validation <- validate_cie_sky_model(caim$Blue, z, a, rl, model,
-                                           use_window = TRUE)
+model_validation <- validate_cie_sky_model(model, rr)
 model_validation$r_squared
 model_validation$rmse
 }

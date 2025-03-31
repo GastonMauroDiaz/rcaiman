@@ -45,7 +45,7 @@
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
 #' bin <- bin & mask_hs(z, 0, 80)
 #' sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-#' sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 #'
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' summary(model$model)

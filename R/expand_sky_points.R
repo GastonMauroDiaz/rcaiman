@@ -6,7 +6,7 @@
 #'
 #' @inheritParams ootb_mblt
 #' @inheritParams sky_grid_segmentation
-#' @inheritParams extract_rl
+#' @inheritParams extract_rel_radiance
 #' @inheritParams sor_filter
 #' @inheritParams interpolate_sky_points
 #'
@@ -71,8 +71,8 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
 
   sky_points2 <- extract_sky_points(r, bin, bwlabels, dist_to_black = NULL)
 
-  sky_points2 <- extract_rl(r, z, a, sky_points2, NULL)$sky_points
-  sky_points <- extract_rl(r, z, a, sky_points, NULL)$sky_points
+  sky_points2 <- extract_rel_radiance(r, z, a, sky_points2, NULL)$sky_points
+  sky_points <- extract_rel_radiance(r, z, a, sky_points, NULL)$sky_points
   ds <- extract_dn(r, sky_points[, c("row", "col")])
 
   .calculate_dn <- function(i) {
@@ -99,6 +99,6 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
   sky_points2 <- sky_points2[!is.na(new_value),]
   initial <- c(rep(TRUE, nrow(sky_points)), rep(FALSE, nrow(sky_points2)))
   sky_points <- rbind(sky_points, sky_points2)
-  sky_points <- sky_points[, -ncol(sky_points)] #remove the rl column
+  sky_points <- sky_points[, -ncol(sky_points)] #remove the rr column
   cbind(sky_points, initial)
 }

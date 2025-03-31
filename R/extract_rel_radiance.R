@@ -1,12 +1,12 @@
-#' Extract relative luminance
+#' Extract relative radiance
 #'
-#' Extract the luminance relative to the zenith digital number
+#' Extract the radiance relative to the zenith radiance
 #'
-#' The search for near-zenith points starts in the region  ranged between `0`
-#' and `z_thr`. If the number of near-zenith points is less than `no_of_points`,
-#' the region increases by steps of `2` degrees of zenith angle till the
-#' required number of points is reached.
+#' Interpolate the `no_of_points` closer to the zenith using IDW with p = 2.
 #'
+#' @param r [SpatRaster-class]. A greyscale image. Typically, the blue channel
+#'   extracted from a canopy photograph. Please see [read_caim()] and
+#'   [read_caim_raw()].
 #' @inheritParams ootb_mblt
 #' @param sky_points An object of class *data.frame*. The output of
 #'   [extract_sky_points()]. As an alternative, both
@@ -15,8 +15,6 @@
 #'   [extract_dn()] and [read_manual_input()] for details.
 #' @param no_of_points Numeric vector of length one. The number of near-zenith
 #'   points required for the estimation of the zenith DN.
-#' @param z_thr Numeric vector on length one. The starting maximum zenith angle
-#'   used to search for near-zenith points.
 #' @param use_window Logical vector of length one. If `TRUE`, a \eqn{3 \times 3}
 #'   window will be used to extract the digital number from `r`.
 #' @param min_spherical_dist Numeric vector of length one. This parameter
@@ -30,10 +28,10 @@
 #'   *max_zenith_angle* is the maximum zenith angle reached in the search
 #'   for near-zenith sky points, and *sky_points* is the input argument
 #'   `sky_points` with the additional columns: *a*, *z*,
-#'   *dn*, and *rl*, which stand for azimuth and zenith angle in
+#'   *dn*, and *rr*, which stand for azimuth and zenith angle in
 #'   degrees, digital number, and relative luminance, respectively. If `NULL` is
 #'   provided as `no_of_points`, then *zenith_dn* is forced to one and,
-#'   therefore, *dn* and *rl* will be identical.
+#'   therefore, *dn* and *rr* will be identical.
 #' @export
 #'
 #' @family Tool Functions
@@ -56,12 +54,11 @@
 #'
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#' rl <- extract_rl(caim$Blue, z, a, sky_points, 1, min_spherical_dist = 10)
-#' points(rl$sky_points$col, nrow(caim) - rl$sky_points$row, col = 3, pch = 0)
+#' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points, 1, min_spherical_dist = 10)
+#' points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 #' }
-extract_rl <- function(r, z, a, sky_points,
+extract_rel_radiance <- function(r, z, a, sky_points,
                        no_of_points = 3,
-                       z_thr = 5,
                        use_window = TRUE,
                        min_spherical_dist = NULL) {
 
@@ -129,19 +126,6 @@ extract_rl <- function(r, z, a, sky_points,
            )
   }
 
-  # Modify spherical spacing between points
-  if (!is.null(min_spherical_dist)) {
-    i <- sor_filter(sky_points, r,
-                    k = 20,
-                    rmax = min_spherical_dist,
-                    thr = 0,
-                    cutoff_side = "left")
-    sky_points <- sky_points[i, ]
-    i <- .filter(sky_points, min_spherical_dist %>% .degree2radian())
-    sky_points <- sky_points[i, ]
-    cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
-  }
-
   # Extract values from the image with the points
   if (use_window) {
     xy <-  terra::xyFromCell(r, cells)
@@ -154,34 +138,54 @@ extract_rl <- function(r, z, a, sky_points,
     sky_points$dn <-  r[cells][,]
   }
 
+  # Modify spherical spacing between points
+  if (!is.null(min_spherical_dist)) {
+    .calc_local_median <- function(sky_points, rmax) {
+      ds <- sky_points[, c("row", "col", "dn")]
+      rmax <- .degree2radian(rmax)
+      calculate_sor <- function(i) {
+        spherical_distance <- .calc_spherical_distance(sky_points$z,
+                                                       sky_points$a,
+                                                       sky_points[i, "z"],
+                                                       sky_points[i, "a"],
+                                                       radians = FALSE)
+        order_idx <- order(spherical_distance)
+        u <- ds[order_idx, 3]
+        sorted_distance <- spherical_distance[order_idx]
+        stats::median(u[sorted_distance <= rmax], na.rm = TRUE)
+      }
+
+      result <- lapply(seq_len(nrow(sky_points)), calculate_sor) %>%
+        unlist()
+    }
+    local_median <- .calc_local_median(sky_points, min_spherical_dist)
+    i <- sky_points$dn >= local_median
+    sky_points <- sky_points[i, ]
+    i <- .filter(sky_points, min_spherical_dist %>% .degree2radian())
+    sky_points <- sky_points[i, ]
+    cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
+  }
+
   # Estimate zenith DN
   if (is.null(no_of_points)) {
     zenith_dn <- 1
   } else {
-    row_col <- row_col_from_zenith_azimuth(z, a, c(0, 0))$row_col
-    sky_points2 <- data.frame(row = row_col[1], col = row_col[2])
-    cells2 <- terra::cellFromRowCol(a, sky_points2$row, sky_points2$col)
-    sky_points2$a <- a[cells2][,]
-    sky_points2$z <- z[cells2][,]
-
     spherical_distance <- .calc_spherical_distance(sky_points$z, sky_points$a,
-                                                   sky_points2$z,
-                                                   sky_points2$a,
+                                                   0,
+                                                   0,
                                                    radians = FALSE)
-
     k <- no_of_points
     sorted_indices <- order(spherical_distance)
     w <- spherical_distance[sorted_indices][2:(k + 1)]
     w <- 1 / w^2
-    u <- sky_points[sorted_indices[2:(k + 1)], 3]
+    u <- sky_points[sorted_indices[2:(k + 1)], "dn"]
     zenith_dn <- sum(u * (w / sum(w)))
   }
 
   # Calculate relative radiance
-  sky_points$rl <- sky_points$dn / zenith_dn
+  sky_points$rr <- sky_points$dn / zenith_dn
 
 
   list(zenith_dn = zenith_dn,
-       max_zenith_angle = z_thr,
        sky_points = sky_points)
 }

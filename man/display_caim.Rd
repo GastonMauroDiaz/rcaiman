@@ -4,12 +4,16 @@
 \alias{display_caim}
 \title{Dysplay a canopy image}
 \usage{
-display_caim(caim)
+display_caim(caim = NULL, bin = NULL, g = NULL)
 }
 \arguments{
 \item{caim}{\linkS4class{SpatRaster}, such as the output of \code{\link[=read_caim]{read_caim()}} or
 \code{\link[=read_caim_raw]{read_caim_raw()}}, or a single layer raster such as the output of
-\code{\link[=apply_thr]{apply_thr()}}.}
+\code{\link[=enhance_caim]{enhance_caim()}}.}
+
+\item{bin}{description}
+
+\item{g}{description}
 }
 \value{
 No return value. Called for side effects
@@ -39,7 +43,7 @@ Other Tool Functions:
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_general_sky_type}()},

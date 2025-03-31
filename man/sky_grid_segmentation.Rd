@@ -62,8 +62,6 @@ g <- terra::focal(g, 3, sd)
 g <- g != 0
 plot(g)
 plot(!g * caim$Blue)
-display_caim(!g * caim$Blue)
-display_caim(c(normalize(caim$Blue), g))
 
 }
 }

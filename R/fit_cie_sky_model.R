@@ -23,8 +23,8 @@
 #' sun_coord <- manual_input$sun_coord$row_col
 #' sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
 #' sky_points <- manual_input$sky_points
-#' rl <- extract_rl(r, z, a, sky_points)
-#' model <- fit_cie_sky_model(rl, sun_coord)
+#' rr <- extract_rel_radiance(r, z, a, sky_points)
+#' model <- fit_cie_sky_model(rr, sun_coord)
 #' cie_sky <- model$relative_luminance * model$zenith_dn
 #' plot(r/cie_sky)
 #'
@@ -61,7 +61,7 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_coneshaped_model
 #'
-#' @param rl An object of class *list*. The output of [extract_rl()] or an
+#' @param rr An object of class *list*. The output of [extract_rel_radiance()] or an
 #'   object with same structure and names.
 #' @param sun_coord An object of class *list*. The output of
 #'   [extract_sun_coord()] or an object with same structure and names. See also
@@ -113,7 +113,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #'
@@ -144,10 +144,10 @@
 #' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 #'        col = 3, pch = 1)
 #'
-#' rl <- extract_rl(caim$Blue, z, a, sky_points)
+#' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 #'
 #' set.seed(7)
-#' model <- fit_cie_sky_model(rl, sun_coord,
+#' model <- fit_cie_sky_model(rr, sun_coord,
 #'                            general_sky_type = "Clear",
 #'                            twilight = 90,
 #'                            method = "CG")
@@ -162,7 +162,7 @@
 #' plot(sky_cie)
 #' plot(caim$Blue/sky_cie)
 #' }
-fit_cie_sky_model <- function(rl, sun_coord,
+fit_cie_sky_model <- function(rr, sun_coord,
                               custom_sky_coef = NULL,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
@@ -174,7 +174,7 @@ fit_cie_sky_model <- function(rl, sun_coord,
             general_sky_type == "Partly cloudy" |
             general_sky_type == "Clear" |
             is.null(general_sky_type))
-  stopifnot(is.data.frame(rl$sky_points))
+  stopifnot(is.data.frame(rr$sky_points))
   stopifnot(length(sun_coord$zenith_azimuth) == 2)
 
   # Manage the set of start parameter according to user choice
@@ -204,8 +204,8 @@ fit_cie_sky_model <- function(rl, sun_coord,
   }
 
   # Retrieve coordinates and convert to radians
-  AzP <- .degree2radian(rl$sky_points$a)
-  Zp <- .degree2radian(rl$sky_points$z)
+  AzP <- .degree2radian(rr$sky_points$a)
+  Zp <- .degree2radian(rr$sky_points$z)
 
   # Try all start parameters (brute force approach)
   .fun <- function(i) {
@@ -228,7 +228,7 @@ fit_cie_sky_model <- function(rl, sun_coord,
       .e <- abs(params[5])
 
       x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
-      residuals <- x - rl$sky_points$rl
+      residuals <- x - rr$sky_points$rr
 
       if (loss == "MAE") {
         return(stats::median(abs(residuals)))
@@ -261,9 +261,9 @@ fit_cie_sky_model <- function(rl, sun_coord,
 
     list(opt_result = fit,
          coef = coef,
-         obs = rl$sky_points$rl,
+         obs = rr$sky_points$rr,
          pred = pred,
-         zenith_dn = rl$zenith_dn,
+         zenith_dn = rr$zenith_dn,
          sun_coord = sun_coord,
          method = method,
          start = start_params)

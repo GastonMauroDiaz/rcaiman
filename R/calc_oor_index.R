@@ -4,14 +4,14 @@
 #'
 #' \eqn{\sum_{i = 1}^{N}(r_i/sky_i)^2},
 #'
-#' where \eqn{r} is a canopy image with relative radiance data, \eqn{sky} is an
-#' image with unobstructed sky relative radiance data, \eqn{i} is the index that
+#' where \eqn{r} is a canopy image with radiance data, \eqn{sky} is an
+#' image with unobstructed sky radiance data, \eqn{i} is the index that
 #' represents the position of a given pixel on the raster grid, and \eqn{N} is
 #' the total number of pixels that satisfy: \eqn{r_i/sky_i<0} or
 #' \eqn{r_i/sky_i>1}.
 #'
-#' @inheritParams ootb_mblt
-#' @param sky [SpatRaster-class]. The relative radiance of the unobscured sky
+#' @param r [SpatRaster-class]. The blue channel of a canopy photograph.
+#' @param sky [SpatRaster-class]. The blue radiance of the unobscured sky
 #'
 #' @returns Numeric vector of length one.
 #'
@@ -31,7 +31,7 @@
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
 #' bin <- bin & mask_hs(z, 0, 80)
 #' sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-#' sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 #'
 #' model <- fit_coneshaped_model(sky_points$sky_points)
 #' summary(model$model)

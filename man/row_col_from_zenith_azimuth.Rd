@@ -4,14 +4,14 @@
 \alias{row_col_from_zenith_azimuth}
 \title{Obtain row and col numbers from zenith and azimuth angles}
 \usage{
-row_col_from_zenith_azimuth(z, a, za, lens_coef = NULL)
+row_col_from_zenith_azimuth(z, a, zenith_azimuth, lens_coef = NULL)
 }
 \arguments{
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{za}{Numeric vector of length two. Zenith and azimuth angles in degrees.}
+\item{zenith_azimuth}{Numeric vector of length two. Zenith and azimuth angles in degrees.}
 
 \item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
 projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}

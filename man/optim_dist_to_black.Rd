@@ -19,9 +19,6 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
-
-\item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
-\code{\link[=chessboard]{chessboard()}}.}
 }
 \value{
 Numeric vector of length one.
@@ -40,7 +37,7 @@ Other Tool Functions:
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_general_sky_type}()},

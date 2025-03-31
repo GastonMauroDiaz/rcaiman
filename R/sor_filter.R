@@ -30,6 +30,7 @@
 #'   extract values from it using `sky_points`. If `NULL` is provided, the _dn_
 #'   column from `sky_points` will be used instead.
 #' @inheritParams interpolate_sky_points
+#' @inheritParams extract_dn
 #' @param rmax Numeric vector of length one. The maximum radius for searching
 #'   k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 #'   similar to the use of relative radius in image mapping. The spherical
@@ -68,7 +69,7 @@
 #'                                  min_raster_dist = 10)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
-#' sky_points <- extract_rl(r, z, a, sky_points, no_of_points = NULL)
+#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 #' i <- sor_filter(sky_points$sky_points, k = 5, rmax = 20, thr = 2,
 #'                 cutoff_side = "left")
 #' sky_points <- sky_points$sky_points[!i, c("row", "col")]
@@ -80,7 +81,8 @@ sor_filter <- function(sky_points,
                        k = 20,
                        rmax = 20,
                        thr = 2,
-                       cutoff_side = "both") {
+                       cutoff_side = "both",
+                       use_window = TRUE) {
 
   stopifnot(length(k) == 1)
   stopifnot(.is_whole(k))
@@ -94,7 +96,7 @@ sor_filter <- function(sky_points,
     stopifnot(!is.na(charmatch("dn", names(sky_points))))
     ds <- sky_points[, c("row", "col", "dn")]
   } else {
-    ds <- extract_dn(r, sky_points[, c("row", "col")])
+    ds <- extract_dn(r, sky_points[, c("row", "col")], use_window = TRUE)
   }
 
   calculate_sor <- function(i) {

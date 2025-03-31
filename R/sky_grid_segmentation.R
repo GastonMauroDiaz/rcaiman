@@ -46,8 +46,6 @@
 #' g <- g != 0
 #' plot(g)
 #' plot(!g * caim$Blue)
-#' display_caim(!g * caim$Blue)
-#' display_caim(c(normalize(caim$Blue), g))
 #'
 #' }
 sky_grid_segmentation <- function(z, a, angle_width,

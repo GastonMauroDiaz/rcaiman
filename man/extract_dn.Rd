@@ -102,7 +102,7 @@ Other Tool Functions:
 \code{\link{display_caim}()},
 \code{\link{expand_sky_points}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_general_sky_type}()},

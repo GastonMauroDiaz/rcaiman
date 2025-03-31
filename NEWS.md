@@ -1,3 +1,6 @@
+* New `display_caim` facilitate visualizing canopy images in R.
+* Argument `za` from `row_col_from_zenith_azimuth()` was remaned to `zenith_azimuth` for better consistency in package naming convention.
+* `extract_rl()` rename to `extract_rel_radiance()` and modify how the zenith_dn is obtained.
 * `cie_sky_model_raster()` rename to `cie_sky_image()`  
 * `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `interpolate_and_merge()`, `validate_cie_sky_model()`, and `calc_oor_index()`.
 * New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.

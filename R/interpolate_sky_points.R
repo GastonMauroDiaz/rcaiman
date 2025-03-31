@@ -18,7 +18,7 @@
 #' this argument properly.
 #'
 #' @param sky_points An object of class *data.frame*. The data.frame returned by
-#'   [extract_rl()] or [extract_dn()], or a
+#'   [extract_rel_radiance()] or [extract_dn()], or a
 #'   *data.frame* with same basic structure and names.
 #' @param r [SpatRaster-class]. The image from which `sky_points`
 #'   was obtained.
@@ -68,7 +68,7 @@ interpolate_sky_points <- function(sky_points,
                                    k = 3,
                                    p = 2,
                                    rmax = 200,
-                                   col_id = "rl") {
+                                   col_id = "rr") {
   .is_single_layer_raster(r)
   stopifnot(length(k) == 1)
   stopifnot(length(p) == 1)

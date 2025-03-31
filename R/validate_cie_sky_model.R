@@ -10,12 +10,9 @@
 #' is_outlier were determined following \insertCite{Leys2013;textual}{rcaiman} and
 #' with threshold equal to 3.
 #'
-#' @inheritParams ootb_mblt
 #' @inheritParams fit_cie_sky_model
 #' @param model An object of the class _list_. The output of
 #'   [fit_cie_sky_model()].
-#' @inheritParams extract_sky_points
-#' @inheritParams extract_rl
 #' @param k Numeric vector of length ones. Number of folds.
 #'
 #' @returns A _list_ with the following components:
@@ -54,20 +51,18 @@
 #' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 #'        col = 3, pch = 1)
 #'
-#' rl <- extract_rl(caim$Blue, z, a, sky_points)
+#' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 #'
 #' set.seed(7)
-#' model <- fit_cie_sky_model(rl, sun_coord,
+#' model <- fit_cie_sky_model(rr, sun_coord,
 #'                            general_sky_type = "Clear",
 #'                            twilight = FALSE,
 #'                            method = "CG")
-#' model_validation <- validate_cie_sky_model(caim$Blue, z, a, rl, model,
-#'                                            use_window = TRUE)
+#' model_validation <- validate_cie_sky_model(model, rr)
 #' model_validation$r_squared
 #' model_validation$rmse
 #' }
-validate_cie_sky_model <- function(r, z, a, rl, model, use_window,
-                                   k = 10) {
+validate_cie_sky_model <- function(model, rr, k = 10) {
 
   stopifnot(length(k) == 1)
   stopifnot(.is_whole(k))
@@ -75,23 +70,29 @@ validate_cie_sky_model <- function(r, z, a, rl, model, use_window,
 
   # START K-fold method ####
   ## k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
-  folds <- seq_along(rl$sky_points$row)
+  folds <- seq_along(rr$sky_points$row)
   folds <- split(folds, 1:k) %>% suppressWarnings()
   x <- c()
   y <- c()
   for (i in 1:k) {
-    rl.2 <- rl
-    rl.2$sky_points <- rl$sky_points[-folds[[i]],]
-    model.2 <- fit_cie_sky_model(rl.2,  model$sun_coord,
+    rr.2 <- rr
+    rr.2$sky_points <- rr$sky_points[-folds[[i]],]
+    model.2 <- fit_cie_sky_model(rr.2,  model$sun_coord,
                                  custom_sky_coef = model$coef + .noise(0.1),
                                  twilight = 90,
                                  method = model$method)
-    x <- c(x, extract_dn(.get_sky_cie(z, a, model.2)/rl$zenith_dn,
-                         rl$sky_points[folds[[i]], c("row", "col")],
-                         use_window = use_window)[,3])
-    y <- c(y, extract_dn(r/rl$zenith_dn,
-                         rl$sky_points[folds[[i]], c("row", "col")],
-                         use_window = use_window)[,3])
+
+    x <- c(x, .cie_sky_model(AzP = rr$sky_points[folds[[i]], "a"] %>%
+                               .degree2radian(),
+                             Zp = rr$sky_points[folds[[i]], "z"] %>%
+                               .degree2radian(),
+                             AzS = model$sun_coord$zenith_azimuth[2] %>%
+                               .degree2radian(),
+                             Zs =  model$sun_coord$zenith_azimuth[1] %>%
+                               .degree2radian(),
+                             model$coef[1], model$coef[2], model$coef[3],
+                             model$coef[4], model$coef[5]))
+    y <- c(y, rr$sky_points[folds[[i]], "rr"])
   }
 
   #following Leys2013 10.1016/j.jesp.2013.03.013

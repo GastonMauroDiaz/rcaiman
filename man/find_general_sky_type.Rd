@@ -32,10 +32,10 @@ colnames(sky_points) <- c("row", "col")
 xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
 sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
 
-rl <- extract_rl(caim$Blue, z, a, sky_points)
+rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 
 set.seed(7)
-model <- fit_cie_sky_model(rl, sun_coord,
+model <- fit_cie_sky_model(rr, sun_coord,
                            general_sky_type = "Clear",
                            twilight = FALSE,
                            method = "CG")
@@ -53,7 +53,7 @@ Other Tool Functions:
 \code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
-\code{\link{extract_rl}()},
+\code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
 \code{\link{find_sky_pixels}()},
