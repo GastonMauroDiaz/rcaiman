@@ -110,12 +110,17 @@ extract_rl <- function(r, z, a, sky_points,
 
   stopifnot(is.data.frame(sky_points))
   stopifnot(ncol(sky_points) == 2)
+  if (is.null(no_of_points)) {
+    stopifnot(nrow(sky_points) >= 1)
+  } else {
+    stopifnot(nrow(sky_points) >= no_of_points)
+  }
   .check_if_r_z_and_a_are_ok(r, z, a)
 
+  # Extract spherical coordinates
   cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
   sky_points$a <- a[cells][,]
   sky_points$z <- z[cells][,]
-
   if(any(is.na(sky_points$z))) {
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
@@ -124,22 +129,24 @@ extract_rl <- function(r, z, a, sky_points,
            )
   }
 
+  # Modify spherical spacing between points
   if (!is.null(min_spherical_dist)) {
     i <- sor_filter(sky_points, r,
-                    k = 3,
+                    k = 20,
                     rmax = min_spherical_dist,
                     thr = 0,
                     cutoff_side = "left")
     sky_points <- sky_points[i, ]
-    sky_points <- sky_points[.filter(sky_points, min_spherical_dist %>%
-                                       .degree2radian()), ]
+    i <- .filter(sky_points, min_spherical_dist %>% .degree2radian())
+    sky_points <- sky_points[i, ]
     cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
   }
 
+  # Extract values from the image with the points
   if (use_window) {
     xy <-  terra::xyFromCell(r, cells)
-    r_smooth <- terra::focal(r, 3, "mean")
-    sky_points$dn <-  terra::extract(r_smooth, xy)[,]
+    r_smoothed <- terra::focal(r, 3, "mean")
+    sky_points$dn <-  terra::extract(r_smoothed, xy)[,]
     if(any(is.na(sky_points$dn))) {
       warning("The kernel created NA values.")
     }
@@ -147,24 +154,34 @@ extract_rl <- function(r, z, a, sky_points,
     sky_points$dn <-  r[cells][,]
   }
 
+  # Estimate zenith DN
   if (is.null(no_of_points)) {
     zenith_dn <- 1
   } else {
-    .is_whole(no_of_points)
-    stopifnot(length(no_of_points) == 1)
-    zenith_dn <- c()
-    unlock <- TRUE
-    while (unlock) {
-      zenith_dn <- sky_points$dn[sky_points$z < z_thr]
-      z_thr <- z_thr + 2
-      unlock <- length(zenith_dn) < no_of_points
-      if (z_thr >= 90) unlock <- FALSE
-    }
-    if ((z_thr - 2) > 20) warning(paste0("Zenith DN were estimated from ",
-                                         "sky pixels from zenith angle up to ",
-                                         z_thr))
-    zenith_dn <- mean(zenith_dn)
+    row_col <- row_col_from_zenith_azimuth(z, a, c(0, 0))$row_col
+    sky_points2 <- data.frame(row = row_col[1], col = row_col[2])
+    cells2 <- terra::cellFromRowCol(a, sky_points2$row, sky_points2$col)
+    sky_points2$a <- a[cells2][,]
+    sky_points2$z <- z[cells2][,]
+
+    spherical_distance <- .calc_spherical_distance(sky_points$z, sky_points$a,
+                                                   sky_points2$z,
+                                                   sky_points2$a,
+                                                   radians = FALSE)
+
+    k <- no_of_points
+    sorted_indices <- order(spherical_distance)
+    w <- spherical_distance[sorted_indices][2:(k + 1)]
+    w <- 1 / w^2
+    u <- sky_points[sorted_indices[2:(k + 1)], 3]
+    zenith_dn <- sum(u * (w / sum(w)))
   }
+
+  # Calculate relative radiance
   sky_points$rl <- sky_points$dn / zenith_dn
-  list(zenith_dn = zenith_dn, max_zenith_angle = z_thr, sky_points = sky_points)
+
+
+  list(zenith_dn = zenith_dn,
+       max_zenith_angle = z_thr,
+       sky_points = sky_points)
 }

@@ -75,7 +75,7 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
   sky_points <- extract_rl(r, z, a, sky_points, NULL)$sky_points
   ds <- extract_dn(r, sky_points[, c("row", "col")])
 
-  calculate_dn <- function(i) {
+  .calculate_dn <- function(i) {
     spherical_distance <- .calc_spherical_distance(sky_points$z, sky_points$a,
                                                    sky_points2[i, "z"],
                                                    sky_points2[i, "a"],
@@ -84,7 +84,6 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
     sorted_indices <- order(spherical_distance)
     w <- spherical_distance[sorted_indices][2:(k + 1)]
     m <- w <= rmax
-    w <- w
     if (all(m)) {
       w <- 1 / w^p
       u <- ds[sorted_indices[2:(k + 1)], 3]
@@ -94,7 +93,7 @@ expand_sky_points <- function(r, z, a, sky_points, angle_width = 3,
     }
   }
 
-  new_value <- Map(calculate_dn, seq_len(nrow(sky_points2))) %>% unlist()
+  new_value <- Map(.calculate_dn, seq_len(nrow(sky_points2))) %>% unlist()
 
   sky_points2$dn <- new_value
   sky_points2 <- sky_points2[!is.na(new_value),]
