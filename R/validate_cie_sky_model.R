@@ -105,8 +105,8 @@ validate_cie_sky_model <- function(model, rr, k = 10) {
   # END K-fold method ####
 
   list(lm = reg,
-       predicted = reg$model$x,
-       observed = reg$model$y,
+       pred = reg$model$x,
+       obs = reg$model$y,
        r_squared = summary(reg) %>% .$r.squared,
        rmse = .calc_rmse(reg$model$y - reg$model$x),
        is_outlier = !u)

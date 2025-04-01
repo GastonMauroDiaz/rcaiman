@@ -227,11 +227,16 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
 
   }
 
+  # skies <- Map(function(g) {
+  #   tryCatch(.fun(g),
+  #            error = function(e) list(sky = m))
+  # }, gs)
+  # metric <- Map(function(x) calc_oor_index(r, x$sky) , skies)
   skies <- Map(function(g) {
     tryCatch(.fun(g),
-             error = function(e) list(sky = m))
+             error = function(e) list(pred = 0, obs = 1e10))
   }, gs)
-  metric <- Map(function(x) calc_oor_index(r, x$sky) , skies)
+  metric <- Map(function(x) .get_metric(x$model_validation) , skies)
   i <- which.min(metric)
   sky <- skies[[i]]
   sky$g <- gs[[i]]
