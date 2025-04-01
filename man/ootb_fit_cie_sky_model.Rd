@@ -105,26 +105,32 @@ bin <- bin & mask_hs(z, 0, 85)
 plot(bin)
 
 set.seed(7)
-g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
-sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , g,
-                              sor_filter_cv = TRUE, sor_filter_dn = TRUE,
+gs <- list(
+  sky_grid_segmentation(z, a, 1.875, first_ring_different = TRUE),
+  sky_grid_segmentation(z, a, 6, first_ring_different = TRUE),
+  sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+)
+
+sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
+                              sor_filter_cv = TRUE,
+                              sor_filter_dn = TRUE,
                               refine_sun_coord = TRUE,
-                              min_spherical_dist = 3)
+                              min_spherical_dist = 5)
 
 sky$sky
 plot(sky$sky)
 sky$model_validation$rmse
 plot(r/sky$sky>1.15)
-plot(sky$model_validation$predicted, sky$model_validation$observed)
+plot(sky$model_validation$pred, sky$model_validation$obs)
 abline(0,1)
-error <- sky$model_validation$predicted - sky$model_validation$observed
+error <- sky$model_validation$pred - sky$model_validation$obs
 plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
      xlab = "zenith angle", ylab = "relative radiance error")
 abline(h = 0)
 
 plot(bin)
 points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
-
+display_caim(c(r, sky$sky))
 }
 }
 \references{

@@ -52,6 +52,7 @@ display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
     }
   }
   if (!is.null(x)) {
+    x <- terra::t(x) #needed for compatibility
     as.array(x) %>% EBImage::display()
   } else {
     warning("Nothing to display")

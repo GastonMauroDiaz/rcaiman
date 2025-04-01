@@ -12,7 +12,6 @@
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
 read_ootb_sky_model <- function(name) {
-
   ootb_sky <- list()
   ds <- scan(paste0(name, ".txt"), "character")
   ootb_sky$model$sun_coord$zenith_azimuth[1] <-
@@ -36,11 +35,9 @@ read_ootb_sky_model <- function(name) {
 
   ootb_sky$sky_points <- utils::read.csv2(paste0(name, "_fit", ".csv"))[,-1]
 
-  df <- data.frame(predicted = ootb_sky$model_validation$predicted,
-                   observed = ootb_sky$model_validation$observed)
   df <- utils::read.csv2(paste0(name, "_val", ".csv"))
-  ootb_sky$model_validation$predicted <- df$predicted
-  ootb_sky$model_validation$observed <- df$observed
+  ootb_sky$model_validation$pred <- df$pred
+  ootb_sky$model_validation$obs <- df$obs
 
   ootb_sky
 }

@@ -92,3 +92,23 @@
   .sd <- apply((skies[, 1:5]), 2, sd) * w
   Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
 }
+
+.filter <- function(ds, col_names, thr) {
+  d <- as.matrix(stats::dist(ds[, col_names]))
+  indices <- c()
+  i <- 0
+  while (i < nrow(d)) {
+    i <- i + 1
+    indices <- c(indices, row.names(d)[i]) #include the point itself (p)
+    x <- names(d[i, d[i,] <= thr])
+    if (!is.null(x)) {
+      # this exclude from future search all the points near p,
+      # including itself
+      rows2crop <- (1:nrow(d))[match(x, rownames(d))]
+      cols2crop <- (1:ncol(d))[match(x, colnames(d))]
+      d <- d[-rows2crop, -cols2crop]
+    }
+    if (is.vector(d)) d <- matrix(d)
+  }
+  ds[indices,]
+}

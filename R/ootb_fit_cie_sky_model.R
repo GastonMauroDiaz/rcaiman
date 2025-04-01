@@ -72,26 +72,32 @@
 #' plot(bin)
 #'
 #' set.seed(7)
-#' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
-#' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , g,
-#'                               sor_filter_cv = TRUE, sor_filter_dn = TRUE,
+#' gs <- list(
+#'   sky_grid_segmentation(z, a, 1.875, first_ring_different = TRUE),
+#'   sky_grid_segmentation(z, a, 6, first_ring_different = TRUE),
+#'   sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+#' )
+#'
+#' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
+#'                               sor_filter_cv = TRUE,
+#'                               sor_filter_dn = TRUE,
 #'                               refine_sun_coord = TRUE,
-#'                               min_spherical_dist = 3)
+#'                               min_spherical_dist = 5)
 #'
 #' sky$sky
 #' plot(sky$sky)
 #' sky$model_validation$rmse
 #' plot(r/sky$sky>1.15)
-#' plot(sky$model_validation$predicted, sky$model_validation$observed)
+#' plot(sky$model_validation$pred, sky$model_validation$obs)
 #' abline(0,1)
-#' error <- sky$model_validation$predicted - sky$model_validation$observed
+#' error <- sky$model_validation$pred - sky$model_validation$obs
 #' plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
 #'      xlab = "zenith angle", ylab = "relative radiance error")
 #' abline(h = 0)
 #'
 #' plot(bin)
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
-#'
+#' display_caim(c(r, sky$sky))
 #' }
 ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
                                    sor_filter_cv = FALSE,
@@ -119,25 +125,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
                            model$coef[4], model$coef[5])
     .get_metric(list(pred = pred, obs = model$obs))
   }
-  .filter <- function(ds, col_names, thr) { #fun taken from extract_sky_points()
-    d <- as.matrix(stats::dist(ds[, col_names]))
-    indices <- c()
-    i <- 0
-    while (i < nrow(d)) {
-      i <- i + 1
-      indices <- c(indices, row.names(d)[i]) #include the point itself (p)
-      x <- names(d[i, d[i,] <= thr])
-      if (!is.null(x)) {
-        # this exclude from future search all the points near p,
-        # including itself
-        rows2crop <- (1:nrow(d))[match(x, rownames(d))]
-        cols2crop <- (1:ncol(d))[match(x, colnames(d))]
-        d <- d[-rows2crop, -cols2crop]
-      }
-      if (is.vector(d)) d <- matrix(d)
-    }
-    ds[indices,]
-  }
 
   .fun <- function(g) {
     # Sun coordinates
@@ -153,7 +140,7 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     ## remove identical points
     sky_points <- .filter(sky_points, c("col", "row"), 0.1)
 
-    ## Apply SOR filters
+    ## apply SOR filters
     rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL,
                                use_window = !is.null(dist_to_black))
     if (sor_filter_cv == TRUE) {
@@ -227,11 +214,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
 
   }
 
-  # skies <- Map(function(g) {
-  #   tryCatch(.fun(g),
-  #            error = function(e) list(sky = m))
-  # }, gs)
-  # metric <- Map(function(x) calc_oor_index(r, x$sky) , skies)
   skies <- Map(function(g) {
     tryCatch(.fun(g),
              error = function(e) list(pred = 0, obs = 1e10))

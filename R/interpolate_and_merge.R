@@ -69,8 +69,8 @@ interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   names(sky_cie) <- "CIE sky"
 
   r2 <- ootb_sky$model_validation$r_squared
-  error <- stats::median(abs(1 - ootb_sky$model_validation$observed /
-                               ootb_sky$model_validation$predicted))
+  error <- stats::median(abs(1 - ootb_sky$model_validation$obs /
+                               ootb_sky$model_validation$pred))
 
   expand <- FALSE
   if (!is.null(sky_points$initial)) {

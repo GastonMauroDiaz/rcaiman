@@ -122,10 +122,13 @@ extract_sun_coord <- function(r, z, a, bin, g,
 
   ## classify sun corona based on distance
   i <- d > .degree2radian(max_angular_dist)
-  rcl <- data.frame(seg_labels[i], 0)
-  m <- terra::classify(labeled_m, rcl)
+  if (any(i)) {
+    rcl <- data.frame(seg_labels[i], 0)
+    m <- terra::classify(labeled_m, rcl)
+  } else {
+    m <- labeled_m
+  }
   m <- m != 0
-
   # Calc coordinates of the sun corona
   row_col <- data.frame(extract_feature(no_row, m,
                                         .get_bbox_center,

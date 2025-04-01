@@ -61,27 +61,6 @@ extract_sky_points <- function(r, bin, g,
                                min_raster_dist = 3) {
 
   .this_requires_EBImage()
-
-  .filter <- function(ds, col_names, thr) {
-    d <- as.matrix(stats::dist(ds[, col_names]))
-    indices <- c()
-    i <- 0
-    while (i < nrow(d)) {
-      i <- i + 1
-      indices <- c(indices, row.names(d)[i]) #include the point itself (p)
-      x <- names(d[i, d[i,] <= thr])
-      if (!is.null(x)) {
-        # this exclude from future search all the points near p,
-        # including itself
-        rows2crop <- (1:nrow(d))[match(x, rownames(d))]
-        cols2crop <- (1:ncol(d))[match(x, colnames(d))]
-        d <- d[-rows2crop, -cols2crop]
-      }
-      if (is.vector(d)) d <- matrix(d)
-    }
-    ds[indices,]
-  }
-
   .is_single_layer_raster(r)
   .is_single_layer_raster(bin, "bin")
   .is_logic_and_NA_free(bin, "bin")
@@ -124,12 +103,12 @@ extract_sky_points <- function(r, bin, g,
                      g = g[bin2],
                      dn = r[bin2])
     names(ds) <- c("col", "row", "g", "dn")
-
     if (nrow(ds) != 0) { #to avoid crashing when there is no white pixels
         i <- tapply(1:nrow(ds), ds$g,
                       function(x) {
                         x[which.max(ds$dn[x])]
                       })
+        i <- i[names(i) != 0]
         ds <- ds[i,]
         if (!is.null(min_raster_dist) & nrow(ds) > 1) {
           ds <- .filter(ds, c("col", "row"), min_raster_dist)

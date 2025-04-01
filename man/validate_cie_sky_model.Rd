@@ -23,6 +23,7 @@ A \emph{list} with the following components:
 \item observed vales.
 \item the coefficient of determination (\eqn{r^2}).
 \item The root mean squared error (RMSE).
+\item The median absolute error (MAE).
 \item A logical vector indicating is_outlier within the sky points set attached to the 'model' argument.
 }
 }

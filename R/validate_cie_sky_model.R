@@ -22,6 +22,7 @@
 #'   \item observed vales.
 #'   \item the coefficient of determination (\eqn{r^2}).
 #'   \item The root mean squared error (RMSE).
+#'   \item The median absolute error (MAE).
 #'   \item A logical vector indicating is_outlier within the sky points set attached to the 'model' argument.
 #' }
 #' @export
@@ -109,5 +110,6 @@ validate_cie_sky_model <- function(model, rr, k = 10) {
        obs = reg$model$y,
        r_squared = summary(reg) %>% .$r.squared,
        rmse = .calc_rmse(reg$model$y - reg$model$x),
+       mae = stats::median(abs(reg$model$y - reg$model$x)),
        is_outlier = !u)
 }
