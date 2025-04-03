@@ -21,38 +21,38 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
 \code{\link[=chessboard]{chessboard()}}.}
 
-\item{max_angular_dist}{Numeric vector of length one. Angle in degrees to
-control the potential maximum size of the solar corona.}
+\item{max_angular_dist}{Numeric vector of length one. Specifies the maximum
+expected size of the circumsolar region in degrees.}
 }
 \value{
-Object of class \emph{list} with two numeric vectors of length two
-named \emph{row_col} and \emph{zenith_azimuth}. The former is the raster
-coordinates of the solar disk (row and column), and the other is the
-angular coordinates (zenith and azimuth angles in degrees).
+Object of class \emph{list} with two numeric vectors of length two named
+\emph{row_col} and \emph{zenith_azimuth}. The former is the raster coordinates of the
+solar disk (row and column), and the other is the angular coordinates
+(zenith and azimuth angles in degrees).
 }
 \description{
 Extract the sun coordinates for CIE sky model fitting.
 }
 \details{
 This function uses an object-based image analyze framework. The segmentation
-is given by \code{g} and \code{bin}. For every cell of \code{g}, the pixels
-from \code{r} that are equal to one on \code{bin} are selected and its
-maximum value is calculated. Then, the 95th percentile of these maximum
-values is computed and used to filter out cells below that threshold; i.e,
-only the cells with at least one extremely bright sky pixel is selected.
+is given by \code{g} and \code{bin}. For every cell of \code{g}, the pixels from \code{r} that
+are equal to one on \code{bin} are selected and its maximum value is calculated.
+Then, the 95th percentile of these maximum values is computed and used to
+filter out cells below that threshold; i.e, only the cells with at least one
+extremely bright sky pixel is selected.
 
 The selected cells are grouped based on adjacency, and new bigger segments
 are created from these groups. The degree of membership to the class
 \emph{Sun} is calculated for every new segment by computing the number of
 cells that constitute the segment and its mean digital number (values taken
-from \code{r}). In other words, the  largest and brightest segments are the
-ones that score higher. The one with the highest score is selected as the
+from \code{r}). In other words, the  largest and brightest segments are the ones
+that score higher. The one with the highest score is selected as the
 \emph{sun seed}.
 
 The angular distance from the sun seed to every other segments are computed,
-and only the segments not farther than \code{max_angular_dist} are classified
-as part of the sun corona. A multi-part segment is created by merging the
-sun-corona segments and, finally, the center of its bounding box is
+and only the segments not farther than \code{max_angular_dist} are classified as
+part of the circumsolar region. A multi-part segment is created by merging
+the circumsolar segments and, finally, the center of its bounding box is
 considered as the sun location.
 }
 \examples{
@@ -84,12 +84,10 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

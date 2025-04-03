@@ -24,13 +24,9 @@
 #' The argument `cutoff_side` controls which side of the inequality is
 #' tested—either one side or both.
 #'
-#' @inheritParams fit_coneshaped_model
-#' @param r [SpatRaster-class]. An image with the same raster grid as the one
-#'   from which the argument `sky_points` was obtained. The function will
-#'   extract values from it using `sky_points`. If `NULL` is provided, the _dn_
-#'   column from `sky_points` will be used instead.
-#' @inheritParams interpolate_sky_points
 #' @inheritParams extract_dn
+#' @inheritParams ootb_mblt
+#' @inheritParams interpolate_sky_points
 #' @param rmax Numeric vector of length one. The maximum radius for searching
 #'   k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 #'   similar to the use of relative radius in image mapping. The spherical
@@ -62,42 +58,37 @@
 #' m <- !is.na(z)
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
-#' bin <- bin & mask_hs(z, 0, 80)
+#' bin <- bin & select_sky_vault_region(z, 0, 80)
 #' g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 #' sky_points <- extract_sky_points(r, bin, g,
 #'                                  dist_to_black = 3,
 #'                                  min_raster_dist = 10)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
-#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
-#' i <- sor_filter(sky_points$sky_points, k = 5, rmax = 20, thr = 2,
+#'
+#' i <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
 #'                 cutoff_side = "left")
-#' sky_points <- sky_points$sky_points[!i, c("row", "col")]
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = "red",
+#' points(sky_points[!i, "col"], nrow(caim) - sky_points[!i, "row"], col = "red",
 #'        pch = "X", cex = 1.5)
+#'
 #' }
-sor_filter <- function(sky_points,
-                       r = NULL,
+sor_filter <- function(sky_points, r, z, a,
                        k = 20,
                        rmax = 20,
                        thr = 2,
                        cutoff_side = "both",
                        use_window = TRUE) {
 
+  .check_if_r_z_and_a_are_ok(r, z, a)
   stopifnot(length(k) == 1)
   stopifnot(.is_whole(k))
   stopifnot(k >= 3)
   stopifnot(length(rmax) == 1)
   stopifnot(is.numeric(rmax))
   rmax <- .degree2radian(rmax)
-  stopifnot(ncol(sky_points) > 2)
 
-  if (is.null(r)) {
-    stopifnot(!is.na(charmatch("dn", names(sky_points))))
-    ds <- sky_points[, c("row", "col", "dn")]
-  } else {
-    ds <- extract_dn(r, sky_points[, c("row", "col")], use_window = TRUE)
-  }
+  sky_points <- extract_dn(c(z, a, r), sky_points, use_window = TRUE)
+  names(sky_points)[3:5] <- c("z", "a", "dn")
 
   calculate_sor <- function(i) {
     spherical_distance <- .calc_spherical_distance(sky_points$z,
@@ -110,7 +101,7 @@ sor_filter <- function(sky_points,
     m <- sorted_distance <= rmax
 
     if (all(m)) {
-      u <- ds[order_idx[2:(k + 1)], 3]
+      u <- sky_points[order_idx[2:(k + 1)], "dn"]
       return(c(stats::median(u, na.rm = TRUE), stats::mad(u, na.rm = TRUE)))
     } else {
       return(c(NA, NA))
@@ -123,7 +114,7 @@ sor_filter <- function(sky_points,
   central_tendency <- result[, 1]
   dispersion <- result[, 2]
 
-  deviation <- (ds[, 3] - central_tendency) / dispersion
+  deviation <- (sky_points[, "dn"] - central_tendency) / dispersion
   i <- switch(cutoff_side,
               right = deviation <= thr,
               left = deviation >= -thr,

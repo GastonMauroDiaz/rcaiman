@@ -74,6 +74,6 @@ cie_sky_image <- function(z, a, sun_coord, sky_coef) {
                                        as.numeric(sky_coef[5]))
   terra::values(z) <- relative_luminance
   z[is.infinite(z)] <- 0
-  names(z) <- "Relative luminance"
+  names(z) <- "Relative radiance or luminance"
   z
 }

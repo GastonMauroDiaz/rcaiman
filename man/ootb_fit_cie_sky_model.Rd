@@ -27,13 +27,13 @@ and \code{\link[=normalize]{normalize()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask, check \code{\link[=mask_hs]{mask_hs()}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask, check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{gs}{An object of the class \emph{list}. A list with the output of
-\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example.}
 
 \item{sor_filter_cv}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
 will be applied internally to filter out points using local variability at
@@ -101,7 +101,7 @@ mx <- optim_normalize(caim, bin)
 caim <- normalize(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
-bin <- bin & mask_hs(z, 0, 85)
+bin <- bin & select_sky_vault_region(z, 0, 85)
 plot(bin)
 
 set.seed(7)

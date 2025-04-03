@@ -11,7 +11,7 @@ mask_sunlit_canopy(caim, m = NULL)
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{\link[=select_sky_vault_region]{select_sky_vault_region()}}. Default (\code{NULL}) is the equivalent to enter
 \code{!is.na(caim$Red)}.}
 }
 \value{
@@ -37,11 +37,11 @@ plot(m)
 \seealso{
 Other Segmentation Functions: 
 \code{\link{chessboard}()},
-\code{\link{mask_hs}()},
 \code{\link{polar_qtree}()},
 \code{\link{qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
+\code{\link{select_sky_vault_region}()},
 \code{\link{sky_grid_segmentation}()}
 }
 \concept{Segmentation Functions}

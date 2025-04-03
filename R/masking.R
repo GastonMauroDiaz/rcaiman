@@ -4,17 +4,17 @@
 #'   see [normalize()]. Only methods for images with one or three
 #'   layers have been implemented.
 #' @param m [SpatRaster-class]. A mask. For hemispherical photographs,
-#'   check [mask_hs()].
+#'   check [select_sky_vault_region()].
 #' @param RGB Numeric vector of length three. RGB color code. Red is the default
 #'   color.
 #'
-#' @return An object of class [SpatRaster-class] that essentially is
-#'   `r` with areas where `m` is equal to zero painted in a solid
+#' @return An object of class [SpatRaster-class] that is
+#'   `r` but with areas where `m` is equal to zero painted in a solid
 #'   color. If `r` is a single layer image, then the layer is triplicated
 #'   to allow the use of color.
 #' @export
 #' @family Tool Functions
-#' @seealso [mask_hs()]
+#' @seealso [select_sky_vault_region()]
 #'
 #'
 #' @examples
@@ -22,7 +22,7 @@
 #'  r <- read_caim()
 #'  z <- zenith_image(ncol(r), lens())
 #'  a <- azimuth_image(z)
-#'  m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
+#'  m <- select_sky_vault_region(z, 20, 70) & select_sky_vault_region(a, 90, 180)
 #'
 #'  masked_caim <-  masking(normalize(r), m)
 #'  plotRGB(masked_caim * 255)

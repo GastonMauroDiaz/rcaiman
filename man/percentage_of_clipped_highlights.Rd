@@ -10,7 +10,7 @@ percentage_of_clipped_highlights(r, m)
 \item{r}{Single-layer object from the \linkS4class{SpatRaster}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 }
 \value{
 Numeric vector of lenght one.
@@ -34,13 +34,11 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

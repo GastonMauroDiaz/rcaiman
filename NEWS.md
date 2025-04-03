@@ -1,18 +1,18 @@
+* `mask_hs()` rename to `select_sky_vault_region()`
 * New `display_caim` facilitate visualizing canopy images in R.
 * Argument `za` from `row_col_from_zenith_azimuth()` was remaned to `zenith_azimuth` for better consistency in package naming convention.
-* `extract_rl()` rename to `extract_rel_radiance()` and modify how the zenith_dn is obtained.
+* `extract_rl()` rename to `extract_rel_radiance()` and modify how the zenith_dn is obtained, so the Argument `z_thr` is no longer required.
 * `cie_sky_model_raster()` rename to `cie_sky_image()`  
 * `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `interpolate_and_merge()`, `validate_cie_sky_model()`, and `calc_oor_index()`.
 * New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.
 * New `sor_filter()` allows a flexible method for filtering sky points.
-* New `calc_sngd()` and `find_general_sky_type()` allow to evaluate light conditions during survey.
+* New `calc_sngd()`allow to evaluate light conditions during survey.
 * `sky_grid_segmentation()` gains `first_ring_different` to avoid the very small cells typical of the near zenith cells.
-* `extract_rl` gains 'min_spherical_distance' which allows more control over sky sampling.
-* delete `fix_reconstructed_sky()` since it was deamed obsolete.
+* `extract_rl` gains `min_spherical_distance` which allows more control over sky sampling.
 * `extract_sky_points()` is now more robust.
-* `sky_grid_segmentation()` gains the argument `first_ring_different`
-* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rl`. Argument `rmse` was removed since opting for the OOR index instead of RMSE is not an option anymore. The output of this new version will be different from previous versions since the target function changed as well as the selection of the best fit.
+* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rl`. Argument `rmse` was removed since opting for the OOR index instead of RMSE is not an option anymore. Now, the argument `loss` allows choosing `rmse` or `mae`. The output of this new version will be different from previous versions since many minor changes had been done.
 * Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
+* delete `fix_reconstructed_sky()` since it was deamed obsolete.
 * Delete `extrac_sky_points_simple()` since it was deamed obsolete.
 * Change `ootb_mblt()` as a result of deleting `extract_sky_points_simple()`.
 * Fix rotation argument of `azimuth_image()`

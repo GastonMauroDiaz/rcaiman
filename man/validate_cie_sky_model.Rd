@@ -34,10 +34,10 @@ Validate CIE sky models fitted with \code{\link[=fit_cie_sky_model]{fit_cie_sky_
 \details{
 The validation of the CIE sky model is done with a k-fold approach with k
 equal to 10, following \insertCite{Kohavi1995;textual}{rcaiman}, and for the
-values of relative luminance. The regression of the predicted vs. observed
+values of relative radiance. The regression of the predicted vs. observed
 values was done following \insertCite{Pineiro2008;textual}{rcaiman}. The
-is_outlier were determined following \insertCite{Leys2013;textual}{rcaiman} and
-with threshold equal to 3.
+is_outlier were determined following \insertCite{Leys2013;textual}{rcaiman}
+and with threshold equal to 3.
 }
 \examples{
 \dontrun{

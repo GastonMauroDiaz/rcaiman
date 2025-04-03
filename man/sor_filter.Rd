@@ -6,7 +6,9 @@
 \usage{
 sor_filter(
   sky_points,
-  r = NULL,
+  r,
+  z,
+  a,
   k = 20,
   rmax = 20,
   thr = 2,
@@ -15,13 +17,15 @@ sor_filter(
 )
 }
 \arguments{
-\item{sky_points}{The \emph{data.frame} returned by \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or a
-\emph{data.frame} with same structure and names.}
+\item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
+or an object of the same class and structure.}
 
-\item{r}{\linkS4class{SpatRaster}. An image with the same raster grid as the one
-from which the argument \code{sky_points} was obtained. The function will
-extract values from it using \code{sky_points}. If \code{NULL} is provided, the \emph{dn}
-column from \code{sky_points} will be used instead.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
+
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
@@ -81,19 +85,19 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
-bin <- bin & mask_hs(z, 0, 80)
+bin <- bin & select_sky_vault_region(z, 0, 80)
 g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_black = 3,
                                  min_raster_dist = 10)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
-sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
-i <- sor_filter(sky_points$sky_points, k = 5, rmax = 20, thr = 2,
+
+i <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
                 cutoff_side = "left")
-sky_points <- sky_points$sky_points[!i, c("row", "col")]
-points(sky_points$col, nrow(caim) - sky_points$row, col = "red",
+points(sky_points[!i, "col"], nrow(caim) - sky_points[!i, "row"], col = "red",
        pch = "X", cex = 1.5)
+
 }
 }
 \references{
@@ -107,13 +111,11 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

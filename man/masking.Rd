@@ -12,14 +12,14 @@ see \code{\link[=normalize]{normalize()}}. Only methods for images with one or t
 layers have been implemented.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{RGB}{Numeric vector of length three. RGB color code. Red is the default
 color.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} that essentially is
-\code{r} with areas where \code{m} is equal to zero painted in a solid
+An object of class \linkS4class{SpatRaster} that is
+\code{r} but with areas where \code{m} is equal to zero painted in a solid
 color. If \code{r} is a single layer image, then the layer is triplicated
 to allow the use of color.
 }
@@ -31,7 +31,7 @@ Image masking
  r <- read_caim()
  z <- zenith_image(ncol(r), lens())
  a <- azimuth_image(z)
- m <- mask_hs(z, 20, 70) & mask_hs(a, 90, 180)
+ m <- select_sky_vault_region(z, 20, 70) & select_sky_vault_region(a, 90, 180)
 
  masked_caim <-  masking(normalize(r), m)
  plotRGB(masked_caim * 255)
@@ -42,7 +42,7 @@ Image masking
 
 }
 \seealso{
-\code{\link[=mask_hs]{mask_hs()}}
+\code{\link[=select_sky_vault_region]{select_sky_vault_region()}}
 
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
@@ -51,13 +51,11 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},

@@ -4,15 +4,8 @@
 #'
 #' Interpolate the `no_of_points` closer to the zenith using IDW with p = 2.
 #'
-#' @param r [SpatRaster-class]. A greyscale image. Typically, the blue channel
-#'   extracted from a canopy photograph. Please see [read_caim()] and
-#'   [read_caim_raw()].
+#' @inheritParams extract_dn
 #' @inheritParams ootb_mblt
-#' @param sky_points An object of class *data.frame*. The output of
-#'   [extract_sky_points()]. As an alternative, both
-#'   [ImageJ](https://imagej.net/ij/) and HSP software package
-#'   \insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
-#'   [extract_dn()] and [read_manual_input()] for details.
 #' @param no_of_points Numeric vector of length one. The number of near-zenith
 #'   points required for the estimation of the zenith DN.
 #' @param use_window Logical vector of length one. If `TRUE`, a \eqn{3 \times 3}
@@ -22,6 +15,10 @@
 #'   Essentially, this is the spherical counterpart of the `min_raster_dist`
 #'   argument from [extract_sky_points()]. The distance is expressed in degrees.
 #'
+#' @note As an alternative, both [ImageJ](https://imagej.net/ij/) and HSP
+#' software package \insertCite{Lang2013}{rcaiman} can be used to manually
+#' digitize points. See [extract_dn()] and [read_manual_input()] for details.
+#'
 #' @return A list of three objects, *zenith_dn* and *max_zenith_angle* from the
 #'   class *numeric*, and *sky_points* of the class
 #'   *data.frame*; *zenith_dn* is the estimated zenith digital number,
@@ -29,7 +26,7 @@
 #'   for near-zenith sky points, and *sky_points* is the input argument
 #'   `sky_points` with the additional columns: *a*, *z*,
 #'   *dn*, and *rr*, which stand for azimuth and zenith angle in
-#'   degrees, digital number, and relative luminance, respectively. If `NULL` is
+#'   degrees, digital number, and relative radiance, respectively. If `NULL` is
 #'   provided as `no_of_points`, then *zenith_dn* is forced to one and,
 #'   therefore, *dn* and *rr* will be identical.
 #' @export
@@ -121,7 +118,7 @@ extract_rel_radiance <- function(r, z, a, sky_points,
   if(any(is.na(sky_points$z))) {
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
-                  "near the horizon using 'bin <- bin & mask_hs(z, 0, 80)' ",
+                  "near the horizon using 'bin <- bin & select_sky_vault_region(z, 0, 80)' ",
                   "as a preprocessing step.")
            )
   }

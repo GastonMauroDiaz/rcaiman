@@ -14,8 +14,8 @@ canopy photograph. The image from which \code{sky_points} was obtained.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{An object of class \code{data.frame}. The output of
-\code{\link[=extract_sky_points]{extract_sky_points()}} or \link{expand_sky_points}.}
+\item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
+or an object of the same class and structure.}
 
 \item{ootb_sky}{An object of the class \code{list} that is the result of calling
 \code{\link[=ootb_fit_cie_sky_model]{ootb_fit_cie_sky_model()}}.}
@@ -42,32 +42,26 @@ a <- azimuth_image(z)
 path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
 
-sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points[,c("row", "col")],
+sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points,
                              ootb_sky)
+plot(sky$sky)
 
-bin <- apply_thr(r/sky$sky, 0.75)
-plot(bin)
+# See fit_cie_sky_model() for details on below file
+path <- system.file("external/sky_points.gpkg",
+                    package = "rcaiman")
+sky_points <- terra::vect(path)
+sky_points <- terra::extract(caim, sky_points, cells = TRUE)
+sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\% as.data.frame()
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+plot(caim$Blue)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
-sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3,
-                                 min_raster_dist = 9)
+sky_points <- rbind(sky_points, ootb_sky$sky_points[, c("row", "col")])
 
-points(ootb_sky$sky_points$col, nrow(caim) - ootb_sky$sky_points$row,
-       col = 2, pch = 10)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 4, pch = 10)
-sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)$sky_points
-i <- sor_filter(sky_points, r, k = 3)
-
-sky2 <- interpolate_and_merge(r, z, a, sky_points[i, c("row", "col")],
-                              ootb_sky, rmax_tune = 0.75)
-plot(sky2$sky)
-
-sky_points <- expand_sky_points(r, z, a, sky_points[i, c("row", "col")],
-                                angle_width = 1.875,
-                                k= 3, rmax = 20)
-sky_points <- sor_filter(sky_points) \%>\% sky_points[. ,]
-sky2 <- interpolate_and_merge(r, z, a, sky_points, ootb_sky, rmax_tune = 0.75)
-plot(sky2$sky)
+sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points,
+                             ootb_sky)
+plot(sky$sky)
 }
 }
 \references{

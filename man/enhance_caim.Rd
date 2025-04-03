@@ -20,7 +20,7 @@ enhance_caim(
 \code{\link[=read_caim_raw]{read_caim_raw()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
-\code{\link[=mask_hs]{mask_hs()}}. Default (\code{NULL}) is the equivalent to enter
+\code{\link[=select_sky_vault_region]{select_sky_vault_region()}}. Default (\code{NULL}) is the equivalent to enter
 \code{!is.na(caim$Red)}.}
 
 \item{sky_blue}{\linkS4class{color}. Is the \code{target_color} argument to be passed to

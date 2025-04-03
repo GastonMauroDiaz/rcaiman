@@ -49,11 +49,11 @@ plot(extract_feature(seg, seg, length))
 \seealso{
 Other Segmentation Functions: 
 \code{\link{chessboard}()},
-\code{\link{mask_hs}()},
 \code{\link{mask_sunlit_canopy}()},
 \code{\link{polar_qtree}()},
 \code{\link{rings_segmentation}()},
 \code{\link{sectors_segmentation}()},
+\code{\link{select_sky_vault_region}()},
 \code{\link{sky_grid_segmentation}()}
 }
 \concept{Segmentation Functions}

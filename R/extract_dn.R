@@ -3,14 +3,15 @@
 #' Wrapper function around [terra::extract()].
 #'
 #'
-#' @inheritParams fisheye_to_equidistant
-#' @param img_points The output of [extract_sky_points()],
+#' @param r [SpatRaster-class]. The image from which the argument `sky_points`
+#'   was obtained.
+#' @param sky_points The output of [extract_sky_points()]
 #'   or an object of the same class and structure.
 #' @inheritParams extract_rel_radiance
 #' @inheritParams extract_feature
 #'
 #' @return An object of the class *data.frame*. It is the argument
-#'   `img_points` with an added column per each layer from `r`. The
+#'   `sky_points` with an added column per each layer from `r`. The
 #'   layer names are used to name the new columns. If a function is provided as
 #'   the `fun` argument, the result will be summarized per column using the
 #'   provided function, and the *row* and *col* information will be
@@ -54,7 +55,7 @@
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
-#' bin <- bin & mask_hs(z, 0, 85)
+#' bin <- bin & select_sky_vault_region(z, 0, 85)
 #' mx <- optim_normalize(caim, bin)
 #' caim <- normalize(caim, mx = mx, force_range = TRUE)
 #' m <- !is.na(z)
@@ -82,37 +83,37 @@
 #' plot(ecaim)
 #' apply_thr(ecaim, thr_isodata(ecaim[m])) %>% plot()
 #' }
-extract_dn <- function(r, img_points, use_window = TRUE, fun = NULL) {
-  stopifnot(is.data.frame(img_points))
-  stopifnot(ncol(img_points) == 2)
+extract_dn <- function(r, sky_points, use_window = TRUE, fun = NULL) {
+  stopifnot(is.data.frame(sky_points))
+  stopifnot(ncol(sky_points) == 2)
   stopifnot(is(r, "SpatRaster"))
 
-  cells <- terra::cellFromRowCol(r, img_points$row, img_points$col)
+  cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
   xy <-  terra::xyFromCell(r, cells)
   if (use_window) {
     r_smooth <- terra::focal(r, 3, "mean")
     dn <- terra::extract(r_smooth, xy)[,]
-    if(any(is.na(img_points))) {
+    if(any(is.na(sky_points))) {
       warning("The kernel produced NA values near the horizon.")
     }
   } else {
     dn <- terra::extract(r, xy)[,]
   }
-  .names <- c(colnames(img_points), names(r))
-  img_points <- cbind(img_points, dn)
-  colnames(img_points) <- .names
+  .names <- c(colnames(sky_points), names(r))
+  sky_points <- cbind(sky_points, dn)
+  colnames(sky_points) <- .names
   if (!is.null(fun)) {
-      if (ncol(img_points) > 3) {
-        img_points <- apply(img_points[,-(1:2)], 2, fun)
+      if (ncol(sky_points) > 3) {
+        sky_points <- apply(sky_points[,-(1:2)], 2, fun)
       } else {
-        img_points <- fun(img_points[,3])
+        sky_points <- fun(sky_points[,3])
       }
 
       if (all(names(r) == names(read_caim()))) {
-        img_points <- colorspace::sRGB(img_points[1],
-                                       img_points[2],
-                                       img_points[3])
+        sky_points <- colorspace::sRGB(sky_points[1],
+                                       sky_points[2],
+                                       sky_points[3])
       }
     }
-  img_points
+  sky_points
 }

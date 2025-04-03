@@ -45,11 +45,9 @@
 #' r <- gbc(caim$Blue)
 #' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
 #' rings <- rings_segmentation(z, 15)
-#' bin <- regional_thresholding(r, rings, "Diaz2018", -7.8, 0.95 * 0.5, 0.99)
-#' plot(bin)
 #' bin <- regional_thresholding(r, rings, "thr_isodata")
 #' plot(bin)
-#' #' }
+#' }
 regional_thresholding <- function(r,
                                   segmentation,
                                   method,

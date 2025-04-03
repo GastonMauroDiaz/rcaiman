@@ -11,7 +11,7 @@ interpolate_sky_points(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "rr")
 \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
 \emph{data.frame} with same basic structure and names.}
 
-\item{r}{\linkS4class{SpatRaster}. The image from which \code{sky_points}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
 was obtained.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}

@@ -36,7 +36,7 @@ r <- gbc(caim$Blue)
 r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
 
 bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
-bin <- bin & mask_hs(z, 0, 80)
+bin <- bin & select_sky_vault_region(z, 0, 80)
 sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
 sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 
@@ -54,13 +54,11 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

@@ -33,7 +33,7 @@
 #' @inheritParams local_fuzzy_thresholding
 #' @inheritParams membership_to_color
 #' @param m [SpatRaster-class]. A mask. For hemispherical photographs, check
-#'   [mask_hs()]. Default (`NULL`) is the equivalent to enter
+#'   [select_sky_vault_region()]. Default (`NULL`) is the equivalent to enter
 #'   `!is.na(caim$Red)`.
 #' @param w_red Numeric vector of length one. Weight of the red channel. A
 #'   single layer image is calculated as a weighted average of the blue and red

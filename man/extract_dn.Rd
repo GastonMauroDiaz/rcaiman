@@ -4,12 +4,13 @@
 \alias{extract_dn}
 \title{Extract digital numbers}
 \usage{
-extract_dn(r, img_points, use_window = TRUE, fun = NULL)
+extract_dn(r, sky_points, use_window = TRUE, fun = NULL)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
 
-\item{img_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}},
+\item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
 or an object of the same class and structure.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
@@ -20,7 +21,7 @@ one-length numeric or logical vector as output (e.g. mean).}
 }
 \value{
 An object of the class \emph{data.frame}. It is the argument
-\code{img_points} with an added column per each layer from \code{r}. The
+\code{sky_points} with an added column per each layer from \code{r}. The
 layer names are used to name the new columns. If a function is provided as
 the \code{fun} argument, the result will be summarized per column using the
 provided function, and the \emph{row} and \emph{col} information will be
@@ -63,7 +64,7 @@ plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
-bin <- bin & mask_hs(z, 0, 85)
+bin <- bin & select_sky_vault_region(z, 0, 85)
 mx <- optim_normalize(caim, bin)
 caim <- normalize(caim, mx = mx, force_range = TRUE)
 m <- !is.na(z)
@@ -100,12 +101,10 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

@@ -3,35 +3,35 @@
 #' Extract the sun coordinates for CIE sky model fitting.
 #'
 #' This function uses an object-based image analyze framework. The segmentation
-#' is given by `g` and `bin`. For every cell of `g`, the pixels
-#' from `r` that are equal to one on `bin` are selected and its
-#' maximum value is calculated. Then, the 95th percentile of these maximum
-#' values is computed and used to filter out cells below that threshold; i.e,
-#' only the cells with at least one extremely bright sky pixel is selected.
+#' is given by `g` and `bin`. For every cell of `g`, the pixels from `r` that
+#' are equal to one on `bin` are selected and its maximum value is calculated.
+#' Then, the 95th percentile of these maximum values is computed and used to
+#' filter out cells below that threshold; i.e, only the cells with at least one
+#' extremely bright sky pixel is selected.
 #'
 #' The selected cells are grouped based on adjacency, and new bigger segments
 #' are created from these groups. The degree of membership to the class
 #' *Sun* is calculated for every new segment by computing the number of
 #' cells that constitute the segment and its mean digital number (values taken
-#' from `r`). In other words, the  largest and brightest segments are the
-#' ones that score higher. The one with the highest score is selected as the
+#' from `r`). In other words, the  largest and brightest segments are the ones
+#' that score higher. The one with the highest score is selected as the
 #' *sun seed*.
 #'
 #' The angular distance from the sun seed to every other segments are computed,
-#' and only the segments not farther than `max_angular_dist` are classified
-#' as part of the sun corona. A multi-part segment is created by merging the
-#' sun-corona segments and, finally, the center of its bounding box is
+#' and only the segments not farther than `max_angular_dist` are classified as
+#' part of the circumsolar region. A multi-part segment is created by merging
+#' the circumsolar segments and, finally, the center of its bounding box is
 #' considered as the sun location.
 #'
 #' @inheritParams extract_sky_points
 #' @inheritParams sky_grid_segmentation
-#' @param max_angular_dist Numeric vector of length one. Angle in degrees to
-#'   control the potential maximum size of the solar corona.
+#' @param max_angular_dist Numeric vector of length one. Specifies the maximum
+#'   expected size of the circumsolar region in degrees.
 #'
-#' @return Object of class *list* with two numeric vectors of length two
-#'   named *row_col* and *zenith_azimuth*. The former is the raster
-#'   coordinates of the solar disk (row and column), and the other is the
-#'   angular coordinates (zenith and azimuth angles in degrees).
+#' @return Object of class *list* with two numeric vectors of length two named
+#'   *row_col* and *zenith_azimuth*. The former is the raster coordinates of the
+#'   solar disk (row and column), and the other is the angular coordinates
+#'   (zenith and azimuth angles in degrees).
 #'
 #' @family Tool Functions
 #'
@@ -95,7 +95,7 @@ extract_sun_coord <- function(r, z, a, bin, g,
   # Find sun seed
   sun <- which.max(membership_posibility)
 
-  # Find sun corona
+  # Find circumsolar region
   ## get coordinates of every object
   no_col <- no_row <- r
   terra::values(no_col) <- .col(dim(r)[1:2])
@@ -120,7 +120,7 @@ extract_sun_coord <- function(r, z, a, bin, g,
   }
   seg_labels <- extract_feature(labeled_m, labeled_m, return_raster = FALSE)
 
-  ## classify sun corona based on distance
+  ## classify circumsolar region based on distance
   i <- d > .degree2radian(max_angular_dist)
   if (any(i)) {
     rcl <- data.frame(seg_labels[i], 0)
@@ -129,7 +129,7 @@ extract_sun_coord <- function(r, z, a, bin, g,
     m <- labeled_m
   }
   m <- m != 0
-  # Calc coordinates of the sun corona
+  # Calc coordinates of the circumsolar region
   row_col <- data.frame(extract_feature(no_row, m,
                                         .get_bbox_center,
                                         return_raster = FALSE),

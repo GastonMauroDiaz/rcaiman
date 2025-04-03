@@ -47,7 +47,7 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' m <- mask_hs(z, 0, 70)
+#' m <- select_sky_vault_region(z, 0, 70)
 #' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #' plot(bin)
 #' calc_co(bin, z, a, m, 10)

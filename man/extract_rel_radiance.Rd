@@ -15,19 +15,15 @@ extract_rel_radiance(
 )
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A greyscale image. Typically, the blue channel
-extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}} and
-\code{\link[=read_caim_raw]{read_caim_raw()}}.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{sky_points}{An object of class \emph{data.frame}. The output of
-\code{\link[=extract_sky_points]{extract_sky_points()}}. As an alternative, both
-\href{https://imagej.net/ij/}{ImageJ} and HSP software package
-\insertCite{Lang2013}{rcaiman} can be used to manually digitize points. See
-\code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.}
+\item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
+or an object of the same class and structure.}
 
 \item{no_of_points}{Numeric vector of length one. The number of near-zenith
 points required for the estimation of the zenith DN.}
@@ -48,7 +44,7 @@ class \emph{numeric}, and \emph{sky_points} of the class
 for near-zenith sky points, and \emph{sky_points} is the input argument
 \code{sky_points} with the additional columns: \emph{a}, \emph{z},
 \emph{dn}, and \emph{rr}, which stand for azimuth and zenith angle in
-degrees, digital number, and relative luminance, respectively. If \code{NULL} is
+degrees, digital number, and relative radiance, respectively. If \code{NULL} is
 provided as \code{no_of_points}, then \emph{zenith_dn} is forced to one and,
 therefore, \emph{dn} and \emph{rr} will be identical.
 }
@@ -57,6 +53,11 @@ Extract the radiance relative to the zenith radiance
 }
 \details{
 Interpolate the \code{no_of_points} closer to the zenith using IDW with p = 2.
+}
+\note{
+As an alternative, both \href{https://imagej.net/ij/}{ImageJ} and HSP
+software package \insertCite{Lang2013}{rcaiman} can be used to manually
+digitize points. See \code{\link[=extract_dn]{extract_dn()}} and \code{\link[=read_manual_input]{read_manual_input()}} for details.
 }
 \examples{
 \dontrun{
@@ -89,12 +90,10 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_general_sky_type}()},
 \code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},

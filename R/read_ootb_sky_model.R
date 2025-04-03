@@ -13,6 +13,7 @@
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
 read_ootb_sky_model <- function(name) {
   ootb_sky <- list()
+  ootb_sky$sky <- NULL
   ds <- scan(paste0(name, ".txt"), "character")
   ootb_sky$model$sun_coord$zenith_azimuth[1] <-
     ds[grep("sun_theta:", ds) + 1] %>% as.numeric()
@@ -32,7 +33,13 @@ read_ootb_sky_model <- function(name) {
   ootb_sky$model$coef[5] <- ds[grep("fit_e:", ds) + 1] %>% as.numeric()
   ootb_sky$model_validation$r_squared <-
     ds[grep("r_squared:", ds) + 1] %>% as.numeric()
-
+  ootb_sky$model_validation$mae <-
+    ds[grep("mae:", ds) + 1] %>% as.numeric()
+  ootb_sky$dist_to_black <- ds[grep("dist_to_black:", ds) + 1] %>% as.numeric()
+  tryCatch(ootb_sky$g <- ds[grep("grid,", ds) + 1] %>% as.numeric(),
+           error = function(e)
+                   ds[(grep("grid:", ds)+1):(grep("dist_to_black:", ds)-1)] %>%
+                      paste(., collapse = " "))
   ootb_sky$sky_points <- utils::read.csv2(paste0(name, "_fit", ".csv"))[,-1]
 
   df <- utils::read.csv2(paste0(name, "_val", ".csv"))

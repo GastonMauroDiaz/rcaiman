@@ -14,7 +14,7 @@ calc_co(bin, z, a, m = NULL, angle_width = 10)
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
 constrain is rooted in the requirement of a value able to divide both the
@@ -61,7 +61,7 @@ denominator.
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- mask_hs(z, 0, 70)
+m <- select_sky_vault_region(z, 0, 70)
 bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 plot(bin)
 calc_co(bin, z, a, m, 10)

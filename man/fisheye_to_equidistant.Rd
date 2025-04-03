@@ -23,7 +23,7 @@ fisheye_to_equidistant(
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{radius}{Numeric integer of length one. Radius of the reprojected
 hemispherical image (i.e., the output).}

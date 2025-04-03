@@ -13,8 +13,8 @@
 #' @inheritParams fit_trend_surface
 #' @inheritParams extract_sky_points
 #' @param gs An object of the class _list_. A list with the output of
-#'   [sky_grid_segmentation()].
-#' @param m [SpatRaster-class]. A mask, check [mask_hs()].
+#'   [sky_grid_segmentation()], see the example.
+#' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param refine_sun_coord Logical vector of length one
 #' @param sor_filter_cv Logical vector of length one. If `TRUE`, [sor_filter()]
 #'   will be applied internally to filter out points using local variability at
@@ -68,7 +68,7 @@
 #' caim <- normalize(caim, mx = mx, force_range = TRUE)
 #' ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
-#' bin <- bin & mask_hs(z, 0, 85)
+#' bin <- bin & select_sky_vault_region(z, 0, 85)
 #' plot(bin)
 #'
 #' set.seed(7)
@@ -114,17 +114,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
   .get_metric <- function(model) {
     stats::median(abs(model$pred - model$obs))
   }
-  .refine_sun_coord <- function(param) {
-    zenith <- param[1] * 9
-    azimuth <- param[2] * 36
-    pred <- .cie_sky_model(AzP = rr$sky_points$a %>% .degree2radian(),
-                           Zp = rr$sky_points$z %>% .degree2radian(),
-                           AzS = azimuth %>% .degree2radian(),
-                           Zs =  zenith %>% .degree2radian(),
-                           model$coef[1], model$coef[2], model$coef[3],
-                           model$coef[4], model$coef[5])
-    .get_metric(list(pred = pred, obs = model$obs))
-  }
 
   .fun <- function(g) {
     # Sun coordinates
@@ -141,11 +130,9 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     sky_points <- .filter(sky_points, c("col", "row"), 0.1)
 
     ## apply SOR filters
-    rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL,
-                               use_window = !is.null(dist_to_black))
     if (sor_filter_cv == TRUE) {
       cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-      u <- sor_filter(rr$sky_points, cv,
+      u <- sor_filter(sky_points, cv, z, a,
                       k = 10,
                       rmax = 30,
                       thr = 2,
@@ -154,7 +141,7 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
       u <- rep(TRUE, nrow(sky_points))
     }
     if (sor_filter_dn == TRUE) {
-      v <- sor_filter(rr$sky_points,
+      v <- sor_filter(sky_points, r, z, a,
                       k = 5,
                       rmax = 20,
                       thr = 2,
@@ -186,6 +173,17 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
 
     # Sun_coord refinement
     if (refine_sun_coord) {
+      .refine_sun_coord <- function(param) {
+        zenith <- param[1] * 9
+        azimuth <- param[2] * 36
+        pred <- .cie_sky_model(AzP = rr$sky_points$a %>% .degree2radian(),
+                               Zp = rr$sky_points$z %>% .degree2radian(),
+                               AzS = azimuth %>% .degree2radian(),
+                               Zs =  zenith %>% .degree2radian(),
+                               model$coef[1], model$coef[2], model$coef[3],
+                               model$coef[4], model$coef[5])
+        .get_metric(list(pred = pred, obs = model$obs))
+      }
       try(fit <- stats::optim(c(sun_coord$zenith_azimuth[1]/9,
                                 sun_coord$zenith_azimuth[2]/36),
                               .refine_sun_coord,

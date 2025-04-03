@@ -58,7 +58,7 @@ find_sky_pixels <- function(r, z, a, sample_size_pct = 30) {
   g30 <- sky_grid_segmentation(z, a, 30)
   g5 <- sky_grid_segmentation(z, a, 5)
 
-  m <- mask_hs(z, 80, 90)
+  m <- select_sky_vault_region(z, 80, 90)
 
   prob <- 1
   count <- 0

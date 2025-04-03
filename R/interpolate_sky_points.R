@@ -20,8 +20,7 @@
 #' @param sky_points An object of class *data.frame*. The data.frame returned by
 #'   [extract_rel_radiance()] or [extract_dn()], or a
 #'   *data.frame* with same basic structure and names.
-#' @param r [SpatRaster-class]. The image from which `sky_points`
-#'   was obtained.
+#' @inheritParams extract_dn
 #' @param k Numeric vector of length one. Number of k-nearest neighbors.
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius for searching

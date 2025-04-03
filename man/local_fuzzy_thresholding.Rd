@@ -11,7 +11,7 @@ local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 \code{\link[=normalize]{normalize()}}).}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=mask_hs]{mask_hs()}}.}
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{mem}{\linkS4class{SpatRaster}. It is the scale parameter of the logistic
 membership function. Typically it is obtained with \code{\link[=membership_to_color]{membership_to_color()}}.}

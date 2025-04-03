@@ -65,7 +65,7 @@ calc_sngd <- function(caim, z, a, bin,
   bin2 <- extract_feature(bin2, seg, mean) > 0.9
 
   # clip sky pixels and every pixels outside the AOI
-  m <- !bin & mask_hs(z, 0, angle)
+  m <- !bin & select_sky_vault_region(z, 0, angle)
   bin2[!m] <- NA
 
   if (any(as.logical(bin2[m]))) {

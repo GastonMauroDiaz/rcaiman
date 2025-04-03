@@ -1,6 +1,7 @@
 #' Optimize distance to black
 #'
 #' @inheritParams ootb_fit_cie_sky_model
+#' @inheritParams extract_sky_points
 #'
 #' @returns Numeric vector of length one.
 #' @export

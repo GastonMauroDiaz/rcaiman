@@ -23,7 +23,7 @@ azimuth angle. If \code{FALSE}, the next simplified version based on
 A list of two objects, one of class \code{function} and the other of class
 \code{lm} (see \code{\link[stats:lm]{stats::lm()}}). If the fitting fails, it returns \code{NULL}. The
 function requires two arguments--zenith and azimuth in degrees--to return
-relative luminance.
+relative radiance
 }
 \description{
 Statistical modeling for predicting digital numbers from spherical
@@ -45,7 +45,7 @@ r <- gbc(caim$Blue)
 r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
 
 bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
-bin <- bin & mask_hs(z, 0, 80)
+bin <- bin & select_sky_vault_region(z, 0, 80)
 sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
 sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
 
