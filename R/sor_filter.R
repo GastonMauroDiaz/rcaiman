@@ -99,13 +99,15 @@ sor_filter <- function(sky_points, r, z, a,
     order_idx <- order(spherical_distance)
     sorted_distance <- spherical_distance[order_idx][2:(k + 1)]
     m <- sorted_distance <= rmax
-
+    tryCatch(
     if (all(m)) {
       u <- sky_points[order_idx[2:(k + 1)], "dn"]
       return(c(stats::median(u, na.rm = TRUE), stats::mad(u, na.rm = TRUE)))
     } else {
       return(c(NA, NA))
-    }
+    },
+      error = function(e) stop("There are sky points below the horizon or on it.")
+    )
   }
 
   result <- lapply(seq_len(nrow(sky_points)), calculate_sor) %>% unlist() %>%

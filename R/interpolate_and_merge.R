@@ -63,7 +63,7 @@ interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
 
   model <- ootb_sky$model
 
-  if (is.null(ootb_sky$sky)) { # for when read_ootb_sky_model() is used
+  if (is.na(match("sky", names(ootb_sky)))) { # for when read_ootb_sky_model() is used
     sky_cie <- cie_sky_image(z, a,
                                     model$sun_coord$zenith_azimuth,
                                     model$coef) * model$zenith_dn

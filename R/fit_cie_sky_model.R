@@ -244,8 +244,7 @@ fit_cie_sky_model <- function(rr, sun_coord,
       stats::optim(par = start_params,
             fn = fcost,
             method = method),
-      error = function(e) list(par = start_params,
-                               convergence = NULL)
+      error = function(e) list(par = start_params, convergence = NULL)
     )
 
     coef <- fit$par

@@ -4,12 +4,16 @@
 \alias{read_ootb_sky_model}
 \title{Read files writen by \code{\link[=write_ootb_sky_model]{write_ootb_sky_model()}}}
 \usage{
-read_ootb_sky_model(name)
+read_ootb_sky_model(name, z = NULL, a = NULL)
 }
 \arguments{
 \item{name}{Character vector of length one. File name without extension. If
 needed, a file path can be added to the names. For example:
 \code{"C:/Users/Doe/Documents/DSCN4500"}.}
+
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 }
 \value{
 An object of the class \emph{list} similar to the output of

@@ -37,7 +37,7 @@ display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
       if(!is.null(bin)) {
         x <- c(x, bin)
       }  else if (!is.null(g)) {
-        x <- c(x, bin)
+        x <- c(x, g)
       }
     }
   } else {

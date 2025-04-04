@@ -118,7 +118,8 @@ extract_rel_radiance <- function(r, z, a, sky_points,
   if(any(is.na(sky_points$z))) {
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
-                  "near the horizon using 'bin <- bin & select_sky_vault_region(z, 0, 80)' ",
+                  "near the horizon using ",
+                  "'bin <- bin & select_sky_vault_region(z, 0, 80)' ",
                   "as a preprocessing step.")
            )
   }
