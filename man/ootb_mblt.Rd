@@ -9,7 +9,7 @@ ootb_mblt(r, z, a, bin, w = 0.5)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -91,7 +91,7 @@ caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
 bin <- find_sky_pixels(r, z, a)
 bin <- ootb_mblt(r, z, a, bin)
 plot(bin$bin)

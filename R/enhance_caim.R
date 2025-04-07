@@ -65,7 +65,7 @@
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' r <- normalize(caim$Blue)
+#' r <- normalize_minmax(caim$Blue)
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
@@ -73,9 +73,9 @@
 #' mn <- min(caim[m])
 #'
 #' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-#' plotRGB(normalize(sky_blue_sample, mn, mx, TRUE)*255)
+#' plotRGB(normalize_minmax(sky_blue_sample, mn, mx, TRUE)*255)
 #' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   normalize(., mn, mx) %>%
+#'   normalize_minmax(., mn, mx) %>%
 #'   as.numeric() %>%
 #'   matrix(., ncol = 3) %>%
 #'   sRGB()
@@ -85,7 +85,7 @@
 #' # NOTE: see extract_dn() for a better method to obtain sky_blue
 #' sky_blue <- polarLAB(50, 17, 293)
 #'
-#' caim <- normalize(caim, mx = mx, force_range = TRUE)
+#' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 #' plot(ecaim)
 #' plot(caim$Blue)

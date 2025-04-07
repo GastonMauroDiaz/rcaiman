@@ -33,7 +33,7 @@ caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
 
 bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
 bin <- bin & select_sky_vault_region(z, 0, 80)
@@ -49,7 +49,6 @@ calc_oor_index(r, sky_cs)
 }
 \seealso{
 Other Tool Functions: 
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -69,6 +68,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

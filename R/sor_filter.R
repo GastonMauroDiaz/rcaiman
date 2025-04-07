@@ -39,9 +39,7 @@
 #' @param cutoff_side Character vector of length one. See
 #'   \insertCite{Leys2013;textual}{rcaiman}.
 #'
-#' @return Logical vector of length equal to the number of row of argument
-#'   `sky_points`. If it is `TRUE`, the point is not an outlier, which is a
-#'   design decision to facilitate coding.
+#' @return The argument `sky_points` with fewer rows due to outlier removal.
 #'
 #' @family Tool Functions
 #'
@@ -61,15 +59,13 @@
 #' bin <- bin & select_sky_vault_region(z, 0, 80)
 #' g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 #' sky_points <- extract_sky_points(r, bin, g,
-#'                                  dist_to_black = 3,
-#'                                  min_raster_dist = 10)
+#'                                  dist_to_black = 3)
 #' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' i <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
+#' sky_points <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
 #'                 cutoff_side = "left")
-#' points(sky_points[!i, "col"], nrow(caim) - sky_points[!i, "row"], col = "red",
-#'        pch = "X", cex = 1.5)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
 #'
 #' }
 sor_filter <- function(sky_points, r, z, a,
@@ -90,19 +86,19 @@ sor_filter <- function(sky_points, r, z, a,
   sky_points <- extract_dn(c(z, a, r), sky_points, use_window = TRUE)
   names(sky_points)[3:5] <- c("z", "a", "dn")
 
-  calculate_sor <- function(i) {
-    spherical_distance <- .calc_spherical_distance(sky_points$z,
-                                                   sky_points$a,
-                                                   sky_points[i, "z"],
-                                                   sky_points[i, "a"],
-                                                   radians = FALSE)
+  .calculate_sor <- function(i) {
+    spherical_distance <- .calc_spherical_distance(
+                                      sky_points$z %>% .degree2radian(),
+                                      sky_points$a %>% .degree2radian(),
+                                      sky_points[i, "z"] %>% .degree2radian(),
+                                      sky_points[i, "a"] %>% .degree2radian(),
+                                      radians = TRUE)
     order_idx <- order(spherical_distance)
     sorted_distance <- spherical_distance[order_idx][2:(k + 1)]
-    m <- sorted_distance <= rmax
     tryCatch(
-    if (all(m)) {
-      u <- sky_points[order_idx[2:(k + 1)], "dn"]
-      return(c(stats::median(u, na.rm = TRUE), stats::mad(u, na.rm = TRUE)))
+    if (all(sorted_distance <= rmax)) {
+      dns <- sky_points[order_idx[2:(k + 1)], "dn"]
+      return(c(stats::median(dns, na.rm = TRUE), stats::mad(dns, na.rm = TRUE)))
     } else {
       return(c(NA, NA))
     },
@@ -110,7 +106,7 @@ sor_filter <- function(sky_points, r, z, a,
     )
   }
 
-  result <- lapply(seq_len(nrow(sky_points)), calculate_sor) %>% unlist() %>%
+  result <- lapply(seq_len(nrow(sky_points)), .calculate_sor) %>% unlist() %>%
       matrix(., ncol = 2, byrow = TRUE)
 
   central_tendency <- result[, 1]
@@ -123,5 +119,5 @@ sor_filter <- function(sky_points, r, z, a,
               both = abs(deviation) <= thr)
 
   i[is.na(i)] <- TRUE
-  i
+  sky_points[i, c("row", "col") ]
 }

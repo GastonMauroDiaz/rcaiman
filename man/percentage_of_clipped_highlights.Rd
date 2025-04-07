@@ -23,13 +23,12 @@ r <- read_caim()$Blue
 z <- zenith_image(ncol(r), lens())
 m <- !is.na(z)
 percentage_of_clipped_highlights(r, m)
-r <- normalize(r, 0, 1000, TRUE)
+r <- normalize_minmax(r, 0, 1000, TRUE)
 percentage_of_clipped_highlights(r, m)
 }
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -48,6 +47,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

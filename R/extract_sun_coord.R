@@ -47,7 +47,7 @@
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
 #' mx <- optim_normalize(caim, bin)
-#' caim <- normalize(caim, 0, mx, TRUE)
+#' caim <- normalize_minmax(caim, 0, mx, TRUE)
 #' plotRGB(caim*255)
 #' sky_blue <- polarLAB(50, 17, 293)
 #' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
@@ -85,9 +85,9 @@ extract_sun_coord <- function(r, z, a, bin, g,
     length(x)
   }
   size <- extract_feature(g, labeled_m, .fun, return_raster = FALSE) %>%
-    normalize()
+    normalize_minmax()
   dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
-    normalize()
+    normalize_minmax()
   if (any(is.nan(dn))) dn[] <- 1
   if (any(is.nan(size))) size[] <- 1
   membership_posibility <- size * dn

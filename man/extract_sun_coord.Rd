@@ -9,7 +9,7 @@ extract_sun_coord(r, z, a, bin, g, max_angular_dist = 30)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -65,7 +65,7 @@ m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
 mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, 0, mx, TRUE)
+caim <- normalize_minmax(caim, 0, mx, TRUE)
 plotRGB(caim*255)
 sky_blue <- polarLAB(50, 17, 293)
 ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
@@ -79,7 +79,6 @@ points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -98,6 +97,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

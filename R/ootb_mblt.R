@@ -52,7 +52,7 @@
 #'
 #' @param r [SpatRaster-class]. A normalized greyscale image. Typically, the
 #'   blue channel extracted from a canopy photograph. Please see [read_caim()]
-#'   and [normalize()].
+#'   and [normalize_minmax()].
 #' @param z [SpatRaster-class] built with [zenith_image()].
 #' @param a [SpatRaster-class] built with [azimuth_image()].
 #' @param bin [SpatRaster-class]. This should be a preliminary binarization of
@@ -82,7 +82,7 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #' bin <- find_sky_pixels(r, z, a)
 #' bin <- ootb_mblt(r, z, a, bin)
 #' plot(bin$bin)
@@ -107,7 +107,7 @@ ootb_mblt <- function(r, z, a, bin, w = 0.5) {
     mblt <- coefficients(lm(x~y))
   }
 
-  sky_cs <- normalize(sky_cs, 0, 1, TRUE)
+  sky_cs <- normalize_minmax(sky_cs, 0, 1, TRUE)
   bin <- apply_thr(r, thr_mblt(sky_cs, mblt[1]*255, mblt[2] * 0.5))
   sky_s <- fit_trend_surface(r, z, a, bin,
                              filling_source = sky_cs,
@@ -120,7 +120,7 @@ ootb_mblt <- function(r, z, a, bin, w = 0.5) {
   mblt <- coefficients(fit)
   if (is.null(w)) w <- summary(fit)$r.squared
 
-  sky_s <- normalize(sky_s, 0, 1, TRUE)
+  sky_s <- normalize_minmax(sky_s, 0, 1, TRUE)
   bin <- apply_thr(r, thr_mblt(sky_s, mblt[1]*255, mblt[2]*w))
   list(bin = bin, sky_cs = sky_cs, sky_s = sky_s)
 }

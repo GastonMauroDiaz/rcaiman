@@ -15,7 +15,7 @@
 #' z <- zenith_image(ncol(r), lens())
 #' m <- !is.na(z)
 #' percentage_of_clipped_highlights(r, m)
-#' r <- normalize(r, 0, 1000, TRUE)
+#' r <- normalize_minmax(r, 0, 1000, TRUE)
 #' percentage_of_clipped_highlights(r, m)
 percentage_of_clipped_highlights <- function(r, m) {
   .is_single_layer_raster(r)

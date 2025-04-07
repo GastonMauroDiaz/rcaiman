@@ -34,7 +34,7 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #' bin <- find_sky_pixels(r, z, a)
 #' bin <- ootb_mblt(r, z, a, bin)$bin
 #' bin_equi <- fisheye_to_equidistant(bin, z, a)

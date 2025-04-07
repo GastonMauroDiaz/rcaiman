@@ -41,7 +41,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim() %>% normalize_minmax()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)

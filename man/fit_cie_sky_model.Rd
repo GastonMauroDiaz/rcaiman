@@ -84,7 +84,7 @@ against the automatic fitting provided by this package. The code assumes that
 the user is working within an RStudio project located in the HSP project
 folder.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{r <- read_caim("manipulate/IMG_1013.pgm") \%>\% normalize()
+\if{html}{\out{<div class="sourceCode">}}\preformatted{r <- read_caim("manipulate/IMG_1013.pgm") \%>\% normalize_minmax()
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 manual_input <- read_manual_input(".", "IMG_1013" )

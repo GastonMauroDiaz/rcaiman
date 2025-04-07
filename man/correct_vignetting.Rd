@@ -36,7 +36,6 @@ r
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
@@ -55,6 +54,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

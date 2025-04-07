@@ -1,15 +1,15 @@
 Package: rcaiman
 Type: Package
 Title: CAnopy IMage ANalysis
-Version: 1.3.1.9000
+Version: 1.3.2.9000
 Date: 2024-09-04
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))
 Description: Tools for pre-processing and processing canopy photographs with 
       support for raw data reading. Works with images taken with both regular 
-      and fisheye lenses (all types). Includes algorithms specifically designed
-      to mitigate errors caused by direct sunlight.
+      and fisheye lenses (all types). Includes algorithms to mitigate errors 
+      caused by non-diffuse light conditions during photograph acquisition.
 License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8

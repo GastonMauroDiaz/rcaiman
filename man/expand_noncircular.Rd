@@ -49,14 +49,14 @@ Expand a non-circular hemispherical photograph.
  path <- system.file("external/APC_0020.jpg", package = "rcaiman")
  caim <- read_caim(path)
  plot(caim)
- caim <- normalize(caim)
+ caim <- normalize_minmax(caim)
  diameter <- calc_diameter(lens(), sqrt(nrow(caim)^2 + ncol(caim)^2)/2, 90)
  z <- zenith_image(diameter, lens())
  caim <- expand_noncircular(caim, z, c(ncol(caim)/2, nrow(caim)/2))
  m <- !is.na(caim$Red)
  a <- azimuth_image(z)
  caim[!m] <- 0
- z <- normalize(z, 0, 90) * 30.15 #60.3º diagonal FOV according to metadata
+ z <- normalize_minmax(z, 0, 90) * 30.15 #60.3º diagonal FOV according to metadata
  plot(caim$Blue, col = seq(0,1,1/255) \%>\% grey())
  m <- !is.na(caim$Red) & !is.na(z)
  plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

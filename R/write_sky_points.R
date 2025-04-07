@@ -21,7 +21,7 @@
 #' RStudio project located in the HSP project folder.
 #'
 #' \preformatted{
-#' r <- read_caim("manipulate/IMG_1014.pgm") %>% normalize()
+#' r <- read_caim("manipulate/IMG_1014.pgm") %>% normalize_minmax()
 #' plot(r)
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)

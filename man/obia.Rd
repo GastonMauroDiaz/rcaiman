@@ -9,7 +9,7 @@ obia(r, z = NULL, a = NULL, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -55,7 +55,7 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim() \%>\% normalize_minmax()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)

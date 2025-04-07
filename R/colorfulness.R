@@ -26,7 +26,7 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' caim <- read_caim() %>% normalize()
+#' caim <- read_caim() %>% normalize_minmax()
 #' colorfulness(caim)
 colorfulness <- function (caim, m = NULL)  {
   stopifnot(class(caim) == "SpatRaster")

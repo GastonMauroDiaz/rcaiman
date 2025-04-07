@@ -49,14 +49,14 @@ this argument properly.
 \examples{
 \dontrun{
 caim <- read_caim()
-r <- caim$Blue \%>\% normalize()
+r <- caim$Blue \%>\% normalize_minmax()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
 mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, 0, mx, TRUE)
+caim <- normalize_minmax(caim, 0, mx, TRUE)
 
 sky_blue <- polarLAB(50, 17, 293)
 ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)

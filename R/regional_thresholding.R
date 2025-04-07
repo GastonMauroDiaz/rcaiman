@@ -43,7 +43,7 @@
 #' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #' rings <- rings_segmentation(z, 15)
 #' bin <- regional_thresholding(r, rings, "thr_isodata")
 #' plot(bin)

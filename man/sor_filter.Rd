@@ -47,9 +47,7 @@ a lack of evidence for removal.}
 window will be used to extract the digital number from \code{r}.}
 }
 \value{
-Logical vector of length equal to the number of row of argument
-\code{sky_points}. If it is \code{TRUE}, the point is not an outlier, which is a
-design decision to facilitate coding.
+The argument \code{sky_points} with fewer rows due to outlier removal.
 }
 \description{
 Statistical outlier removal (SOR) filter
@@ -88,15 +86,13 @@ bin <- regional_thresholding(r, rings_segmentation(z, 30),
 bin <- bin & select_sky_vault_region(z, 0, 80)
 g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
-                                 dist_to_black = 3,
-                                 min_raster_dist = 10)
+                                 dist_to_black = 3)
 plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = "green", pch = 10)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-i <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
+sky_points <- sor_filter(sky_points, r, z, a, k = 10, rmax = 20, thr = 2,
                 cutoff_side = "left")
-points(sky_points[!i, "col"], nrow(caim) - sky_points[!i, "row"], col = "red",
-       pch = "X", cex = 1.5)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
 
 }
 }
@@ -106,7 +102,6 @@ points(sky_points[!i, "col"], nrow(caim) - sky_points[!i, "row"], col = "red",
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -125,6 +120,7 @@ Other Tool Functions:
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

@@ -44,7 +44,7 @@ condition.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim() \%>\% normalize_minmax()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 seg <- polar_qtree(caim, z, a)

@@ -19,7 +19,7 @@
 #'
 #'
 #' @param lightness [SpatRaster-class]. A normalized greyscale image (see
-#'   [normalize()]).
+#'   [normalize_minmax()]).
 #' @inheritParams masking
 #' @param mem [SpatRaster-class]. It is the scale parameter of the logistic
 #'   membership function. Typically it is obtained with [membership_to_color()].
@@ -44,7 +44,7 @@
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' caim <- normalize(caim)
+#' caim <- normalize_minmax(caim)
 #'
 #' # ImageJ can be used to digitize points
 #' path <- system.file("external/sky_points.csv",

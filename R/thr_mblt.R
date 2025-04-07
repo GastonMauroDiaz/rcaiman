@@ -115,7 +115,7 @@
 #' @return An object of the same class and dimensions than `dn`.
 #'
 #' @family Binarization Functions
-#' @seealso [normalize()], [gbc()], [apply_thr()] and [regional_thresholding()].
+#' @seealso [normalize_minmax()], [gbc()], [apply_thr()] and [regional_thresholding()].
 #'
 #' @references \insertAllCited{}
 #'

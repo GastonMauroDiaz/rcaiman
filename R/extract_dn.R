@@ -57,7 +57,7 @@
 #' bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
 #' bin <- bin & select_sky_vault_region(z, 0, 85)
 #' mx <- optim_normalize(caim, bin)
-#' caim <- normalize(caim, mx = mx, force_range = TRUE)
+#' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' m <- !is.na(z)
 #'
 #' sky_blue <- extract_dn(caim, sky_points, fun = median)

@@ -36,7 +36,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize(., 0, 20847)
+#' caim <- read_caim() %>% normalize_minmax(., 0, 20847)
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' r <- caim$Blue

@@ -25,11 +25,17 @@ Read files writen by \code{\link[=write_ootb_sky_model]{write_ootb_sky_model()}}
 \examples{
 path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
+
+caim <- read_caim()
+z <- zenith_image(ncol(caim), lens())
+a <- azimuth_image(z)
+
+path <- system.file("external/ootb_sky.txt", package = "rcaiman")
+ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 }
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -48,6 +54,7 @@ Other Tool Functions:
 \code{\link{read_caim}()},
 \code{\link{read_caim_raw}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

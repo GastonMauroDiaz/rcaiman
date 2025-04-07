@@ -16,18 +16,12 @@
 #'   [sky_grid_segmentation()], see the example.
 #' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param refine_sun_coord Logical vector of length one
-#' @param sor_filter_cv Logical vector of length one. If `TRUE`, [sor_filter()]
-#'   will be applied internally to filter out points using local variability at
-#'   the scale of the \eqn{3 \times 3} window using for data extraction as the
-#'   criterion. Local means not farther than 30 degrees.
-#' @param sor_filter_dn Logical vector of length one. If `TRUE`, [sor_filter()]
-#'   will be applied internally to filter out points using local darkness as the
-#'   criterion. Local means not farther than 20 degrees.
 #' @param input_sky_points An object of class *data.frame* with the same
 #'   structure than the output of [extract_sky_points()]. This argument is
 #'   convinient to provide manually digitized points, see [fit_cie_sky_model()]
 #'   for details.
-#' @inheritParams extract_rel_radiance
+#' @param min_spherical_dist Numeric vector of length one or `NULL`. Optional.
+#'   This value will be passed to the `thr` argument of [vicinity_filter()].
 #'
 #' @export
 #'
@@ -65,7 +59,7 @@
 #' bin <- regional_thresholding(r, seg, method = "thr_isodata")
 #'
 #' mx <- optim_normalize(caim, bin)
-#' caim <- normalize(caim, mx = mx, force_range = TRUE)
+#' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #' bin <- bin & select_sky_vault_region(z, 0, 85)
@@ -79,8 +73,6 @@
 #' )
 #'
 #' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-#'                               sor_filter_cv = TRUE,
-#'                               sor_filter_dn = TRUE,
 #'                               refine_sun_coord = TRUE,
 #'                               min_spherical_dist = 5)
 #'
@@ -100,8 +92,6 @@
 #' display_caim(c(r, sky$sky))
 #' }
 ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
-                                   sor_filter_cv = FALSE,
-                                   sor_filter_dn = FALSE,
                                    refine_sun_coord = FALSE,
                                    min_spherical_dist = NULL,
                                    input_sky_points = NULL
@@ -126,40 +116,42 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
       sky_points <- rbind(input_sky_points, sky_points)
     }
 
-    ## remove identical points
-    sky_points <- .filter(sky_points, c("col", "row"), 0.1)
 
-    ## apply SOR filters
-    if (sor_filter_cv == TRUE) {
-      cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-      u <- sor_filter(sky_points, cv, z, a,
-                      k = 10,
-                      rmax = 30,
-                      thr = 2,
-                      cutoff_side = "right")
-    } else {
-      u <- rep(TRUE, nrow(sky_points))
-    }
-    if (sor_filter_dn == TRUE) {
-      v <- sor_filter(sky_points, r, z, a,
-                      k = 5,
-                      rmax = 20,
-                      thr = 2,
-                      cutoff_side = "left")
-    } else {
-      v <- rep(TRUE, nrow(sky_points))
+    ## apply filters
+    sky_points <- vicinity_filter(sky_points, "planar", 3)
+
+    cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
+    sky_points <- sor_filter(sky_points, cv, z, a,
+                             k = 10,
+                             rmax = 30,
+                             thr = 2,
+                             cutoff_side = "right")
+    sky_points <- sor_filter(sky_points, r, z, a,
+                             k = 5,
+                             rmax = 20,
+                             thr = 2,
+                             cutoff_side = "left")
+
+    if (!is.null(min_spherical_dist)) {
+      rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL,
+                                 use_window = !is.null(dist_to_black))
+      sky_points <- rr$sky_points
+      sky_points <- vicinity_filter(sky_points, "spherical",
+                                    min_spherical_dist, prefer = "dn")
+      sky_points <- sky_points[, c("row", "col")]
     }
 
-    i <- u & v
     if (!is.null(input_sky_points)) {
-      i[1:nrow(input_sky_points)] <- TRUE
+      # to guarantee them in
+      sky_points <- rbind(input_sky_points, sky_points)
+      # remove identical points
+      sky_points <- vicinity_filter(sky_points, "planar", 0.1)
     }
-    sky_points <- sky_points[i, ]
+
 
     # Model
     rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = 3,
-                               use_window = !is.null(dist_to_black),
-                               min_spherical_dist = min_spherical_dist)
+                               use_window = !is.null(dist_to_black))
 
     methods <- c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
     models <- Map(function(x) fit_cie_sky_model(rr, sun_coord,

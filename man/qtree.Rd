@@ -39,7 +39,7 @@ evaluate the stopping condition.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize()
+caim <- read_caim() \%>\% normalize_minmax()
 seg <- qtree(caim, scale_parameter = 0.05)
 plot(caim$Blue)
 plot(extract_feature(caim$Blue, seg))

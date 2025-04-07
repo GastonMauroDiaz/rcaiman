@@ -9,7 +9,7 @@ find_sky_pixels(r, z, a, sample_size_pct = 30)
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -51,7 +51,7 @@ process starts all over again.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize(., 0, 20847)
+caim <- read_caim() \%>\% normalize_minmax(., 0, 20847)
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 r <- caim$Blue
@@ -63,7 +63,6 @@ plot(bin)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -82,6 +81,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

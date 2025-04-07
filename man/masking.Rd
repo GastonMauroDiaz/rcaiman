@@ -8,7 +8,7 @@ masking(r, m, RGB = c(1, 0, 0))
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image. Values should be normalized,
-see \code{\link[=normalize]{normalize()}}. Only methods for images with one or three
+see \code{\link[=normalize_minmax]{normalize_minmax()}}. Only methods for images with one or three
 layers have been implemented.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
@@ -33,7 +33,7 @@ Image masking
  a <- azimuth_image(z)
  m <- select_sky_vault_region(z, 20, 70) & select_sky_vault_region(a, 90, 180)
 
- masked_caim <-  masking(normalize(r), m)
+ masked_caim <-  masking(normalize_minmax(r), m)
  plotRGB(masked_caim * 255)
 
  masked_bin <- masking(apply_thr(r$Blue, 125), m)
@@ -46,7 +46,6 @@ Image masking
 
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -65,6 +64,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

@@ -4,12 +4,12 @@
 \alias{extract_sky_points}
 \title{Extract sky points}
 \usage{
-extract_sky_points(r, bin, g, dist_to_black = 3, min_raster_dist = 3)
+extract_sky_points(r, bin, g, dist_to_black = 3)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
@@ -17,7 +17,9 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
 \code{\link[=chessboard]{chessboard()}}.}
 
-\item{dist_to_black, min_raster_dist}{Numeric vector of length one or \code{NULL}.}
+\item{dist_to_black}{Numeric vector of length one or \code{NULL}. A minimum
+distance to a black pixel can be set as a constraint. Useful to avoid mixed
+pixels since they are close to the silhouette contour.}
 }
 \value{
 An object of the class \emph{data.frame} with two columns named
@@ -29,21 +31,12 @@ Extract sky points for model fitting
 \details{
 This function will automatically sample sky pixels from the sky regions
 delimited by \code{bin}. The density and distribution of the sampling points is
-controlled by the arguments \code{g}, \code{dist_to_black}, and \code{min_raster_dist}.
+controlled by the arguments \code{g} and \code{dist_to_black}.
 
 As the first step, sky pixels from \code{r} are evaluated to find the pixel with
-maximum digital value per cell of the \code{g} argument. The
-\code{dist_to_black} argument allows users to establish a buffer zone for \code{bin},
-meaning a size reduction of the original sky regions.
-
-The final step is filtering these local maximum values by evaluating the
-Euclidean distances between them on the raster space. Any new point with a
-distance from existing points minor than \code{min_raster_dist} is discarded. Cell
-labels determine the order in which the points are evaluated.
-
-To skip a given filtering step, use code \code{NULL} as argument input. For
-instance, \code{min_raster_dist = NULL} will return points omitting
-the final step.
+maximum digital value per cell of the \code{g} argument. The \code{dist_to_black}
+argument allows users to establish a buffer zone for \code{bin}, meaning a size
+reduction of the original sky regions.
 }
 \examples{
 \dontrun{
@@ -55,15 +48,14 @@ m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
 mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, 0, mx, TRUE)
+caim <- normalize_minmax(caim, 0, mx, TRUE)
 plotRGB(caim*255)
 sky_blue <- polarLAB(50, 17, 293)
 ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g,
-                                 dist_to_black = 3,
-                                 min_raster_dist = 10)
+                                 dist_to_black = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 }
@@ -73,7 +65,6 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -92,6 +83,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

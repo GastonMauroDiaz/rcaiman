@@ -8,7 +8,7 @@ local_fuzzy_thresholding(lightness, m, mem, thr = NULL, fuzziness = NULL)
 }
 \arguments{
 \item{lightness}{\linkS4class{SpatRaster}. A normalized greyscale image (see
-\code{\link[=normalize]{normalize()}}).}
+\code{\link[=normalize_minmax]{normalize_minmax()}}).}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
 check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
@@ -54,7 +54,7 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 
-caim <- normalize(caim)
+caim <- normalize_minmax(caim)
 
 # ImageJ can be used to digitize points
 path <- system.file("external/sky_points.csv",
@@ -80,6 +80,6 @@ Other Pre-processing Functions:
 \code{\link{enhance_caim}()},
 \code{\link{gbc}()},
 \code{\link{membership_to_color}()},
-\code{\link{normalize}()}
+\code{\link{normalize_minmax}()}
 }
 \concept{Pre-processing Functions}

@@ -48,11 +48,11 @@
 #' # =====================================
 #'
 #' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
-#' caim <- read_caim(path) %>% normalize()
+#' caim <- read_caim(path) %>% normalize_minmax()
 #' z <- zenith_image(2132/2, c(0.7836, 0.1512, -0.1558))
 #' a <- azimuth_image(z)
 #' zenith_colrow <- c(1063, 771)/2
-#' caim <- expand_noncircular(caim, z, zenith_colrow) %>% normalize()
+#' caim <- expand_noncircular(caim, z, zenith_colrow) %>% normalize_minmax()
 #' m <- !is.na(caim$Red) & !is.na(z)
 #' caim[!m] <- 0
 #'
@@ -64,7 +64,7 @@
 #' # ============================
 #'
 #' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-#' caim <- read_caim(path) %>% normalize()
+#' caim <- read_caim(path) %>% normalize_minmax()
 #'
 #' bin <- ootb_obia(caim)
 #' plot(bin)

@@ -129,7 +129,7 @@ thr_mblt(gbc(125), -7.8, 0.95 * 0.5)
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=normalize]{normalize()}}, \code{\link[=gbc]{gbc()}}, \code{\link[=apply_thr]{apply_thr()}} and \code{\link[=regional_thresholding]{regional_thresholding()}}.
+\code{\link[=normalize_minmax]{normalize_minmax()}}, \code{\link[=gbc]{gbc()}}, \code{\link[=apply_thr]{apply_thr()}} and \code{\link[=regional_thresholding]{regional_thresholding()}}.
 
 Other Binarization Functions: 
 \code{\link{apply_thr}()},

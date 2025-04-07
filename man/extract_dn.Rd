@@ -66,7 +66,7 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
 bin <- bin & select_sky_vault_region(z, 0, 85)
 mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, mx = mx, force_range = TRUE)
+caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 m <- !is.na(z)
 
 sky_blue <- extract_dn(caim, sky_points, fun = median)
@@ -96,7 +96,6 @@ apply_thr(ecaim, thr_isodata(ecaim[m])) \%>\% plot()
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -115,6 +114,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

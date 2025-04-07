@@ -14,7 +14,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize(., 0, 255)
+#' caim <- read_caim() %>% normalize_minmax(., 0, 255)
 #' write_caim(caim * 2^8-2, file.path(tempdir(), "test_8bit"), 8)
 #' write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
 #' # Note: the normalized values are scaled by multiplying by 2^bit_depth-2

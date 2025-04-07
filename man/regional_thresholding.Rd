@@ -16,7 +16,7 @@ regional_thresholding(
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{segmentation}{\linkS4class{SpatRaster}. The result of segmenting \code{r}.
 Arguably, the result of calling \code{\link[=rings_segmentation]{rings_segmentation()}} will be the
@@ -61,7 +61,7 @@ path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
 rings <- rings_segmentation(z, 15)
 bin <- regional_thresholding(r, rings, "thr_isodata")
 plot(bin)

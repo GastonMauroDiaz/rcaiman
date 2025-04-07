@@ -1,7 +1,7 @@
 #' Image masking
 #'
 #' @param r [SpatRaster-class]. The image. Values should be normalized,
-#'   see [normalize()]. Only methods for images with one or three
+#'   see [normalize_minmax()]. Only methods for images with one or three
 #'   layers have been implemented.
 #' @param m [SpatRaster-class]. A mask. For hemispherical photographs,
 #'   check [select_sky_vault_region()].
@@ -24,7 +24,7 @@
 #'  a <- azimuth_image(z)
 #'  m <- select_sky_vault_region(z, 20, 70) & select_sky_vault_region(a, 90, 180)
 #'
-#'  masked_caim <-  masking(normalize(r), m)
+#'  masked_caim <-  masking(normalize_minmax(r), m)
 #'  plotRGB(masked_caim * 255)
 #'
 #'  masked_bin <- masking(apply_thr(r$Blue, 125), m)

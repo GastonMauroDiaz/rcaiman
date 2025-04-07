@@ -1,6 +1,6 @@
-#' Normalize data
+#' Normalize data using min-max rescaling
 #'
-#' Normalize numeric and raster data.
+#' Normalize numeric and raster data using the min-max method.
 #'
 #' Normalize data laying between `mn` and `mx` to the range `0`
 #' to `1`. Data greater than `mx` get values greater than `1` in
@@ -28,8 +28,8 @@
 #' @family Pre-processing Functions
 #'
 #' @examples
-#' normalize(read_caim())
-normalize <- function(r, mn = NULL, mx = NULL, force_range = FALSE) {
+#' normalize_minmax(read_caim())
+normalize_minmax <- function(r, mn = NULL, mx = NULL, force_range = FALSE) {
   if (is.null(mn)) mn <- .get_min(r)
   if (is.null(mx)) mx <- .get_max(r)
   stopifnot(length(mn) == 1)

@@ -37,7 +37,7 @@
 #' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)
 #' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize()
+#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
 #' bin <- bin & select_sky_vault_region(z, 0, 80)

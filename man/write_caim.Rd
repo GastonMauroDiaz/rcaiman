@@ -21,7 +21,7 @@ Wrapper function for \code{\link[terra:writeRaster]{terra::writeRaster()}}.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize(., 0, 255)
+caim <- read_caim() \%>\% normalize_minmax(., 0, 255)
 write_caim(caim * 2^8-2, file.path(tempdir(), "test_8bit"), 8)
 write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
 # Note: the normalized values are scaled by multiplying by 2^bit_depth-2
@@ -32,7 +32,6 @@ write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -52,6 +51,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_ootb_sky_model}()}
 }

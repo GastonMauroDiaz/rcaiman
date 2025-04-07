@@ -16,12 +16,12 @@
 #' \dontrun{
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
-#' r <- normalize(caim$Blue)
+#' r <- normalize_minmax(caim$Blue)
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
 #' display_caim(caim)
 #' display_caim(bin)
-#' display_caim(c(normalize(caim$Blue), bin))
+#' display_caim(c(normalize_minmax(caim$Blue), bin))
 #' }
 display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
   .this_requires_EBImage()
@@ -30,7 +30,7 @@ display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
     g <- g != 0
   }
   if (!is.null(caim)) {
-    x <- normalize(caim)
+    x <- normalize_minmax(caim)
     if (!is.null(bin) & !is.null(g)) {
       x <- c(x, bin, g)
     } else {

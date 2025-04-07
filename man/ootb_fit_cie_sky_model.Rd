@@ -11,8 +11,6 @@ ootb_fit_cie_sky_model(
   m,
   bin,
   gs,
-  sor_filter_cv = FALSE,
-  sor_filter_dn = FALSE,
   refine_sun_coord = FALSE,
   min_spherical_dist = NULL,
   input_sky_points = NULL
@@ -21,7 +19,7 @@ ootb_fit_cie_sky_model(
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize]{normalize()}}.}
+and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -35,21 +33,10 @@ and \code{\link[=normalize]{normalize()}}.}
 \item{gs}{An object of the class \emph{list}. A list with the output of
 \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example.}
 
-\item{sor_filter_cv}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
-will be applied internally to filter out points using local variability at
-the scale of the \eqn{3 \times 3} window using for data extraction as the
-criterion. Local means not farther than 30 degrees.}
-
-\item{sor_filter_dn}{Logical vector of length one. If \code{TRUE}, \code{\link[=sor_filter]{sor_filter()}}
-will be applied internally to filter out points using local darkness as the
-criterion. Local means not farther than 20 degrees.}
-
 \item{refine_sun_coord}{Logical vector of length one}
 
-\item{min_spherical_dist}{Numeric vector of length one. This parameter
-filters out points based on their proximity on a spherical surface.
-Essentially, this is the spherical counterpart of the \code{min_raster_dist}
-argument from \code{\link[=extract_sky_points]{extract_sky_points()}}. The distance is expressed in degrees.}
+\item{min_spherical_dist}{Numeric vector of length one or \code{NULL}. Optional.
+This value will be passed to the \code{thr} argument of \code{\link[=vicinity_filter]{vicinity_filter()}}.}
 
 \item{input_sky_points}{An object of class \emph{data.frame} with the same
 structure than the output of \code{\link[=extract_sky_points]{extract_sky_points()}}. This argument is
@@ -98,7 +85,7 @@ seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
 bin <- regional_thresholding(r, seg, method = "thr_isodata")
 
 mx <- optim_normalize(caim, bin)
-caim <- normalize(caim, mx = mx, force_range = TRUE)
+caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 bin <- bin & select_sky_vault_region(z, 0, 85)
@@ -112,8 +99,6 @@ gs <- list(
 )
 
 sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-                              sor_filter_cv = TRUE,
-                              sor_filter_dn = TRUE,
                               refine_sun_coord = TRUE,
                               min_spherical_dist = 5)
 

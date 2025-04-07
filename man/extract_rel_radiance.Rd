@@ -4,15 +4,7 @@
 \alias{extract_rel_radiance}
 \title{Extract relative radiance}
 \usage{
-extract_rel_radiance(
-  r,
-  z,
-  a,
-  sky_points,
-  no_of_points = 3,
-  use_window = TRUE,
-  min_spherical_dist = NULL
-)
+extract_rel_radiance(r, z, a, sky_points, no_of_points = 3, use_window = TRUE)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
@@ -30,11 +22,6 @@ points required for the estimation of the zenith DN.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
 window will be used to extract the digital number from \code{r}.}
-
-\item{min_spherical_dist}{Numeric vector of length one. This parameter
-filters out points based on their proximity on a spherical surface.
-Essentially, this is the spherical counterpart of the \code{min_raster_dist}
-argument from \code{\link[=extract_sky_points]{extract_sky_points()}}. The distance is expressed in degrees.}
 }
 \value{
 A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle} from the
@@ -85,7 +72,6 @@ points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -104,6 +90,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

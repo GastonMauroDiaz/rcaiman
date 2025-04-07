@@ -22,7 +22,7 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' pano <- fisheye_to_pano(caim, z, a)
-#' plotRGB(pano %>% normalize() %>% multiply_by(255))
+#' plotRGB(pano %>% normalize_minmax() %>% multiply_by(255))
 #' }
 fisheye_to_pano<- function(r, z, a, fun = mean, angle_width = 1) {
   .is_single_layer_raster(z, "z")

@@ -18,7 +18,7 @@
 #' path <- system.file("external/APC_0020.jpg", package = "rcaiman")
 #' caim <- read_caim(path)
 #' plotRGB(caim)
-#' caim <- normalize(caim)
+#' caim <- normalize_minmax(caim)
 #' m <- mask_sunlit_canopy(caim)
 #' plot(m)
 #' }

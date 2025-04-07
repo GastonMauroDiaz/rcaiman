@@ -25,18 +25,17 @@ Wrapper function for \code{\link[EBImage:display]{EBImage::display()}}
 \dontrun{
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
-r <- normalize(caim$Blue)
+r <- normalize_minmax(caim$Blue)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
 display_caim(caim)
 display_caim(bin)
-display_caim(c(normalize(caim$Blue), bin))
+display_caim(c(normalize_minmax(caim$Blue), bin))
 }
 }
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -55,6 +54,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

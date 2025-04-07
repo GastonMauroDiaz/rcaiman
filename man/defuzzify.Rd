@@ -36,12 +36,12 @@ caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 a <- azimuth_image(z)
 r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize()
+r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
 bin <- find_sky_pixels(r, z, a)
 bin <- ootb_mblt(r, z, a, bin)
 plot(bin$bin)
 ratio <- r / bin$sky_s
-ratio <- normalize(ratio, 0, 1, TRUE)
+ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 plot(ratio)
 g <- sky_grid_segmentation(z, a, 10)
 bin2 <- defuzzify(ratio, g)
@@ -55,7 +55,6 @@ plot(abs(bin$bin - bin2))
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{display_caim}()},
@@ -74,6 +73,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

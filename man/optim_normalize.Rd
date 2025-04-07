@@ -2,7 +2,7 @@
 % Please edit documentation in R/optim_normalize.R
 \name{optim_normalize}
 \alias{optim_normalize}
-\title{Optimize a parameter of the function \code{\link[=normalize]{normalize()}}}
+\title{Optimize a parameter of the function \code{\link[=normalize_minmax]{normalize_minmax()}}}
 \usage{
 optim_normalize(caim, bin, method = "BFGS")
 }
@@ -17,11 +17,11 @@ optim_normalize(caim, bin, method = "BFGS")
 }
 \value{
 Numeric vector of length one. The values for using as \code{mx} argument
-with \code{\link[=normalize]{normalize()}}.
+with \code{\link[=normalize_minmax]{normalize_minmax()}}.
 }
 \description{
 Wrapper function for \code{\link[stats:optim]{stats::optim()}}. Optimize the \code{mx} argument of the
-function \code{\link[=normalize]{normalize()}} by maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing
+function \code{\link[=normalize_minmax]{normalize_minmax()}} by maximizing \code{\link[=colorfulness]{colorfulness()}} and minimizing
 saturation.
 }
 \examples{
@@ -33,23 +33,22 @@ m <- !is.na(z)
 
 mn <- quantile(caim$Blue[m], 0.01)
 mx <- quantile(caim$Blue[m], 0.99)
-r <- normalize(caim$Blue, mn, mx, TRUE)
+r <- normalize_minmax(caim$Blue, mn, mx, TRUE)
 
 bin <- find_sky_pixels(r, z, a)
 mblt <- ootb_mblt(r, z, a, bin)
 plot(mblt$bin)
 
 mx <- optim_normalize(caim, mblt$bin)
-ncaim <- normalize(caim, mx = mx, force_range = TRUE)
+ncaim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 plotRGB(ncaim*255)
-plotRGB(normalize(caim)*255)
+plotRGB(normalize_minmax(caim)*255)
 percentage_of_clipped_highlights(ncaim$Blue, m)
 }
 }
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
-\code{\link{calc_sngd}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
@@ -68,6 +67,7 @@ Other Tool Functions:
 \code{\link{read_caim_raw}()},
 \code{\link{read_ootb_sky_model}()},
 \code{\link{sor_filter}()},
+\code{\link{vicinity_filter}()},
 \code{\link{write_bin}()},
 \code{\link{write_caim}()},
 \code{\link{write_ootb_sky_model}()}

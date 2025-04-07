@@ -16,7 +16,7 @@
 #' folder.
 #'
 #' ````
-#' r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize()
+#' r <- read_caim("manipulate/IMG_1013.pgm") %>% normalize_minmax()
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)
 #' manual_input <- read_manual_input(".", "IMG_1013" )
