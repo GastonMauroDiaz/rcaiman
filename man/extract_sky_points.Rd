@@ -65,6 +65,7 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

@@ -8,12 +8,10 @@
 #' @inheritParams ootb_mblt
 #' @param no_of_points Numeric vector of length one. The number of near-zenith
 #'   points required for the estimation of the zenith DN.
-#' @param use_window Logical vector of length one. If `TRUE`, a \eqn{3 \times 3}
-#'   window will be used to extract the digital number from `r`.
 #'
 #' @note As an alternative, both [ImageJ](https://imagej.net/ij/) and HSP
-#' software package \insertCite{Lang2013}{rcaiman} can be used to manually
-#' digitize points. See [extract_dn()] and [read_manual_input()] for details.
+#'   software package \insertCite{Lang2013}{rcaiman} can be used to manually
+#'   digitize points. See [extract_dn()] and [read_manual_input()] for details.
 #'
 #' @return A list of three objects, *zenith_dn* and *max_zenith_angle* from the
 #'   class *numeric*, and *sky_points* of the class
@@ -64,9 +62,8 @@ extract_rel_radiance <- function(r, z, a, sky_points,
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   # Extract spherical coordinates
-  cells <- terra::cellFromRowCol(a, sky_points$row, sky_points$col)
-  sky_points$a <- a[cells][,]
-  sky_points$z <- z[cells][,]
+  sky_points <- extract_dn(c(z, a), sky_points, use_window = FALSE)
+  names(sky_points)[3:4] <- c("z", "a")
   if(any(is.na(sky_points$z))) {
       stop(paste0("This problem arises from having sky points touching ",
                   "the horizon. It generally solves masking out the region ",
@@ -77,27 +74,17 @@ extract_rel_radiance <- function(r, z, a, sky_points,
   }
 
   # Extract values from the image with the points
-  if (use_window) {
-    xy <-  terra::xyFromCell(r, cells)
-    r_smoothed <- terra::focal(r, 3, "mean")
-    sky_points$dn <-  terra::extract(r_smoothed, xy)[,]
-    if(any(is.na(sky_points$dn))) {
-      warning("The kernel created NA values.")
-    }
-  } else {
-    sky_points$dn <-  r[cells][,]
-  }
+  dn <- extract_dn(r, sky_points[,c("row", "col")], use_window = use_window)[,3]
+  sky_points <- cbind(sky_points, dn)
 
   # Estimate zenith DN
   if (is.null(no_of_points)) {
     zenith_dn <- 1
   } else {
-    spherical_distance <- .calc_spherical_distance(
+    spherical_distance <- calc_spherical_distance (
                                               sky_points$z %>% .degree2radian(),
                                               sky_points$a %>% .degree2radian(),
-                                              0,
-                                              0,
-                                              radians = TRUE)
+                                              0, 0)
     k <- no_of_points
     sorted_indices <- order(spherical_distance)
     w <- spherical_distance[sorted_indices][2:(k + 1)]

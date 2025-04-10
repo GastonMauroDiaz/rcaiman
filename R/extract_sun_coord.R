@@ -97,27 +97,23 @@ extract_sun_coord <- function(r, z, a, bin, g,
 
   # Find circumsolar region
   ## get coordinates of every object
-  no_col <- no_row <- r
-  terra::values(no_col) <- .col(dim(r)[1:2])
-  terra::values(no_row) <- .row(dim(r)[1:2])
-
-  .get_bbox_center <- function(x) mean(range(x))
-  row_col <- data.frame(row = extract_feature(no_row, labeled_m,
-                                              .get_bbox_center,
-                                              return_raster = FALSE),
-                        col = extract_feature(no_col, labeled_m,
-                                              .get_bbox_center,
-                                              return_raster = FALSE))
-
-  cells <- cellFromRowCol(r, row_col[,1], row_col[,2])
+  rcells <- r
+  rcells[] <- 1:ncell(r)
+  .get_center <- function(x) {
+    xy <- terra::xyFromCell(r, x)
+    if (nrow(xy) > 1) {
+      xy <- xy[grDevices::chull(xy),]
+      v <- terra::vect(list(xy), type = "polygon", crs = crs(r))
+      v <- terra::centroids(v)
+      xy <- terra::crds(v)
+    }
+    terra::cellFromXY(r, xy)
+  }
+  cells <-  extract_feature(rcells, labeled_m, .get_center, return_raster = FALSE)
   za <- data.frame(zenith = z[cells], azimuth = a[cells]) %>% .degree2radian()
 
   ## calc distance to sun seed
-  d <- c()
-  for (i in 1:nrow(za)) {
-    d <- c(d,
-           .calc_spherical_distance(za[sun, 1], za[sun, 2], za[i, 1], za[i, 2]))
-  }
+  d <- calc_spherical_distance(za[, 1], za[, 2], za[sun, 1], za[sun, 2])
   seg_labels <- extract_feature(labeled_m, labeled_m, return_raster = FALSE)
 
   ## classify circumsolar region based on distance
@@ -129,18 +125,16 @@ extract_sun_coord <- function(r, z, a, bin, g,
     m <- labeled_m
   }
   m <- m != 0
+
   # Calc coordinates of the circumsolar region
-  row_col <- data.frame(extract_feature(no_row, m,
-                                        .get_bbox_center,
-                                        return_raster = FALSE),
-                        extract_feature(no_col, m,
-                                        .get_bbox_center,
-                                        return_raster = FALSE))
+  cells <-  extract_feature(rcells, m, .get_center, return_raster = FALSE)
+  row_col <- terra::rowColFromCell(r, cells)
+
   row_col <- round(row_col) %>% as.numeric()
   sun_coord <- c(z[row_col[1], row_col[2]] %>% as.numeric(),
                  a[row_col[1], row_col[2]] %>% as.numeric())
 
 
   list(row_col = row_col,
-       zenith_azimuth = round(sun_coord))
+       zenith_azimuth = sun_coord)
 }

@@ -4,7 +4,7 @@
 \alias{read_ootb_sky_model}
 \title{Read files writen by \code{\link[=write_ootb_sky_model]{write_ootb_sky_model()}}}
 \usage{
-read_ootb_sky_model(name, z = NULL, a = NULL)
+read_ootb_sky_model(name, z, a)
 }
 \arguments{
 \item{name}{Character vector of length one. File name without extension. If
@@ -23,9 +23,7 @@ An object of the class \emph{list} similar to the output of
 Read files writen by \code{\link[=write_ootb_sky_model]{write_ootb_sky_model()}}
 }
 \examples{
-path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
-
+\dontrun{
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
@@ -33,9 +31,11 @@ a <- azimuth_image(z)
 path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 }
+}
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

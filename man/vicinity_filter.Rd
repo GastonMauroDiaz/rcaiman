@@ -4,24 +4,37 @@
 \alias{vicinity_filter}
 \title{Vicinity filter for planar and spherical coordinates}
 \usage{
-vicinity_filter(sky_points, space, thr, prefer = NULL)
+vicinity_filter(
+  sky_points,
+  r = NULL,
+  z = NULL,
+  a = NULL,
+  min_dist = 3,
+  use_window = TRUE
+)
 }
 \arguments{
 \item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
 or an object of the same class and structure.}
 
-\item{space}{Numeric vector of length one. Either \code{"planar"} or
-\code{"spherical"}.}
+\item{r}{\linkS4class{SpatRaster} or \code{NULL}. Set the dimension that will be
+prioritized when deciding to retein a sky point.}
 
-\item{thr}{Numeric vector of length one. Minimum allowed distance between
-points. In degrees for spherical space or pixels for planar space.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}  or \code{NULL}.}
 
-\item{prefer}{Character vector of length one or \code{NULL}. Optional. Name of
-column whose higher values are to be prioritized during selection.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}  or \code{NULL}.}
+
+\item{min_dist}{Numeric vector of length one. Minimum allowed distance
+between points. In degrees for spherical space or pixels for planar space.
+What space is used depend on the arguments \code{z} and \code{a}, if both are
+provided, then the spherical space is used.}
+
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
+\times 3} pixels will be used to extract the digital number from \code{r}.}
 }
 \value{
 The argument \code{sky_points} with fewer rows due to the removal of
-points closer each other than \code{thr}.
+points closer each other than \code{min_dist}.
 }
 \description{
 Filters out nearby points based on a minimum distance threshold in either
@@ -29,7 +42,8 @@ planar (image space) or spherical (sky coordinates) systems.
 }
 \details{
 This function selects a subset of spatial points ensuring that no selected
-points are closer than \code{thr}. Useful for obtaining well-distributed samples.
+points are closer than \code{min_dist}. Optionally, it can prioritize retention of
+points with high values in a specific dimension such as image digital number.
 }
 \examples{
 \dontrun{
@@ -45,13 +59,12 @@ g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_black = 3)
 
-sky_points_p <- vicinity_filter(sky_points, "planar", 100)
+sky_points_p <- vicinity_filter(sky_points, r, min_dist = 100)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 points(sky_points_p$col, nrow(caim) - sky_points_p$row, col = 3, pch = 0)
 
-rr <- extract_rel_radiance(r, z, a, sky_points)
-sky_points_s <- vicinity_filter(rr$sky_points, "spherical", 30)
+sky_points_s <- vicinity_filter(sky_points, r, z, a, min_dist = 30)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
@@ -60,6 +73,7 @@ points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

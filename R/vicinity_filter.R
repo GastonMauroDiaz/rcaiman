@@ -4,18 +4,20 @@
 #' planar (image space) or spherical (sky coordinates) systems.
 #'
 #' This function selects a subset of spatial points ensuring that no selected
-#' points are closer than `thr`. Useful for obtaining well-distributed samples.
+#' points are closer than `min_dist`. Optionally, it can prioritize retention of
+#' points with high values in a specific dimension such as image digital number.
 #'
 #' @inheritParams extract_rel_radiance
-#' @param thr Numeric vector of length one. Minimum allowed distance between
-#'   points. In degrees for spherical space or pixels for planar space.
-#' @param space Numeric vector of length one. Either `"planar"` or
-#'   `"spherical"`.
-#' @param prefer Character vector of length one or `NULL`. Optional. Name of
-#'   column whose higher values are to be prioritized during selection.
-#'
+#' @param min_dist Numeric vector of length one. Minimum allowed distance
+#'   between points. In degrees for spherical space or pixels for planar space.
+#'   What space is used depend on the arguments `z` and `a`, if both are
+#'   provided, then the spherical space is used.
+#' @param r [SpatRaster-class] or `NULL`. Set the dimension that will be
+#'   prioritized when deciding to retein a sky point.
+#' @param z [SpatRaster-class] built with [zenith_image()]  or `NULL`.
+#' @param a [SpatRaster-class] built with [azimuth_image()]  or `NULL`.
 #' @return The argument `sky_points` with fewer rows due to the removal of
-#'   points closer each other than `thr`.
+#'   points closer each other than `min_dist`.
 #'
 #' @family Tool Functions
 #'
@@ -35,21 +37,36 @@
 #' sky_points <- extract_sky_points(r, bin, g,
 #'                                  dist_to_black = 3)
 #'
-#' sky_points_p <- vicinity_filter(sky_points, "planar", 100)
+#' sky_points_p <- vicinity_filter(sky_points, r, min_dist = 100)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' points(sky_points_p$col, nrow(caim) - sky_points_p$row, col = 3, pch = 0)
 #'
-#' rr <- extract_rel_radiance(r, z, a, sky_points)
-#' sky_points_s <- vicinity_filter(rr$sky_points, "spherical", 30)
+#' sky_points_s <- vicinity_filter(sky_points, r, z, a, min_dist = 30)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
 #' }
-vicinity_filter <- function(sky_points, space, thr, prefer = NULL) {
-  stopifnot(is.numeric(thr))
-  stopifnot(length(thr) == 1)
-  stopifnot(space %in% c("planar", "spherical"))
+vicinity_filter <- function(sky_points,
+                            r = NULL,
+                            z = NULL,
+                            a = NULL,
+                            min_dist = 3,
+                            use_window = TRUE) {
+
+  if (all(!is.null(r), !is.null(z), !is.null(z))) {
+    .check_if_r_z_and_a_are_ok(r, z, a)
+  }
+  if (!is.null(r)) .is_single_layer_raster(r, "r")
+  if (any(!is.null(z), !is.null(a))) {
+    .is_single_layer_raster(z, "z")
+    .is_single_layer_raster(a, "a")
+    terra::compareGeom(z, a)
+  }
+  stopifnot(is.numeric(min_dist))
+  stopifnot(length(min_dist) == 1)
+  stopifnot(is.data.frame(sky_points))
+  stopifnot(ncol(sky_points) == 2)
   stopifnot(nrow(sky_points) > 1)
 
   .dist_spherical <- function(zenith_azimuth) {
@@ -58,11 +75,10 @@ vicinity_filter <- function(sky_points, space, thr, prefer = NULL) {
 
     for (i in 1:(n - 1)) {
       for (j in (i + 1):n) {
-        d <- .calc_spherical_distance(zenith_azimuth[i, 1],
+        d <- calc_spherical_distance (zenith_azimuth[i, 1],
                                       zenith_azimuth[i, 2],
                                       zenith_azimuth[j, 1],
-                                      zenith_azimuth[j, 2],
-                                      radians = TRUE)
+                                      zenith_azimuth[j, 2])
         m[i, j] <- d
         m[j, i] <- d
       }
@@ -71,19 +87,21 @@ vicinity_filter <- function(sky_points, space, thr, prefer = NULL) {
     m
   }
 
-  if (!is.null(prefer)) {
-    stopifnot(prefer %in% colnames(sky_points))
-    ord <- order(sky_points[[prefer]], decreasing = TRUE)
-    sky_points <- sky_points[ord, , drop = FALSE]
+
+  if (!is.null(r)) {
+    ord <- extract_dn(r, sky_points, use_window = use_window)[,3]
+    ord <- order(ord, decreasing = TRUE)
+    sky_points <- sky_points[ord, ]
   }
 
-  if (space == "planar") {
+  if (is.null(z)) {
     coords <- sky_points[, c("col", "row")]
     dists <- as.matrix(stats::dist(coords))
   } else {
-    coords <- sky_points[, c("z", "a")] %>% .degree2radian()
+    sky_points <- extract_dn(c(z, a), sky_points, use_window = FALSE)
+    coords <- sky_points[, c(3, 4)] %>% .degree2radian()
     dists <- .dist_spherical(coords)
-    thr <- .degree2radian(thr)
+    min_dist <- .degree2radian(min_dist)
   }
 
   n <- nrow(coords)
@@ -94,9 +112,9 @@ vicinity_filter <- function(sky_points, space, thr, prefer = NULL) {
     i <- to_consider[1]
     selected[i] <- TRUE
     considered[i] <- TRUE
-    too_close <- which(dists[i, ] <= thr)
+    too_close <- which(dists[i, ] <= min_dist)
     considered[too_close] <- TRUE
     to_consider <- which(!considered)
   }
-  sky_points[selected, , drop = FALSE]
+  sky_points[selected, c("row", "col"), drop = FALSE]
 }

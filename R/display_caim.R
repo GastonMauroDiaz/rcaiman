@@ -17,11 +17,10 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' r <- normalize_minmax(caim$Blue)
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#' g <- rings_segmentation(z, 30)
+#' bin <- regional_thresholding(r, g,
 #'                              method = "thr_isodata")
-#' display_caim(caim)
-#' display_caim(bin)
-#' display_caim(c(normalize_minmax(caim$Blue), bin))
+#' display_caim(caim, bin, g)
 #' }
 display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
   .this_requires_EBImage()

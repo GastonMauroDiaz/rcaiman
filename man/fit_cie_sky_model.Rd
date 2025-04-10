@@ -131,7 +131,7 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
 # Manual method following Lang et al. (2010)
-# ImageJ can be used to digitize points
+## ImageJ can be used to digitize points
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
 sky_points <- read.csv(path)
@@ -141,14 +141,17 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-# Idem for QGIS
-path <- system.file("external/sky_points.gpkg",
+## Idem for QGIS
+## These points were automatically generated with ootb_fit_cie_sky_model(),
+## but same method apply to manually generated points.
+path <- system.file("external/ootb_sky_sky_points.gpkg",
                     package = "rcaiman")
 sky_points <- terra::vect(path)
 sky_points <- terra::extract(caim, sky_points, cells = TRUE)
 sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\% as.data.frame()
 colnames(sky_points) <- c("row", "col")
 head(sky_points)
+
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
@@ -184,8 +187,8 @@ Other Sky Reconstruction Functions:
 \code{\link{cie_sky_image}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()}
+\code{\link{ootb_fit_cie_sky_model}()},
+\code{\link{ootb_interpolate_and_merge}()}
 }
 \concept{Sky Reconstruction Functions}

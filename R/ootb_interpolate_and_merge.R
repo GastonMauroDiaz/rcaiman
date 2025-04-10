@@ -30,18 +30,17 @@
 #' a <- azimuth_image(z)
 #'
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
+#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 #'
-#' sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points,
-#'                              ootb_sky)
+#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points, ootb_sky)
+#'
 #' plot(sky$sky)
 #'
 #' # See fit_cie_sky_model() for details on below file
-#' path <- system.file("external/sky_points.gpkg",
+#' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
-#' sky_points <- terra::vect(path)
-#' sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-#' sky_points <- terra::rowColFromCell(caim, sky_points$cell) %>% as.data.frame()
+#' sky_points <- read.csv(path)
+#' sky_points <- sky_points[c("Y", "X")]
 #' colnames(sky_points) <- c("row", "col")
 #' head(sky_points)
 #' plot(caim$Blue)
@@ -49,28 +48,18 @@
 #'
 #' sky_points <- rbind(sky_points, ootb_sky$sky_points[, c("row", "col")])
 #'
-#' sky <- interpolate_and_merge(r, z, a, ootb_sky$sky_points,
+#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points,
 #'                              ootb_sky)
 #' plot(sky$sky)
 #' }
-interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
-                                  rmax_tune = 1) {
+ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
+                                  rmax_tune = 1, use_window = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
   stopifnot(length(rmax_tune) == 1)
   stopifnot(rmax_tune > 0)
 
-  sky_points <- sky_points[, c("row", "col")]
-
   model <- ootb_sky$model
-
-  if (is.na(match("sky", names(ootb_sky)))) { # for when read_ootb_sky_model() is used
-    sky_cie <- cie_sky_image(z, a,
-                                    model$sun_coord$zenith_azimuth,
-                                    model$coef) * model$zenith_dn
-    names(sky_cie) <- "CIE sky"
-  } else {
-    sky_cie <- sky$sky
-  }
+  sky_cie <- sky$sky
 
   # read metrics
   r2 <- ootb_sky$model_validation$r_squared
@@ -94,7 +83,7 @@ interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   rmax <- rmax * rmax_tune
 
   # extract and interpolate
-  sky_points <- extract_dn(r, sky_points)
+  sky_points <- extract_dn(r, sky_points, use_window = use_window)
   sky <- interpolate_sky_points(sky_points, r, k = k, p = p,
                                 rmax = rmax * rmax_tune, col_id = 3)
 

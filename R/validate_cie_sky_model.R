@@ -37,11 +37,10 @@
 #' a <- azimuth_image(z)
 #'
 #' # See fit_cie_sky_model() for details on below file
-#' path <- system.file("external/sky_points.gpkg",
+##' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
-#' sky_points <- terra::vect(path)
-#' sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-#' sky_points <- terra::rowColFromCell(caim, sky_points$cell) %>% as.data.frame()
+#' sky_points <- read.csv(path)
+#' sky_points <- sky_points[c("Y", "X")]
 #' colnames(sky_points) <- c("row", "col")
 #' head(sky_points)
 #' plot(caim$Blue)
@@ -69,8 +68,14 @@ validate_cie_sky_model <- function(model, rr, k = 10) {
   stopifnot(.is_whole(k))
   stopifnot(k >= 3)
 
-  # START K-fold method ####
-  ## k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
+  .noise <- function(w = 1) {
+    path <- system.file("external", package = "rcaiman")
+    skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
+    coef_sd <- apply((skies[, 1:5]), 2, sd) * w
+    Map(function(i) stats::rnorm(1, 0, coef_sd[i]), 1:5) %>% unlist()
+  }
+
+  # k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
   folds <- seq_along(rr$sky_points$row)
   folds <- split(folds, 1:k) %>% suppressWarnings()
   x <- c()
@@ -96,14 +101,13 @@ validate_cie_sky_model <- function(model, rr, k = 10) {
     y <- c(y, rr$sky_points[folds[[i]], "rr"])
   }
 
-  #following Leys2013 10.1016/j.jesp.2013.03.013
+  # Following Leys2013 10.1016/j.jesp.2013.03.013
   error <- y - x
   u <- abs((error - stats::median(error)) / stats::mad(error)) < 3
   x <- x[u]
   y <- y[u]
 
   reg <- lm(x~y) #following Pineiro2008 10.1016/j.ecolmodel.2008.05.006
-  # END K-fold method ####
 
   list(lm = reg,
        pred = reg$model$x,

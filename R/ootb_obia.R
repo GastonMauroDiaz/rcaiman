@@ -118,8 +118,5 @@ ootb_obia <- function(caim, z = NULL, a = NULL, m = NULL,
   synth <- terra::cover(synth, bin)
 
   bin_obia <- defuzzify(synth, g) | apply_thr(synth, thr_isodata(synth[foliage]))
-  ma <- matrix(c(1,1,1,1,-8,1,1,1,1), ncol = 3, nrow = 3)
-  bin_obia[terra::focal(bin_obia, ma) == 8] <- 1
-  bin_obia[!bin] <- 0
-  as.logical(bin_obia)
+  rem_isolated_black_pixels(bin_obia)
 }

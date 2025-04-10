@@ -10,16 +10,15 @@
 #' @export
 #'
 #' @examples
-#' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path))
-#'
+#' \dontrun{
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #'
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
-read_ootb_sky_model <- function(name, z = NULL, a = NULL) {
+#' }
+read_ootb_sky_model <- function(name, z, a) {
   sky <- list()
   ds <- scan(paste0(name, ".txt"), "character")
   sky$model$sun_coord$zenith_azimuth[1] <-
@@ -45,25 +44,32 @@ read_ootb_sky_model <- function(name, z = NULL, a = NULL) {
   sky$model_validation$mae <-
     ds[grep("mae:", ds) + 1] %>% as.numeric()
   sky$dist_to_black <- ds[grep("dist_to_black:", ds) + 1] %>% as.numeric()
+  sky$min_spherical_dist <- ds[grep("min_spherical_dist:", ds) + 1] %>%
+    as.numeric()
   tryCatch(sky$g <- ds[grep("grid,", ds) + 1] %>% as.numeric(),
            error = function(e)
                    ds[(grep("grid:", ds)+1):(grep("dist_to_black:", ds)-1)] %>%
                       paste(., collapse = " "))
-  sky$sky_points <- utils::read.csv2(paste0(name, "_fit", ".csv"))[,-1]
+
+  sky_points <- terra::vect(paste0(name, "_sky_points", ".gpkg"))
+  sky_points <- terra::extract(z, sky_points, cells = TRUE)
+  sky_points <- terra::rowColFromCell(z, sky_points$cell) %>% as.data.frame()
+  colnames(sky_points) <- c("row", "col")
+  sky$sky_points <- sky_points
 
   df <- utils::read.csv2(paste0(name, "_val", ".csv"))
   sky$model_validation$pred <- df$pred
   sky$model_validation$obs <- df$obs
 
-  if (!is.null(z) & !is.null(a)) {
-    if (is.numeric(sky$g)) {
-      sky$g <- sky_grid_segmentation(z, a, sky$g)
-    }
-    model <- sky$model
-    sky$sky <- cie_sky_image(z, a,
-                             model$sun_coord$zenith_azimuth,
-                             model$coef) * model$zenith_dn
-    names(sky$sky) <- "CIE sky"
+  if (is.numeric(sky$g)) {
+    sky$g <- sky_grid_segmentation(z, a, sky$g)
   }
+
+  model <- sky$model
+  sky$sky <- cie_sky_image(z, a,
+                           model$sun_coord$zenith_azimuth,
+                           model$coef) * model$zenith_dn
+  names(sky$sky) <- "CIE sky"
+
   sky
 }

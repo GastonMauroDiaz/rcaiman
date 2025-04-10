@@ -14,22 +14,6 @@
 
 .calc_rmse <- function(x) sqrt(mean(x^2))
 
-.calc_spherical_distance <- function(z1, a1, z2, a2, radians = TRUE) {
-  #https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
-  if (radians) {
-    d <- acos(pmax(pmin(cos(z1) * cos(z2) +
-                          sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
-  } else {
-    z1 <- z1 * pi/180
-    a1   <- a1 * pi/180
-    z2 <- z2 * pi/180
-    a2   <- a2 * pi/180
-    d <- acos(pmax(pmin(cos(z1) * cos(z2) +
-                          sin(z1) * sin(z2) * cos(abs(a2 - a1)), 1), -1))
-  }
-  d
-}
-
 .extension <- function(file_name, new_extension = "tif") {
   file_name <- filenamer::as.filename(file_name)
   file_name <- filenamer::insert(file_name, ext = new_extension, replace = TRUE)
@@ -78,17 +62,4 @@
   tcltk::tkwait.window(win)
 }
 
-.get_sky_cie <- function(z, a, model) {
-  sky_cie <- cie_sky_image(z, a,
-                                  model$sun_coord$zenith_azimuth,
-                                  model$coef) * model$zenith_dn
-  names(sky_cie) <- "CIE sky"
-  sky_cie
-}
 
-.noise <- function(w = 1) {
-  path <- system.file("external", package = "rcaiman")
-  skies <- utils::read.csv(file.path(path, "15_CIE_standard_skies.csv"))
-  .sd <- apply((skies[, 1:5]), 2, sd) * w
-  Map(function(i) stats::rnorm(1, 0, .sd[i]), 1:5) %>% unlist()
-}

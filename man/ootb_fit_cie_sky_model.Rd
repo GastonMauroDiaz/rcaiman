@@ -4,17 +4,7 @@
 \alias{ootb_fit_cie_sky_model}
 \title{Out-of-the-box fit CIE sky model}
 \usage{
-ootb_fit_cie_sky_model(
-  r,
-  z,
-  a,
-  m,
-  bin,
-  gs,
-  refine_sun_coord = FALSE,
-  min_spherical_dist = NULL,
-  input_sky_points = NULL
-)
+ootb_fit_cie_sky_model(r, z, a, m, bin, gs, min_spherical_dist)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -33,15 +23,8 @@ and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 \item{gs}{An object of the class \emph{list}. A list with the output of
 \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example.}
 
-\item{refine_sun_coord}{Logical vector of length one}
-
-\item{min_spherical_dist}{Numeric vector of length one or \code{NULL}. Optional.
-This value will be passed to the \code{thr} argument of \code{\link[=vicinity_filter]{vicinity_filter()}}.}
-
-\item{input_sky_points}{An object of class \emph{data.frame} with the same
-structure than the output of \code{\link[=extract_sky_points]{extract_sky_points()}}. This argument is
-convinient to provide manually digitized points, see \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}
-for details.}
+\item{min_spherical_dist}{Numeric vector. These values will be passed to the
+\code{min_dist} argument of \code{\link[=vicinity_filter]{vicinity_filter()}}.}
 }
 \value{
 A \emph{list} with the following components:
@@ -50,7 +33,8 @@ A \emph{list} with the following components:
 number values.
 \item The output produced by \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The output produced by \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
-\item The \code{dist_to_black} argument used in \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
+\item The \code{dist_to_black} argument used in \code{\link[=extract_sky_points]{extract_sky_points()}}.
+\item The \code{min_spherical_dist} argument used to filter the sky points.
 \item The \code{sky_points} argument used in \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}.
 }
 }
@@ -99,8 +83,7 @@ gs <- list(
 )
 
 sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-                              refine_sun_coord = TRUE,
-                              min_spherical_dist = 5)
+                              min_spherical_dist = seq(3, 9, 3))
 
 sky$sky
 plot(sky$sky)
@@ -108,14 +91,9 @@ sky$model_validation$rmse
 plot(r/sky$sky>1.15)
 plot(sky$model_validation$pred, sky$model_validation$obs)
 abline(0,1)
-error <- sky$model_validation$pred - sky$model_validation$obs
-plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
-     xlab = "zenith angle", ylab = "relative radiance error")
-abline(h = 0)
 
 plot(bin)
 points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
-display_caim(c(r, sky$sky))
 }
 }
 \references{
@@ -127,7 +105,7 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{interpolate_and_merge}()},
-\code{\link{interpolate_sky_points}()}
+\code{\link{interpolate_sky_points}()},
+\code{\link{ootb_interpolate_and_merge}()}
 }
 \concept{Sky Reconstruction Functions}

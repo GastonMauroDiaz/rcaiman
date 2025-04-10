@@ -1,6 +1,6 @@
 #' Write out-of-the-box CIE sky model fitting
 #'
-#' @inheritParams interpolate_and_merge
+#' @inheritParams ootb_interpolate_and_merge
 #' @param name Character vector of length one. File name without extension. If
 #'   needed, a file path can be added to the names. For example:
 #'   `"C:/Users/Doe/Documents/DSCN4500"`.
@@ -40,6 +40,7 @@ write_ootb_sky_model <- function(ootb_sky, name) {
 
   paste("grid:", names(ootb_sky$g)) %>% .print()
   ootb_sky$dist_to_black %>% paste("dist_to_black:", .) %>% .print()
+  ootb_sky$min_spherical_dist %>% paste("min_spherical_dist:", .) %>% .print()
   ootb_sky$sky_points %>% nrow() %>% paste("sky_points_no:", .) %>% .print()
   ootb_sky$sky_points$is_outlier %>% sum() %>% paste("outliers_no:", .) %>% .print()
   ootb_sky$model_validation$rmse %>% paste("RMSE:", .) %>% .print()
@@ -49,7 +50,16 @@ write_ootb_sky_model <- function(ootb_sky, name) {
   sink()
 
   # Save sky points
-  utils::write.csv2(ootb_sky$sky_points, paste0(name, "_fit", ".csv"))
+  cells <- terra::cellFromRowCol(ootb_sky$sky,
+                                 ootb_sky$sky_points$row,
+                                 ootb_sky$sky_points$col)
+  xy <- terra::xyFromCell(ootb_sky$sky, cells)
+  p <- terra::vect(xy, "points")
+  terra::crs(p) <- crs(ootb_sky$sky)
+
+  terra::writeVector(p,
+                     paste0(name, "_sky_points", ".gpkg"),
+                     filetype = "GPKG", )
 
   # Save data for model validation
   df <- data.frame(pred = ootb_sky$model_validation$pred,

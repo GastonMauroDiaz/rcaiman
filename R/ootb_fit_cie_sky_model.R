@@ -12,16 +12,11 @@
 #' @inheritParams ootb_mblt
 #' @inheritParams fit_trend_surface
 #' @inheritParams extract_sky_points
+#' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param gs An object of the class _list_. A list with the output of
 #'   [sky_grid_segmentation()], see the example.
-#' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
-#' @param refine_sun_coord Logical vector of length one
-#' @param input_sky_points An object of class *data.frame* with the same
-#'   structure than the output of [extract_sky_points()]. This argument is
-#'   convinient to provide manually digitized points, see [fit_cie_sky_model()]
-#'   for details.
-#' @param min_spherical_dist Numeric vector of length one or `NULL`. Optional.
-#'   This value will be passed to the `thr` argument of [vicinity_filter()].
+#' @param min_spherical_dist Numeric vector. These values will be passed to the
+#'   `min_dist` argument of [vicinity_filter()].
 #'
 #' @export
 #'
@@ -35,7 +30,8 @@
 #'   number values.
 #'   \item The output produced by [fit_cie_sky_model()].
 #'   \item The output produced by [validate_cie_sky_model()].
-#'   \item The `dist_to_black` argument used in [fit_cie_sky_model()].
+#'   \item The `dist_to_black` argument used in [extract_sky_points()].
+#'   \item The `min_spherical_dist` argument used to filter the sky points.
 #'   \item The `sky_points` argument used in [extract_rel_radiance()].
 #' }
 #'
@@ -73,8 +69,7 @@
 #' )
 #'
 #' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-#'                               refine_sun_coord = TRUE,
-#'                               min_spherical_dist = 5)
+#'                               min_spherical_dist = seq(3, 9, 3))
 #'
 #' sky$sky
 #' plot(sky$sky)
@@ -82,20 +77,12 @@
 #' plot(r/sky$sky>1.15)
 #' plot(sky$model_validation$pred, sky$model_validation$obs)
 #' abline(0,1)
-#' error <- sky$model_validation$pred - sky$model_validation$obs
-#' plot(sky$sky_points$z[!sky$sky_points$is_outlier], error,
-#'      xlab = "zenith angle", ylab = "relative radiance error")
-#' abline(h = 0)
 #'
 #' plot(bin)
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
-#' display_caim(c(r, sky$sky))
 #' }
-ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
-                                   refine_sun_coord = FALSE,
-                                   min_spherical_dist = NULL,
-                                   input_sky_points = NULL
-                                   ) {
+ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
+
 
   .is_single_layer_raster(m, "m")
   .is_logic_and_NA_free(m)
@@ -103,6 +90,13 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
 
   .get_metric <- function(model) {
     stats::median(abs(model$pred - model$obs))
+  }
+  .get_sky_cie <- function(z, a, model) {
+    sky_cie <- cie_sky_image(z, a,
+                             model$sun_coord$zenith_azimuth,
+                             model$coef) * model$zenith_dn
+    names(sky_cie) <- "CIE sky"
+    sky_cie
   }
 
   .fun <- function(g) {
@@ -112,13 +106,9 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     # Sky points
     dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
     sky_points <- extract_sky_points(r, bin, g, dist_to_black)
-    if (!is.null(input_sky_points)) {
-      sky_points <- rbind(input_sky_points, sky_points)
-    }
 
-
-    ## apply filters
-    sky_points <- vicinity_filter(sky_points, "planar", 3)
+    ## Apply filters
+    sky_points <- vicinity_filter(sky_points, r, min_dist = 3)
 
     cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
     sky_points <- sor_filter(sky_points, cv, z, a,
@@ -132,22 +122,11 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
                              thr = 2,
                              cutoff_side = "left")
 
-    if (!is.null(min_spherical_dist)) {
-      rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL,
-                                 use_window = !is.null(dist_to_black))
-      sky_points <- rr$sky_points
-      sky_points <- vicinity_filter(sky_points, "spherical",
-                                    min_spherical_dist, prefer = "dn")
-      sky_points <- sky_points[, c("row", "col")]
+    if (any(min_spherical_dist != 0)) {
+      sky_points <- vicinity_filter(sky_points, r, z, a,
+                                    mean(min_spherical_dist),
+                                    use_window = !is.null(dist_to_black))
     }
-
-    if (!is.null(input_sky_points)) {
-      # to guarantee them in
-      sky_points <- rbind(input_sky_points, sky_points)
-      # remove identical points
-      sky_points <- vicinity_filter(sky_points, "planar", 0.1)
-    }
-
 
     # Model
     rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = 3,
@@ -164,56 +143,82 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     sun_coord <- model$sun_coord
 
     # Sun_coord refinement
-    if (refine_sun_coord) {
-      .refine_sun_coord <- function(param) {
-        zenith <- param[1] * 9
-        azimuth <- param[2] * 36
-        pred <- .cie_sky_model(AzP = rr$sky_points$a %>% .degree2radian(),
-                               Zp = rr$sky_points$z %>% .degree2radian(),
-                               AzS = azimuth %>% .degree2radian(),
-                               Zs =  zenith %>% .degree2radian(),
-                               model$coef[1], model$coef[2], model$coef[3],
-                               model$coef[4], model$coef[5])
-        .get_metric(list(pred = pred, obs = model$obs))
+    .refine_sun_coord <- function(param) {
+      zenith <- param[1] * 9
+      azimuth <- param[2] * 36
+      pred <- .cie_sky_model(AzP = rr$sky_points$a %>% .degree2radian(),
+                             Zp = rr$sky_points$z %>% .degree2radian(),
+                             AzS = azimuth %>% .degree2radian(),
+                             Zs =  zenith %>% .degree2radian(),
+                             model$coef[1], model$coef[2], model$coef[3],
+                             model$coef[4], model$coef[5])
+      .get_metric(list(pred = pred, obs = model$obs))
+    }
+    try(fit <- stats::optim(c(sun_coord$zenith_azimuth[1]/9,
+                              sun_coord$zenith_azimuth[2]/36),
+                            .refine_sun_coord,
+                            lower = 0,
+                            upper = 10,
+                            method = "L-BFGS-B"), silent = TRUE)
+    try(sun_coord$zenith_azimuth <- c(fit$par[1]*9, fit$par[2]*36),
+        silent = TRUE)
+    model <- fit_cie_sky_model(rr, sun_coord,
+                               custom_sky_coef = model$coef,
+                               twilight = 90,
+                               method = method)
+
+    # Try subsamples
+    if (any(min_spherical_dist != 0)) {
+      .get_rrs <- function(min_spherical_dist) {
+        sky_points <- vicinity_filter(sky_points, r, z, a, min_spherical_dist,
+                                      use_window = !is.null(dist_to_black))
+        extract_rel_radiance(r, z, a, sky_points, no_of_points = 3,
+                                      use_window = !is.null(dist_to_black))
       }
-      try(fit <- stats::optim(c(sun_coord$zenith_azimuth[1]/9,
-                                sun_coord$zenith_azimuth[2]/36),
-                              .refine_sun_coord,
-                              lower = 0,
-                              upper = 10,
-                              method = "L-BFGS-B"), silent = TRUE)
-      try(sun_coord$zenith_azimuth <- c(fit$par[1]*9, fit$par[2]*36),
-          silent = TRUE)
-      model <- fit_cie_sky_model(rr, sun_coord,
-                                 custom_sky_coef = model$coef,
-                                 twilight = 90,
-                                 method = method)
+      rrs <- Map(.get_rrs, min_spherical_dist)
+      models <- Map(function(rr) {
+        model <- fit_cie_sky_model(rr, sun_coord,
+                                   custom_sky_coef = model$coef,
+                                   twilight = 90,
+                                   method = method)
+      }, rrs)
+      metric <- Map(.get_metric, models)
+      i <- which.min(metric)
+      model <- models[[i]]
+      rr <- rrs[[i]]
+      min_spherical_dist <- min_spherical_dist[i]
     }
 
-
     model_validation <- validate_cie_sky_model(model, rr, k = 10)
-
-    rr$sky_points$is_outlier <- model_validation$is_outlier
 
     list(sky = .get_sky_cie(z, a, model),
          model = model,
          model_validation = model_validation,
          dist_to_black = dist_to_black,
-         sky_points = rr$sky_points
+         min_spherical_dist = min_spherical_dist,
+         sky_points = rr$sky_points[, c("row", "col")]
          )
 
   }
 
+# .fun(gs[[1]])
+# browser()
+
+  # Try grids
   skies <- Map(function(g) {
     tryCatch(.fun(g),
              error = function(e) list(model_validation = list(pred = 0,
-                                                             obs = 1e10))
+                                                              obs = 1e10))
              )
   }, gs)
 
-  metric <- Map(function(x) .get_metric(x$model_validation), skies)
+  metric <- Map(function(x) .get_metric(x$model_validation), skies) %>% unlist()
   i <- which.min(metric)
-  sky <- skies[[i]]
-  sky$g <- gs[[i]]
+  if (metric[i] == 1e10) {
+    sky <- NULL
+  } else {
+    sky <- skies[[i]]
+    sky$g <- gs[[i]]
+  }
   sky
 }

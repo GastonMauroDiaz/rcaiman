@@ -43,6 +43,7 @@ Other Binarization Functions:
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
+\code{\link{rem_isolated_black_pixels}()},
 \code{\link{thr_isodata}()},
 \code{\link{thr_mblt}()}
 }

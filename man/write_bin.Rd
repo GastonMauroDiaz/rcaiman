@@ -33,6 +33,7 @@ plot(m - m_from_disk)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

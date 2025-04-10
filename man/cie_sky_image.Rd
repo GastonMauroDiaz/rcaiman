@@ -34,8 +34,8 @@ Other Sky Reconstruction Functions:
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
 \code{\link{fit_trend_surface}()},
-\code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()}
+\code{\link{ootb_fit_cie_sky_model}()},
+\code{\link{ootb_interpolate_and_merge}()}
 }
 \concept{Sky Reconstruction Functions}

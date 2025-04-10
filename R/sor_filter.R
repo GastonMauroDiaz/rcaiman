@@ -87,12 +87,11 @@ sor_filter <- function(sky_points, r, z, a,
   names(sky_points)[3:5] <- c("z", "a", "dn")
 
   .calculate_sor <- function(i) {
-    spherical_distance <- .calc_spherical_distance(
-                                      sky_points$z %>% .degree2radian(),
-                                      sky_points$a %>% .degree2radian(),
-                                      sky_points[i, "z"] %>% .degree2radian(),
-                                      sky_points[i, "a"] %>% .degree2radian(),
-                                      radians = TRUE)
+    sky_points[, c("z", "a")] <- .degree2radian(sky_points[, c("z", "a")])
+    spherical_distance <- calc_spherical_distance (sky_points$z,
+                                                   sky_points$a,
+                                                   sky_points[i, "z"],
+                                                   sky_points[i, "a"])
     order_idx <- order(spherical_distance)
     sorted_distance <- spherical_distance[order_idx][2:(k + 1)]
     tryCatch(

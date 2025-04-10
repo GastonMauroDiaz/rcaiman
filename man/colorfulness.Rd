@@ -46,6 +46,7 @@ colorfulness(caim)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},

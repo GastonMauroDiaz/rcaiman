@@ -7,7 +7,8 @@
 #'   was obtained.
 #' @param sky_points The output of [extract_sky_points()]
 #'   or an object of the same class and structure.
-#' @inheritParams extract_rel_radiance
+#' @param use_window Logical vector of length one. If `TRUE`, a window of \eqn{3
+#'   \times 3} pixels will be used to extract the digital number from `r`.
 #' @inheritParams extract_feature
 #'
 #' @return An object of the class *data.frame*. It is the argument
@@ -43,12 +44,10 @@
 #' head(sky_points)
 #'
 #' # See fit_cie_sky_model() for details on below file
-#' path <- system.file("external/sky_points.gpkg",
+#' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
-#' sky_points <- terra::vect(path)
-#' sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-#' sky_points <- terra::rowColFromCell(caim, sky_points$cell) %>%
-#'   as.data.frame()
+#' sky_points <- read.csv(path)
+#' sky_points <- sky_points[c("Y", "X")]
 #' colnames(sky_points) <- c("row", "col")
 #' head(sky_points)
 #' plot(caim$Blue)
@@ -99,9 +98,9 @@ extract_dn <- function(r, sky_points, use_window = TRUE, fun = NULL) {
   } else {
     dn <- terra::extract(r, xy)[,]
   }
-  .names <- c(colnames(sky_points), names(r))
+  sp_names <- c(colnames(sky_points), names(r))
   sky_points <- cbind(sky_points, dn)
-  colnames(sky_points) <- .names
+  colnames(sky_points) <- sp_names
   if (!is.null(fun)) {
       if (ncol(sky_points) > 3) {
         sky_points <- apply(sky_points[,-(1:2)], 2, fun)

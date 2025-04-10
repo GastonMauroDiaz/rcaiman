@@ -43,8 +43,8 @@ a lack of evidence for removal.}
 \item{cutoff_side}{Character vector of length one. See
 \insertCite{Leys2013;textual}{rcaiman}.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
-window will be used to extract the digital number from \code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
+\times 3} pixels will be used to extract the digital number from \code{r}.}
 }
 \value{
 The argument \code{sky_points} with fewer rows due to outlier removal.
@@ -102,6 +102,7 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

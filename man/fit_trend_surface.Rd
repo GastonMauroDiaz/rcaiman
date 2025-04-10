@@ -85,8 +85,8 @@ Other Sky Reconstruction Functions:
 \code{\link{cie_sky_image}()},
 \code{\link{fit_cie_sky_model}()},
 \code{\link{fit_coneshaped_model}()},
-\code{\link{interpolate_and_merge}()},
 \code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()}
+\code{\link{ootb_fit_cie_sky_model}()},
+\code{\link{ootb_interpolate_and_merge}()}
 }
 \concept{Sky Reconstruction Functions}

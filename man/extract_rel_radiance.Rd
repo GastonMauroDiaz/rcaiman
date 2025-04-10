@@ -20,8 +20,8 @@ or an object of the same class and structure.}
 \item{no_of_points}{Numeric vector of length one. The number of near-zenith
 points required for the estimation of the zenith DN.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
-window will be used to extract the digital number from \code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
+\times 3} pixels will be used to extract the digital number from \code{r}.}
 }
 \value{
 A list of three objects, \emph{zenith_dn} and \emph{max_zenith_angle} from the
@@ -62,7 +62,7 @@ head(sky_points)
 
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-rr <- extract_rel_radiance(caim$Blue, z, a, sky_points, 1, min_spherical_dist = 10)
+rr <- extract_rel_radiance(caim$Blue, z, a, sky_points, 1)
 points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 }
 }
@@ -72,6 +72,7 @@ points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

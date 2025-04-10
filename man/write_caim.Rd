@@ -32,6 +32,7 @@ write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

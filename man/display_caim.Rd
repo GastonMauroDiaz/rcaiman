@@ -26,16 +26,16 @@ Wrapper function for \code{\link[EBImage:display]{EBImage::display()}}
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 r <- normalize_minmax(caim$Blue)
-bin <- regional_thresholding(r, rings_segmentation(z, 30),
+g <- rings_segmentation(z, 30)
+bin <- regional_thresholding(r, g,
                              method = "thr_isodata")
-display_caim(caim)
-display_caim(bin)
-display_caim(c(normalize_minmax(caim$Blue), bin))
+display_caim(caim, bin, g)
 }
 }
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

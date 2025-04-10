@@ -13,8 +13,8 @@ was obtained.}
 \item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
 or an object of the same class and structure.}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a \eqn{3 \times 3}
-window will be used to extract the digital number from \code{r}.}
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
+\times 3} pixels will be used to extract the digital number from \code{r}.}
 
 \item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
@@ -52,12 +52,10 @@ sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
 
 # See fit_cie_sky_model() for details on below file
-path <- system.file("external/sky_points.gpkg",
+path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
-sky_points <- terra::vect(path)
-sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\%
-  as.data.frame()
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
 colnames(sky_points) <- c("row", "col")
 head(sky_points)
 plot(caim$Blue)
@@ -96,6 +94,7 @@ apply_thr(ecaim, thr_isodata(ecaim[m])) \%>\% plot()
 \seealso{
 Other Tool Functions: 
 \code{\link{calc_oor_index}()},
+\code{\link{calc_spherical_distance}()},
 \code{\link{colorfulness}()},
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},

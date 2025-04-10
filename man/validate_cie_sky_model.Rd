@@ -46,11 +46,10 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
 # See fit_cie_sky_model() for details on below file
-path <- system.file("external/sky_points.gpkg",
+path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
-sky_points <- terra::vect(path)
-sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-sky_points <- terra::rowColFromCell(caim, sky_points$cell) \%>\% as.data.frame()
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
 colnames(sky_points) <- c("row", "col")
 head(sky_points)
 plot(caim$Blue)

@@ -76,6 +76,7 @@ Other Binarization Functions:
 \code{\link{obia}()},
 \code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
+\code{\link{rem_isolated_black_pixels}()},
 \code{\link{thr_isodata}()},
 \code{\link{thr_mblt}()}
 }
