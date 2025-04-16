@@ -3,7 +3,7 @@
 #' @note
 #' Use the `lens_coef` argument to calculate coordinates below the horizon.
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams zenith_image
 #' @param row_col Numeric vector of length two. Row and col numbers.
 #'

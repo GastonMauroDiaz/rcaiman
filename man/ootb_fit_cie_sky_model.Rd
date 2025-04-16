@@ -7,9 +7,8 @@
 ootb_fit_cie_sky_model(r, z, a, m, bin, gs, min_spherical_dist)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 

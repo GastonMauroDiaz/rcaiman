@@ -1,6 +1,6 @@
 #' Obtain row and col numbers from zenith and azimuth angles
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams zenith_image
 #' @param zenith_azimuth Numeric vector of length two. Zenith and azimuth angles in degrees.
 #'

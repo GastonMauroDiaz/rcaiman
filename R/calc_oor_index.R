@@ -21,23 +21,17 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' caim <- read_caim()
+#' r <- caim$Blue
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #'
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
-#' bin <- bin & select_sky_vault_region(z, 0, 80)
-#' sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
+#' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
+#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 #'
-#' model <- fit_coneshaped_model(sky_points$sky_points)
-#' summary(model$model)
-#' sky_cs <- model$fun(z, a)
-#' plot(r/sky_cs)
-#' calc_oor_index(r, sky_cs)
+#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points, ootb_sky)
+#'
+#' calc_oor_index(r, sky$sky)
 #' }
 calc_oor_index <- function(r, sky) {
   ratio <- r / sky

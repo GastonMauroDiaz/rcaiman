@@ -30,10 +30,23 @@ encoded in sRGB has a non-linear relationship with luminance despite
 having the sensor a linear response to it.
 }
 \examples{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-r <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-r
-gbc(r)
+\dontrun{
+path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+caim <- read_caim(path)
+z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
+a <- azimuth_image(z)
+zenith_colrow <- c(1063, 771)/2
+
+caim <- expand_noncircular(caim, z, zenith_colrow)
+m <- !is.na(caim$Red) & !is.na(z)
+caim[!m] <- 0
+
+bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+
+display_caim(caim$Blue, bin)
+
+caim <- gbc(caim, 2.2)
+}
 }
 \references{
 \insertAllCited{}

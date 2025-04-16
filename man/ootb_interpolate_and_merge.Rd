@@ -69,8 +69,8 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 sky_points <- rbind(sky_points, ootb_sky$sky_points[, c("row", "col")])
 
-sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points,
-                             ootb_sky)
+sky <- ootb_interpolate_and_merge(r, z, a, sky_points, ootb_sky)
+
 plot(sky$sky)
 }
 }

@@ -12,6 +12,8 @@
 #' reduction of the original sky regions.
 #'
 #' @inheritParams fit_trend_surface
+#' @param bin [SpatRaster-class]. This should be a preliminary binarization of
+#'   `r` useful for masking pixels that are very likely pure sky pixels.
 #' @param g [SpatRaster-class] built with [sky_grid_segmentation()] or
 #'   [chessboard()].
 #' @param dist_to_black Numeric vector of length one or `NULL`. A minimum

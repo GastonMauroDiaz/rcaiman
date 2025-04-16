@@ -68,8 +68,8 @@ write_caim(caim, "example.tif", 16)
 }
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-zenith_colrow <- c(1250, 1020)
-diameter <- 745*2
+zenith_colrow <- c(1276, 980)
+diameter <- 756*2
 caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
 plot(caim$Blue)
 }
@@ -81,12 +81,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},

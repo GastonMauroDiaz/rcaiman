@@ -105,7 +105,8 @@
 #' caim <- read_caim_raw(file_name, only_blue = TRUE)
 #' caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
 #' caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
-#' caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
+#' caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300,
+#'                                k = 1, p = 1, rmax = 100)
 #'
 #' #only geometric correction
 #' zenith_colrow <- c(1290, 988)
@@ -121,9 +122,9 @@ read_caim_raw <- function(path,
                           a = NULL,
                           zenith_colrow = NULL,
                           radius = 700,
-                          rmax = 100,
                           k = 1,
                           p = 1,
+                          rmax = 100,
                           only_blue = FALSE,
                           offset_value = NULL) {
 

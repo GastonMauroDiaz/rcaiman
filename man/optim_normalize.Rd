@@ -7,11 +7,7 @@
 optim_normalize(caim, bin, method = "BFGS")
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
-\code{\link[=read_caim_raw]{read_caim_raw()}}.}
-
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
-\code{r} useful for masking pixels that are very likely pure sky pixels.}
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}}.}
 
 \item{method}{The method to be used. See \sQuote{Details}.  Can be abbreviated.}
 }
@@ -54,12 +50,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{percentage_of_clipped_highlights}()},

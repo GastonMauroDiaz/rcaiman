@@ -4,16 +4,7 @@
 \alias{fisheye_to_equidistant}
 \title{Fisheye to equidistant}
 \usage{
-fisheye_to_equidistant(
-  r,
-  z,
-  a,
-  m = NULL,
-  radius = NULL,
-  k = NULL,
-  p = NULL,
-  rmax = 100
-)
+fisheye_to_equidistant(r, z, a, m, radius = NULL, k = 1, p = 1, rmax = 100)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
@@ -42,11 +33,7 @@ Fisheye to equidistant projection (also known as polar projection).
 \details{
 The pixel values and their image coordinates are treated as points to be
 reprojected and interpolated. To that end, this function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}}
-as workhorse function, so arguments \code{k}, \code{p}, and \code{rmax} are passed to it. If
-the user does not input values to these arguments, both \code{k} and \code{p} are
-automatically defined by default as follow: when a binarized image is
-provided as argument \code{r}, both parameters are set to \code{1}; otherwise, they are
-set to \code{9} and \code{2}, respectively.
+as workhorse function, so arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
 }
 \note{
 Default value for the \code{radius} argument is equivalent to input the
@@ -54,23 +41,44 @@ radius of the \code{r} argument.
 }
 \examples{
 \dontrun{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+caim <- read_caim(path)
+z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
-bin <- find_sky_pixels(r, z, a)
-bin <- ootb_mblt(r, z, a, bin)$bin
-bin_equi <- fisheye_to_equidistant(bin, z, a)
-plot(bin)
-plot(bin_equi)
-# Use write_bin(bin, "path/file_name") to have a file ready
+zenith_colrow <- c(1063, 771)/2
+
+caim <- expand_noncircular(caim, z, zenith_colrow)
+m <- !is.na(caim$Red) & !is.na(z)
+caim[!m] <- 0
+
+bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+
+display_caim(caim$Blue, bin)
+
+caim <- gbc(caim, 2.2)
+caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
+                                                    normalize_minmax()
+
+caim2 <- fisheye_to_equidistant(caim$Blue, z, a, m, radius = 600)
+bin2 <- fisheye_to_equidistant(bin, z, a, m, radius = 600)
+bin2 <- apply_thr(bin2, 0.5) #to turn it logical
+# Use write_bin(bin2, "path/file_name") to have a file ready
 # to calcute LAI with CIMES, GLA, CAN-EYE, etc.
 
-# It can be used to reproject RGB photographs
+z2 <- zenith_image(ncol(caim2), lens())
+laplacian <- matrix(c(0,1,0,1,-4,1,0,1,0), nrow=3)
+m2 <- terra::focal(m, laplacian)
+m2 <- m2 != 0
+m2 <- fisheye_to_equidistant(m2, z, a, m, radius = 600)
+m2 <- !m2 & !is.na(z2)
+
+display_caim(caim2, c(bin2, m2))
+
+caim <- read_caim(path)
+caim <- expand_noncircular(caim, z, zenith_colrow)
 plotRGB(caim)
-caim <- fisheye_to_equidistant(caim, z, a)
+caim <- fisheye_to_equidistant(caim, z, a, m, radius = 600)
+caim[!m2] <- 0
 plotRGB(caim)
 }
 }

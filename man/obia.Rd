@@ -11,9 +11,9 @@ obia(r, z = NULL, a = NULL, bin, segmentation, gf_mn = 0.2, gf_mx = 0.95)
 blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
 and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}} or \code{NULL}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}} or \code{NULL}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a working binarization of \code{r}
 without gross errors.}
@@ -79,7 +79,6 @@ hist(synth[foliage])
 \seealso{
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
-\code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
 \code{\link{rem_isolated_black_pixels}()},

@@ -26,7 +26,7 @@
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)
 #' g <- sky_grid_segmentation(z, a, 10)
-#' mblt <- ootb_mblt(r, z, a)$bin
+#' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #' bin <- select_sky_vault_region(z, 0, 85) & bin
 #'
 #' sun_coord <- extract_sun_coord(r, z, a, bin, g)

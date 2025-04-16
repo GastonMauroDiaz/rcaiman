@@ -27,22 +27,22 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' caim <- read_caim()
+#' r <- caim$Blue
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
-#' bin <- find_sky_pixels(r, z, a)
-#' bin <- ootb_mblt(r, z, a, bin)
-#' plot(bin$bin)
-#' ratio <- r / bin$sky_s
+#'
+#' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
+#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
+#'
+#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points, ootb_sky)
+#'
+#' ratio <- r / sky$sky
 #' ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 #' plot(ratio)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' bin2 <- defuzzify(ratio, g)
-#' plot(bin2)
-#' plot(abs(bin$bin - bin2))
+#' plot(bin2) # unsatisfactory results due to light conditions
 #' }
 defuzzify <- function (mem, segmentation) {
   .is_single_layer_raster(mem)

@@ -34,7 +34,8 @@
 #'
 #' @inheritParams sky_grid_segmentation
 #' @param bin [SpatRaster-class]. Binarized hemispherical canopy image.
-#' @inheritParams masking
+#' @param m [SpatRaster-class]. A mask. For hemispherical photographs,
+#'   check [select_sky_vault_region()].
 #'
 #' @return Numeric vector of length one.
 #' @export

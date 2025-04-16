@@ -3,7 +3,7 @@
 #' Segment a hemispherical view by slicing the azimuth angle from zero
 #' to 360º in equals intervals.
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams rings_segmentation
 #'
 #' @return An object of the class [SpatRaster-class] with segments

@@ -19,7 +19,6 @@
 #' percentage_of_clipped_highlights(r, m)
 percentage_of_clipped_highlights <- function(r, m) {
   .is_single_layer_raster(r)
-  .was_normalized(r)
   .is_logic_and_NA_free(m)
   terra::compareGeom(r, m)
   (terra::freq(r == 1, value = 1)$count/sum(m[]) * 100) %>% round()

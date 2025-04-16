@@ -7,15 +7,15 @@
 optim_dist_to_black(r, z, a, m, bin, g)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
 
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask, check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
+\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
+check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
 
 \item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
@@ -37,12 +37,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_normalize}()},
 \code{\link{percentage_of_clipped_highlights}()},

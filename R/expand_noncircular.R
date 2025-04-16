@@ -2,9 +2,8 @@
 #'
 #' Expand a non-circular hemispherical photograph.
 #'
-#' @param caim [SpatRaster-class]. The output of [read_caim()] or
-#'   [read_caim_raw()].
-#' @inheritParams ootb_mblt
+#' @param caim [SpatRaster-class]. The output of [read_caim()].
+#' @inheritParams sky_grid_segmentation
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
 #'   zenith. See [calc_zenith_colrow()].
 #'

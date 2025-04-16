@@ -3,7 +3,7 @@
 #' Segment an hemispherical view by slicing the zenith angle from zero to 90º
 #' in equals intervals.
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @param angle_width Numeric vector of length one. Angle in degrees able to
 #'   divide the angle range into a whole number of segments.
 #' @param return_angle Logical vector of length one. If it is `FALSE`, all

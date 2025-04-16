@@ -1,7 +1,12 @@
 #' Optimize distance to black
 #'
-#' @inheritParams ootb_fit_cie_sky_model
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_sky_points
+#' @param bin [SpatRaster-class]. This should be a preliminary binarization of
+#'   `r` useful for masking pixels that are very likely pure sky pixels.
+#' @inheritParams calc_co
+#'
+#'
 #'
 #' @returns Numeric vector of length one.
 #' @export

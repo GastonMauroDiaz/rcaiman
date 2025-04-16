@@ -2,8 +2,8 @@
 #'
 #' Interpolate values from canopy photographs.
 #'
-#' This function use [lidR::knnidw()] as workhorse function, so
-#' arguments `k`, `p`, and `rmax` are passed to it.
+#' This function use [lidR::knnidw()] as workhorse function, so arguments `k`,
+#' `p`, and `rmax` are passed to it.
 #'
 #' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 #' the best result would be obtained with data showing a linear relation between
@@ -12,10 +12,10 @@
 #' compromise solution, [gbc()] can be used.
 #'
 #' Default parameters are the ones used by
-#' \insertCite{Lang2010;textual}{rcaiman}. The argument `rmax` should
-#' account for between 15 to 20 degrees, but it is expressed in pixels units.
-#' So, image resolution and lens projections should be taken into account to set
-#' this argument properly.
+#' \insertCite{Lang2010;textual}{rcaiman}. According to these authors, the
+#' argument `rmax` should account for between 15 to 20 degrees, but it is
+#' expressed in pixels units. So, image resolution and lens projections should
+#' be taken into account to set this argument properly.
 #'
 #' @param sky_points An object of class *data.frame*. The data.frame returned by
 #'   [extract_rel_radiance()] or [extract_dn()], or a
@@ -25,8 +25,8 @@
 #' @param p Numeric vector of length one. Power for inverse-distance weighting.
 #' @param rmax Numeric vector of length one. Maximum radius for searching
 #'   k-nearest neighbors (knn).
-#' @param col_id Numeric vector of length one. ID of the column with the values
-#'   to interpolate.
+#' @param col_id Numeric or character vector of length one. The number or name
+#'   of the colum with the values to interpolate.
 #'
 #' @references \insertAllCited{}
 #'

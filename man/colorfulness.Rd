@@ -7,8 +7,7 @@
 colorfulness(caim, m = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
-\code{\link[=read_caim_raw]{read_caim_raw()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}}.}
 
 \item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs, check
 \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}. Default (\code{NULL}) is the equivalent to enter
@@ -50,12 +49,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},

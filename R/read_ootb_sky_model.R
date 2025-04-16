@@ -1,7 +1,7 @@
 #' Read files writen by [write_ootb_sky_model()]
 #'
 #' @inheritParams write_ootb_sky_model
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #'
 #' @returns An object of the class _list_ similar to the output of
 #'   [ootb_fit_cie_sky_model()].

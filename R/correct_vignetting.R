@@ -13,13 +13,26 @@
 #'
 #' @family Tool Functions
 #' @examples
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-#' r <- gbc(caim$Blue)
-#' r
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101))
-#' r
+#' \dontrun{
+#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
+#' a <- azimuth_image(z)
+#' zenith_colrow <- c(1063, 771)/2
+#'
+#' caim <- expand_noncircular(caim, z, zenith_colrow)
+#' m <- !is.na(caim$Red) & !is.na(z)
+#' caim[!m] <- 0
+#'
+#' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+#'
+#' display_caim(caim$Blue, bin)
+#'
+#' caim <- gbc(caim, 2.2)
+#' caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) %>%
+#'                                                      normalize_minmax()
+#' # The lens_coef_v are here coef 10.1016/j.agrformet.2024.110020
+#' }
 correct_vignetting <- function(r, z, lens_coef_v) {
   # only to avoid note from check, code is OK without this line.
   a <- b <- d <- e <- f <- NA

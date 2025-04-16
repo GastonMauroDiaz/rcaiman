@@ -58,7 +58,7 @@
 #'         col = 3, pch = 10)
 #' }
 extract_sun_coord <- function(r, z, a, bin, g,
-                             max_angular_dist = 30) {
+                              max_angular_dist = 30) {
   .this_requires_EBImage()
   .check_if_r_z_and_a_are_ok(r, z, a)
   .is_single_layer_raster(bin, "bin")
@@ -78,7 +78,6 @@ extract_sun_coord <- function(r, z, a, bin, g,
   labeled_m <- terra::rast(labeled_m)
   terra::ext(labeled_m) <- terra::ext(r)
   terra::crs(labeled_m) <- terra::crs(r)
-
   # Calc membership to class "sun seed"
   .fun <- function(x) {
     x <- unique(x) # to count the cells instead of the pixels
@@ -86,11 +85,11 @@ extract_sun_coord <- function(r, z, a, bin, g,
   }
   size <- extract_feature(g, labeled_m, .fun, return_raster = FALSE) %>%
     normalize_minmax()
-  dn <- extract_feature(r, labeled_m, mean, return_raster = FALSE) %>%
+  dn <- extract_feature(r, labeled_m, median, return_raster = FALSE) %>%
     normalize_minmax()
   if (any(is.nan(dn))) dn[] <- 1
   if (any(is.nan(size))) size[] <- 1
-  membership_posibility <- size * dn
+  membership_posibility <- size*0.25 + dn*0.75
 
   # Find sun seed
   sun <- which.max(membership_posibility)
@@ -100,14 +99,37 @@ extract_sun_coord <- function(r, z, a, bin, g,
   rcells <- r
   rcells[] <- 1:ncell(r)
   .get_center <- function(x) {
-    xy <- terra::xyFromCell(r, x)
-    if (nrow(xy) > 1) {
-      xy <- xy[grDevices::chull(xy),]
-      v <- terra::vect(list(xy), type = "polygon", crs = crs(r))
-      v <- terra::centroids(v)
-      xy <- terra::crds(v)
+    if (length(x) > 1) {
+      xy <- terra::xyFromCell(r, x)
+      x <- x[grDevices::chull(xy)]
+
+      rad_z <- z[x] %>% .degree2radian()
+      rad_a <- a[x] %>% .degree2radian()
+
+      x3d <- sin(rad_z) * cos(rad_a)
+      y3d <- sin(rad_z) * sin(rad_a)
+      z3d <- cos(rad_z)
+
+      x_mean <- mean(x3d[,])
+      y_mean <- mean(y3d[,])
+      z_mean <- mean(z3d[,])
+
+      # to transform it to the unit vector in order to force it to be on the
+      # sphere of radius one
+      norm <- sqrt(x_mean^2 + y_mean^2 + z_mean^2)
+      x_mean <- x_mean / norm
+      y_mean <- y_mean / norm
+      z_mean <- z_mean / norm
+
+      zenith <- acos(z_mean)
+      azimuth <- atan2(y_mean, x_mean) %% (2 * pi)
+      zenith_azimuth <- c(zenith, azimuth) %>% .radian2degree()
+
+      row_col <- row_col_from_zenith_azimuth(z, a, zenith_azimuth)$row_col
+
+      x <- terra::cellFromRowCol(r, row_col[1], row_col[2])
     }
-    terra::cellFromXY(r, xy)
+    x
   }
   cells <-  extract_feature(rcells, labeled_m, .get_center, return_raster = FALSE)
   za <- data.frame(zenith = z[cells], azimuth = a[cells]) %>% .degree2radian()

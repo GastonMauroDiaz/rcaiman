@@ -4,31 +4,22 @@
 \alias{fit_trend_surface}
 \title{Fit a trend surface to sky digital numbers}
 \usage{
-fit_trend_surface(r, z, a, bin, filling_source = NULL, np = 6)
+fit_trend_surface(sky_points, r, np = 6, col_id = "rr")
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
-blue channel extracted from a canopy photograph. Please see \code{\link[=read_caim]{read_caim()}}
-and \code{\link[=normalize_minmax]{normalize_minmax()}}.}
+\item{sky_points}{An object of class \emph{data.frame}. The data.frame returned by
+\code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
+\emph{data.frame} with same basic structure and names.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
-\code{r} useful for masking pixels that are very likely pure sky pixels.}
-
-\item{filling_source}{\linkS4class{SpatRaster}. An actual or reconstructed
-above-canopy image to complement the sky pixels detected through the gaps
-of \code{r}. A photograph taken immediately after or before taking \code{r} under the
-open sky with the same equipment and configuration is a very good option
-but not recommended under fleeting clouds. The orientation relative to the
-North must be the same as for \code{r}. If it is set to \code{NULL} (default), only
-sky pixels from \code{r} will be used as input.}
+\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
+was obtained.}
 
 \item{np}{
 degree of polynomial surface
 }
+
+\item{col_id}{Numeric or character vector of length one. The number or name
+of the colum with the values to interpolate.}
 }
 \value{
 A list with an object of class \linkS4class{SpatRaster} and of class \code{trls}
@@ -40,10 +31,11 @@ Fit a trend surface using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as w
 \details{
 This function is meant to be used after \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}}.
 
-This method was presented in \insertCite{Diaz2018;textual}{rcaiman}, under
-the heading \emph{Estimation of the sky DN as a previous step for our method}. If
-you use this function in your research, please cite that paper in addition to
-this package (\verb{citation("rcaiman"}).
+The first application of trend surface fitting to modelling sky digital
+numbers was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
+heading \emph{Estimation of the sky DN as a previous step for our method}. The
+example shows a pipeline that resemble the one presented in that paper. The
+original idea was developed after the programming of \code{\link[=extract_sky_points]{extract_sky_points()}}.
 }
 \note{
 If an incomplete above-canopy image is available as filling source,
@@ -52,27 +44,47 @@ as sky pixels.
 }
 \examples{
 \dontrun{
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+caim <- read_caim()
+r <- caim$Blue
+z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-r <- gbc(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
+m <- !is.na(z)
+bin <- regional_thresholding(r, rings_segmentation(z, 30),
+                             method = "thr_isodata")
+mx <- optim_normalize(caim, bin)
+caim <- normalize_minmax(caim, 0, mx, TRUE)
 
-bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
-bin <- bin & select_sky_vault_region(z, 0, 80)
-sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
+sky_blue <- polarLAB(50, 17, 293)
+ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 
-model <- fit_coneshaped_model(sky_points$sky_points)
+g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
+plot(bin)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+rr <- extract_rel_radiance(r, z, a, sky_points)
+
+sky_s <- fit_trend_surface(rr$sky_points, r, col_id = "dn")
+plot(sky_s$raster)
+plot(r/sky_s$raster)
+apply_thr(r/sky_s$raster, 0.5) \%>\% plot()
+
+model <- fit_coneshaped_model(rr$sky_points)
 summary(model$model)
-sky_cs <- model$fun(z, a)
+sky_cs <- model$fun(z, a) * rr$zenith_dn
 plot(sky_cs)
-plot(r/sky_cs)
 
-sky_s <- fit_trend_surface(r, z, a, bin, sky_cs)$image
-plot(sky_s)
-plot(r/sky_s)
+.r <- r
+.r[!bin] <- sky_cs
+plot(.r)
+sky_points <- extract_sky_points(.r, m, g, dist_to_black = 3)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+rr <- extract_rel_radiance(.r, z, a, sky_points)
+
+sky_s <- fit_trend_surface(rr$sky_points, .r, col_id = "dn")
+plot(sky_s$raster)
+plot(r/sky_s$raster)
+apply_thr(r/sky_s$raster, 0.5) \%>\% plot()
 }
 }
 \references{

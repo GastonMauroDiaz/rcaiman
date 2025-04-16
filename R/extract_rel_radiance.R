@@ -5,7 +5,7 @@
 #' Interpolate the `no_of_points` closer to the zenith using IDW with p = 2.
 #'
 #' @inheritParams extract_dn
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @param no_of_points Numeric vector of length one. The number of near-zenith
 #'   points required for the estimation of the zenith DN.
 #'

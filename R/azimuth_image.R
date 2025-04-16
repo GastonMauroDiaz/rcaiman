@@ -4,7 +4,7 @@
 #' upwards-looking hemispherical photography with the optical axis vertically
 #' aligned.
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @param orientation Azimuth angle (degrees) at which the top of the image was
 #'   pointing at the moment of taking the picture. This design decision was made
 #'   because the usual field protocol is recording the angle at which the top of

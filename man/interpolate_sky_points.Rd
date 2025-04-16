@@ -21,8 +21,8 @@ was obtained.}
 \item{rmax}{Numeric vector of length one. Maximum radius for searching
 k-nearest neighbors (knn).}
 
-\item{col_id}{Numeric vector of length one. ID of the column with the values
-to interpolate.}
+\item{col_id}{Numeric or character vector of length one. The number or name
+of the colum with the values to interpolate.}
 }
 \value{
 An object of class \linkS4class{SpatRaster}.
@@ -31,8 +31,8 @@ An object of class \linkS4class{SpatRaster}.
 Interpolate values from canopy photographs.
 }
 \details{
-This function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}} as workhorse function, so
-arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
+This function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}} as workhorse function, so arguments \code{k},
+\code{p}, and \code{rmax} are passed to it.
 
 This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
 the best result would be obtained with data showing a linear relation between
@@ -41,10 +41,10 @@ digital numbers and the amount of light reaching the sensor. See
 compromise solution, \code{\link[=gbc]{gbc()}} can be used.
 
 Default parameters are the ones used by
-\insertCite{Lang2010;textual}{rcaiman}. The argument \code{rmax} should
-account for between 15 to 20 degrees, but it is expressed in pixels units.
-So, image resolution and lens projections should be taken into account to set
-this argument properly.
+\insertCite{Lang2010;textual}{rcaiman}. According to these authors, the
+argument \code{rmax} should account for between 15 to 20 degrees, but it is
+expressed in pixels units. So, image resolution and lens projections should
+be taken into account to set this argument properly.
 }
 \examples{
 \dontrun{

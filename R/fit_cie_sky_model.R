@@ -58,9 +58,6 @@
 #' (`citation("rcaiman"`)).
 #'
 #'
-#' @inheritParams ootb_mblt
-#' @inheritParams fit_coneshaped_model
-#'
 #' @param rr An object of class *list*. The output of [extract_rel_radiance()] or an
 #'   object with same structure and names.
 #' @param sun_coord An object of class *list*. The output of
@@ -274,7 +271,7 @@ fit_cie_sky_model <- function(rr, sun_coord,
   opt_result <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
   # Force the sun low and add that to the results
-  civic_twilight <-  c(seq(85, 96, 1)) #a bit above horizon because bbox method
+  civic_twilight <-  c(seq(twilight, 96, 1))
   if (sun_coord$zenith_azimuth[1] > twilight) {
     indices <- match(7:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]

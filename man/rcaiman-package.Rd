@@ -6,7 +6,7 @@
 \alias{rcaiman-package}
 \title{rcaiman: CAnopy IMage ANalysis}
 \description{
-Tools for pre-processing and processing canopy photographs with support for raw data reading. Works with images taken with both regular and fisheye lenses (all types). Includes algorithms to mitigate errors caused by non-diffuse light conditions during photograph acquisition.
+Tools for pre-processing and processing canopy photographs with support for raw data reading. Works with images taken with both regular and fisheye lenses (all types). Includes algorithms to mitigate errors caused by non-diffuse light conditions while acquiring images.
 }
 \seealso{
 Useful links:

@@ -23,7 +23,11 @@
 #' \insertCite{Diaz2015;textual}{rcaiman} in addition to this package
 #' (`citation("rcaiman"`).
 #'
-#' @inheritParams ootb_mblt
+#' @param r [SpatRaster-class]. A normalized greyscale image. Typically, the
+#'   blue channel extracted from a canopy photograph. Please see [read_caim()]
+#'   and [normalize_minmax()].
+#' @param z [SpatRaster-class] built with [zenith_image()] or `NULL`.
+#' @param a [SpatRaster-class] built with [azimuth_image()] or `NULL`.
 #' @param bin  [SpatRaster-class]. This should be a working binarization of `r`
 #'   without gross errors.
 #' @param segmentation [SpatRaster-class] built with [polar_qtree()] or

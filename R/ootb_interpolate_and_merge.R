@@ -6,7 +6,7 @@
 #'
 #' @param r [SpatRaster-class]. Typically, the blue channel extracted from a
 #'   canopy photograph. The image from which `sky_points` was obtained.
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_dn
 #' @param ootb_sky An object of the class `list` that is the result of calling
 #'   [ootb_fit_cie_sky_model()].
@@ -48,8 +48,8 @@
 #'
 #' sky_points <- rbind(sky_points, ootb_sky$sky_points[, c("row", "col")])
 #'
-#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points,
-#'                              ootb_sky)
+#' sky <- ootb_interpolate_and_merge(r, z, a, sky_points, ootb_sky)
+#'
 #' plot(sky$sky)
 #' }
 ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
@@ -59,7 +59,7 @@ ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   stopifnot(rmax_tune > 0)
 
   model <- ootb_sky$model
-  sky_cie <- sky$sky
+  sky_cie <- ootb_sky$sky
 
   # read metrics
   r2 <- ootb_sky$model_validation$r_squared

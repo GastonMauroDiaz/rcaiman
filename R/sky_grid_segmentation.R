@@ -11,7 +11,8 @@
 #' the ID number of the sector and \eqn{ringID} is the ID number of the ring.
 #'
 #'
-#' @inheritParams ootb_mblt
+#' @param z [SpatRaster-class] built with [zenith_image()].
+#' @param a [SpatRaster-class] built with [azimuth_image()].
 #' @param angle_width Numeric vector of length one. It should be `30, 15,
 #'   10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1` or `0.5` degrees. This
 #'   constrain is rooted in the requirement of a value able to divide both the

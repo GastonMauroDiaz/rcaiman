@@ -34,7 +34,7 @@
 
 #' CIE sky model raster
 #'
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @param sun_coord Numeric vector of length two. The solar disk
 #'   center represented with zenith and azimuth angles in degrees.
 #' @param sky_coef Numeric vector of length five. Parameters of the sky model.

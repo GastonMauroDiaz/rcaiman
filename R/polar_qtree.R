@@ -19,7 +19,7 @@
 #' condition.
 #'
 #' @param r [SpatRaster-class].
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @param scale_parameter Numeric vector of length one. Quad-tree is a top-down
 #'   method. This parameter controls the stopping condition. Therefore, it
 #'   allows controlling the size of the resulting segments. Ultimately, segments

@@ -32,24 +32,30 @@
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
-#' z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
+#' caim <- read_caim()
+#' r <- caim$Blue
+#' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' r <- gbc(caim$Blue)
-#' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
+#' m <- !is.na(z)
+#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
+#'                              method = "thr_isodata")
+#' mx <- optim_normalize(caim, bin)
+#' caim <- normalize_minmax(caim, 0, mx, TRUE)
 #'
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30), "thr_isodata")
-#' bin <- bin & select_sky_vault_region(z, 0, 80)
-#' sky_points <- extract_sky_points(r, bin, sky_grid_segmentation(z, a, 3))
-#' sky_points <- extract_rel_radiance(r, z, a, sky_points, no_of_points = NULL)
+#' sky_blue <- polarLAB(50, 17, 293)
+#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
+#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
 #'
-#' model <- fit_coneshaped_model(sky_points$sky_points)
+#' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+#' sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
+#' plot(bin)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+#' rr <- extract_rel_radiance(r, z, a, sky_points)
+#'
+#' model <- fit_coneshaped_model(rr$sky_points)
 #' summary(model$model)
-#' sky_cs <- model$fun(z, a)
-#' plot(r/sky_cs)
+#' sky_cs <- model$fun(z, a) * rr$zenith_dn
 #' plot(sky_cs)
-#' plot(r/sky_cs > 0.5)
 #'
 #' z <- zenith_image(50, lens())
 #' a <- azimuth_image(z)

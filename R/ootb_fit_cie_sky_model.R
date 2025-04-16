@@ -9,9 +9,9 @@
 #' \insertCite{Lang2010;textual}{rcaiman}. A paper for thoroughly presenting and
 #' testing this pipeline is under preparation.
 #'
-#' @inheritParams ootb_mblt
-#' @inheritParams fit_trend_surface
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_sky_points
+#' @inheritParams fit_trend_surface
 #' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param gs An object of the class _list_. A list with the output of
 #'   [sky_grid_segmentation()], see the example.
@@ -116,11 +116,19 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
                              rmax = 30,
                              thr = 2,
                              cutoff_side = "right")
-    sky_points <- sor_filter(sky_points, r, z, a,
-                             k = 5,
-                             rmax = 20,
-                             thr = 2,
-                             cutoff_side = "left")
+    tryCatch(
+      sky_points <- sor_filter(sky_points, r, z, a,
+                               k = 20,
+                               rmax = 45,
+                               thr = 3,
+                               cutoff_side = "both",
+                               trend = 3),
+      error = function(e) sky_points <- sor_filter(sky_points, r, z, a,
+                                                   k = 5,
+                                                   rmax = 20,
+                                                   thr = 2,
+                                                   cutoff_side = "left")
+    )
 
     if (any(min_spherical_dist != 0)) {
       sky_points <- vicinity_filter(sky_points, r, z, a,
@@ -133,9 +141,15 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
                                use_window = !is.null(dist_to_black))
 
     methods <- c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
+
+    row_col <- extract_sky_points(z, m, sectors_segmentation(a, 10))
+    twilight <- extract_dn(z, row_col, use_window = FALSE, mean)
+    if (twilight > 80) twilight <- 60
+
     models <- Map(function(x) fit_cie_sky_model(rr, sun_coord,
-                                                twilight = 60,
+                                                twilight = twilight,
                                                 method = x), methods)
+
     metric <- Map(.get_metric, models)
     i <- which.min(metric)
     model <- models[[i]]
@@ -200,9 +214,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
          )
 
   }
-
-# .fun(gs[[1]])
-# browser()
 
   # Try grids
   skies <- Map(function(g) {

@@ -13,7 +13,8 @@ sor_filter(
   rmax = 20,
   thr = 2,
   cutoff_side = "both",
-  use_window = TRUE
+  use_window = TRUE,
+  trend = NULL
 )
 }
 \arguments{
@@ -45,6 +46,11 @@ a lack of evidence for removal.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
 \times 3} pixels will be used to extract the digital number from \code{r}.}
+
+\item{trend}{Numeric vector of length one or \code{NULL}. Specifies the order of
+the surface fitted to the set of points found by the KNN algorithm in order
+to remove trends such as smooth gradients. The maximum allowed order is
+three. If \code{NULL} (default), no attempt is made to remove a trend.}
 }
 \value{
 The argument \code{sky_points} with fewer rows due to outlier removal.
@@ -55,14 +61,14 @@ Statistical outlier removal (SOR) filter
 \details{
 This algorithm is based on the homonymous filter from the \href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
 surface and expressed in degrees to avoid distortions due to projection. The
-number of neighbors used for evaluation is controlled by the \code{k} argument, while
-the \code{rmax} argument sets the maximum search radius for finding these neighbors.
-Points are projected onto a unit-radius sphere, similar to the use of relative
-radius in image mapping. The spherical distance is then calculated, and points
-farther than rmax are excluded from the neighbor set. If an insufficient
-number of neighbors are found within rmax, the point is retained due to a
-lack of evidence for removal. The decision criterion follows
-\insertCite{Leys2013;textual}{rcaiman}:
+number of neighbors used for evaluation is controlled by the \code{k} argument,
+while the \code{rmax} argument sets the maximum search radius for finding these
+neighbors. Points are projected onto a unit-radius sphere, similar to the use
+of relative radius in image mapping. The spherical distance is then
+calculated, and points farther than rmax are excluded from the neighbor set.
+If an insufficient number of neighbors are found within rmax, the point is
+retained due to a lack of evidence for removal. The decision criterion
+follows \insertCite{Leys2013;textual}{rcaiman}:
 
 \eqn{M - thr \times MAD < x_i < M + thr \times MAD}
 
@@ -107,12 +113,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},

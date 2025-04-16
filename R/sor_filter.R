@@ -5,14 +5,14 @@
 #' This algorithm is based on the homonymous filter from the [PCL
 #' library](https://pointclouds.org/). Distances are computed on a spherical
 #' surface and expressed in degrees to avoid distortions due to projection. The
-#' number of neighbors used for evaluation is controlled by the `k` argument, while
-#' the `rmax` argument sets the maximum search radius for finding these neighbors.
-#' Points are projected onto a unit-radius sphere, similar to the use of relative
-#' radius in image mapping. The spherical distance is then calculated, and points
-#' farther than rmax are excluded from the neighbor set. If an insufficient
-#' number of neighbors are found within rmax, the point is retained due to a
-#' lack of evidence for removal. The decision criterion follows
-#' \insertCite{Leys2013;textual}{rcaiman}:
+#' number of neighbors used for evaluation is controlled by the `k` argument,
+#' while the `rmax` argument sets the maximum search radius for finding these
+#' neighbors. Points are projected onto a unit-radius sphere, similar to the use
+#' of relative radius in image mapping. The spherical distance is then
+#' calculated, and points farther than rmax are excluded from the neighbor set.
+#' If an insufficient number of neighbors are found within rmax, the point is
+#' retained due to a lack of evidence for removal. The decision criterion
+#' follows \insertCite{Leys2013;textual}{rcaiman}:
 #'
 #' \eqn{M - thr \times MAD < x_i < M + thr \times MAD}
 #'
@@ -25,7 +25,7 @@
 #' tested—either one side or both.
 #'
 #' @inheritParams extract_dn
-#' @inheritParams ootb_mblt
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams interpolate_sky_points
 #' @param rmax Numeric vector of length one. The maximum radius for searching
 #'   k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
@@ -38,6 +38,10 @@
 #'   \insertCite{Leys2013;textual}{rcaiman}.
 #' @param cutoff_side Character vector of length one. See
 #'   \insertCite{Leys2013;textual}{rcaiman}.
+#' @param trend Numeric vector of length one or `NULL`. Specifies the order of
+#'   the surface fitted to the set of points found by the KNN algorithm in order
+#'   to remove trends such as smooth gradients. The maximum allowed order is
+#'   three. If `NULL` (default), no attempt is made to remove a trend.
 #'
 #' @return The argument `sky_points` with fewer rows due to outlier removal.
 #'
@@ -73,7 +77,8 @@ sor_filter <- function(sky_points, r, z, a,
                        rmax = 20,
                        thr = 2,
                        cutoff_side = "both",
-                       use_window = TRUE) {
+                       use_window = TRUE,
+                       trend = NULL) {
 
   .check_if_r_z_and_a_are_ok(r, z, a)
   stopifnot(length(k) == 1)
@@ -94,24 +99,47 @@ sor_filter <- function(sky_points, r, z, a,
                                                    sky_points[i, "a"])
     order_idx <- order(spherical_distance)
     sorted_distance <- spherical_distance[order_idx][2:(k + 1)]
+    # browser()
+    if (!is.null(trend)) stopifnot(trend <= 6)
     tryCatch(
-    if (all(sorted_distance <= rmax)) {
-      dns <- sky_points[order_idx[2:(k + 1)], "dn"]
-      return(c(stats::median(dns, na.rm = TRUE), stats::mad(dns, na.rm = TRUE)))
-    } else {
-      return(c(NA, NA))
-    },
-      error = function(e) stop("There are sky points below the horizon or on it.")
+      if (all(sorted_distance <= rmax)) {
+        if (!is.null(trend)) {
+          the_point <- sky_points[order_idx[1], c("row", "col", "dn")]
+          sky_points <- sky_points[order_idx[2:(k + 1)], c("row", "col", "dn")]
+          xy <- terra::cellFromRowCol(r, sky_points$row, sky_points$col) %>%
+            terra::xyFromCell(r, .)
+          fit <- spatial::surf.ls(x = xy[, 1],
+                                  y = xy[, 2],
+                                  z = sky_points[, "dn"],
+                                  np = trend)
+          pred <- predict(fit, xy[,1], xy[,2])
+          dns <- fit$z - pred
+          xy <- terra::cellFromRowCol(r, the_point$row, the_point$col) %>%
+            terra::xyFromCell(r, .)
+          the_point_dn <- the_point[, "dn"] - predict(fit, xy[,1], xy[,2])
+        } else {
+          the_point_dn <- sky_points[order_idx[1], "dn"]
+          dns <- sky_points[order_idx[2:(k + 1)], "dn"]
+        }
+        return(c(the_point_dn,
+                 stats::median(dns, na.rm = TRUE),
+                 stats::mad(dns, na.rm = TRUE)))
+      } else {
+        return(c(NA, NA, NA))
+      },
+      error = function(e) stop("Try other order of magnitud for 'trend' or look
+                               for sky points below the horizon or on it.")
     )
   }
 
   result <- lapply(seq_len(nrow(sky_points)), .calculate_sor) %>% unlist() %>%
-      matrix(., ncol = 2, byrow = TRUE)
+      matrix(., ncol = 3, byrow = TRUE)
 
-  central_tendency <- result[, 1]
-  dispersion <- result[, 2]
+  value <- result[, 1]
+  central_tendency <- result[, 2]
+  dispersion <- result[, 3]
 
-  deviation <- (sky_points[, "dn"] - central_tendency) / dispersion
+  deviation <- (value - central_tendency) / dispersion
   i <- switch(cutoff_side,
               right = deviation <= thr,
               left = deviation >= -thr,

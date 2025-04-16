@@ -40,7 +40,6 @@ plot(bin)
 \seealso{
 Other Binarization Functions: 
 \code{\link{obia}()},
-\code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{regional_thresholding}()},
 \code{\link{rem_isolated_black_pixels}()},

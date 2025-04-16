@@ -15,12 +15,11 @@ ootb_obia(
 )
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}} or
-\code{\link[=read_caim_raw]{read_caim_raw()}}.}
+\item{caim}{\linkS4class{SpatRaster}. The output of \code{\link[=read_caim]{read_caim()}}.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}} or \code{NULL}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}} or \code{NULL}.}
 
 \item{m}{\linkS4class{SpatRaster}. Default (\code{NULL}) is the equivalent to enter
 \code{!is.na(z)} for hemispherical photography, or enter \code{!is.na(caim$Red)} for
@@ -108,7 +107,6 @@ plot(bin)
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
 \code{\link{obia}()},
-\code{\link{ootb_mblt}()},
 \code{\link{regional_thresholding}()},
 \code{\link{rem_isolated_black_pixels}()},
 \code{\link{thr_isodata}()},

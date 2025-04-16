@@ -4,14 +4,7 @@
 \alias{regional_thresholding}
 \title{Regional thresholding}
 \usage{
-regional_thresholding(
-  r,
-  segmentation,
-  method,
-  intercept = NULL,
-  slope = NULL,
-  prob = NULL
-)
+regional_thresholding(r, segmentation, method)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. A normalized greyscale image. Typically, the
@@ -25,9 +18,6 @@ preferred choice for fisheye images.}
 \item{method}{Character vector of length one. See details for current
 options.}
 
-\item{intercept, slope}{Numeric vector of length one. These are linear
-function coefficients.}
-
 \item{prob}{Numeric vector of length one. Probability for \code{\link[stats:quantile]{stats::quantile()}}
 calculation.}
 }
@@ -40,13 +30,6 @@ Regional thresholding of greyscale images.
 \details{
 Methods currently implemented are:
 \itemize{
-\item \strong{Diaz2018}: method presented in
-\insertCite{Diaz2018;textual}{rcaiman} applied regionally. If this method is
-selected, the arguments \code{intercept}, \code{slope}, and \code{prob} should be provided.
-It works segment-wise extracting the digital numbers per segment and passing
-them to \code{\link[stats:quantile]{stats::quantile()}} along with \code{prob}, which aggregated result is in
-turn passed to \code{\link[=thr_mblt]{thr_mblt()}} along with \code{intercept} and \code{slope}. Finally, this
-threshold image is applied to obtain a binarized image.
 \item \strong{Methods from autothresholdr package}: this function can call
 methods from \code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}. For instance, use \code{"IsoData"}
 to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which was
@@ -58,7 +41,9 @@ use \code{\link[=thr_isodata]{thr_isodata()}}.
 \examples{
 \dontrun{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, c(1250, 1020) - 745, 745 * 2, 745 * 2)
+zenith_colrow <- c(1276, 980)
+diameter <- 756*2
+caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
 z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 r <- gbc(caim$Blue)
 r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
@@ -74,7 +59,6 @@ plot(bin)
 Other Binarization Functions: 
 \code{\link{apply_thr}()},
 \code{\link{obia}()},
-\code{\link{ootb_mblt}()},
 \code{\link{ootb_obia}()},
 \code{\link{rem_isolated_black_pixels}()},
 \code{\link{thr_isodata}()},

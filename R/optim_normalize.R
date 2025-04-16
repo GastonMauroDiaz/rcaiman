@@ -5,7 +5,8 @@
 #' saturation.
 #'
 #' @inheritParams enhance_caim
-#' @inheritParams ootb_mblt
+#' @inheritParams extract_sky_points
+#' @inheritParams sky_grid_segmentation
 #' @inheritParams stats::optim
 #'
 #' @family Tool Functions
@@ -25,11 +26,9 @@
 #' mx <- quantile(caim$Blue[m], 0.99)
 #' r <- normalize_minmax(caim$Blue, mn, mx, TRUE)
 #'
-#' bin <- find_sky_pixels(r, z, a)
-#' mblt <- ootb_mblt(r, z, a, bin)
-#' plot(mblt$bin)
+#' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #'
-#' mx <- optim_normalize(caim, mblt$bin)
+#' mx <- optim_normalize(caim, bin)
 #' ncaim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' plotRGB(ncaim*255)
 #' plotRGB(normalize_minmax(caim)*255)

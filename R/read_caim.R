@@ -62,8 +62,8 @@
 #'
 #' @examples
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' zenith_colrow <- c(1250, 1020)
-#' diameter <- 745*2
+#' zenith_colrow <- c(1276, 980)
+#' diameter <- 756*2
 #' caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
 #' plot(caim$Blue)
 read_caim <- function(path = NULL, upper_left = NULL, width = NULL,

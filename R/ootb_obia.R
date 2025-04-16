@@ -27,7 +27,7 @@
 #' (`citation("rcaiman"`)).
 #'
 #' @inheritParams enhance_caim
-#' @inheritParams ootb_mblt
+#' @inheritParams obia
 #' @param m [SpatRaster-class]. Default (`NULL`) is the equivalent to enter
 #'   `!is.na(z)` for hemispherical photography, or enter `!is.na(caim$Red)` for
 #'   restricted view photography.

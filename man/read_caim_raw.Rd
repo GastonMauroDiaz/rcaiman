@@ -10,9 +10,9 @@ read_caim_raw(
   a = NULL,
   zenith_colrow = NULL,
   radius = 700,
-  rmax = 100,
   k = 1,
   p = 1,
+  rmax = 100,
   only_blue = FALSE,
   offset_value = NULL
 )
@@ -31,13 +31,13 @@ zenith. See \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}.}
 \item{radius}{Numeric integer of length one. Radius of the reprojected
 hemispherical image (i.e., the output).}
 
-\item{rmax}{Numeric vector of length one. Maximum radius where to search for
-\emph{knn}. Increase this value if pixels with value \code{0} or
-\code{FALSE} appears where other values are expected.}
-
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
 \item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
+
+\item{rmax}{Numeric vector of length one. Maximum radius where to search for
+\emph{knn}. Increase this value if pixels with value \code{0} or
+\code{FALSE} appears where other values are expected.}
 
 \item{only_blue}{Logical vector of length one. If \code{TRUE}, only values from
 the blue or cyan wavelength will be processed.}
@@ -137,7 +137,8 @@ m <- !is.na(z)
 caim <- read_caim_raw(file_name, only_blue = TRUE)
 caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
 caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
-caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
+caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300,
+                               k = 1, p = 1, rmax = 100)
 
 #only geometric correction
 zenith_colrow <- c(1290, 988)
@@ -160,12 +161,12 @@ Other Tool Functions:
 \code{\link{correct_vignetting}()},
 \code{\link{defuzzify}()},
 \code{\link{display_caim}()},
+\code{\link{expand_sky_points}()},
 \code{\link{extract_dn}()},
 \code{\link{extract_feature}()},
 \code{\link{extract_rel_radiance}()},
 \code{\link{extract_sky_points}()},
 \code{\link{extract_sun_coord}()},
-\code{\link{find_sky_pixels}()},
 \code{\link{masking}()},
 \code{\link{optim_dist_to_black}()},
 \code{\link{optim_normalize}()},

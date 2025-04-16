@@ -8,6 +8,7 @@
 * Argument `za` from `row_col_from_zenith_azimuth()` remane to `zenith_azimuth` for better consistency in package naming convention.
 * `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_interpolate_and_merge()`, `validate_cie_sky_model()`, and `calc_oor_index()`.
 * `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rr`. Argument `rmse` was removed; Now, the argument `loss` allows choosing `rmse` or `mae`. The output of this new version will be different from previous versions since many minor changes and fixes had been done.
+* `fit_trend_surfacel()` now is similar to `interpolate_sky_points()` from the point of view of usability.
 
 ## New features
 * New `display_caim` facilitate visualizing canopy images in R.
@@ -20,12 +21,13 @@
 * `sky_grid_segmentation()` gains `first_ring_different` to avoid small cells around the zenith.
 * `extract_sky_points()` is now more robust.
 * Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
+* Delete `find_sky_pixels()` since it was deamed obsolete.
 * Delete `fix_reconstructed_sky()` since it was deamed obsolete.
 * Delete `extrac_sky_points_simple()` since it was deamed obsolete.
-* Change `ootb_mblt()` as a result of deleting `extract_sky_points_simple()`.
+* Delete `ootb_mblt()` since it was deamed obsolete.
 * Change the order in the arguments of `calc_co()` to homogeneize criteria within the package.
 * `extract_sky_points()` lose the argument `min_raster_dist` because of the new function `vicinity_filter()`.
-
+* `regional_thresholding()` lose the method "Diaz2018". 
 
 # rcaiman 1.2.0 
 
