@@ -23,8 +23,6 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

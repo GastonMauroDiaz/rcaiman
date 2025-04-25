@@ -1,15 +1,13 @@
 #' Optimize a parameter of the function [normalize_minmax()]
 #'
 #' Wrapper function for [stats::optim()]. Optimize the `mx` argument of the
-#' function [normalize_minmax()] by maximizing [colorfulness()] and minimizing
+#' function [normalize_minmax()] by maximizing colorfulness and minimizing
 #' saturation.
 #'
 #' @inheritParams enhance_caim
 #' @inheritParams extract_sky_points
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams stats::optim
-#'
-#' @family Tool Functions
 #'
 #' @return Numeric vector of length one. The values for using as `mx` argument
 #'   with [normalize_minmax()].
@@ -28,13 +26,13 @@
 #'
 #' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #'
-#' mx <- optim_normalize(caim, bin)
+#' mx <- optim_max(caim, bin)
 #' ncaim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' plotRGB(ncaim*255)
 #' plotRGB(normalize_minmax(caim)*255)
 #' percentage_of_clipped_highlights(ncaim$Blue, m)
 #' }
-optim_normalize <- function(caim, bin, method = "BFGS")  {
+optim_max <- function(caim, bin, method = "BFGS")  {
 
   terra::compareGeom(caim, bin)
   stopifnot(terra::nlyr(caim) == 3)
@@ -45,8 +43,7 @@ optim_normalize <- function(caim, bin, method = "BFGS")  {
   .get_index <- function(mx) {
     .caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
     f_area <- (sum(.caim$Blue[bin] == 0 | .caim$Blue[bin] == 1) / sum(bin[]))
-    tryCatch(cf <- colorfulness(.caim, bin),
-             error = function(e) 0)
+    cf <- tryCatch(colorfulness(.caim, bin), error = function(e) 0)
     (100 - cf) * (f_area * 100)
   }
   opt_result <- stats::optim(mx, .get_index, method = method)

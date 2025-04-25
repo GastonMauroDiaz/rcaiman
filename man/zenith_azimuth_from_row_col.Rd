@@ -4,38 +4,23 @@
 \alias{zenith_azimuth_from_row_col}
 \title{Obtain zenith and azimuth angles from row and col numbers}
 \usage{
-zenith_azimuth_from_row_col(z, a, row_col, lens_coef = NULL)
+zenith_azimuth_from_row_col(z, a, row, col)
 }
 \arguments{
 \item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{row_col}{Numeric vector of length two. Row and col numbers.}
-
-\item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
+\item{row, col}{Numeric vector. Row or column numbers.}
 }
 \value{
-Numeric vector of length two.
+An object of the class \emph{data.frame}.
 }
 \description{
 Obtain zenith and azimuth angles from row and col numbers
 }
-\note{
-Use the \code{lens_coef} argument to calculate coordinates below the horizon.
-}
 \examples{
 z <- zenith_image(1000, lens())
 a <- azimuth_image(z)
-zenith_azimuth_from_row_col(z, a, c(501, 750))
+zenith_azimuth_from_row_col(z, a, 499, 751)
 }
-\seealso{
-Other HSP Functions: 
-\code{\link{read_manual_input}()},
-\code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sky_points}()},
-\code{\link{write_sun_coord}()}
-}
-\concept{HSP Functions}

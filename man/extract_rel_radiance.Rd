@@ -69,31 +69,3 @@ points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{calc_spherical_distance}()},
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{vicinity_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

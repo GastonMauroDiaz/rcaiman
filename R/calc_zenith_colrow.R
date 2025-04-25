@@ -35,8 +35,6 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Lens Functions
-#'
 #' @export
 #'
 #' @return Numeric vector of length two. Raster coordinates of the zenith,

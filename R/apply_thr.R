@@ -14,8 +14,6 @@
 #' @return An object of class [SpatRaster-class] with values `0` and `1`.
 #' @export
 #'
-#' @family Binarization Functions
-#'
 #' @examples
 #' r <- read_caim()
 #' bin <- apply_thr(r$Blue, thr_isodata(r$Blue[]))

@@ -40,8 +40,6 @@
 #' @return Numeric vector of length one.
 #' @export
 #'
-#' @family Metrics Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

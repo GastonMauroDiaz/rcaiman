@@ -57,8 +57,6 @@
 #' ````
 #'
 #' @export
-#' @family Tool Functions
-#'
 #'
 #' @examples
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")

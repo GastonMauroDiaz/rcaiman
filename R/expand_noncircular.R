@@ -7,8 +7,6 @@
 #' @param zenith_colrow Numeric vector of length two. Raster coordinates of the
 #'   zenith. See [calc_zenith_colrow()].
 #'
-#' @family Lens Functions
-#'
 #' @return An object of class [SpatRaster-class] that is the result of adding
 #'   margins (`NA` pixels) to the argument `caim`. The zenith point depicted in
 #'   the picture should be in the center of the image or very close to it.

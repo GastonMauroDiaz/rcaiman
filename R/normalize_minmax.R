@@ -25,8 +25,6 @@
 #'   and maximum from `r`, then the output will not cover the 0-to-1 range
 #'   and may be outside that range if `force_range` is set to `FALSE`.
 #'
-#' @family Pre-processing Functions
-#'
 #' @examples
 #' normalize_minmax(read_caim())
 normalize_minmax <- function(r, mn = NULL, mx = NULL, force_range = FALSE) {

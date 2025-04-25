@@ -130,13 +130,4 @@ thr_mblt(gbc(125), -7.8, 0.95 * 0.5)
 }
 \seealso{
 \code{\link[=normalize_minmax]{normalize_minmax()}}, \code{\link[=gbc]{gbc()}}, \code{\link[=apply_thr]{apply_thr()}} and \code{\link[=regional_thresholding]{regional_thresholding()}}.
-
-Other Binarization Functions: 
-\code{\link{apply_thr}()},
-\code{\link{obia}()},
-\code{\link{ootb_obia}()},
-\code{\link{regional_thresholding}()},
-\code{\link{rem_isolated_black_pixels}()},
-\code{\link{thr_isodata}()}
 }
-\concept{Binarization Functions}

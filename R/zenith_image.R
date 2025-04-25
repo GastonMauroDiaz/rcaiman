@@ -38,8 +38,6 @@ relative_radius_image <- function (diameter)
 #'   showing a complete hemispherical view with the zenith on the center.
 #' @export
 #'
-#' @family Lens Functions
-#'
 #' @examples
 #' z <- zenith_image(600, lens("Nikon_FCE9"))
 #' plot(z)

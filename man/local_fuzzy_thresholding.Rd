@@ -75,11 +75,3 @@ plot(mem_thr)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Pre-processing Functions: 
-\code{\link{enhance_caim}()},
-\code{\link{gbc}()},
-\code{\link{membership_to_color}()},
-\code{\link{normalize_minmax}()}
-}
-\concept{Pre-processing Functions}

@@ -27,7 +27,8 @@ prioritized when deciding to retein a sky point.}
 \item{min_dist}{Numeric vector of length one. Minimum allowed distance
 between points. In degrees for spherical space or pixels for planar space.
 What space is used depend on the arguments \code{z} and \code{a}, if both are
-provided, then the spherical space is used.}
+provided with the output of \code{\link[=zenith_image]{zenith_image()}} and \code{\link[=azimuth_image]{azimuth_image()}},
+respectively, then the spherical space is used.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
 \times 3} pixels will be used to extract the digital number from \code{r}.}
@@ -70,31 +71,3 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
 }
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{calc_spherical_distance}()},
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rel_radiance}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

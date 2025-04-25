@@ -31,19 +31,3 @@ If it fails in \emph{"Test that lens projection function works between the
 test_lens_coef(lens("Nikon_FCE9"))
 test_lens_coef(2/pi)
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_diameter}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{calibrate_lens}()},
-\code{\link{crosscalibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{fisheye_to_pano}()},
-\code{\link{lens}()},
-\code{\link{zenith_image}()}
-}
-\concept{Lens Functions}

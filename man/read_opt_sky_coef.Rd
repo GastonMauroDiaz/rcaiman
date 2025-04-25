@@ -26,12 +26,4 @@ Refer to the Details section of function
 }
 \seealso{
 \code{\link[=cie_sky_image]{cie_sky_image()}}
-
-Other HSP Functions: 
-\code{\link{read_manual_input}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sky_points}()},
-\code{\link{write_sun_coord}()},
-\code{\link{zenith_azimuth_from_row_col}()}
 }
-\concept{HSP Functions}

@@ -100,7 +100,7 @@ r <- normalize_minmax(caim$Blue)
 
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
-mx <- optim_normalize(caim, bin)
+mx <- optim_max(caim, bin)
 mn <- min(caim[m])
 
 sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
@@ -129,11 +129,3 @@ plot(apply_thr(caim$Blue, thr_isodata(caim$Blue[m])))
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Pre-processing Functions: 
-\code{\link{gbc}()},
-\code{\link{local_fuzzy_thresholding}()},
-\code{\link{membership_to_color}()},
-\code{\link{normalize_minmax}()}
-}
-\concept{Pre-processing Functions}

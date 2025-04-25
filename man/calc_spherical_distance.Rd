@@ -20,7 +20,8 @@ Numeric vector.
 }
 \description{
 Calculate angles in radians between objects in the sky, which are
-proportional to distances on a conceptual sky vault.
+proportional to the shortest distances between then over a conceptual sky
+vault.
 }
 \examples{
 set.seed(1)
@@ -28,31 +29,3 @@ z1 <- rnorm(10, 45, 20) * pi/180
 a1 <- rnorm(10, 180, 90) * pi/180
 calc_spherical_distance(z1, a1, 0, 0)
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rel_radiance}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{vicinity_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

@@ -13,8 +13,6 @@
 #'
 #' @inheritParams zenith_image
 #'
-#' @family Lens Functions
-#'
 #' @export
 #'
 #' @return Returns `invisible(TRUE)` and print "Test passed" if all tests

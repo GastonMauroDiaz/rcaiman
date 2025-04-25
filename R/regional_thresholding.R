@@ -24,8 +24,6 @@
 #' @return An object of class [SpatRaster-class] with values `0` and `1`.
 #'
 #' @export
-#' @family Binarization Functions
-#'
 #'
 #' @references \insertAllCited{}
 #'

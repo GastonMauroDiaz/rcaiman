@@ -15,8 +15,6 @@
 #'
 #' @returns Numeric vector of length one.
 #'
-#' @family Tool Functions
-#'
 #' @export
 #'
 #' @examples

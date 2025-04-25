@@ -16,7 +16,7 @@ or "DSCN6342". See details.}
 }
 \value{
 A list of numeric vectors named \emph{weight}, \emph{max_points},
-\emph{angle}, \emph{point_radius}, \emph{sun_coord}, \emph{sky_points} and
+\emph{angle}, \emph{point_radius}, \emph{sun_row_col}, \emph{sky_points} and
 \emph{zenith_dn.}
 }
 \description{
@@ -26,12 +26,3 @@ Read manual input stored in an HSP project.
 Refer to the Details section of function
 \code{\link[=write_sky_points]{write_sky_points()}}.
 }
-\seealso{
-Other HSP Functions: 
-\code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sky_points}()},
-\code{\link{write_sun_coord}()},
-\code{\link{zenith_azimuth_from_row_col}()}
-}
-\concept{HSP Functions}

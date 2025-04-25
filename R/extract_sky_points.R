@@ -20,8 +20,6 @@
 #'   distance to a black pixel can be set as a constraint. Useful to avoid mixed
 #'   pixels since they are close to the silhouette contour.
 #'
-#'
-#' @family Tool Functions
 #' @seealso [fit_cie_sky_model()]
 #'
 #' @return An object of the class *data.frame* with two columns named
@@ -38,7 +36,7 @@
 #' m <- !is.na(z)
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
-#' mx <- optim_normalize(caim, bin)
+#' mx <- optim_max(caim, bin)
 #' caim <- normalize_minmax(caim, 0, mx, TRUE)
 #' plotRGB(caim*255)
 #' sky_blue <- polarLAB(50, 17, 293)

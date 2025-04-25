@@ -6,10 +6,9 @@
 #' [write_sky_points()].
 #'
 #' @inheritParams write_sky_points
-#' @family HSP Functions
 #'
 #' @return A list of numeric vectors named *weight*, *max_points*,
-#'   *angle*, *point_radius*, *sun_coord*, *sky_points* and
+#'   *angle*, *point_radius*, *sun_row_col*, *sky_points* and
 #'   *zenith_dn.*
 #'
 #' @export
@@ -30,7 +29,7 @@ read_manual_input <- function(path_to_HSP_project, img_name) {
   sun <- scan(file, "character")
   sun <- strsplit(sun, "\\.") %>% unlist() %>% as.numeric()
   sun_mark <- list()
-  sun_mark$row_col <- rev(sun)
+  sun_row_col <- rev(sun)
 
   files <- dir(file.path(path_to_HSP_project, "manipulate"),
                pattern = "points", full.names = TRUE)
@@ -55,7 +54,7 @@ read_manual_input <- function(path_to_HSP_project, img_name) {
        max_points = settings[2,2] %>% as.numeric(),
        angle = settings[3,2] %>% as.numeric(),
        point_radius = settings[4,2] %>% as.numeric(),
-       sun_coord = sun_mark,
+       sun_row_col = sun_row_col,
        sky_points = sky_marks,
        zenith_dn = zenith_dn)
 }

@@ -62,19 +62,3 @@ For obtaining the projection of a new lens, refer to
 # Nikon D50 and Fisheye Nikkor 10.5mm lens
 calc_diameter(lens("Nikkor_10.5mm"), 1202, 54)
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{calibrate_lens}()},
-\code{\link{crosscalibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{fisheye_to_pano}()},
-\code{\link{lens}()},
-\code{\link{test_lens_coef}()},
-\code{\link{zenith_image}()}
-}
-\concept{Lens Functions}

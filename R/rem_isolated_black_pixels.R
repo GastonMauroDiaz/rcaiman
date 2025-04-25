@@ -4,7 +4,7 @@
 #'
 #' @returns An object of class [SpatRaster-class] with values `0` and `1`.
 #' @export
-#' @family Binarization Functions
+#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

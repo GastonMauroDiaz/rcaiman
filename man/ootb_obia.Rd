@@ -103,13 +103,3 @@ plot(bin)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Binarization Functions: 
-\code{\link{apply_thr}()},
-\code{\link{obia}()},
-\code{\link{regional_thresholding}()},
-\code{\link{rem_isolated_black_pixels}()},
-\code{\link{thr_isodata}()},
-\code{\link{thr_mblt}()}
-}
-\concept{Binarization Functions}

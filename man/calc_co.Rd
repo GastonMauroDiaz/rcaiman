@@ -70,4 +70,3 @@ calc_co(bin, z, a, m, 10)
 \references{
 \insertAllCited{}
 }
-\concept{Metrics Functions}

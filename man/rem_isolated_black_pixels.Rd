@@ -32,13 +32,3 @@ plot(bin2)
 plot(bin2 - bin)
 }
 }
-\seealso{
-Other Binarization Functions: 
-\code{\link{apply_thr}()},
-\code{\link{obia}()},
-\code{\link{ootb_obia}()},
-\code{\link{regional_thresholding}()},
-\code{\link{thr_isodata}()},
-\code{\link{thr_mblt}()}
-}
-\concept{Binarization Functions}

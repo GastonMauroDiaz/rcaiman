@@ -10,11 +10,7 @@
 #' @inheritParams extract_dn
 #' @param ootb_sky An object of the class `list` that is the result of calling
 #'   [ootb_fit_cie_sky_model()].
-#' @param rmax_tune Numeric vector of length one. It must be a positive integer.
-#'   It is used to fine tune the `rmax` argument that is computed internally
-#'   (see Details).
-#'
-#' @family Sky Reconstruction Functions
+#' @param size Numeric vector of length one.
 #'
 #' @return An object of class [SpatRaster-class].
 #'
@@ -53,10 +49,9 @@
 #' plot(sky$sky)
 #' }
 ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
-                                  rmax_tune = 1, use_window = TRUE) {
+                                  size = 100,
+                                  use_window = TRUE) {
   .check_if_r_z_and_a_are_ok(r, z, a)
-  stopifnot(length(rmax_tune) == 1)
-  stopifnot(rmax_tune > 0)
 
   model <- ootb_sky$model
   sky_cie <- ootb_sky$sky
@@ -73,33 +68,28 @@ ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   p <- abs(model$coef[1]) + log(model$coef[3]+1)
   p <- 2 + sqrt(p)
 
-  i <- grDevices::chull(sky_points$col, nrow(r) - sky_points$row)
-  obs <- extract_dn(r, sky_points[i, ])[,3]
-  est <- extract_dn(sky_cie, sky_points[i, ])[,3]
-  res <- obs - est
+  stopifnot(k <= nrow(sky_points))
 
-  rmax <- pmax(ncol(r)/14,
-               ncol(r)/7 * (1 - stats::median(res)/max(obs))) %>% round()
-  rmax <- rmax * rmax_tune
+  # L2010
+  sky_points2 <- expand_sky_points(r, z, a, sky_points,
+                                   sky_model =  sky_cie,
+                                   k = k,
+                                   p = p,
+                                   w = w,
+                                   rule = "any",
+                                   chi_max = 20,
+                                   size = size)
+  sky <-  interpolate_sky_points(sky_points2[!sky_points2$initial, ], r,
+                                 k = 1, p = 1,
+                                 rmax = ncol(r)/size + 1,
+                                 col_id = "dn")
+  sky[is.na(z)] <- NA
 
-  # extract and interpolate
-  sky_points <- extract_dn(r, sky_points, use_window = use_window)
-  sky <- interpolate_sky_points(sky_points, r, k = k, p = p,
-                                rmax = rmax * rmax_tune, col_id = 3)
-
-  # merge
-  sky <- sky * (1 - w) + sky_cie * w
-  sky <- terra::cover(sky, sky_cie)
-  names(sky) <- paste0("Weighted average, ",
-                       "w=", round(w, 2), ", ",
-                       "k=", k, ", ",
-                       "p=", round(p, 2), ", ",
-                       "rmax=", rmax)
+  names(sky) <- "Sky vault"
 
   list(sky = sky,
        w = w,
        k=  k,
-       p = p,
-       rmax = rmax)
+       p = p)
 }
 

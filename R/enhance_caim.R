@@ -52,7 +52,7 @@
 #'
 #' @export
 #' @references \insertAllCited{}
-#' @family Pre-processing Functions
+#'
 #' @return An object of class [SpatRaster-class] (with same pixel dimensions
 #'   than `caim`) that should show more contrast between the sky and plant
 #'   pixels than any of the individual bands from `caim`; if not, different
@@ -69,7 +69,7 @@
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
-#' mx <- optim_normalize(caim, bin)
+#' mx <- optim_max(caim, bin)
 #' mn <- min(caim[m])
 #'
 #' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)

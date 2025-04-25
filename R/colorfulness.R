@@ -20,7 +20,6 @@
 #'
 #' @return A numeric vector of length one.
 #'
-#' @family Tool Functions
 #' @export
 #'
 #' @references \insertAllCited{}

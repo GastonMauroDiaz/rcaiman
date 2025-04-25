@@ -20,9 +20,6 @@
 #'   unchanged but values rescaled between `0` and `1` in a non-linear fashion.
 #' @export
 #'
-#' @family Pre-processing Functions
-#'
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

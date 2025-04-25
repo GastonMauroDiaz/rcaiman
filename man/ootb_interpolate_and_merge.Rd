@@ -10,7 +10,7 @@ ootb_interpolate_and_merge(
   a,
   sky_points,
   ootb_sky,
-  rmax_tune = 1,
+  size = 100,
   use_window = TRUE
 )
 }
@@ -28,9 +28,7 @@ or an object of the same class and structure.}
 \item{ootb_sky}{An object of the class \code{list} that is the result of calling
 \code{\link[=ootb_fit_cie_sky_model]{ootb_fit_cie_sky_model()}}.}
 
-\item{rmax_tune}{Numeric vector of length one. It must be a positive integer.
-It is used to fine tune the \code{rmax} argument that is computed internally
-(see Details).}
+\item{size}{Numeric vector of length one.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
 \times 3} pixels will be used to extract the digital number from \code{r}.}
@@ -77,13 +75,3 @@ plot(sky$sky)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_image}()},
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()}
-}
-\concept{Sky Reconstruction Functions}

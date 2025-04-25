@@ -9,8 +9,6 @@
 #'
 #' @export
 #'
-#' @family Segmentation Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

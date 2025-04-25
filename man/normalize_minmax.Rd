@@ -39,11 +39,3 @@ histogram.
 \examples{
 normalize_minmax(read_caim())
 }
-\seealso{
-Other Pre-processing Functions: 
-\code{\link{enhance_caim}()},
-\code{\link{gbc}()},
-\code{\link{local_fuzzy_thresholding}()},
-\code{\link{membership_to_color}()}
-}
-\concept{Pre-processing Functions}

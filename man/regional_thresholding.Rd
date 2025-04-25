@@ -17,9 +17,6 @@ preferred choice for fisheye images.}
 
 \item{method}{Character vector of length one. See details for current
 options.}
-
-\item{prob}{Numeric vector of length one. Probability for \code{\link[stats:quantile]{stats::quantile()}}
-calculation.}
 }
 \value{
 An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
@@ -55,13 +52,3 @@ plot(bin)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Binarization Functions: 
-\code{\link{apply_thr}()},
-\code{\link{obia}()},
-\code{\link{ootb_obia}()},
-\code{\link{rem_isolated_black_pixels}()},
-\code{\link{thr_isodata}()},
-\code{\link{thr_mblt}()}
-}
-\concept{Binarization Functions}

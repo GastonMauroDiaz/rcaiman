@@ -8,7 +8,6 @@
 #'
 #' @export
 #'
-#' @family Lens Functions
 calc_relative_radius <- function(angle, lens_coef) {
 
   angle <- .degree2radian(angle)

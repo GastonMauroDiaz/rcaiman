@@ -9,8 +9,6 @@
 #'
 #' @return No return value. Called for side effects.
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' \dontrun{
 #' z <- zenith_image(1000, lens())

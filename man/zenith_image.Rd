@@ -28,19 +28,3 @@ hemispherical photography with the optical axis vertically aligned.
 z <- zenith_image(600, lens("Nikon_FCE9"))
 plot(z)
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_diameter}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{calibrate_lens}()},
-\code{\link{crosscalibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{fisheye_to_pano}()},
-\code{\link{lens}()},
-\code{\link{test_lens_coef}()}
-}
-\concept{Lens Functions}

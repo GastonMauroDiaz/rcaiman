@@ -8,8 +8,6 @@
 #'
 #' @return An object from class [SpatRaster-class].
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' \dontrun{
 #' z <- zenith_image(1000, lens())

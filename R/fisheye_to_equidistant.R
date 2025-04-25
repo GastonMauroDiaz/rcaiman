@@ -21,8 +21,6 @@
 #'
 #' @export
 #'
-#' @family Lens Functions
-#'
 #' @examples
 #' \dontrun{
 #' path <- system.file("external/APC_0581.jpg", package = "rcaiman")

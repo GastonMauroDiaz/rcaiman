@@ -45,8 +45,6 @@
 #'
 #' @return The argument `sky_points` with fewer rows due to outlier removal.
 #'
-#' @family Tool Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @export

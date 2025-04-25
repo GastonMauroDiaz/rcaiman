@@ -1,21 +1,18 @@
 #' Obtain zenith and azimuth angles from row and col numbers
 #'
-#' @note
-#' Use the `lens_coef` argument to calculate coordinates below the horizon.
 #'
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams zenith_image
-#' @param row_col Numeric vector of length two. Row and col numbers.
+#' @param row,col Numeric vector. Row or column numbers.
 #'
 #' @export
 #'
-#' @family HSP Functions
-#' @return Numeric vector of length two.
+#' @return An object of the class _data.frame_.
 #' @examples
 #' z <- zenith_image(1000, lens())
 #' a <- azimuth_image(z)
-#' zenith_azimuth_from_row_col(z, a, c(501, 750))
-zenith_azimuth_from_row_col <- function(z, a, row_col, lens_coef = NULL) {
+#' zenith_azimuth_from_row_col(z, a, 499, 751)
+zenith_azimuth_from_row_col <- function(z, a, row, col) {
 
   .is_single_layer_raster(z, "z")
   .is_single_layer_raster(a, "a")
@@ -23,33 +20,41 @@ zenith_azimuth_from_row_col <- function(z, a, row_col, lens_coef = NULL) {
   stopifnot(.get_max(z) <= 90)
   stopifnot(.get_max(a) <= 360)
   terra::compareGeom(z, a)
-  stopifnot(is.numeric(row_col))
-  stopifnot(length(row_col) == 2)
+  stopifnot(length(row) == length(col))
 
-  v <- cellFromRowCol(z, row_col[1], row_col[2]) %>%
-    xyFromCell(z, .) %>% vect()
+  i <- terra::cellFromRowCol(z, row, col)
+  u <- is.na(z[i])[,]
 
-  if (is.null(lens_coef)) {
-    l <- list(c(terra::extract(z, v)[1,2],
-                terra::extract(a, v)[1,2]), row_col)
+  if (any(u)) {
+    size <- 100
+    sky_points <- expand.grid(row = seq(1, nrow(z), length.out = size) %>%
+                                round(),
+                              col = seq(1, nrow(z), length.out = size) %>%
+                                round())
+    sky_points <- extract_dn(z, sky_points, use_window = FALSE)
+    sky_points <- sky_points[!is.na(sky_points[,3]), c("row", "col")]
+    sky_points <- extract_rel_radiance(z, z, a, sky_points,
+                                       use_window = FALSE)$sky_points
+
+    fit <- spatial::surf.ls(x = sky_points[, "row"],
+                            y = sky_points[, "col"],
+                            z = sky_points[, "z"],
+                            np = 3)
+    zenith <- predict(fit, row, col) %>% round()
+
+    fit <- spatial::surf.ls(x = sky_points[, "row"],
+                            y = sky_points[, "col"],
+                            z = sky_points[, "a"],
+                            np = 3)
+    azimuth <- predict(fit, row, col) %>% round()
+
+    i <- i[!u]
+    zenith[!u] <- z[i][,]
+    azimuth[!u] <- a[i][,]
   } else {
-    z <- terra::deepcopy(z)
-
-    #get azimuth
-    e <- terra::ext(z)
-    terra::ext(z) <- terra::ext(-pi/2,pi/2,-pi/2,pi/2)
-    xy <- terra::cellFromRowCol(z, row_col[1], row_col[2]) %>%
-      terra::xyFromCell(z, .)
-    tr <- pracma::cart2pol(as.numeric(xy))
-    #get relative radius
-    rr <- tr[2] * 2/pi
-    #invert
-    zs <- seq(0,150, 0.1)
-    rrs <- calc_relative_radius(zs, lens_coef)
-    z_from_rr <- suppressWarnings(splinefun(rrs, zs))
-    zenith <- z_from_rr(rr)
-    l <- list(c(zenith, terra::extract(a, v)[1,2]), row_col)
+    zenith <- z[i][,]
+    azimuth <- a[i][,]
   }
-  names(l) <- c("zenith_azimuth", "row_col")
-  l
+
+  data.frame(zenith, azimuth)
 }

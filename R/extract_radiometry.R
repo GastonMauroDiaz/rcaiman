@@ -139,7 +139,6 @@
 #'   considering the equidistant projection distortion. Therefore, it will be
 #'   visualized as an ellipse at any other place but the image center.
 #'
-#' @family Lens Functions
 #'
 #' @references \insertAllCited{}
 #'

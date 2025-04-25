@@ -13,7 +13,7 @@
 #'   color. If `r` is a single layer image, then the layer is triplicated
 #'   to allow the use of color.
 #' @export
-#' @family Tool Functions
+#'
 #' @seealso [select_sky_vault_region()]
 #'
 #'

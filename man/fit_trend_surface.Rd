@@ -4,7 +4,7 @@
 \alias{fit_trend_surface}
 \title{Fit a trend surface to sky digital numbers}
 \usage{
-fit_trend_surface(sky_points, r, np = 6, col_id = "rr")
+fit_trend_surface(sky_points, r, np = 6, col_id = "dn")
 }
 \arguments{
 \item{sky_points}{An object of class \emph{data.frame}. The data.frame returned by
@@ -51,7 +51,7 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
-mx <- optim_normalize(caim, bin)
+mx <- optim_max(caim, bin)
 caim <- normalize_minmax(caim, 0, mx, TRUE)
 
 sky_blue <- polarLAB(50, 17, 293)
@@ -92,13 +92,4 @@ apply_thr(r/sky_s$raster, 0.5) \%>\% plot()
 }
 \seealso{
 \code{\link[=thr_mblt]{thr_mblt()}}
-
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_image}()},
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()},
-\code{\link{ootb_interpolate_and_merge}()}
 }
-\concept{Sky Reconstruction Functions}

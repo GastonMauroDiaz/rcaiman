@@ -10,8 +10,6 @@
 #'
 #' @return No return value. Called for side effects.
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim() %>% normalize_minmax(., 0, 255)

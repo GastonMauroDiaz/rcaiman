@@ -22,8 +22,6 @@
 #'   at the screen---; finally, put it down and compare both compass roses.
 #' @export
 #'
-#' @family Lens Functions
-#'
 #' @examples
 #' z <- zenith_image(600, lens("Nikon_FCE9"))
 #' a <- azimuth_image(z)

@@ -32,14 +32,3 @@ a <- azimuth_image(z)
 sectors <- sectors_segmentation(a, 15)
 plot(sectors == 1)
 }
-\seealso{
-Other Segmentation Functions: 
-\code{\link{chessboard}()},
-\code{\link{mask_sunlit_canopy}()},
-\code{\link{polar_qtree}()},
-\code{\link{qtree}()},
-\code{\link{rings_segmentation}()},
-\code{\link{select_sky_vault_region}()},
-\code{\link{sky_grid_segmentation}()}
-}
-\concept{Segmentation Functions}

@@ -25,7 +25,6 @@
 #'   relative radiance
 #' @export
 #'
-#' @family Sky Reconstruction Functions
 #' @seealso [thr_mblt()]
 #'
 #' @references \insertAllCited{}
@@ -39,7 +38,7 @@
 #' m <- !is.na(z)
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
-#' mx <- optim_normalize(caim, bin)
+#' mx <- optim_max(caim, bin)
 #' caim <- normalize_minmax(caim, 0, mx, TRUE)
 #'
 #' sky_blue <- polarLAB(50, 17, 293)

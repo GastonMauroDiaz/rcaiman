@@ -11,8 +11,6 @@
 #' @returns Numeric vector of length one.
 #' @export
 #'
-#' @family Tool Functions
-#'
 optim_dist_to_black <- function(r, z, a, m, bin, g) {
   g30 <- sky_grid_segmentation(z, a, 30)
   g30[!m] <- 0

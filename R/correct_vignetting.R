@@ -11,7 +11,6 @@
 #' @return The argument `r` but with corrected values.
 #' @export
 #'
-#' @family Tool Functions
 #' @examples
 #' \dontrun{
 #' path <- system.file("external/APC_0581.jpg", package = "rcaiman")

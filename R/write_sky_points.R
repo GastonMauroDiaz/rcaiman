@@ -29,8 +29,11 @@
 #' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #' bin <- select_sky_vault_region(z, 0, 85) & bin
 #'
-#' sun_coord <- extract_sun_coord(r, z, a, bin, g)
-#' write_sun_coord(sun_coord$row_col, ".", "IMG_1014")
+#' sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g)
+#' sun_row_col <- row_col_from_zenith_azimuth(z, a,
+#'                                            sun_zenith_azimuth[1],
+#'                                            sun_zenith_azimuth[2])
+#' write_sun_coord(sun_row_col, ".", "IMG_1014")
 #'
 #' sky_points <- extract_sky_points(r, bin, g)
 #' write_sky_points(sky_points, ".", "IMG_1014")
@@ -43,8 +46,6 @@
 #'   "C:/Users/johndoe/Documents/HSP/Projects/my_prj/".
 #' @param img_name Character vector of length one. For instance, "DSCN6342.pgm"
 #'   or "DSCN6342". See details.
-#'
-#' @family HSP Functions
 #'
 #' @references \insertAllCited{}
 #'

@@ -7,8 +7,6 @@
 #'   values.
 #' @export
 #'
-#' @family Segmentation Functions
-#'
 #' @examples
 #' caim <- read_caim()
 #' seg <- chessboard(caim, 20)

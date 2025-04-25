@@ -1,7 +1,8 @@
 #' Calculate spherical distance
 #'
 #' Calculate angles in radians between objects in the sky, which are
-#' proportional to distances on a conceptual sky vault.
+#' proportional to the shortest distances between then over a conceptual sky
+#' vault.
 #'
 #' @param z1 Numeric vector. Zenithal angle in radians.
 #' @param a1 Numeric vector. Azimuthal angle in radians.
@@ -9,7 +10,6 @@
 #' @param a2 Numeric vector of length one. Azimuthal angle in radians.
 #'
 #' @returns Numeric vector.
-#' @family Tool Functions
 #' @export
 #'
 #' @examples

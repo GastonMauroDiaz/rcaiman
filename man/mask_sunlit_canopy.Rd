@@ -33,14 +33,3 @@ plot(m)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Segmentation Functions: 
-\code{\link{chessboard}()},
-\code{\link{polar_qtree}()},
-\code{\link{qtree}()},
-\code{\link{rings_segmentation}()},
-\code{\link{sectors_segmentation}()},
-\code{\link{select_sky_vault_region}()},
-\code{\link{sky_grid_segmentation}()}
-}
-\concept{Segmentation Functions}

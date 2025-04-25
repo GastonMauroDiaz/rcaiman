@@ -48,11 +48,14 @@ plot(r)
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
-mblt <- ootb_mblt(r, z, a)$bin
+bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 bin <- select_sky_vault_region(z, 0, 85) & bin
 
-sun_coord <- extract_sun_coord(r, z, a, bin, g)
-write_sun_coord(sun_coord$row_col, ".", "IMG_1014")
+sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g)
+sun_row_col <- row_col_from_zenith_azimuth(z, a,
+                                           sun_zenith_azimuth[1],
+                                           sun_zenith_azimuth[2])
+write_sun_coord(sun_row_col, ".", "IMG_1014")
 
 sky_points <- extract_sky_points(r, bin, g)
 write_sky_points(sky_points, ".", "IMG_1014")
@@ -61,12 +64,3 @@ write_sky_points(sky_points, ".", "IMG_1014")
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other HSP Functions: 
-\code{\link{read_manual_input}()},
-\code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sun_coord}()},
-\code{\link{zenith_azimuth_from_row_col}()}
-}
-\concept{HSP Functions}

@@ -38,10 +38,7 @@ number values.
 }
 }
 \description{
-This function is a hard-coded version of a pipeline that uses these main
-functions \code{\link[=extract_sun_coord]{extract_sun_coord()}}, \code{\link[=extract_sky_points]{extract_sky_points()}}, \code{\link[=sor_filter]{sor_filter()}},
-\code{\link[=extract_rel_radiance]{extract_rel_radiance()}}, \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}, and
-\code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
+Out-of-the-box fit CIE sky model
 }
 \details{
 This function is part of the efforts to automate the method proposed by
@@ -60,14 +57,13 @@ r <- caim$Blue
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
 g <- sky_grid_segmentation(z, a, 10)
-sun_coord <- extract_sun_coord(r, z, a, bin, g)
-sun_coord$zenith_azimuth
+sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g)
 
-.a <- azimuth_image(z, orientation = sun_coord$zenith_azimuth[2]+90)
+.a <- azimuth_image(z, orientation = sun_zenith_azimuth[2] + 90)
 seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
 bin <- regional_thresholding(r, seg, method = "thr_isodata")
 
-mx <- optim_normalize(caim, bin)
+mx <- optim_max(caim, bin)
 caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
@@ -98,13 +94,3 @@ points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_image}()},
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_interpolate_and_merge}()}
-}
-\concept{Sky Reconstruction Functions}

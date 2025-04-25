@@ -8,8 +8,6 @@
 #' @return Numeric vector of lenght one.
 #' @export
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' r <- read_caim()$Blue
 #' z <- zenith_image(ncol(r), lens())

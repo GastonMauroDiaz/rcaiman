@@ -18,8 +18,6 @@
 #' @param ignore_label_0 Logical vector of length one. If this is `TRUE`,
 #'   the segment labeled with `0` will be ignored.
 #'
-#' @family Tool Functions
-#'
 #' @export
 #'
 #' @return If `return_raster` is set to `TRUE`, then an object of

@@ -6,7 +6,7 @@
 \usage{
 fit_cie_sky_model(
   rr,
-  sun_coord,
+  sun_zenith_azimuth,
   custom_sky_coef = NULL,
   std_sky_no = NULL,
   general_sky_type = NULL,
@@ -16,13 +16,13 @@ fit_cie_sky_model(
 )
 }
 \arguments{
-\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or an
-object with same structure and names.}
+\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}
+or an object with same structure and names.}
 
-\item{sun_coord}{An object of class \emph{list}. The output of
-\code{\link[=extract_sun_coord]{extract_sun_coord()}} or an object with same structure and names. See also
-\code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values based on
-date and time of acquisition and the \code{suncalc} package.}
+\item{sun_zenith_azimuth}{Numeric vector of lenght two. See
+\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}. See also \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in
+case you want to provide values based on date and time of acquisition and
+the \code{suncalc} package.}
 
 \item{custom_sky_coef}{Numeric vector of length five or a numeric matrix with
 five columns. Custom starting coefficients of the sky model. By default,
@@ -36,16 +36,15 @@ these: \code{"Overcast"}, \code{"Clear"}, or \code{"Partly cloudy"}. See Table 1
 \insertCite{Li2016;textual}{rcaiman} for additional details.}
 
 \item{twilight}{Numeric vector of length one. Sun zenith angle (in degrees).
-If the sun zenith angle provided through the \code{sun_coord} argument is below
-this value, sun zenith angles from 85 to 96 degrees will be tested when
-selecting initial optimization parameters from the general sky types
-\emph{Clear} or \emph{Partially Cloudy} (specifically, for standard sky numbers 7 to
-15). This adjustment is necessary because \code{\link[=extract_sun_coord]{extract_sun_coord()}} can
-mistakenly identify the visible center of the solar corona as the solar
-disk. Since \code{\link[=extract_sun_coord]{extract_sun_coord()}} cannot output a zenith angle below 90
-degrees, setting this value to 90 is equivalent to disabling this step.
-Actually, \code{\link[=extract_sun_coord]{extract_sun_coord()}} cannot output a value very close to 90,
-therefore the testing start at 85, civic twilight is from 90 to 96 degrees.}
+If the sun zenith angle provided through the \code{sun_zenith_azimuth} argument
+is below this value, sun zenith angles from this value to 96 degrees will
+be tested when selecting initial optimization parameters from the general
+sky types \emph{Clear} or \emph{Partially Cloudy} (specifically, for standard sky
+numbers 7 to 15). This adjustment is necessary because
+\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}} can mistakenly identify the visible center
+of the solar corona as the solar disk. Since \code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}
+cannot output a zenith angle below 90 degrees, setting this value to 90 is
+equivalent to disabling this step. Civic twilight is from 90 to 96 degrees.}
 
 \item{method}{The method to be used. See \sQuote{Details}.  Can be abbreviated.}
 
@@ -88,17 +87,19 @@ folder.
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 manual_input <- read_manual_input(".", "IMG_1013" )
-sun_coord <- manual_input$sun_coord$row_col
-sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
+sun_row_col <- manual_input$sun_row_col
+sun_zenith_azimuth <- zenith_azimuth_from_row_col(z, a,
+                                                  sun_row_col[1],
+                                                  sun_row_col[2])
 sky_points <- manual_input$sky_points
 rr <- extract_rel_radiance(r, z, a, sky_points)
-model <- fit_cie_sky_model(rr, sun_coord)
+model <- fit_cie_sky_model(rr, sun_zenith_azimuth)
 cie_sky <- model$relative_luminance * model$zenith_dn
 plot(r/cie_sky)
 
 r <- read_caim("manipulate/IMG_1013.pgm")
 sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-cie_sky_m <- cie_sky_image(z, a, sun_coord$zenith_azimuth, sky_coef)
+cie_sky_m <- cie_sky_image(z, a, sun_zenith_azimuth, sky_coef)
 cie_sky_m <- cie_sky_manual * manual_input$zenith_dn
 plot(r/cie_sky_m)
 }\if{html}{\out{</div>}}
@@ -155,40 +156,41 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
-sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
-points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
-       col = 3, pch = 1)
+# x11()
+# plot(caim$Blue)
+# sun_zenith_azimuth <- click(c(z, a), 1) \%>\% unname()
+sun_zenith_azimuth <- c(49.5, 27.42481) #taken with above lines then hardcoded
+
+sun_row_col <- row_col_from_zenith_azimuth(z, a,
+                                           sun_zenith_azimuth[1],
+                                           sun_zenith_azimuth[2])
+points(sun_row_col[2], nrow(caim) - sun_row_col[1], col = 3, pch = 1)
 
 rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 
 set.seed(7)
-model <- fit_cie_sky_model(rr, sun_coord,
+model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
                            general_sky_type = "Clear",
                            twilight = 90,
-                           method = "CG")
-summary(model$mle2_output)
+                           method = "BFGS", loss = "MAE")
+
+model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
+                           custom_sky_coef = model$coef,
+                           twilight = 90,
+                           method = "BFGS", loss = "RMSE")
+
 plot(model$obs, model$pred)
 abline(0,1)
 lm(model$pred~model$obs) \%>\% summary()
 
 sky_cie <- cie_sky_image(z, a,
-                                model$sun_coord$zenith_azimuth,
-                                model$coef) * model$zenith_dn
+                         model$sun_zenith_azimuth,
+                         model$coef) * model$zenith_dn
 plot(sky_cie)
 plot(caim$Blue/sky_cie)
+plot(caim$Blue/sky_cie>1.15)
 }
 }
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_image}()},
-\code{\link{fit_coneshaped_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()},
-\code{\link{ootb_interpolate_and_merge}()}
-}
-\concept{Sky Reconstruction Functions}

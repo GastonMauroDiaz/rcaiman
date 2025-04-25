@@ -39,8 +39,6 @@
 #' @return [SpatRaster-class].
 #' @export
 #'
-#' @family Binarization Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

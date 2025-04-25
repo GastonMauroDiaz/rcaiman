@@ -4,16 +4,21 @@
 \alias{validate_cie_sky_model}
 \title{Validate CIE sky models}
 \usage{
-validate_cie_sky_model(model, rr, k = 10)
+validate_cie_sky_model(model, rr, k = 10, loss = "MAE")
 }
 \arguments{
 \item{model}{An object of the class \emph{list}. The output of
 \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.}
 
-\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or an
-object with same structure and names.}
+\item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}
+or an object with same structure and names.}
 
 \item{k}{Numeric vector of length ones. Number of folds.}
+
+\item{loss}{Character vector of length one. Specifies the error metric to
+use. Options are \code{"MAE"} (Mean Absolute Error) or \code{"RMSE"} (Root Mean
+Squared Error). Defaults to \code{"MAE"}. \code{"MAE"} is more robust to inaccurate
+sky points and outliers, such as those found in cloudy skies.}
 }
 \value{
 A \emph{list} with the following components:
@@ -56,14 +61,13 @@ plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
-sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
-points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
-       col = 3, pch = 1)
+points(nrow(z) - xy[2], xy[1], col = 3, pch = 1)
+sun_zenith_azimuth <- zenith_azimuth_from_row_col(z, a, nrow(z) - xy[2],xy[1])
 
 rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 
 set.seed(7)
-model <- fit_cie_sky_model(rr, sun_coord,
+model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
                            general_sky_type = "Clear",
                            twilight = FALSE,
                            method = "CG")
@@ -75,4 +79,3 @@ model_validation$rmse
 \references{
 \insertAllCited{}
 }
-\concept{Tool Functions Functions}

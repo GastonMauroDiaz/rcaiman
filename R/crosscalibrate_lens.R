@@ -39,7 +39,6 @@
 #'   (`coefficients(model)/horizon_radius`).
 #'
 #' @export
-#' @family Lens Functions
 crosscalibrate_lens <- function(path_to_csv_uncal,
                            path_to_csv_cal,
                            zenith_colrow_uncal,

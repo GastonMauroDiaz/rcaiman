@@ -9,10 +9,14 @@ expand_sky_points(
   z,
   a,
   sky_points,
-  angle_width = 3,
-  k = 20,
-  p = 2,
-  rmax = 20
+  sky_model,
+  k,
+  p,
+  chi_max = 20,
+  w = 1,
+  size = 50,
+  rule = "any",
+  use_window = TRUE
 )
 }
 \arguments{
@@ -25,22 +29,24 @@ expand_sky_points(
 \item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
 or an object of the same class and structure.}
 
-\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
-constrain is rooted in the requirement of a value able to divide both the
-\code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
-of segments.}
+\item{sky_model}{Single-layer \linkS4class{SpatRaster} or \code{NULL}.}
 
 \item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
 
 \item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
 
-\item{rmax}{Numeric vector of length one. The maximum radius for searching
-k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
-similar to the use of relative radius in image mapping. The spherical
-distance is then calculated and used to filter out points farther than
-\code{rmax}.The distance is expressed in degrees. If an insufficient number of
-neighbors are found within the search radius, the point is retained due to
-a lack of evidence for removal.}
+\item{chi_max}{Numeric vector of length one. Maximum spherical distance (in
+degrees) to search for nearest neighbors.}
+
+\item{w}{Numeric vector of length one. Weight parameter for the sky model.}
+
+\item{size}{Numeric vector of length one. Number of rows and colums of the
+planar grid that will be the skeleton for expanding the points.}
+
+\item{rule}{Character vector of length one. Either \code{"any"} or \code{"all"}.}
+
+\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
+\times 3} pixels will be used to extract the digital number from \code{r}.}
 }
 \value{
 An object of the class \emph{data.frame}. It is the input argument
@@ -57,7 +63,8 @@ An object of the class \emph{data.frame}. It is the input argument
 }
 }
 \description{
-Expand sky points using a \emph{k} nearest neighbors approach
+Expand sky points using a \emph{k} nearest neighbors approach and IDW
+interpolation. Equation 6 from Lang et al. 2006
 }
 \examples{
 \dontrun{
@@ -67,46 +74,28 @@ bin <- apply_thr(r, thr_isodata(r[]))
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-# See fit_cie_sky_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-plot(bin)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-sky_points2 <- expand_sky_points(r, z, a, sky_points, k = 3, angle_width = 5)
+path <- system.file("external/ootb_sky.txt", package = "rcaiman")
+ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
+
+sky_points <- ootb_sky$sky_points
+
+size <- 200
+sky_points2 <- expand_sky_points(r, z, a, sky_points,
+                                 sky_model =  ootb_sky$sky,
+                                 k = 10,
+                                 p = 2,
+                                 w = 1,
+                                 rule = "any",
+                                 chi_max = 20,
+                                 size = size)
 plot(bin)
 points(sky_points2$col, nrow(caim) - sky_points2$row, col = 2, pch = 10)
+
+sky <-  interpolate_sky_points(sky_points2, r, k = 1, p = 1,
+                               rmax = ncol(r)/size + 1,
+                               col_id = "dn")
+sky[is.na(z)] <- NA
+plot(sky)
 }
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{calc_spherical_distance}()},
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rel_radiance}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{vicinity_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

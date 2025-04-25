@@ -13,8 +13,6 @@
 #'
 #' @references \insertAllCited{}
 #'
-#' @family Lens Functions
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

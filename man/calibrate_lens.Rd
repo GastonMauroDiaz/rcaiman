@@ -130,19 +130,3 @@ lines(theta, .fp(theta, coefficients(calibration$model)))
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_diameter}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{crosscalibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{fisheye_to_pano}()},
-\code{\link{lens}()},
-\code{\link{test_lens_coef}()},
-\code{\link{zenith_image}()}
-}
-\concept{Lens Functions}

@@ -36,7 +36,7 @@
 #'   `caim`. Depending on `mem`, changes could be subtle.
 #'
 #' @export
-#' @family Pre-processing Functions
+#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

@@ -44,14 +44,4 @@ plot(select_sky_vault_region(z, 0, 90))
 }
 \seealso{
 \code{\link[=masking]{masking()}}
-
-Other Segmentation Functions: 
-\code{\link{chessboard}()},
-\code{\link{mask_sunlit_canopy}()},
-\code{\link{polar_qtree}()},
-\code{\link{qtree}()},
-\code{\link{rings_segmentation}()},
-\code{\link{sectors_segmentation}()},
-\code{\link{sky_grid_segmentation}()}
 }
-\concept{Segmentation Functions}

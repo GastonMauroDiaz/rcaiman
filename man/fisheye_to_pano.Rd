@@ -40,19 +40,3 @@ plotRGB(pano \%>\% normalize_minmax() \%>\% multiply_by(255))
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_diameter}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{calibrate_lens}()},
-\code{\link{crosscalibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{lens}()},
-\code{\link{test_lens_coef}()},
-\code{\link{zenith_image}()}
-}
-\concept{Lens Functions}

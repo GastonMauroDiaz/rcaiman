@@ -29,8 +29,6 @@
 #' dropdown menu Analyze>Measure to open the Results window. To obtain the CSV
 #' file, use File>Save As...
 #'
-#' @family Tool Functions
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
@@ -55,7 +53,7 @@
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
 #' bin <- bin & select_sky_vault_region(z, 0, 85)
-#' mx <- optim_normalize(caim, bin)
+#' mx <- optim_max(caim, bin)
 #' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' m <- !is.na(z)
 #'

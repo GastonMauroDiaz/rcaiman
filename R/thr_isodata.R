@@ -17,8 +17,6 @@
 #' @return Numeric vector of length one.
 #' @export
 #'
-#' @family Binarization Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

@@ -40,8 +40,6 @@
 #'   one, which is the lens maximum field of view in degrees. Otherwise, it
 #'   returns a numeric vector with the coefficients of the lens function.
 #'
-#' @family Lens Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

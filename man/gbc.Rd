@@ -51,11 +51,3 @@ caim <- gbc(caim, 2.2)
 \references{
 \insertAllCited{}
 }
-\seealso{
-Other Pre-processing Functions: 
-\code{\link{enhance_caim}()},
-\code{\link{local_fuzzy_thresholding}()},
-\code{\link{membership_to_color}()},
-\code{\link{normalize_minmax}()}
-}
-\concept{Pre-processing Functions}

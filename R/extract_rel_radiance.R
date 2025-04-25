@@ -25,8 +25,6 @@
 #'   therefore, *dn* and *rr* will be identical.
 #' @export
 #'
-#' @family Tool Functions
-#'
 #' @references \insertAllCited{}
 #'
 #' @examples

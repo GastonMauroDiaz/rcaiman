@@ -7,7 +7,6 @@
 #'
 #' @inheritParams write_sky_points
 #'
-#' @family HSP Functions
 #' @seealso [cie_sky_image()]
 #'
 #' @return Numeric vector of length five.

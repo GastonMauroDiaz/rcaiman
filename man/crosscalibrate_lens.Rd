@@ -58,19 +58,3 @@ should match and the optical axes should be aligned.
 
 Points should be digitized in tandem with ImageJ and saved as CSV files.
 }
-\seealso{
-Other Lens Functions: 
-\code{\link{azimuth_image}()},
-\code{\link{calc_diameter}()},
-\code{\link{calc_relative_radius}()},
-\code{\link{calc_zenith_colrow}()},
-\code{\link{calibrate_lens}()},
-\code{\link{expand_noncircular}()},
-\code{\link{extract_radiometry}()},
-\code{\link{fisheye_to_equidistant}()},
-\code{\link{fisheye_to_pano}()},
-\code{\link{lens}()},
-\code{\link{test_lens_coef}()},
-\code{\link{zenith_image}()}
-}
-\concept{Lens Functions}

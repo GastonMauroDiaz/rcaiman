@@ -14,8 +14,6 @@
 #'   shaped like concentric rings.
 #' @export
 #'
-#' @family Segmentation Functions
-#'
 #' @examples
 #' z <- zenith_image(600, lens())
 #' rings <- rings_segmentation(z, 15)

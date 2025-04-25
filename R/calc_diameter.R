@@ -47,8 +47,6 @@
 #' @param radius Numeric vector. Distance in pixels from the zenith.
 #' @param angle Numeric vector. Zenith angle in degrees.
 #'
-#' @family Lens Functions
-#'
 #' @return Numeric vector of length one. Diameter adjusted to a whole number
 #'   (see [zenith_image()] for details about that constrain).
 #'

@@ -44,7 +44,7 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
-mx <- optim_normalize(caim, bin)
+mx <- optim_max(caim, bin)
 caim <- normalize_minmax(caim, 0, mx, TRUE)
 
 sky_blue <- polarLAB(50, 17, 293)
@@ -73,13 +73,4 @@ persp(sky_cs, theta = 90, phi = 20)
 }
 \seealso{
 \code{\link[=thr_mblt]{thr_mblt()}}
-
-Other Sky Reconstruction Functions: 
-\code{\link{cie_sky_image}()},
-\code{\link{fit_cie_sky_model}()},
-\code{\link{fit_trend_surface}()},
-\code{\link{interpolate_sky_points}()},
-\code{\link{ootb_fit_cie_sky_model}()},
-\code{\link{ootb_interpolate_and_merge}()}
 }
-\concept{Sky Reconstruction Functions}

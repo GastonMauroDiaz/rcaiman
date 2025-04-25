@@ -26,7 +26,6 @@
 #'   \item A logical vector indicating is_outlier within the sky points set attached to the 'model' argument.
 #' }
 #' @export
-#' @family Tool Functions Functions
 #'
 #' @references \insertAllCited{}
 #'
@@ -47,14 +46,13 @@
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
 #' xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
-#' sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
-#' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
-#'        col = 3, pch = 1)
+#' points(nrow(z) - xy[2], xy[1], col = 3, pch = 1)
+#' sun_zenith_azimuth <- zenith_azimuth_from_row_col(z, a, nrow(z) - xy[2],xy[1])
 #'
 #' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 #'
 #' set.seed(7)
-#' model <- fit_cie_sky_model(rr, sun_coord,
+#' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
 #'                            general_sky_type = "Clear",
 #'                            twilight = FALSE,
 #'                            method = "CG")
@@ -62,7 +60,7 @@
 #' model_validation$r_squared
 #' model_validation$rmse
 #' }
-validate_cie_sky_model <- function(model, rr, k = 10) {
+validate_cie_sky_model <- function(model, rr, k = 10, loss = "MAE") {
 
   stopifnot(length(k) == 1)
   stopifnot(.is_whole(k))
@@ -83,18 +81,18 @@ validate_cie_sky_model <- function(model, rr, k = 10) {
   for (i in 1:k) {
     rr.2 <- rr
     rr.2$sky_points <- rr$sky_points[-folds[[i]],]
-    model.2 <- fit_cie_sky_model(rr.2,  model$sun_coord,
+    model.2 <- fit_cie_sky_model(rr.2,  model$sun_zenith_azimuth,
                                  custom_sky_coef = model$coef + .noise(0.1),
                                  twilight = 90,
-                                 method = model$method)
+                                 method = model$method, loss = loss)
 
     x <- c(x, .cie_sky_model(AzP = rr$sky_points[folds[[i]], "a"] %>%
                                .degree2radian(),
                              Zp = rr$sky_points[folds[[i]], "z"] %>%
                                .degree2radian(),
-                             AzS = model$sun_coord$zenith_azimuth[2] %>%
+                             AzS = model$sun_zenith_azimuth[2] %>%
                                .degree2radian(),
-                             Zs =  model$sun_coord$zenith_azimuth[1] %>%
+                             Zs =  model$sun_zenith_azimuth[1] %>%
                                .degree2radian(),
                              model$coef[1], model$coef[2], model$coef[3],
                              model$coef[4], model$coef[5]))

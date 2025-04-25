@@ -42,7 +42,6 @@
 #'   grey. Both memberships are calculated with same `sigma`.
 #'
 #' @export
-#' @family Pre-processing Functions
 #'
 #' @references \insertAllCited{}
 #'

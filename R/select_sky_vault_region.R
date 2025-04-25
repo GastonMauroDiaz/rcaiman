@@ -8,7 +8,7 @@
 #' @param from,to angle in degrees, inclusive limits.
 #'
 #' @export
-#' @family Segmentation Functions
+#'
 #' @seealso [masking()]
 #'
 #' @return An object of class [SpatRaster-class] with values `0` and

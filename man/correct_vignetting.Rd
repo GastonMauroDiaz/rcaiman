@@ -46,31 +46,3 @@ caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
 # The lens_coef_v are here coef 10.1016/j.agrformet.2024.110020
 }
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{calc_spherical_distance}()},
-\code{\link{colorfulness}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
-\code{\link{extract_dn}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rel_radiance}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{vicinity_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

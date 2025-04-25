@@ -30,8 +30,6 @@
 #'
 #' @export polar_qtree
 #'
-#' @family Segmentation Functions
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim() %>% normalize_minmax()

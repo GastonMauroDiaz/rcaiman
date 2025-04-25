@@ -1,13 +1,15 @@
-# rcaiman 1.3.2 
+# rcaiman 1.4.0 
 
 ## Breaking changes
+* `extract_sun_coord()` rename to `extract_sun_zenith_azimuth()` and now it returns a numeric vector intead of a list. As a consequence, all function with input argument `sun_coord` of the class _list_ now change to `sun_zenith_azimuth`, a numeric vector.
 * `extract_rl()` rename to `extract_rel_radiance()` and modify how `zenith_dn` is obtained, so the Argument `z_thr` is no longer required.
 * `mask_hs()` rename to `select_sky_vault_region()` for better consistency in package naming convention.
-* `cie_sky_model_raster()` rename to `cie_sky_image()` for better consistency in package naming convention.  
+* `cie_sky_model_raster()` rename to `cie_sky_image()` for better consistency in package naming convention.
 * `normalize()` rename to `normalize_minmax()` to avoid conflict with EBImage package.
+* `optim_normalize()` rename to `optim_max()` for better consistency in package naming convention.
 * Argument `za` from `row_col_from_zenith_azimuth()` remane to `zenith_azimuth` for better consistency in package naming convention.
-* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_interpolate_and_merge()`, `validate_cie_sky_model()`, and `calc_oor_index()`.
-* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rr`. Argument `rmse` was removed; Now, the argument `loss` allows choosing `rmse` or `mae`. The output of this new version will be different from previous versions since many minor changes and fixes had been done.
+* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_interpolate_and_merge()`, `validate_cie_sky_model()`, `optim_sun_zenith_azimuth()`, and `calc_oor_index()`.
+* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rr`. Argument `rmse` was removed; and now, the argument `loss` allows choosing `rmse` or `mae`. The output of this new version will be different from previous versions since many minor changes and fixes had been done.
 * `fit_trend_surfacel()` now is similar to `interpolate_sky_points()` from the point of view of usability.
 
 ## New features
@@ -15,6 +17,7 @@
 * New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.
 * New `sor_filter()` and "vicinity_filter()" allow flexible methods for filtering sky points.
 * New `calc_spherical_distance()` to make the package internal calculations easier to understand.
+* New `expand_sky_points()` allows IDW interpolation in the spherical space.
 
 ## Minor improvements and fixes
 * Fix rotation argument of `azimuth_image()`.
@@ -24,7 +27,7 @@
 * Delete `find_sky_pixels()` since it was deamed obsolete.
 * Delete `fix_reconstructed_sky()` since it was deamed obsolete.
 * Delete `extrac_sky_points_simple()` since it was deamed obsolete.
-* Delete `ootb_mblt()` since it was deamed obsolete.
+* Delete `ootb_mblt()` since it was deamed obsolete (use `ootb_fit_cie_sky_model()` instead).
 * Change the order in the arguments of `calc_co()` to homogeneize criteria within the package.
 * `extract_sky_points()` lose the argument `min_raster_dist` because of the new function `vicinity_filter()`.
 * `regional_thresholding()` lose the method "Diaz2018". 

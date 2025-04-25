@@ -30,8 +30,6 @@
 #'   opposite and parallel curvy sides.
 #' @export
 #'
-#' @family Segmentation Functions
-#'
 #' @examples
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())

@@ -11,15 +11,14 @@
 #' @param min_dist Numeric vector of length one. Minimum allowed distance
 #'   between points. In degrees for spherical space or pixels for planar space.
 #'   What space is used depend on the arguments `z` and `a`, if both are
-#'   provided, then the spherical space is used.
+#'   provided with the output of [zenith_image()] and [azimuth_image()],
+#'   respectively, then the spherical space is used.
 #' @param r [SpatRaster-class] or `NULL`. Set the dimension that will be
 #'   prioritized when deciding to retein a sky point.
 #' @param z [SpatRaster-class] built with [zenith_image()]  or `NULL`.
 #' @param a [SpatRaster-class] built with [azimuth_image()]  or `NULL`.
 #' @return The argument `sky_points` with fewer rows due to the removal of
 #'   points closer each other than `min_dist`.
-#'
-#' @family Tool Functions
 #'
 #' @export
 #'

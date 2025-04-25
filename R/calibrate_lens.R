@@ -94,8 +94,6 @@
 #'   the distance in pixels between the zenith and the maximum zenith angle in
 #'   pixels units.
 #'
-#' @family Lens Functions
-#'
 #' @references \insertAllCited{}
 #'
 #'

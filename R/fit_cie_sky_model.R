@@ -20,17 +20,19 @@
 #' z <- zenith_image(ncol(r), lens())
 #' a <- azimuth_image(z)
 #' manual_input <- read_manual_input(".", "IMG_1013" )
-#' sun_coord <- manual_input$sun_coord$row_col
-#' sun_coord <- zenith_azimuth_from_row_col(z, sun_coord, lens())
+#' sun_row_col <- manual_input$sun_row_col
+#' sun_zenith_azimuth <- zenith_azimuth_from_row_col(z, a,
+#'                                                   sun_row_col[1],
+#'                                                   sun_row_col[2])
 #' sky_points <- manual_input$sky_points
 #' rr <- extract_rel_radiance(r, z, a, sky_points)
-#' model <- fit_cie_sky_model(rr, sun_coord)
+#' model <- fit_cie_sky_model(rr, sun_zenith_azimuth)
 #' cie_sky <- model$relative_luminance * model$zenith_dn
 #' plot(r/cie_sky)
 #'
 #' r <- read_caim("manipulate/IMG_1013.pgm")
 #' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-#' cie_sky_m <- cie_sky_image(z, a, sun_coord$zenith_azimuth, sky_coef)
+#' cie_sky_m <- cie_sky_image(z, a, sun_zenith_azimuth, sky_coef)
 #' cie_sky_m <- cie_sky_manual * manual_input$zenith_dn
 #' plot(r/cie_sky_m)
 #' ````
@@ -58,12 +60,12 @@
 #' (`citation("rcaiman"`)).
 #'
 #'
-#' @param rr An object of class *list*. The output of [extract_rel_radiance()] or an
-#'   object with same structure and names.
-#' @param sun_coord An object of class *list*. The output of
-#'   [extract_sun_coord()] or an object with same structure and names. See also
-#'   [row_col_from_zenith_azimuth()] in case you want to provide values based on
-#'   date and time of acquisition and the `suncalc` package.
+#' @param rr An object of class *list*. The output of [extract_rel_radiance()]
+#'   or an object with same structure and names.
+#' @param sun_zenith_azimuth Numeric vector of lenght two. See
+#'   [extract_sun_zenith_azimuth()]. See also [row_col_from_zenith_azimuth()] in
+#'   case you want to provide values based on date and time of acquisition and
+#'   the `suncalc` package.
 #' @inheritParams cie_sky_image
 #' @param custom_sky_coef Numeric vector of length five or a numeric matrix with
 #'   five columns. Custom starting coefficients of the sky model. By default,
@@ -74,16 +76,15 @@
 #'   these: `"Overcast"`, `"Clear"`, or `"Partly cloudy"`. See Table 1 from
 #'   \insertCite{Li2016;textual}{rcaiman} for additional details.
 #' @param twilight Numeric vector of length one. Sun zenith angle (in degrees).
-#'   If the sun zenith angle provided through the `sun_coord` argument is below
-#'   this value, sun zenith angles from 85 to 96 degrees will be tested when
-#'   selecting initial optimization parameters from the general sky types
-#'   _Clear_ or _Partially Cloudy_ (specifically, for standard sky numbers 7 to
-#'   15). This adjustment is necessary because [extract_sun_coord()] can
-#'   mistakenly identify the visible center of the solar corona as the solar
-#'   disk. Since [extract_sun_coord()] cannot output a zenith angle below 90
-#'   degrees, setting this value to 90 is equivalent to disabling this step.
-#'   Actually, [extract_sun_coord()] cannot output a value very close to 90,
-#'   therefore the testing start at 85, civic twilight is from 90 to 96 degrees.
+#'   If the sun zenith angle provided through the `sun_zenith_azimuth` argument
+#'   is below this value, sun zenith angles from this value to 96 degrees will
+#'   be tested when selecting initial optimization parameters from the general
+#'   sky types _Clear_ or _Partially Cloudy_ (specifically, for standard sky
+#'   numbers 7 to 15). This adjustment is necessary because
+#'   [extract_sun_zenith_azimuth()] can mistakenly identify the visible center
+#'   of the solar corona as the solar disk. Since [extract_sun_zenith_azimuth()]
+#'   cannot output a zenith angle below 90 degrees, setting this value to 90 is
+#'   equivalent to disabling this step. Civic twilight is from 90 to 96 degrees.
 #' @inheritParams stats::optim
 #' @param loss Character vector of length one. Specifies the error metric to
 #'   use. Options are `"MAE"` (Mean Absolute Error) or `"RMSE"` (Root Mean
@@ -103,8 +104,6 @@
 #'   \item The method used for optimization
 #'   \item The starting parameters
 #' }
-#'
-#' @family  Sky Reconstruction Functions
 #'
 #' @export
 #'
@@ -139,30 +138,41 @@
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
-#' sun_coord <- zenith_azimuth_from_row_col(z, a, c(nrow(z) - xy[2],xy[1]))
-#' points(sun_coord$row_col[2], nrow(caim) - sun_coord$row_col[1],
-#'        col = 3, pch = 1)
+#' # x11()
+#' # plot(caim$Blue)
+#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% unname()
+#' sun_zenith_azimuth <- c(49.5, 27.42481) #taken with above lines then hardcoded
+#'
+#' sun_row_col <- row_col_from_zenith_azimuth(z, a,
+#'                                            sun_zenith_azimuth[1],
+#'                                            sun_zenith_azimuth[2])
+#' points(sun_row_col[2], nrow(caim) - sun_row_col[1], col = 3, pch = 1)
 #'
 #' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 #'
 #' set.seed(7)
-#' model <- fit_cie_sky_model(rr, sun_coord,
+#' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
 #'                            general_sky_type = "Clear",
 #'                            twilight = 90,
-#'                            method = "CG")
-#' summary(model$mle2_output)
+#'                            method = "BFGS", loss = "MAE")
+#'
+#' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
+#'                            custom_sky_coef = model$coef,
+#'                            twilight = 90,
+#'                            method = "BFGS", loss = "RMSE")
+#'
 #' plot(model$obs, model$pred)
 #' abline(0,1)
 #' lm(model$pred~model$obs) %>% summary()
 #'
 #' sky_cie <- cie_sky_image(z, a,
-#'                                 model$sun_coord$zenith_azimuth,
-#'                                 model$coef) * model$zenith_dn
+#'                          model$sun_zenith_azimuth,
+#'                          model$coef) * model$zenith_dn
 #' plot(sky_cie)
 #' plot(caim$Blue/sky_cie)
+#' plot(caim$Blue/sky_cie>1.15)
 #' }
-fit_cie_sky_model <- function(rr, sun_coord,
+fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
                               custom_sky_coef = NULL,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
@@ -175,7 +185,7 @@ fit_cie_sky_model <- function(rr, sun_coord,
             general_sky_type == "Clear" |
             is.null(general_sky_type))
   stopifnot(is.data.frame(rr$sky_points))
-  stopifnot(length(sun_coord$zenith_azimuth) == 2)
+  stopifnot(length(sun_zenith_azimuth) == 2)
 
   # Manage the set of start parameter according to user choice
   path <- system.file("external", package = "rcaiman")
@@ -210,7 +220,7 @@ fit_cie_sky_model <- function(rr, sun_coord,
   # Try all start parameters (brute force approach)
   .fun <- function(i) {
     # This has to be inside the function because of the twilight code chunk
-    sun_a_z <- .degree2radian(rev(sun_coord$zenith_azimuth))
+    sun_a_z <- .degree2radian(rev(sun_zenith_azimuth))
     AzS <- sun_a_z[1]
     Zs <- sun_a_z[2]
 
@@ -263,23 +273,37 @@ fit_cie_sky_model <- function(rr, sun_coord,
          obs = rr$sky_points$rr,
          pred = pred,
          zenith_dn = rr$zenith_dn,
-         sun_coord = sun_coord,
+         sun_zenith_azimuth = sun_zenith_azimuth,
          method = method,
          start = start_params)
   }
 
   opt_result <- suppressWarnings(Map(.fun, 1:nrow(skies)))
 
+  if (!is.null(custom_sky_coef)) {
+    # Try around sun coord and add that to the results
+    angle_seq <- seq(-10, 10, length = 6)
+    angle_seq <- expand.grid(angle_seq, angle_seq)
+    angle_seq[, 1] <- angle_seq[, 1] + sun_zenith_azimuth[1]
+    angle_seq[, 2] <- angle_seq[, 2] + sun_zenith_azimuth[2]
+
+    for (i in 1:nrow(angle_seq)) {
+      sun_zenith_azimuth <-  c(angle_seq[i, 1], angle_seq[i, 1])
+      opt_result <- c(opt_result, suppressWarnings(Map(.fun, 1:nrow(skies))))
+    }
+  }
+
   # Force the sun low and add that to the results
-  civic_twilight <-  c(seq(twilight, 96, 1))
-  if (sun_coord$zenith_azimuth[1] > twilight) {
+  civic_twilight <- c(seq(sun_zenith_azimuth[1], 90, length = 5),
+                      seq(91, 96, 1))
+  if (sun_zenith_azimuth[1] > twilight) {
     indices <- match(7:15, as.numeric(rownames(skies)))
     indices <- indices[!is.na(indices)]
     if (length(indices) != 0) {
       skies <- skies[indices,]
       for (i in seq_along(civic_twilight)) {
-        sun_coord$zenith_azimuth <-  c(civic_twilight[i],
-                                      sun_coord$zenith_azimuth[2])
+        sun_zenith_azimuth <-  c(civic_twilight[i],
+                                 sun_zenith_azimuth[2])
         opt_result <- c(opt_result, suppressWarnings(Map(.fun, 1:nrow(skies))))
       }
     }
@@ -299,9 +323,6 @@ fit_cie_sky_model <- function(rr, sun_coord,
   i <- which.min(metric)
   model <- opt_result[[i]]
 
-  if (model$sun_coord$zenith_azimuth[1] >= min(civic_twilight)) {
-      model$sun_coord$row_col <- c(NA, NA)
-  }
   model
 }
 

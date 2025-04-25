@@ -90,7 +90,7 @@
 #'   there are distinct colors in the Color Filter Array. Layer names are taken
 #'   from the color description metadata.
 #' @export
-#' @family Tool Functions
+#'
 #' @examples
 #' \dontrun{
 #' file_name <- tempfile(fileext = ".NEF")

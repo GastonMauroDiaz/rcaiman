@@ -4,16 +4,13 @@
 \alias{write_sun_coord}
 \title{Write sun coordinates}
 \usage{
-write_sun_coord(sun_coord, path_to_HSP_project, img_name)
+write_sun_coord(sun_row_col, path_to_HSP_project, img_name)
 }
 \arguments{
-\item{sun_coord}{Numeric vector of length two. Raster coordinates of the
-solar disk that can be obtained by calling to
-\code{\link[=extract_sun_coord]{extract_sun_coord()}}. \strong{TIP}: if the output of
-\code{extrac_sun_coord()} is \code{sun_coord}, then you should provide here
-this: \code{sun_coord$row_col}. See also
-\code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide
-values based on date and time of acquisition and the \code{suncalc} package.}
+\item{sun_row_col}{Numeric vector of length two. Raster coordinates (row and
+column) of the solar disk. See
+also \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in case you want to provide values
+based on date and time of acquisition and the \code{suncalc} package.}
 
 \item{path_to_HSP_project}{Character vector of length one. Path to the HSP
 project folder. For instance,
@@ -32,11 +29,5 @@ Create a special file to interface with the HSP software.
 Refer to the Details section of function \code{\link[=write_sky_points]{write_sky_points()}}.
 }
 \seealso{
-Other HSP Functions: 
-\code{\link{read_manual_input}()},
-\code{\link{read_opt_sky_coef}()},
-\code{\link{row_col_from_zenith_azimuth}()},
-\code{\link{write_sky_points}()},
-\code{\link{zenith_azimuth_from_row_col}()}
+\code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}}
 }
-\concept{HSP Functions}

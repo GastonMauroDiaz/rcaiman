@@ -63,7 +63,7 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
 bin <- bin & select_sky_vault_region(z, 0, 85)
-mx <- optim_normalize(caim, bin)
+mx <- optim_max(caim, bin)
 caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 m <- !is.na(z)
 
@@ -91,31 +91,3 @@ plot(ecaim)
 apply_thr(ecaim, thr_isodata(ecaim[m])) \%>\% plot()
 }
 }
-\seealso{
-Other Tool Functions: 
-\code{\link{calc_oor_index}()},
-\code{\link{calc_spherical_distance}()},
-\code{\link{colorfulness}()},
-\code{\link{correct_vignetting}()},
-\code{\link{defuzzify}()},
-\code{\link{display_caim}()},
-\code{\link{expand_sky_points}()},
-\code{\link{extract_feature}()},
-\code{\link{extract_rel_radiance}()},
-\code{\link{extract_sky_points}()},
-\code{\link{extract_sun_coord}()},
-\code{\link{masking}()},
-\code{\link{optim_dist_to_black}()},
-\code{\link{optim_normalize}()},
-\code{\link{percentage_of_clipped_highlights}()},
-\code{\link{read_bin}()},
-\code{\link{read_caim}()},
-\code{\link{read_caim_raw}()},
-\code{\link{read_ootb_sky_model}()},
-\code{\link{sor_filter}()},
-\code{\link{vicinity_filter}()},
-\code{\link{write_bin}()},
-\code{\link{write_caim}()},
-\code{\link{write_ootb_sky_model}()}
-}
-\concept{Tool Functions}

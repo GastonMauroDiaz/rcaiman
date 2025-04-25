@@ -10,8 +10,6 @@
 #'   shaped like pizza slices.
 #' @export
 #'
-#' @family Segmentation Functions
-#'
 #' @examples
 #' z <- zenith_image(600, lens())
 #' a <- azimuth_image(z)

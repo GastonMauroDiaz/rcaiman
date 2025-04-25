@@ -6,7 +6,6 @@
 #' @returns An object of the class _list_ similar to the output of
 #'   [ootb_fit_cie_sky_model()].
 #'
-#' @family Tool Functions
 #' @export
 #'
 #' @examples
@@ -21,9 +20,9 @@
 read_ootb_sky_model <- function(name, z, a) {
   sky <- list()
   ds <- scan(paste0(name, ".txt"), "character")
-  sky$model$sun_coord$zenith_azimuth[1] <-
+  sky$model$sun_zenith_azimuth[1] <-
     ds[grep("sun_theta:", ds) + 1] %>% as.numeric()
-  sky$model$sun_coord$zenith_azimuth[2] <-
+  sky$model$sun_zenith_azimuth[2] <-
     ds[grep("sun_phi:", ds) + 1] %>% as.numeric()
   sky$model$zenith_dn <- ds[grep("zenith_dn:", ds) + 1] %>% as.numeric()
   sky$model$start[1] <- ds[grep("start_a:", ds) + 1] %>% as.numeric()
@@ -46,10 +45,11 @@ read_ootb_sky_model <- function(name, z, a) {
   sky$dist_to_black <- ds[grep("dist_to_black:", ds) + 1] %>% as.numeric()
   sky$min_spherical_dist <- ds[grep("min_spherical_dist:", ds) + 1] %>%
     as.numeric()
-  tryCatch(sky$g <- ds[grep("grid,", ds) + 1] %>% as.numeric(),
-           error = function(e)
-                   ds[(grep("grid:", ds)+1):(grep("dist_to_black:", ds)-1)] %>%
-                      paste(., collapse = " "))
+  sky$g <- tryCatch(ds[grep("grid,", ds) + 1] %>% as.numeric(),
+                    error = function(e)
+                            ds[(grep("grid:", ds)+1):
+                                  (grep("dist_to_black:", ds)-1)] %>%
+                                                      paste(., collapse = " "))
 
   sky_points <- terra::vect(paste0(name, "_sky_points", ".gpkg"))
   sky_points <- terra::extract(z, sky_points, cells = TRUE)
@@ -67,7 +67,7 @@ read_ootb_sky_model <- function(name, z, a) {
 
   model <- sky$model
   sky$sky <- cie_sky_image(z, a,
-                           model$sun_coord$zenith_azimuth,
+                           model$sun_zenith_azimuth,
                            model$coef) * model$zenith_dn
   names(sky$sky) <- "CIE sky"
 

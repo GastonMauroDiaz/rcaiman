@@ -10,7 +10,6 @@
 #'
 #' @return No return value. Called for side effects
 #' @export
-#' @family Tool Functions
 #'
 #' @examples
 #' \dontrun{
@@ -25,7 +24,8 @@
 display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
   .this_requires_EBImage()
   if (!is.null(g)) {
-    g <- terra::focal(g, 3, sd)
+    laplacian <- matrix(c(0, 1, 0, 1, -4, 1, 0, 1, 0), nrow = 3)
+    g <- terra::focal(g, laplacian)
     g <- g != 0
   }
   if (!is.null(caim)) {
