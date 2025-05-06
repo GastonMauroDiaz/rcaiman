@@ -26,7 +26,7 @@
 #'
 #' @inheritParams extract_dn
 #' @inheritParams sky_grid_segmentation
-#' @inheritParams interpolate_sky_points
+#' @inheritParams interpolate_planar
 #' @param rmax Numeric vector of length one. The maximum radius for searching
 #'   k-nearest neighbors (knn). Points are projected onto a unit-radius sphere,
 #'   similar to the use of relative radius in image mapping. The spherical
@@ -97,7 +97,6 @@ sor_filter <- function(sky_points, r, z, a,
                                                    sky_points[i, "a"])
     order_idx <- order(spherical_distance)
     sorted_distance <- spherical_distance[order_idx][2:(k + 1)]
-    # browser()
     if (!is.null(trend)) stopifnot(trend <= 6)
     tryCatch(
       if (all(sorted_distance <= rmax)) {

@@ -1,6 +1,6 @@
 #' Write out-of-the-box CIE sky model fitting
 #'
-#' @inheritParams ootb_interpolate_and_merge
+#' @inheritParams ootb_build_sky_vault
 #' @param name Character vector of length one. File name without extension. If
 #'   needed, a file path can be added to the names. For example:
 #'   `"C:/Users/Doe/Documents/DSCN4500"`.

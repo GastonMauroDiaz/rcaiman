@@ -27,8 +27,8 @@ prioritized when deciding to retein a sky point.}
 \item{min_dist}{Numeric vector of length one. Minimum allowed distance
 between points. In degrees for spherical space or pixels for planar space.
 What space is used depend on the arguments \code{z} and \code{a}, if both are
-provided with the output of \code{\link[=zenith_image]{zenith_image()}} and \code{\link[=azimuth_image]{azimuth_image()}},
-respectively, then the spherical space is used.}
+provided with the valid alternative to \code{NULL}, then the spherical space is
+used.}
 
 \item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
 \times 3} pixels will be used to extract the digital number from \code{r}.}

@@ -11,7 +11,7 @@
 #' original idea was developed after the programming of [extract_sky_points()].
 #'
 #'
-#' @inheritParams interpolate_sky_points
+#' @inheritParams interpolate_planar
 #' @inheritParams spatial::surf.ls
 #'
 #' @note If an incomplete above-canopy image is available as filling source,

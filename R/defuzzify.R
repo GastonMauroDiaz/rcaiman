@@ -33,7 +33,7 @@
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 #'
-#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points, ootb_sky)
+#' sky <- ootb_build_sky_vault(r, z, a, ootb_sky$sky_points, ootb_sky)
 #'
 #' ratio <- r / sky$sky
 #' ratio <- normalize_minmax(ratio, 0, 1, TRUE)

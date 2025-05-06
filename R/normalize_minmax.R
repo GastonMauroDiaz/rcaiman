@@ -39,3 +39,9 @@ normalize_minmax <- function(r, mn = NULL, mx = NULL, force_range = FALSE) {
   }
   r
 }
+
+#' @noRd
+#' @export
+normalize <- function(r, mn = NULL, mx = NULL, force_range = FALSE) {
+  stop("Use `normalize_minmax()` instead of `normalize()`.")
+}

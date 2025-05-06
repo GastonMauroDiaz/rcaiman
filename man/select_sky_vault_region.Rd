@@ -36,7 +36,7 @@ m1 <- select_sky_vault_region(a, 0, 15)
 m2 <- select_sky_vault_region(a, 345, 360)
 plot(m1 | m2)
 
-# better use this
+# You can use this
 plot(!is.na(z))
 # instead of this
 plot(select_sky_vault_region(z, 0, 90))

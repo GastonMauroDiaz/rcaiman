@@ -86,10 +86,6 @@
 #'   cannot output a zenith angle below 90 degrees, setting this value to 90 is
 #'   equivalent to disabling this step. Civic twilight is from 90 to 96 degrees.
 #' @inheritParams stats::optim
-#' @param loss Character vector of length one. Specifies the error metric to
-#'   use. Options are `"MAE"` (Mean Absolute Error) or `"RMSE"` (Root Mean
-#'   Squared Error). Defaults to `"MAE"`. `"MAE"` is more robust to inaccurate
-#'   sky points and outliers, such as those found in cloudy skies.
 #'
 #' @references \insertAllCited{}
 #'
@@ -154,12 +150,7 @@
 #' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
 #'                            general_sky_type = "Clear",
 #'                            twilight = 90,
-#'                            method = "BFGS", loss = "MAE")
-#'
-#' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
-#'                            custom_sky_coef = model$coef,
-#'                            twilight = 90,
-#'                            method = "BFGS", loss = "RMSE")
+#'                            method = "BFGS")
 #'
 #' plot(model$obs, model$pred)
 #' abline(0,1)
@@ -177,8 +168,7 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
                               std_sky_no = NULL,
                               general_sky_type = NULL ,
                               twilight = 60,
-                              method = "BFGS",
-                              loss = "MAE") {
+                              method = "BFGS") {
 
   stopifnot(general_sky_type == "Overcast" |
             general_sky_type == "Partly cloudy" |
@@ -224,29 +214,34 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
     AzS <- sun_a_z[1]
     Zs <- sun_a_z[2]
 
-    # **Note 1**: when the .c or .e parameters are negative, the sun can be
-    # darker than the sky, which does not make sense. So, the code avoids that
-    # possibility by using abs()
-    # **Note 2**: Positive values of b create unrealistic values at the
-    # horizon. Positive values of d produce negative values, which are
-    # unrealistc
+    # When the c or e parameters are negative, the sun can be darker than the
+    # sky, which is unrealistic. So, the code avoids that possibility by using
+    # abs(). Dark suns can also be seen with a low values of a. It will depend
+    # on the indicatrix function, but anything below -1 might be a problem.
+    # Positive values of b create unrealistic values at the horizon. Positive
+    # values of d produce negative values, which are unrealistc
     fcost <- function(params) {
       .a <- params[1]
-      .b <- -abs(params[2])
-      .c <- abs(params[3])
-      .d <- -abs(params[4])
-      .e <- abs(params[5])
+      .b <- params[2]
+      .c <- params[3]
+      .d <- params[4]
+      .e <- params[5]
+
+      p <- 1
+      w <- 1
+
+      penalty_param <- w * max(0, .b)^p + w * max(0, .d)^p + w * max(0, -.e)^p
+
+      x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
+      penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun)^p
 
       x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       residuals <- x - rr$sky_points$rr
 
-      if (loss == "MAE") {
-        return(stats::median(abs(residuals)))
-      } else if (loss == "RMSE") {
-        return(sqrt(mean(residuals^2)))
-      } else {
-        stop("The argument 'loss' must be 'MAE' or 'RMSE'")
-      }
+      loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
+
+      return(loss_value + penalty_param + penalty_behavior)
     }
 
     start_params <- skies[i, 1:5] %>% as.numeric()
@@ -259,8 +254,6 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
 
     coef <- fit$par
     names(coef) <- c("a", "b", "c", "d", "e")
-    coef[c(3,5)] <- abs(coef[c(3,5)])
-    coef[c(2,4)] <- -abs(coef[c(2,4)])
     pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
                            .a = coef[1],
                            .b = coef[2],
@@ -279,19 +272,6 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   }
 
   opt_result <- suppressWarnings(Map(.fun, 1:nrow(skies)))
-
-  if (!is.null(custom_sky_coef)) {
-    # Try around sun coord and add that to the results
-    angle_seq <- seq(-10, 10, length = 6)
-    angle_seq <- expand.grid(angle_seq, angle_seq)
-    angle_seq[, 1] <- angle_seq[, 1] + sun_zenith_azimuth[1]
-    angle_seq[, 2] <- angle_seq[, 2] + sun_zenith_azimuth[2]
-
-    for (i in 1:nrow(angle_seq)) {
-      sun_zenith_azimuth <-  c(angle_seq[i, 1], angle_seq[i, 1])
-      opt_result <- c(opt_result, suppressWarnings(Map(.fun, 1:nrow(skies))))
-    }
-  }
 
   # Force the sun low and add that to the results
   civic_twilight <- c(seq(sun_zenith_azimuth[1], 90, length = 5),
@@ -312,11 +292,7 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   # Choose the best result
   .get_metric <- function(x) {
     residuals <- x$pred - x$obs
-    if (loss == "MAE") {
-      return(stats::median(abs(residuals)))
-    } else if (loss == "RMSE") {
-      return(sqrt(mean(residuals^2)))
-    }
+    sqrt(mean(residuals^2)) / mean(x$obs)
   }
 
   metric <- Map(.get_metric, opt_result) %>% unlist()

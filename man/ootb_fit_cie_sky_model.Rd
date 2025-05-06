@@ -33,6 +33,7 @@ number values.
 \item The output produced by \code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}.
 \item The output produced by \code{\link[=validate_cie_sky_model]{validate_cie_sky_model()}}.
 \item The \code{dist_to_black} argument used in \code{\link[=extract_sky_points]{extract_sky_points()}}.
+\item The \code{use_window} argument used in \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}.
 \item The \code{min_spherical_dist} argument used to filter the sky points.
 \item The \code{sky_points} argument used in \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}.
 }
@@ -83,7 +84,7 @@ sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
 sky$sky
 plot(sky$sky)
 sky$model_validation$rmse
-plot(r/sky$sky>1.15)
+plot(select_sky_vault_region(r/sky$sky, 0.95, 1.05))
 plot(sky$model_validation$pred, sky$model_validation$obs)
 abline(0,1)
 

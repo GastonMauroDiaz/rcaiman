@@ -43,6 +43,7 @@ read_ootb_sky_model <- function(name, z, a) {
   sky$model_validation$mae <-
     ds[grep("mae:", ds) + 1] %>% as.numeric()
   sky$dist_to_black <- ds[grep("dist_to_black:", ds) + 1] %>% as.numeric()
+  sky$use_window <- !is.null(sky$dist_to_black)
   sky$min_spherical_dist <- ds[grep("min_spherical_dist:", ds) + 1] %>%
     as.numeric()
   sky$g <- tryCatch(ds[grep("grid,", ds) + 1] %>% as.numeric(),

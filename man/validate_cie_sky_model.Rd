@@ -4,7 +4,7 @@
 \alias{validate_cie_sky_model}
 \title{Validate CIE sky models}
 \usage{
-validate_cie_sky_model(model, rr, k = 10, loss = "MAE")
+validate_cie_sky_model(model, rr, k = 10)
 }
 \arguments{
 \item{model}{An object of the class \emph{list}. The output of
@@ -14,11 +14,6 @@ validate_cie_sky_model(model, rr, k = 10, loss = "MAE")
 or an object with same structure and names.}
 
 \item{k}{Numeric vector of length ones. Number of folds.}
-
-\item{loss}{Character vector of length one. Specifies the error metric to
-use. Options are \code{"MAE"} (Mean Absolute Error) or \code{"RMSE"} (Root Mean
-Squared Error). Defaults to \code{"MAE"}. \code{"MAE"} is more robust to inaccurate
-sky points and outliers, such as those found in cloudy skies.}
 }
 \value{
 A \emph{list} with the following components:

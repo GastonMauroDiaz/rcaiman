@@ -60,7 +60,7 @@
 #' model_validation$r_squared
 #' model_validation$rmse
 #' }
-validate_cie_sky_model <- function(model, rr, k = 10, loss = "MAE") {
+validate_cie_sky_model <- function(model, rr, k = 10) {
 
   stopifnot(length(k) == 1)
   stopifnot(.is_whole(k))
@@ -84,7 +84,7 @@ validate_cie_sky_model <- function(model, rr, k = 10, loss = "MAE") {
     model.2 <- fit_cie_sky_model(rr.2,  model$sun_zenith_azimuth,
                                  custom_sky_coef = model$coef + .noise(0.1),
                                  twilight = 90,
-                                 method = model$method, loss = loss)
+                                 method = model$method)
 
     x <- c(x, .cie_sky_model(AzP = rr$sky_points[folds[[i]], "a"] %>%
                                .degree2radian(),

@@ -9,6 +9,7 @@
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_sky_points
 #' @inheritParams fit_trend_surface
+#' @inheritParams fit_cie_sky_model
 #' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param gs An object of the class _list_. A list with the output of
 #'   [sky_grid_segmentation()], see the example.
@@ -26,6 +27,7 @@
 #'   \item The output produced by [fit_cie_sky_model()].
 #'   \item The output produced by [validate_cie_sky_model()].
 #'   \item The `dist_to_black` argument used in [extract_sky_points()].
+#'   \item The `use_window` argument used in [extract_rel_radiance()].
 #'   \item The `min_spherical_dist` argument used to filter the sky points.
 #'   \item The `sky_points` argument used in [extract_rel_radiance()].
 #' }
@@ -68,22 +70,34 @@
 #' sky$sky
 #' plot(sky$sky)
 #' sky$model_validation$rmse
-#' plot(r/sky$sky>1.15)
+#' plot(select_sky_vault_region(r/sky$sky, 0.95, 1.05))
 #' plot(sky$model_validation$pred, sky$model_validation$obs)
 #' abline(0,1)
 #'
 #' plot(bin)
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 #' }
-ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
+ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
+                                   min_spherical_dist) {
 
   .is_single_layer_raster(m, "m")
   .is_logic_and_NA_free(m)
   stopifnot(compareGeom(r, m) == TRUE)
 
   .get_metric <- function(model) {
-    stats::median(abs(model$pred - model$obs))
+    #10.2134/agronj2003.1442
+    x <- model$pred
+    y <- model$obs
+    reg <- lm(x~y)
+    m <- stats::coef(reg)[2]
+    r_squared <- summary(reg) %>% .$r.squared
+    SB <- (mean(x) - mean(y))^2
+    NU <- (1 - m)^2 * mean(x^2)
+    LC <- (1 - r_squared) * mean(y^2)
+    MSE <- SB + NU + LC
+    MSE
   }
+
   .get_sky_cie <- function(z, a, model) {
     sky_cie <- cie_sky_image(z, a,
                              model$sun_zenith_azimuth,
@@ -93,9 +107,13 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
   }
 
   .fun <- function(g) {
-    # Sun coordinates
+    # Sun coordinate
     sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g,
-                                                     max_angular_dist = 30)
+                                                     max_angular_dist = 30,
+                                                     method = "object-based")
+    sun_zenith_azimuth2 <- extract_sun_zenith_azimuth(r, z, a, bin, g,
+                                                      max_angular_dist = 30,
+                                                      method = "pixel-based")
 
     # Sky points
     dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
@@ -124,11 +142,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
                                                           cutoff_side = "left")
     )
 
-    if (any(min_spherical_dist != 0)) {
-      sky_points <- vicinity_filter(sky_points, r, z, a,
-                                    mean(min_spherical_dist),
-                                    use_window = !is.null(dist_to_black))
-    }
 
     # Model
     rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = 3,
@@ -136,16 +149,41 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
 
     methods <- c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
 
-    models <- Map(function(x) fit_cie_sky_model(rr, sun_zenith_azimuth,
+    models <- c(
+              Map(function(x) fit_cie_sky_model(rr, sun_zenith_azimuth,
                                                 twilight = 0,
-                                                method = x,
-                                                loss = "MAE"), methods)
+                                                method = x), methods),
+              Map(function(x) fit_cie_sky_model(rr, sun_zenith_azimuth2,
+                                                twilight = 90,
+                                                method = x), methods)
+              )
 
     metric <- Map(.get_metric, models)
     i <- which.min(metric)
     model <- models[[i]]
     method <- methods[i]
     sun_zenith_azimuth <- model$sun_zenith_azimuth
+
+
+    # Optim sun
+    sun <- Map(function(x) optim_sun_zenith_azimuth(sun_zenith_azimuth,
+                                                    rr,
+                                                    model$coef,
+                                                    method = x), methods)
+
+    u <- Map(function(x) !is.na(x[1]), sun) %>% unlist()
+    if (any(u)) {
+      sun <- Map(function(i) sun[[i]], seq_along(methods)[u])
+      models <- Map(function(x) {
+        fit_cie_sky_model(rr, x,
+                          custom_sky_coef = model$coef,
+                          twilight = 90,
+                          method = method)
+      }, sun)
+      metric <- Map(.get_metric, models)
+      i <- which.min(metric)
+      model <- models[[i]]
+    }
 
     # Try subsamples
     if (any(min_spherical_dist != 0)) {
@@ -157,39 +195,23 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
       }
       rrs <- Map(.get_rrs, min_spherical_dist)
       models <- Map(function(rr) {
-        sun_zenith_azimuth2 <- tryCatch(optim_sun_zenith_azimuth(
-                                               sun_zenith_azimuth,
-                                               rr,
-                                               model$coef,
-                                               method = method),
-                                        error = function(e) sun_zenith_azimuth)
-        chi <- calc_spherical_distance(sun_zenith_azimuth2[1],
-                                       sun_zenith_azimuth2[2],
-                                       sun_zenith_azimuth[1],
-                                       sun_zenith_azimuth[2])
-        if (chi < .degree2radian(15)) sun_zenith_azimuth <- sun_zenith_azimuth2
-        model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
-                                   custom_sky_coef = model$coef,
-                                   twilight = 90,
-                                   method = method, loss = "MAE")
+        fit_cie_sky_model(rr, sun_zenith_azimuth,
+                          custom_sky_coef = model$coef,
+                          twilight = 90,
+                          method = method)
       }, rrs)
       metric <- Map(.get_metric, models)
       i <- which.min(metric)
       model <- models[[i]]
       rr <- rrs[[i]]
       min_spherical_dist <- min_spherical_dist[i]
+    } else {
+      model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
+                                 custom_sky_coef = model$coef,
+                                 twilight = 90,
+                                 method = method)
     }
 
-    # sun_zenith_azimuth <- tryCatch(optim_sun_zenith_azimuth(
-    #                                            sun_zenith_azimuth,
-    #                                            rr,
-    #                                            model$coef,
-    #                                            method = method),
-    #                                error = function(e) sun_zenith_azimuth)
-    # model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
-    #                            custom_sky_coef = model$coef,
-    #                            twilight = 90,
-    #                            method = method, loss = "MAE")
 
     model_validation <- validate_cie_sky_model(model, rr, k = 10)
 
@@ -197,11 +219,13 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs, min_spherical_dist) {
          model = model,
          model_validation = model_validation,
          dist_to_black = dist_to_black,
+         use_window = !is.null(dist_to_black),
          min_spherical_dist = min_spherical_dist,
          sky_points = rr$sky_points[, c("row", "col")]
          )
 
   }
+
 
   # Try grids
   skies <- Map(function(g) {

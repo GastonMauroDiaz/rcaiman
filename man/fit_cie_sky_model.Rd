@@ -11,8 +11,7 @@ fit_cie_sky_model(
   std_sky_no = NULL,
   general_sky_type = NULL,
   twilight = 60,
-  method = "BFGS",
-  loss = "MAE"
+  method = "BFGS"
 )
 }
 \arguments{
@@ -47,11 +46,6 @@ cannot output a zenith angle below 90 degrees, setting this value to 90 is
 equivalent to disabling this step. Civic twilight is from 90 to 96 degrees.}
 
 \item{method}{The method to be used. See \sQuote{Details}.  Can be abbreviated.}
-
-\item{loss}{Character vector of length one. Specifies the error metric to
-use. Options are \code{"MAE"} (Mean Absolute Error) or \code{"RMSE"} (Root Mean
-Squared Error). Defaults to \code{"MAE"}. \code{"MAE"} is more robust to inaccurate
-sky points and outliers, such as those found in cloudy skies.}
 }
 \value{
 A \emph{list} with the following components:
@@ -172,12 +166,7 @@ set.seed(7)
 model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
                            general_sky_type = "Clear",
                            twilight = 90,
-                           method = "BFGS", loss = "MAE")
-
-model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
-                           custom_sky_coef = model$coef,
-                           twilight = 90,
-                           method = "BFGS", loss = "RMSE")
+                           method = "BFGS")
 
 plot(model$obs, model$pred)
 abline(0,1)

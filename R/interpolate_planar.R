@@ -56,16 +56,16 @@
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' sky_points <- extract_dn(r, sky_points)
 #'
-#' sky <- interpolate_sky_points(sky_points, r, col_id = 3)
+#' sky <- interpolate_planar(sky_points, r, col_id = 3)
 #' plot(sky)
 #' plot(r/sky)
 #' }
-interpolate_sky_points <- function(sky_points,
-                                   r,
-                                   k = 3,
-                                   p = 2,
-                                   rmax = 200,
-                                   col_id = "rr") {
+interpolate_planar <- function(sky_points,
+                               r,
+                               k = 3,
+                               p = 2,
+                               rmax = 200,
+                               col_id = "rr") {
   .is_single_layer_raster(r)
   stopifnot(length(k) == 1)
   stopifnot(length(p) == 1)

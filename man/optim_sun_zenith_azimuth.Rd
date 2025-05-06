@@ -62,9 +62,9 @@ set.seed(7)
 model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
                            general_sky_type = "Clear",
                            twilight = 90,
-                           method = "BFGS", loss = "MAE")
+                           method = "BFGS")
 
-sun_zenith_azimuth <- optim_sun_zenith_azimuth(c(30, 10), rr,
+sun_zenith_azimuth <- optim_sun_zenith_azimuth(c(49.5, 27.42481), rr,
                                                model$coef, method = "CG")
 sun_zenith_azimuth
 sun_row_col <- row_col_from_zenith_azimuth(z, a,

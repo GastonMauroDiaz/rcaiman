@@ -30,7 +30,7 @@
 #' m2 <- select_sky_vault_region(a, 345, 360)
 #' plot(m1 | m2)
 #'
-#' # better use this
+#' # You can use this
 #' plot(!is.na(z))
 #' # instead of this
 #' plot(select_sky_vault_region(z, 0, 90))
@@ -42,10 +42,18 @@ select_sky_vault_region <- function(r, from, to) {
   stopifnot(length(from) == 1)
   stopifnot(length(to) == 1)
 
-  m <- is.na(r)
-  r[is.na(r)] <- 0
-  r[r >= from & r <= to] <- NA
-  r <- is.na(r)
-  r[m] <- 0
-  as.logical(r)
+  if (to >= max(r[], na.rm = TRUE)) {
+    c1 <- !is.na(r)
+  } else {
+    c1 <- !apply_thr(r, to)
+  }
+
+  c1 & apply_thr(r, from)
+
+  # m <- is.na(r)
+  # r[is.na(r)] <- 0
+  # r[r >= from & r <= to] <- NA
+  # r <- is.na(r)
+  # r[m] <- 0
+  # as.logical(r)
 }

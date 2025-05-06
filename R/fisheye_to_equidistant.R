@@ -9,7 +9,7 @@
 #' @param r [SpatRaster-class]. A fish-eye image.
 #' @inheritParams calc_co
 #' @inheritParams sky_grid_segmentation
-#' @inheritParams interpolate_sky_points
+#' @inheritParams interpolate_planar
 #' @param rmax Numeric vector of length one. Maximum radius where to search for
 #'   *knn*. Increase this value if pixels with value `0` or
 #'   `FALSE` appears where other values are expected.

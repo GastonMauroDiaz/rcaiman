@@ -7,8 +7,9 @@
 * `cie_sky_model_raster()` rename to `cie_sky_image()` for better consistency in package naming convention.
 * `normalize()` rename to `normalize_minmax()` to avoid conflict with EBImage package.
 * `optim_normalize()` rename to `optim_max()` for better consistency in package naming convention.
+* `interpolate_sky_points()` rename to `interpolate_planar()` for better consistency in package naming convention.
 * Argument `za` from `row_col_from_zenith_azimuth()` remane to `zenith_azimuth` for better consistency in package naming convention.
-* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_interpolate_and_merge()`, `validate_cie_sky_model()`, `optim_sun_zenith_azimuth()`, and `calc_oor_index()`.
+* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_build_sky_vault()`, `validate_cie_sky_model()`, `optim_sun_zenith_azimuth()`, and `calc_oor_index()`.
 * `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rr`. Argument `rmse` was removed; and now, the argument `loss` allows choosing `rmse` or `mae`. The output of this new version will be different from previous versions since many minor changes and fixes had been done.
 * `fit_trend_surfacel()` now is similar to `interpolate_sky_points()` from the point of view of usability.
 
@@ -17,7 +18,7 @@
 * New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing the output of `ootb_fit_cie_sky_model()`.
 * New `sor_filter()` and "vicinity_filter()" allow flexible methods for filtering sky points.
 * New `calc_spherical_distance()` to make the package internal calculations easier to understand.
-* New `expand_sky_points()` allows IDW interpolation in the spherical space.
+* New `interpolate_spherical()` allows interpolation in the spherical space.
 
 ## Minor improvements and fixes
 * Fix rotation argument of `azimuth_image()`.

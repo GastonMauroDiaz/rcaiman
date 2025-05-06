@@ -25,9 +25,8 @@ package](https://link.springer.com/article/10.1007/s00468-022-02338-5),
 although you might find some functions from *rcaiman* useful, such as
 *enhance_caim()*.
 
-It integrates well with other software, such as [HSP – HemiSPherical
-Project Manager](http://scorpion.aai.ee/~lang/HSP/),
-[CIMES](http://jmnw.free.fr/), and
+It integrates well with other software, such as 
+[CIMES](http://jmnw.free.fr/) and
 [Hemisfer](https://www.schleppi.ch/patrick/hemisfer/).
 
 ## Installation

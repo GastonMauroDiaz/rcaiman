@@ -28,7 +28,7 @@
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 #'
-#' sky <- ootb_interpolate_and_merge(r, z, a, ootb_sky$sky_points, ootb_sky)
+#' sky <- ootb_build_sky_vault(r, z, a, ootb_sky$sky_points, ootb_sky)
 #'
 #' plot(sky$sky)
 #'
@@ -42,15 +42,14 @@
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' sky_points <- rbind(sky_points, ootb_sky$sky_points[, c("row", "col")])
+#' sky_points <- rbind(sky_points, ootb_sky$sky_points)
 #'
-#' sky <- ootb_interpolate_and_merge(r, z, a, sky_points, ootb_sky)
+#' sky <- ootb_build_sky_vault(r, z, a, sky_points, ootb_sky)
 #'
 #' plot(sky$sky)
 #' }
-ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
-                                  size = 100,
-                                  use_window = TRUE) {
+ootb_build_sky_vault <- function(r, z, a, sky_points, ootb_sky,
+                                 size = 100) {
   .check_if_r_z_and_a_are_ok(r, z, a)
 
   model <- ootb_sky$model
@@ -71,25 +70,20 @@ ootb_interpolate_and_merge <- function(r, z, a, sky_points, ootb_sky,
   stopifnot(k <= nrow(sky_points))
 
   # L2010
-  sky_points2 <- expand_sky_points(r, z, a, sky_points,
-                                   sky_model =  sky_cie,
-                                   k = k,
-                                   p = p,
-                                   w = w,
-                                   rule = "any",
-                                   chi_max = 20,
-                                   size = size)
-  sky <-  interpolate_sky_points(sky_points2[!sky_points2$initial, ], r,
-                                 k = 1, p = 1,
-                                 rmax = ncol(r)/size + 1,
-                                 col_id = "dn")
-  sky[is.na(z)] <- NA
-
-  names(sky) <- "Sky vault"
+  sky <- interpolate_spherical(r, z, a, sky_points,
+                               filling_source = sky_cie,
+                               k = k,
+                               p = p,
+                               w = w,
+                               rule = "any",
+                               chi_max = 20,
+                               size = size,
+                               use_window = ootb_sky$use_window,
+                               return_raster = TRUE)
 
   list(sky = sky,
        w = w,
        k=  k,
-       p = p)
+       p = unname(p))
 }
 

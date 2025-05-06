@@ -43,9 +43,9 @@
 #' model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
 #'                            general_sky_type = "Clear",
 #'                            twilight = 90,
-#'                            method = "BFGS", loss = "MAE")
+#'                            method = "BFGS")
 #'
-#' sun_zenith_azimuth <- optim_sun_zenith_azimuth(c(30, 10), rr,
+#' sun_zenith_azimuth <- optim_sun_zenith_azimuth(c(49.5, 27.42481), rr,
 #'                                                model$coef, method = "CG")
 #' sun_zenith_azimuth
 #' sun_row_col <- row_col_from_zenith_azimuth(z, a,
@@ -57,33 +57,43 @@ optim_sun_zenith_azimuth <- function(sun_zenith_azimuth,
                                      rr,
                                      sky_coef,
                                      method = "BFGS") {
+  .normalize_angles <- function(zenith, azimuth) {
+    if (zenith < 0) {
+      zenith <- -zenith        # Make zenith positive
+      azimuth <- azimuth + 180 # Rotate azimuth 180°
+    }
+
+    # Ensure azimuth is in [0, 360)
+    azimuth <- azimuth %% 360
+
+    return(c(zenith, azimuth))
+  }
   .refine_sun_coord <- function(param) {
     zenith <- param[1] * 9
     azimuth <- param[2] * 36
+
+    chi <- calc_spherical_distance(zenith %>% .degree2radian(),
+                                   azimuth %>% .degree2radian(),
+                                   sun_zenith_azimuth[1] %>% .degree2radian(),
+                                   sun_zenith_azimuth[2] %>% .degree2radian())
+
+
     pred <- .cie_sky_model(AzP = rr$sky_points$a %>% .degree2radian(),
                            Zp = rr$sky_points$z %>% .degree2radian(),
                            AzS = azimuth %>% .degree2radian(),
                            Zs =  zenith %>% .degree2radian(),
                            sky_coef[1], sky_coef[2], sky_coef[3],
                            sky_coef[4], sky_coef[5])
-    .calc_rmse(pred - rr$sky_points$rr)
-  }
-  fit <- stats::optim(c(sun_zenith_azimuth[1]/9,
-                        sun_zenith_azimuth[2]/36),
-                      .refine_sun_coord,
-                      method = method)
-  .normalize_angles <- function(azimuth, zenith) {
-    # Ensure azimuth is in [0, 360)
-    azimuth <- azimuth %% 360
-    if (azimuth < 0) azimuth <- azimuth + 360
 
-    # Ensure zenith is in [0, 96]
-    zenith <- zenith %% 192  # Allow wrapping beyond twice the max
-    if (zenith < 0) zenith <- zenith + 192
-    if (zenith > 96) zenith <- 192 - zenith  # Reflect over 96°
-
-    return(c(azimuth = azimuth, zenith = zenith))
+    (.calc_rmse(pred - rr$sky_points$rr) / mean(rr$sky_points$rr)) *
+      max(1, .radian2degree(chi)/10)
   }
-  .normalize_angles(fit$par[1]*9, fit$par[2]*36)
+  fit <- tryCatch(stats::optim(c(sun_zenith_azimuth[1]/9,
+                                 sun_zenith_azimuth[2]/36),
+                               .refine_sun_coord,
+                               method = method),
+                  error = function(e) c(NA, NA))
+  tryCatch(.normalize_angles(fit$par[1]*9, fit$par[2]*36),
+    error = function(e) c(NA, NA))
 }
 

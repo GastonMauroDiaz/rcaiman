@@ -4,7 +4,15 @@
 \alias{extract_sun_zenith_azimuth}
 \title{Extract sun angular coordinates}
 \usage{
-extract_sun_zenith_azimuth(r, z, a, bin, g, max_angular_dist = 30)
+extract_sun_zenith_azimuth(
+  r,
+  z,
+  a,
+  bin,
+  g,
+  max_angular_dist = 30,
+  method = "object-based"
+)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
@@ -22,6 +30,8 @@ was obtained.}
 
 \item{max_angular_dist}{Numeric vector of length one. Specifies the maximum
 expected size of the circumsolar region in degrees.}
+
+\item{method}{description}
 }
 \value{
 Numeric vector of length two, where the first element is the

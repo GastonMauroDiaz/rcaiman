@@ -7,14 +7,19 @@
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_rel_radiance
 #' @inheritParams sor_filter
-#' @inheritParams interpolate_sky_points
+#' @inheritParams interpolate_planar
 #' @param chi_max Numeric vector of length one. Maximum spherical distance (in
 #'   degrees) to search for nearest neighbors.
 #' @param size Numeric vector of length one. Number of rows and colums of the
-#'   planar grid that will be the skeleton for expanding the points.
-#' @param sky_model Single-layer [SpatRaster-class] or `NULL`.
+#'   planar grid that will be the skeleton for intepolating the points.
+#' @param filling_source Single-layer [SpatRaster-class] or `NULL`.  A source to
+#'   complement the sky pixels detected through the gaps of `r`. See
+#'   [ootb_fit_cie_sky_model()].
 #' @param rule Character vector of length one. Either `"any"` or `"all"`.
 #' @param w Numeric vector of length one. Weight parameter for the sky model.
+#' @param return_raster Logical vector of length one. If `TRUE` (default), then
+#'   raster will be returned. Otherwise, a _data.frame_ representing points
+#'   distributed in a regular grid will be returned.
 #'
 #' @returns An object of the class _data.frame_. It is the input argument
 #'   `sky_points` with the following additional data:
@@ -47,39 +52,33 @@
 #' sky_points <- ootb_sky$sky_points
 #'
 #' size <- 200
-#' sky_points2 <- expand_sky_points(r, z, a, sky_points,
-#'                                  sky_model =  ootb_sky$sky,
-#'                                  k = 10,
-#'                                  p = 2,
-#'                                  w = 1,
-#'                                  rule = "any",
-#'                                  chi_max = 20,
-#'                                  size = size)
-#' plot(bin)
-#' points(sky_points2$col, nrow(caim) - sky_points2$row, col = 2, pch = 10)
-#'
-#' sky <-  interpolate_sky_points(sky_points2, r, k = 1, p = 1,
-#'                                rmax = ncol(r)/size + 1,
-#'                                col_id = "dn")
-#' sky[is.na(z)] <- NA
+#' sky_points2 <- interpolate_spherical(r, z, a, sky_points,
+#'                                      sky_model =  ootb_sky$sky,
+#'                                      k = 10,
+#'                                      p = 2,
+#'                                      w = 1,
+#'                                      rule = "any",
+#'                                      chi_max = 20,
+#'                                      size = size)
 #' plot(sky)
 #' }
-expand_sky_points <- function(r, z, a, sky_points, sky_model, k, p,
-                              chi_max = 20,
-                              w = 1,
-                              size = 50,
-                              rule = "any",
-                              use_window = TRUE
+interpolate_spherical <- function(r, z, a, sky_points, filling_source, k, p,
+                                  chi_max = 20,
+                                  w = 1,
+                                  size = 50,
+                                  rule = "any",
+                                  use_window = TRUE,
+                                  return_raster = TRUE
                               ) {
 
   .check_if_r_z_and_a_are_ok(r, z, a)
-  if (is.null(sky_model)) {
-    sky_model <- r
-    sky_model[] <- NA
+  if (is.null(filling_source)) {
+    filling_source <- r
+    filling_source[] <- NA
     w <- 0
   } else {
-    .is_single_layer_raster(sky_model, "sky_model")
-    terra::compareGeom(r, sky_model)
+    .is_single_layer_raster(filling_source, "filling_source")
+    terra::compareGeom(r, filling_source)
   }
 
   stopifnot(length(k) == 1)
@@ -126,9 +125,9 @@ expand_sky_points <- function(r, z, a, sky_points, sky_model, k, p,
       sky_points <- sky_points[m,]
       w_k <- 1 / sky_points$chi^p
       w_k <- w_k/max(w_k) #interpreting paragraph below eq6
-      return(.eq6(w_k, sky_points[, "dn"], w, sky_model[u][,]))
+      return(.eq6(w_k, sky_points[, "dn"], w, filling_source[u][,]))
     } else {
-      return(sky_model[u][,])
+      return(filling_source[u][,])
     }
   }
 
@@ -139,5 +138,31 @@ expand_sky_points <- function(r, z, a, sky_points, sky_model, k, p,
   sky_points <- rbind(sky_points, sky_points2)
   sky_points <- sky_points[, -ncol(sky_points)] #remove the rl column
   sky_points[, c("z", "a")] <- .radian2degree(sky_points[, c("z", "a")])
-  cbind(sky_points, initial)
+  sky_points <- cbind(sky_points, initial)
+
+  if (return_raster) {
+    # sky <-  interpolate_planar(sky_points[!sky_points$initial, ], r,
+    #                            k = 1, p = 1,
+    #                            rmax = ncol(r)/size + 1,
+    #                            col_id = "dn")
+    # sky[is.na(z)] <- NA
+    sky_points <- sky_points[!sky_points$initial, ]
+    sky <- terra::rast(ncol = size, nrow = size)
+    sky <- terra::rast(r)
+    terra::ncol(sky) <- terra::nrow(sky) <- size
+    xy <- terra::xyFromCell(r,
+                            terra::cellFromRowCol(r, sky_points$row,
+                                                  sky_points$col))
+    cell <- terra::cellFromXY(sky, xy)
+    sky[cell] <- sky_points$dn
+    sky <- terra::focal(sky, 3, mean, na.policy = "only")
+    sky <- terra::disagg(sky, terra::res(sky)[1], method = "bilinear")
+    sky <- terra::resample(sky, r)
+    sky[is.na(z)] <- NA
+
+    names(sky) <- "Sky vault"
+    return(sky)
+  } else {
+    return(sky_points)
+  }
 }
