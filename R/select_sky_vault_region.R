@@ -57,3 +57,9 @@ select_sky_vault_region <- function(r, from, to) {
   # r[m] <- 0
   # as.logical(r)
 }
+
+#' @noRd
+#' @export
+mask_hs <- function(r, from, to) {
+  stop("Use `select_sky_vault_region()` instead of `mask_hs()`.")
+}

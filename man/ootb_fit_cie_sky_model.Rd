@@ -29,7 +29,7 @@ was obtained.}
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{gs}{An object of the class \emph{list}. A list with the output of
-\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example. More options translate into
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example. More options translates into
 more computing time.}
 
 \item{min_spherical_dist}{Numeric vector. These values will be passed to the
@@ -37,7 +37,7 @@ more computing time.}
 more computing time.}
 
 \item{method}{Character vector. The methods that will be passed to
-\code{\link[stats:optim]{stats::optim()}}. More options translate into more computing time.}
+\code{\link[stats:optim]{stats::optim()}}. More options translates into more computing time.}
 }
 \value{
 A \emph{list} with the following components:
@@ -93,7 +93,7 @@ gs <- list(
 )
 
 sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-                              min_spherical_dist = seq(3, 9, 3))
+                              min_spherical_dist = seq(0, 9, 3))
 
 sky$sky
 plot(sky$sky)

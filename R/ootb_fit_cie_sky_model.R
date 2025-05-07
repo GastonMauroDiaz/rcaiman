@@ -116,11 +116,8 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
   .fun <- function(g) {
     # Sun coordinate
     sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g,
-                                                     max_angular_dist = 30,
-                                                     method = "object-based")
-    sun_zenith_azimuth2 <- extract_sun_zenith_azimuth(r, z, a, bin, g,
-                                                      max_angular_dist = 30,
-                                                      method = "pixel-based")
+                                                     max_angular_dist = 30)
+    sun_zenith_azimuth2 <- extract_sun_zenith_azimuth(r, z, a, bin, NULL)
 
     # Sky points
     dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)

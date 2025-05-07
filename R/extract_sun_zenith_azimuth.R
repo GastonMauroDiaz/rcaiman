@@ -8,13 +8,17 @@
 #'
 #' @inheritParams extract_sky_points
 #' @inheritParams sky_grid_segmentation
+#' @param g [SpatRaster-class] built with [sky_grid_segmentation()] or
+#'   [chessboard()], or `NULL`. Thought this arguments the user can select
+#'   between and object-based method when an actual sky grid is provided, and a
+#'   pixel-based method, when `NULL` is provided.
 #' @param max_angular_dist Numeric vector of length one. Specifies the maximum
 #'   expected size of the circumsolar region in degrees.
 #' @param method description
 #'
-#' @return Numeric vector of length two, where the first element is the
-#'   solar zenith angle and the second is the solar azimuth angle, both
-#'   expressed in degrees.
+#' @return Numeric vector of length two, where the first element is the solar
+#'   zenith angle and the second is the solar azimuth angle, both expressed in
+#'   degrees.
 #'
 #' @export
 #'
@@ -42,19 +46,16 @@
 #' points(row_col[1,2], nrow(caim) - row_col[1,1], col = 3, pch = 10)
 #' }
 extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
-                                       max_angular_dist = 30,
-                                       method = "object-based") {
+                                       max_angular_dist = 30) {
   .this_requires_EBImage()
   .check_if_r_z_and_a_are_ok(r, z, a)
   .is_single_layer_raster(bin, "bin")
-  .is_single_layer_raster(g, "g")
   terra::compareGeom(bin, r)
-  terra::compareGeom(g, r)
   stopifnot(length(max_angular_dist) == 1)
 
-  stopifnot(method %in% c("object-based", "pixel-based"))
-
-  if (method == "object-based") {
+  if (!is.null(g)) {
+    .is_single_layer_raster(g, "g")
+    terra::compareGeom(g, r)
     # Select cells with at least one extremely bright sky pixel
     g[!bin] <- NA
     r <- extract_feature(r, g, max)
@@ -146,11 +147,9 @@ extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
 
     zenith_azimuth <- c(zenith, azimuth)
   } else {
-    mat <- terra::focalMat(r, terra::ncol(r)/50, "circle")
-    r_smoothed <- terra::focal(r, mat)
-    m_sun <- (r_smoothed - max(r_smoothed[], na.rm = TRUE)) == 0
-
-    zenith_azimuth <- c(z[m_sun][1,], a[m_sun][1,]) %>% unname()
+    pan <- fisheye_to_pano(r, z, a, max, 1)
+    zenith_azimuth <- terra::rowColFromCell(pan, which.max(pan[,])) %>%
+      as.numeric()
   }
   zenith_azimuth
 }

@@ -4,15 +4,7 @@
 \alias{extract_sun_zenith_azimuth}
 \title{Extract sun angular coordinates}
 \usage{
-extract_sun_zenith_azimuth(
-  r,
-  z,
-  a,
-  bin,
-  g,
-  max_angular_dist = 30,
-  method = "object-based"
-)
+extract_sun_zenith_azimuth(r, z, a, bin, g, max_angular_dist = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
@@ -26,7 +18,9 @@ was obtained.}
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
-\code{\link[=chessboard]{chessboard()}}.}
+\code{\link[=chessboard]{chessboard()}}, or \code{NULL}. Thought this arguments the user can select
+between and object-based method when an actual sky grid is provided, and a
+pixel-based method, when \code{NULL} is provided.}
 
 \item{max_angular_dist}{Numeric vector of length one. Specifies the maximum
 expected size of the circumsolar region in degrees.}
@@ -34,9 +28,9 @@ expected size of the circumsolar region in degrees.}
 \item{method}{description}
 }
 \value{
-Numeric vector of length two, where the first element is the
-solar zenith angle and the second is the solar azimuth angle, both
-expressed in degrees.
+Numeric vector of length two, where the first element is the solar
+zenith angle and the second is the solar azimuth angle, both expressed in
+degrees.
 }
 \description{
 Extract the sun coordinates for CIE sky model fitting.
