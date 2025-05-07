@@ -12,9 +12,13 @@
 #' @inheritParams fit_cie_sky_model
 #' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param gs An object of the class _list_. A list with the output of
-#'   [sky_grid_segmentation()], see the example.
+#'   [sky_grid_segmentation()], see the example. More options translate into
+#'   more computing time.
 #' @param min_spherical_dist Numeric vector. These values will be passed to the
-#'   `min_dist` argument of [vicinity_filter()].
+#'   `min_dist` argument of [vicinity_filter()]. More options translate into
+#'   more computing time.
+#' @param method Character vector. The methods that will be passed to
+#'   [stats::optim()]. More options translate into more computing time.
 #'
 #' @export
 #'
@@ -38,8 +42,8 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#'
 #' r <- caim$Blue
+#' bsi <- (caim$Blue-caim$Red) / (caim$Blue+caim$Red)
 #'
 #' bin <- regional_thresholding(r, rings_segmentation(z, 30),
 #'                              method = "thr_isodata")
@@ -54,7 +58,7 @@
 #' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 #' ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 #' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
-#' bin <- bin & select_sky_vault_region(z, 0, 85)
+#' bin <- bin & select_sky_vault_region(z, 0, 85) & bsi > 0.1
 #' plot(bin)
 #'
 #' set.seed(7)
@@ -78,7 +82,10 @@
 #' points(sky$sky_points$col, nrow(caim) - sky$sky_points$row, col = 2, pch = 10)
 #' }
 ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
-                                   min_spherical_dist) {
+                                   min_spherical_dist,
+                                   method = c("Nelder-Mead", "BFGS",
+                                              "CG", "SANN", "Brent")
+                                   ) {
 
   .is_single_layer_raster(m, "m")
   .is_logic_and_NA_free(m)
@@ -147,21 +154,21 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     rr <- extract_rel_radiance(r, z, a, sky_points, no_of_points = 3,
                                use_window = !is.null(dist_to_black))
 
-    methods <- c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
+    optim_methods <- method
 
     models <- c(
               Map(function(x) fit_cie_sky_model(rr, sun_zenith_azimuth,
                                                 twilight = 0,
-                                                method = x), methods),
+                                                method = x), optim_methods),
               Map(function(x) fit_cie_sky_model(rr, sun_zenith_azimuth2,
                                                 twilight = 90,
-                                                method = x), methods)
+                                                method = x), optim_methods)
               )
 
     metric <- Map(.get_metric, models)
     i <- which.min(metric)
     model <- models[[i]]
-    method <- methods[i]
+    method <- optim_methods[i]
     sun_zenith_azimuth <- model$sun_zenith_azimuth
 
 
@@ -169,11 +176,11 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     sun <- Map(function(x) optim_sun_zenith_azimuth(sun_zenith_azimuth,
                                                     rr,
                                                     model$coef,
-                                                    method = x), methods)
+                                                    method = x), optim_methods)
 
     u <- Map(function(x) !is.na(x[1]), sun) %>% unlist()
     if (any(u)) {
-      sun <- Map(function(i) sun[[i]], seq_along(methods)[u])
+      sun <- Map(function(i) sun[[i]], seq_along(optim_methods)[u])
       models <- Map(function(x) {
         fit_cie_sky_model(rr, x,
                           custom_sky_coef = model$coef,
@@ -212,6 +219,12 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
                                  method = method)
     }
 
+    if (any(model$opt_result$convergence != 1,
+            is.null(model$opt_result$convergence))) {
+      model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
+                                 twilight = 90,
+                                 method = method)
+    }
 
     model_validation <- validate_cie_sky_model(model, rr, k = 10)
 

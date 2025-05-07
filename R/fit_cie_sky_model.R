@@ -136,7 +136,7 @@
 #'
 #' # x11()
 #' # plot(caim$Blue)
-#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% unname()
+#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% as.numeric()
 #' sun_zenith_azimuth <- c(49.5, 27.42481) #taken with above lines then hardcoded
 #'
 #' sun_row_col <- row_col_from_zenith_azimuth(z, a,
@@ -227,14 +227,12 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
       .d <- params[4]
       .e <- params[5]
 
-      p <- 1
-      w <- 1
 
-      penalty_param <- w * max(0, .b)^p + w * max(0, .d)^p + w * max(0, -.e)^p
+      penalty_param <- max(0, .b) + max(0, .d) + max(0, -.e)
 
       x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
-      penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun)^p
+      penalty_behavior <- 100 * abs(.c) * max(0, max(x) - x_sun)
 
       x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       residuals <- x - rr$sky_points$rr
@@ -247,8 +245,8 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
     start_params <- skies[i, 1:5] %>% as.numeric()
     fit <- tryCatch(
       stats::optim(par = start_params,
-            fn = fcost,
-            method = method),
+                   fn = fcost,
+                   method = method),
       error = function(e) list(par = start_params, convergence = NULL)
     )
 
@@ -298,6 +296,7 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   metric <- Map(.get_metric, opt_result) %>% unlist()
   i <- which.min(metric)
   model <- opt_result[[i]]
+  model$method <- method #preventative programming
 
   model
 }

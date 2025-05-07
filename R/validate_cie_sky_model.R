@@ -45,9 +45,10 @@
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' xy <- c(210, 451) #taken with click() after x11(), then hardcoded here
-#' points(nrow(z) - xy[2], xy[1], col = 3, pch = 1)
-#' sun_zenith_azimuth <- zenith_azimuth_from_row_col(z, a, nrow(z) - xy[2],xy[1])
+#' # x11()
+#' # plot(caim$Blue)
+#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% as.numeric()
+#' sun_zenith_azimuth <- c(49.5, 27.42481) #taken with above lines then hardcoded
 #'
 #' rr <- extract_rel_radiance(caim$Blue, z, a, sky_points)
 #'

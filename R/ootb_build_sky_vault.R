@@ -66,6 +66,7 @@ ootb_build_sky_vault <- function(r, z, a, sky_points, ootb_sky,
   k <- 2 + round(r2 * 10)
   p <- abs(model$coef[1]) + log(model$coef[3]+1)
   p <- 2 + sqrt(p)
+  p <- min(5, p)
 
   stopifnot(k <= nrow(sky_points))
 

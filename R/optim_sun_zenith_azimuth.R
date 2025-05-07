@@ -29,7 +29,7 @@
 #'
 #' # x11()
 #' # plot(caim$Blue)
-#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% unname()
+#' # sun_zenith_azimuth <- click(c(z, a), 1) %>% as.numeric()
 #' sun_zenith_azimuth <- c(49.5, 27.42481) #taken with above lines then hardcoded
 #'
 #' sun_row_col <- row_col_from_zenith_azimuth(z, a,

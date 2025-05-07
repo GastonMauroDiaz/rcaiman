@@ -4,7 +4,16 @@
 \alias{ootb_fit_cie_sky_model}
 \title{Out-of-the-box fit CIE sky model}
 \usage{
-ootb_fit_cie_sky_model(r, z, a, m, bin, gs, min_spherical_dist)
+ootb_fit_cie_sky_model(
+  r,
+  z,
+  a,
+  m,
+  bin,
+  gs,
+  min_spherical_dist,
+  method = c("Nelder-Mead", "BFGS", "CG", "SANN", "Brent")
+)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
@@ -20,10 +29,15 @@ was obtained.}
 \code{r} useful for masking pixels that are very likely pure sky pixels.}
 
 \item{gs}{An object of the class \emph{list}. A list with the output of
-\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example.}
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, see the example. More options translate into
+more computing time.}
 
 \item{min_spherical_dist}{Numeric vector. These values will be passed to the
-\code{min_dist} argument of \code{\link[=vicinity_filter]{vicinity_filter()}}.}
+\code{min_dist} argument of \code{\link[=vicinity_filter]{vicinity_filter()}}. More options translate into
+more computing time.}
+
+\item{method}{Character vector. The methods that will be passed to
+\code{\link[stats:optim]{stats::optim()}}. More options translate into more computing time.}
 }
 \value{
 A \emph{list} with the following components:
@@ -52,8 +66,8 @@ caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
-
 r <- caim$Blue
+bsi <- (caim$Blue-caim$Red) / (caim$Blue+caim$Red)
 
 bin <- regional_thresholding(r, rings_segmentation(z, 30),
                              method = "thr_isodata")
@@ -68,7 +82,7 @@ mx <- optim_max(caim, bin)
 caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
 ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
 bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
-bin <- bin & select_sky_vault_region(z, 0, 85)
+bin <- bin & select_sky_vault_region(z, 0, 85) & bsi > 0.1
 plot(bin)
 
 set.seed(7)
