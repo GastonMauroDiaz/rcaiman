@@ -296,7 +296,6 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   metric <- Map(.get_metric, opt_result) %>% unlist()
   i <- which.min(metric)
   model <- opt_result[[i]]
-  model$method <- method #preventative programming
 
   model
 }

@@ -12,13 +12,13 @@
 #' @inheritParams fit_cie_sky_model
 #' @param m [SpatRaster-class]. A mask, check [select_sky_vault_region()].
 #' @param gs An object of the class _list_. A list with the output of
-#'   [sky_grid_segmentation()], see the example. More options translate into
+#'   [sky_grid_segmentation()], see the example. More options translates into
 #'   more computing time.
 #' @param min_spherical_dist Numeric vector. These values will be passed to the
 #'   `min_dist` argument of [vicinity_filter()]. More options translate into
 #'   more computing time.
 #' @param method Character vector. The methods that will be passed to
-#'   [stats::optim()]. More options translate into more computing time.
+#'   [stats::optim()]. More options translates into more computing time.
 #'
 #' @export
 #'
@@ -69,7 +69,7 @@
 #' )
 #'
 #' sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-#'                               min_spherical_dist = seq(3, 9, 3))
+#'                               min_spherical_dist = seq(0, 9, 3))
 #'
 #' sky$sky
 #' plot(sky$sky)
@@ -168,7 +168,7 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
     metric <- Map(.get_metric, models)
     i <- which.min(metric)
     model <- models[[i]]
-    method <- optim_methods[i]
+    method <- c(optim_methods, optim_methods)[i]
     sun_zenith_azimuth <- model$sun_zenith_azimuth
 
 
@@ -219,12 +219,6 @@ ootb_fit_cie_sky_model <- function(r, z, a, m, bin, gs,
                                  method = method)
     }
 
-    if (any(model$opt_result$convergence != 1,
-            is.null(model$opt_result$convergence))) {
-      model <- fit_cie_sky_model(rr, sun_zenith_azimuth,
-                                 twilight = 90,
-                                 method = method)
-    }
 
     model_validation <- validate_cie_sky_model(model, rr, k = 10)
 
