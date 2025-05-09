@@ -56,10 +56,11 @@ extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
   if (!is.null(g)) {
     .is_single_layer_raster(g, "g")
     terra::compareGeom(g, r)
+
     # Select cells with at least one extremely bright sky pixel
     g[!bin] <- NA
-    r <- extract_feature(r, g, max)
-    m <- r >= quantile(terra::values(r), 0.95, na.rm = TRUE)
+    r <- extract_feature(r, g, function(x) quantile(x, 0.99, na.rm = TRUE))
+    m <- r >= quantile(unique(terra::values(r)), 0.9, na.rm = TRUE)
     m[is.na(m)] <- 0
 
     # Merge adjacent white segments
@@ -76,8 +77,8 @@ extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
       normalize_minmax()
     dn <- extract_feature(r, labeled_m, median, return_raster = FALSE) %>%
       normalize_minmax()
-    if (any(is.nan(dn))) dn[] <- 1
-    if (any(is.nan(size))) size[] <- 1
+    if (any(is.nan(dn))) dn[] <- 1 #preventative programming
+    if (any(is.nan(size))) size[] <- 1 #preventative programming
     membership_posibility <- size*0.25 + dn*0.75
 
     # Find sun seed
@@ -147,7 +148,10 @@ extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
 
     zenith_azimuth <- c(zenith, azimuth)
   } else {
-    pan <- fisheye_to_pano(r, z, a, max, 1)
+    r[!bin] <- 0
+    # r <- terra::focal(r, 3, mean)
+    pan <- fisheye_to_pano(r, z, a,
+                           function(x) quantile(x, 0.99, na.rm = TRUE), 1)
     zenith_azimuth <- terra::rowColFromCell(pan, which.max(pan[,])) %>%
       as.numeric()
   }

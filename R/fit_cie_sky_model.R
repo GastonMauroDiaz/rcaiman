@@ -207,6 +207,9 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   AzP <- .degree2radian(rr$sky_points$a)
   Zp <- .degree2radian(rr$sky_points$z)
 
+
+  vault <- expand.grid(seq(0 + pi/36, pi/2 - pi/36, pi/18),
+                       seq(0 + pi/36, 2*pi - pi/36, pi/18))
   # Try all start parameters (brute force approach)
   .fun <- function(i) {
     # This has to be inside the function because of the twilight code chunk
@@ -227,19 +230,22 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
       .d <- params[4]
       .e <- params[5]
 
+      # penalty_param <- max(0, .b) + max(0, .d) + max(0, -.e) #+ max(0, .a - 4)
 
-      penalty_param <- max(0, .b) + max(0, .d) + max(0, -.e)
+      vault_values <- .cie_sky_model(vault[,2],
+                                     vault[,2], AzS, Zs, .a, .b, .c, .d, .e)
 
       x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
-      penalty_behavior <- 100 * abs(.c) * max(0, max(x) - x_sun)
+      penalty_behavior <- 1e10 * abs(.c) * max(0, max(x) - x_sun) -
+        sum(vault_values[vault_values < 0.1])
 
       x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       residuals <- x - rr$sky_points$rr
 
       loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
 
-      return(loss_value + penalty_param + penalty_behavior)
+      loss_value + penalty_behavior #+ penalty_param
     }
 
     start_params <- skies[i, 1:5] %>% as.numeric()
