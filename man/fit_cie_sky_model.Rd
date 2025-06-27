@@ -19,9 +19,7 @@ fit_cie_sky_model(
 or an object with same structure and names.}
 
 \item{sun_zenith_azimuth}{Numeric vector of lenght two. See
-\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}. See also \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in
-case you want to provide values based on date and time of acquisition and
-the \code{suncalc} package.}
+\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}.}
 
 \item{custom_sky_coef}{Numeric vector of length five or a numeric matrix with
 five columns. Custom starting coefficients of the sky model. By default,

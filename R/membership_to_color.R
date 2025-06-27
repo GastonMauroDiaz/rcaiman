@@ -47,13 +47,17 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize
-#' z <- zenith_image(ncol(caim), lens())
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
+#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' z <- zenith_image(2132/2, lens("Olloclip"))
+#' a <- azimuth_image(z, orientation = 180)
+#' zenith_colrow <- c(1063, 771)/2
+#' caim <- expand_noncircular(caim, z, zenith_colrow)
+#' m <- !is.na(caim$Red) & !is.na(z)
+#' caim[!m] <- 0
+#' caim <- normalize_minmax(caim)
 #'
-#' sky_blue <- polarLAB(50, 17, 293)
-#' mem <- membership_to_color(caim, sky_blue)
+#' mem <- membership_to_color(caim, sRGB(0.1, 0.4, 0.8))
 #' plot(mem)
 #' }
 membership_to_color <- function(caim, target_color, sigma = NULL) {
@@ -68,12 +72,12 @@ membership_to_color <- function(caim, target_color, sigma = NULL) {
   color <- as(color, "LAB")
 
   p <- .get_gaussian_2d_parameters(target_color, sigma)
-  max_z <- .gaussian2d(p[1], p[2], p[1], p[2], p[3])
+  sigma <- p[3]
+  max_z <- .gaussian2d(p[1], p[2], p[1], p[2], sigma)
   x <- colorspace::coords(color)
-  mem_to_color <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], p[3]) / max_z
+  mem_to_color <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], sigma) / max_z
 
   target_color <- colorspace::sRGB(matrix(c(0, 0, 0), ncol = 3))
-  sigma <- p[3]
   p <- .get_gaussian_2d_parameters(target_color, sigma)
   max_z <- .gaussian2d(p[1], p[2], p[1], p[2], sigma)
   mem_to_grey <- .gaussian2d(x[, 2], x[, 3], p[1], p[2], sigma) / max_z

@@ -12,9 +12,8 @@
 #'   [chessboard()], or `NULL`. Thought this arguments the user can select
 #'   between and object-based method when an actual sky grid is provided, and a
 #'   pixel-based method, when `NULL` is provided.
-#' @param max_angular_dist Numeric vector of length one. Specifies the maximum
+#' @param chi_max_sun Numeric vector of length one. Specifies the maximum
 #'   expected size of the circumsolar region in degrees.
-#' @param method description
 #'
 #' @return Numeric vector of length two, where the first element is the solar
 #'   zenith angle and the second is the solar azimuth angle, both expressed in
@@ -25,33 +24,30 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' r <- caim$Blue
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
-#'                              method = "thr_isodata")
-#' mx <- optim_max(caim, bin)
-#' caim <- normalize_minmax(caim, 0, mx, TRUE)
-#' plotRGB(caim*255)
-#' sky_blue <- polarLAB(50, 17, 293)
-#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+#' r <- caim$Blue
+#'
+#' com <- compute_complementary_gradients(caim)
+#' chroma <- max(com$blue_yellow, com$cyan_red)
+#' bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
+#' bin <- bin & apply_thr(com$blue_yellow, -0.2)
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g,
-#'                                                  max_angular_dist = 30)
+#'                                                  chi_max_sun = 30)
 #' row_col <- row_col_from_zenith_azimuth(z, a,
 #'                                        sun_zenith_azimuth[1],
 #'                                        sun_zenith_azimuth[2])
 #' points(row_col[1,2], nrow(caim) - row_col[1,1], col = 3, pch = 10)
 #' }
 extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
-                                       max_angular_dist = 30) {
+                                       chi_max_sun = 30) {
   .this_requires_EBImage()
   .check_if_r_z_and_a_are_ok(r, z, a)
   .is_single_layer_raster(bin, "bin")
   terra::compareGeom(bin, r)
-  stopifnot(length(max_angular_dist) == 1)
+  stopifnot(length(chi_max_sun) == 1)
 
   if (!is.null(g)) {
     .is_single_layer_raster(g, "g")
@@ -131,7 +127,7 @@ extract_sun_zenith_azimuth <- function(r, z, a, bin, g,
     seg_labels <- extract_feature(labeled_m, labeled_m, return_raster = FALSE)
 
     ## classify circumsolar region based on distance
-    i <- d > .degree2radian(max_angular_dist)
+    i <- d > .degree2radian(chi_max_sun)
     if (any(i)) {
       rcl <- data.frame(seg_labels[i], 0)
       m <- terra::classify(labeled_m, rcl)

@@ -40,18 +40,16 @@ reduction of the original sky regions.
 \examples{
 \dontrun{
 caim <- read_caim()
-r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
-bin <- regional_thresholding(r, rings_segmentation(z, 30),
-                             method = "thr_isodata")
-mx <- optim_max(caim, bin)
-caim <- normalize_minmax(caim, 0, mx, TRUE)
-plotRGB(caim*255)
-sky_blue <- polarLAB(50, 17, 293)
-ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+r <- caim$Blue
+
+com <- compute_complementary_gradients(caim)
+chroma <- max(com$blue_yellow, com$cyan_red)
+bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
+bin <- bin & apply_thr(com$blue_yellow, -0.2)
+
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_black = 3)

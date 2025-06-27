@@ -43,12 +43,13 @@ radius of the \code{r} argument.
 \dontrun{
 path <- system.file("external/APC_0581.jpg", package = "rcaiman")
 caim <- read_caim(path)
-z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
+calc_diameter(c(0.801, 0.178, -0.179), 1052/2, 86.2)
+z <- zenith_image(1058,  c(0.801, 0.178, -0.179))
 a <- azimuth_image(z)
-zenith_colrow <- c(1063, 771)/2
+zenith_colrow <- c(532, 386)
 
 caim <- expand_noncircular(caim, z, zenith_colrow)
-m <- !is.na(caim$Red) & !is.na(z)
+m <- !is.na(caim$Red) & select_sky_vault_region(z, 0, 86.2)
 caim[!m] <- 0
 
 bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
@@ -57,7 +58,7 @@ display_caim(caim$Blue, bin)
 
 caim <- gbc(caim, 2.2)
 caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
-                                                    normalize_minmax()
+  normalize_minmax()
 
 caim2 <- fisheye_to_equidistant(caim$Blue, z, a, m, radius = 600)
 bin2 <- fisheye_to_equidistant(bin, z, a, m, radius = 600)
@@ -65,19 +66,13 @@ bin2 <- apply_thr(bin2, 0.5) #to turn it logical
 # Use write_bin(bin2, "path/file_name") to have a file ready
 # to calcute LAI with CIMES, GLA, CAN-EYE, etc.
 
-z2 <- zenith_image(ncol(caim2), lens())
-laplacian <- matrix(c(0,1,0,1,-4,1,0,1,0), nrow=3)
-m2 <- terra::focal(m, laplacian)
-m2 <- m2 != 0
-m2 <- fisheye_to_equidistant(m2, z, a, m, radius = 600)
-m2 <- !m2 & !is.na(z2)
+m2 <- fisheye_to_equidistant(m, z, a, !is.na(z), radius = 600)
 
-display_caim(caim2, c(bin2, m2))
 
 caim <- read_caim(path)
 caim <- expand_noncircular(caim, z, zenith_colrow)
 plotRGB(caim)
-caim <- fisheye_to_equidistant(caim, z, a, m, radius = 600)
+caim <- fisheye_to_equidistant(caim, z, a, !is.na(z), radius = 600)
 caim[!m2] <- 0
 plotRGB(caim)
 }

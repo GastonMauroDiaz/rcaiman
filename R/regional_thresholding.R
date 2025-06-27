@@ -10,6 +10,8 @@
 #' recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
 #' * __Method isodata from this package__: Use `"thr_isodata"` to
 #' use [thr_isodata()].
+#' * __Two-corner method from this package__: Use `"thr_twocorner"` to
+#' use [thr_twocorner()] medium threshold.
 #'
 #' @inheritParams obia
 #' @inheritParams sky_grid_segmentation
@@ -47,7 +49,9 @@ regional_thresholding <- function(r, segmentation, method) {
   stopifnot(length(method) == 1)
 
   fun <- switch(method,
-    thr_isodata = thr_isodata
+    thr_isodata = thr_isodata,
+    thr_twocorner = function(x) tryCatch(thr_twocorner(x)$tm,
+                                         error = function(e) thr_isodata(x))
   )
 
   if (is.null(fun)) {

@@ -34,13 +34,17 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize
-z <- zenith_image(ncol(caim), lens())
-a <- azimuth_image(z)
-m <- !is.na(z)
+path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+caim <- read_caim(path)
+z <- zenith_image(2132/2, lens("Olloclip"))
+a <- azimuth_image(z, orientation = 180)
+zenith_colrow <- c(1063, 771)/2
+caim <- expand_noncircular(caim, z, zenith_colrow)
+m <- !is.na(caim$Red) & !is.na(z)
+caim[!m] <- 0
+caim <- normalize_minmax(caim)
 
-sky_blue <- polarLAB(50, 17, 293)
-mem <- membership_to_color(caim, sky_blue)
+mem <- membership_to_color(caim, sRGB(0.1, 0.4, 0.8))
 plot(mem)
 }
 }

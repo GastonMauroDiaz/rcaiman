@@ -2,45 +2,33 @@
 #'
 #' Fit a trend surface using [spatial::surf.ls()] as workhorse function.
 #'
-#' This function is meant to be used after [fit_coneshaped_model()].
-#'
 #' The first application of trend surface fitting to modelling sky digital
 #' numbers was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
 #' heading *Estimation of the sky DN as a previous step for our method*. The
-#' example shows a pipeline that resemble the one presented in that paper. The
-#' original idea was developed after the programming of [extract_sky_points()].
-#'
+#' example shows a pipeline that resemble the one presented in that paper.
 #'
 #' @inheritParams interpolate_planar
 #' @inheritParams spatial::surf.ls
 #'
-#' @note If an incomplete above-canopy image is available as filling source,
-#'   non-sky pixels should be turned `NA` or they will be erroneously considered
-#'   as sky pixels.
-#'
-#' @return A list with an object of class [SpatRaster-class] and of class `trls`
-#'   (see [spatial::surf.ls()]).
+#' @return A list with an object of class [SpatRaster-class], and object of
+#'   class `trls` (see [spatial::surf.ls()]), and the coefficient of
+#'   determination.
 #' @export
-#'
-#' @seealso [thr_mblt()]
 #'
 #' @references \insertAllCited{}
 #'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
-#' r <- caim$Blue
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
-#'                              method = "thr_isodata")
-#' mx <- optim_max(caim, bin)
-#' caim <- normalize_minmax(caim, 0, mx, TRUE)
+#' r <- caim$Blue
 #'
-#' sky_blue <- polarLAB(50, 17, 293)
-#' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-#' bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+#' com <- compute_complementary_gradients(caim)
+#' chroma <- max(com$blue_yellow, com$cyan_red)
+#' bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
+#' bin <- bin & apply_thr(com$blue_yellow, -0.2)
 #'
 #' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
 #' sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
@@ -93,10 +81,18 @@ fit_trend_surface <- function(sky_points,
   terra::ext(out) <- terra::ext(r)
   out <- terra::resample(out, r)
 
-  xy <- xy[grDevices::chull(xy),]
-  v <- terra::vect(list(xy), type = "polygon", crs = terra::crs(r))
-  v <- terra::rasterize(v, r) %>% is.na()
-  out[v] <- NA
+  observed <- sky_points[, col_id]
+  fitted <- terra::extract(out, xy)[,]
+  ss_res <- sum((observed - fitted)^2)
+  ss_tot <- sum((observed - mean(observed))^2)
+  r2 <- 1 - ss_res / ss_tot
 
-  list(raster = out, model = fit)
+  if (np > 3) {
+    xy <- xy[grDevices::chull(xy),]
+    v <- terra::vect(list(xy), type = "polygon", crs = terra::crs(r))
+    v <- terra::rasterize(v, r) %>% is.na()
+    out[v] <- NA
+  }
+
+  list(raster = out, model = fit, r2 = r2)
 }

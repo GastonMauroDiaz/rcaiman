@@ -67,36 +67,34 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 r <- caim$Blue
-bsi <- (caim$Blue-caim$Red) / (caim$Blue+caim$Red)
 
-bin <- regional_thresholding(r, rings_segmentation(z, 30),
-                             method = "thr_isodata")
-g <- sky_grid_segmentation(z, a, 10)
-sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g)
-
-.a <- azimuth_image(z, orientation = sun_zenith_azimuth[2] + 90)
-seg <- sectors_segmentation(.a, 180) * rings_segmentation(z, 30)
-bin <- regional_thresholding(r, seg, method = "thr_isodata")
-
-mx <- optim_max(caim, bin)
-caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
-ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
-bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
-bin <- bin & select_sky_vault_region(z, 0, 85) & bsi > 0.1
-plot(bin)
+com <- compute_complementary_gradients(caim)
+chroma <- max(com$blue_yellow, com$cyan_red)
+bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
+bin <- bin & apply_thr(com$blue_yellow, -0.2)
 
 set.seed(7)
 gs <- list(
-  sky_grid_segmentation(z, a, 1.875, first_ring_different = TRUE),
-  sky_grid_segmentation(z, a, 6, first_ring_different = TRUE),
-  sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+  sky_grid_segmentation(z, a, 15, first_ring_different = TRUE)
 )
 
 sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
-                              min_spherical_dist = seq(0, 9, 3))
+                              method = "BFGS",
+                              min_spherical_dist = 0)
+
+# set.seed(7)
+# gs <- list(
+#   sky_grid_segmentation(z, a, 1.875, first_ring_different = TRUE),
+#   sky_grid_segmentation(z, a, 6, first_ring_different = TRUE),
+#   sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+# )
+#
+# sky <- ootb_fit_cie_sky_model(r, z, a, m, bin , gs,
+#                               method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+#                               min_spherical_dist = seq(0, 9, 3))
 
 sky$sky
-plot(sky$sky)
+plot(r/sky$sky)
 sky$model_validation$rmse
 plot(select_sky_vault_region(r/sky$sky, 0.95, 1.05))
 plot(sky$model_validation$pred, sky$model_validation$obs)

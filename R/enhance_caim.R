@@ -60,39 +60,18 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
-#'
-#' r <- normalize_minmax(caim$Blue)
-#'
-#' bin <- regional_thresholding(r, rings_segmentation(z, 30),
-#'                              method = "thr_isodata")
-#' mx <- optim_max(caim, bin)
-#' mn <- min(caim[m])
-#'
-#' sky_blue_sample <- crop_caim(caim, c(327, 239), 41, 89)
-#' plotRGB(normalize_minmax(sky_blue_sample, mn, mx, TRUE)*255)
-#' sky_blue <- apply(sky_blue_sample[], 2, median) %>%
-#'   normalize_minmax(., mn, mx) %>%
-#'   as.numeric() %>%
-#'   matrix(., ncol = 3) %>%
-#'   sRGB()
-#' hex(sky_blue)
-#' # Use hex() to obtain the HEX color code. To see a color swatch, enter the
-#' # HEX code into a search engine (such as Mozilla Firefox).
-#' # NOTE: see extract_dn() for a better method to obtain sky_blue
-#' sky_blue <- polarLAB(50, 17, 293)
-#'
-#' caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
+#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' caim <- read_caim(path)
+#' z <- zenith_image(2132/2, lens("Olloclip"))
+#' a <- azimuth_image(z, orientation = 180)
+#' zenith_colrow <- c(1063, 771)/2
+#' caim <- expand_noncircular(caim, z, zenith_colrow)
+#' m <- !is.na(caim$Red) & !is.na(z)
+#' caim[!m] <- 0
+#' caim <- normalize_minmax(caim)
 #' ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
 #' plot(ecaim)
 #' plot(caim$Blue)
-#'
-#' ## to compare
-#' plot(apply_thr(ecaim, thr_isodata(ecaim[m])))
-#' plot(apply_thr(caim$Blue, thr_isodata(caim$Blue[m])))
 #' }
 enhance_caim <- function(caim,
                          m = NULL,

@@ -66,7 +66,7 @@ optim_sun_zenith_azimuth <- function(sun_zenith_azimuth,
     # Ensure azimuth is in [0, 360)
     azimuth <- azimuth %% 360
 
-    return(c(zenith, azimuth))
+    return(unname(c(zenith, azimuth)))
   }
   .refine_sun_coord <- function(param) {
     zenith <- param[1] * 9
@@ -93,6 +93,7 @@ optim_sun_zenith_azimuth <- function(sun_zenith_azimuth,
                                .refine_sun_coord,
                                method = method),
                   error = function(e) c(NA, NA))
+
   tryCatch(.normalize_angles(fit$par[1]*9, fit$par[2]*36),
     error = function(e) c(NA, NA))
 }

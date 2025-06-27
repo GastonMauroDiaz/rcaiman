@@ -1,21 +1,30 @@
-#' Do quad-tree segmentation
+#' Perform approximate quad-tree-like segmentation
 #'
-#' The quad-tree segmentation algorithm is a top-down process that makes
-#' recursive divisions in four equal parts until a condition is satisfied and
-#' stops locally. This is the usual implementation of the quad-tree algorithm,
-#' so it produces squared segments of different sizes. This particular
-#' implementation allows up to five sizes.
+#' This function performs an efficient hierarchical segmentation of the planar
+#' space inspired by the quad-tree algorithm. Instead of applying recursive
+#' subdivision cell-by-cell, it uses several predefined segmentation levels and
+#' evaluates local heterogeneity to decide whether finer subdivisions are
+#' justified and should be retained.
 #'
-#' The algorithm starts splitting the entire image into large squared segments.
-#' Depending on the aspect ratio, starting grids will going from \eqn{4 \times
-#' 4} to \eqn{1 \times 4} or \eqn{4 \times 1}. Then, it splits each segment into
-#' four sub-segments and calculates the standard deviation of the pixels from
-#' `r` delimited by each of those sub-segments and segment. The splitting
-#' process stops locally if *delta*, the sum of the standard deviation of the
-#' sub-segments minus the standard deviation of the parent segment, is less or
-#' equal than the `scale_parameter`. If `r` has more than one layer,
-#' *delta* is calculated separately and *delta* mean is used to
-#' evaluate the stopping condition.
+#' Segments at each level are organized in
+#' such a way that each coarser cell could theoretically be subdivided into four
+#' finer subcells. However, the process does not follow a strict top-down
+#' recursive logic as in a canonical quad-tree.
+#'
+#' The function computes a metric (*delta*) at a maximum of five levels. *delta*
+#' is defined as the sum of the standard deviation of its subregions minus the
+#' standard deviation of the parent region. If the *delta* is larger than a
+#' user-defined `scale_parameter`, then the finer segmentation level is retained
+#' locally. This evaluation is applied globally at each level, not recursively
+#' from cell to cell.
+#'
+#' This implementation results in a segmentation that *resembles* a quad-tree in
+#' appearance, but does not guarantee structural consistency across levels. In
+#' particular, small segments may appear nested within regions that were not
+#' formally subdivided from above, and not all parents have exactly four
+#' children. The benefit of this approach is a significant reduction in
+#' computational cost, at the expense of formal consistency with the classic
+#' quad-tree hierarchy.
 #'
 #' @inheritParams polar_qtree
 #'
@@ -121,7 +130,6 @@ qtree <- function(r, scale_parameter = 0.2) {
   seg <- .it_should_be_splited(delta)
   m <- seg == 0
   foo <- terra::rast(ges) * m
-  # cte <- paste0(c(1, rep(0, nchar(max(foo[])))), collapse = "") %>% as.numeric()
   foo <- Map(function(i) {
                m <- extract_feature(foo[[i]], foo[[i]], length) == wds[[i]]^2
                m * (length(wds) - i)

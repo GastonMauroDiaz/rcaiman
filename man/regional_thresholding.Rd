@@ -33,6 +33,8 @@ to use the algorithm by \insertCite{isodata;textual}{rcaiman}, which was
 recommended by \insertCite{Jonckheere2005;textual}{rcaiman}.
 \item \strong{Method isodata from this package}: Use \code{"thr_isodata"} to
 use \code{\link[=thr_isodata]{thr_isodata()}}.
+\item \strong{Two-corner method from this package}: Use \code{"thr_twocorner"} to
+use \code{\link[=thr_twocorner]{thr_twocorner()}} medium threshold.
 }
 }
 \examples{

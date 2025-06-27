@@ -16,10 +16,9 @@ fisheye_to_pano(r, z, a, fun = mean, angle_width = 1)
 \item{fun}{A \code{function} that takes a vector as input and returns a
 one-length numeric or logical vector as output (e.g. mean).}
 
-\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This
-constrain is rooted in the requirement of a value able to divide both the
-\code{0} to \code{360} and \code{0} to \code{90} ranges into a whole number
-of segments.}
+\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This constrain is
+rooted in the requirement of a value able to divide both the \code{0} to \code{360}
+and \code{0} to \code{90} ranges into a whole number of segments.}
 }
 \description{
 Fisheye to panoramic (cylindrical projection)

@@ -8,9 +8,7 @@ optim_sun_zenith_azimuth(sun_zenith_azimuth, rr, sky_coef, method = "BFGS")
 }
 \arguments{
 \item{sun_zenith_azimuth}{Numeric vector of lenght two. See
-\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}. See also \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}} in
-case you want to provide values based on date and time of acquisition and
-the \code{suncalc} package.}
+\code{\link[=extract_sun_zenith_azimuth]{extract_sun_zenith_azimuth()}}.}
 
 \item{rr}{An object of class \emph{list}. The output of \code{\link[=extract_rel_radiance]{extract_rel_radiance()}}
 or an object with same structure and names.}

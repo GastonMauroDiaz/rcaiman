@@ -94,6 +94,5 @@ expand_noncircular <-  function (caim, z, zenith_colrow) {
   r <- terra::extend(r, z)
   terra::ext(r) <- terra::align(terra::ext(r), z)
   r <- terra::resample(r, z)
-  terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
   r
 }

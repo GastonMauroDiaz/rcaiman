@@ -63,9 +63,7 @@
 #' @param rr An object of class *list*. The output of [extract_rel_radiance()]
 #'   or an object with same structure and names.
 #' @param sun_zenith_azimuth Numeric vector of lenght two. See
-#'   [extract_sun_zenith_azimuth()]. See also [row_col_from_zenith_azimuth()] in
-#'   case you want to provide values based on date and time of acquisition and
-#'   the `suncalc` package.
+#'   [extract_sun_zenith_azimuth()].
 #' @inheritParams cie_sky_image
 #' @param custom_sky_coef Numeric vector of length five or a numeric matrix with
 #'   five columns. Custom starting coefficients of the sky model. By default,
@@ -208,8 +206,9 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
   Zp <- .degree2radian(rr$sky_points$z)
 
 
-  vault <- expand.grid(seq(0 + pi/36, pi/2 - pi/36, pi/18),
-                       seq(0 + pi/36, 2*pi - pi/36, pi/18))
+  vault <- expand.grid(seq(pi / 18, pi / 2, pi / 18),
+                       seq(pi / 18, 2 * pi, pi / 18))
+  vault <- rbind(matrix(c(0, 0), ncol = 2), as.matrix(vault))
   # Try all start parameters (brute force approach)
   .fun <- function(i) {
     # This has to be inside the function because of the twilight code chunk
@@ -230,22 +229,24 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
       .d <- params[4]
       .e <- params[5]
 
-      # penalty_param <- max(0, .b) + max(0, .d) + max(0, -.e) #+ max(0, .a - 4)
+      w <- 1e10
+      penalty_param <- w * max(0, .b) + w * max(0, -.e)
 
       vault_values <- .cie_sky_model(vault[,2],
-                                     vault[,2], AzS, Zs, .a, .b, .c, .d, .e)
+                                     vault[,1], AzS, Zs, .a, .b, .c, .d, .e)
+      vault_values[vault_values > 0] <- 0
 
       x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
-      penalty_behavior <- 1e10 * abs(.c) * max(0, max(x) - x_sun) -
-        sum(vault_values[vault_values < 0.1])
+      penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun) +
+        w * sum(vault_values)^2
 
       x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
       residuals <- x - rr$sky_points$rr
 
       loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
 
-      loss_value + penalty_behavior #+ penalty_param
+      loss_value + penalty_behavior + penalty_param
     }
 
     start_params <- skies[i, 1:5] %>% as.numeric()
@@ -253,7 +254,10 @@ fit_cie_sky_model <- function(rr, sun_zenith_azimuth,
       stats::optim(par = start_params,
                    fn = fcost,
                    method = method),
-      error = function(e) list(par = start_params, convergence = NULL)
+      error = function(e) {
+        warning("`optim` failed unexpectedly.")
+        list(par = start_params, convergence = NULL)
+      }
     )
 
     coef <- fit$par

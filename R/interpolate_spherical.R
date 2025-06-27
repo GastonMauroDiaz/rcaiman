@@ -45,22 +45,19 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #'
-#'
 #' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
 #' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
 #'
-#' sky_points <- ootb_sky$sky_points
-#'
 #' size <- 200
-#' sky_points2 <- interpolate_spherical(r, z, a, sky_points,
-#'                                      sky_model =  ootb_sky$sky,
-#'                                      k = 10,
-#'                                      p = 2,
-#'                                      w = 1,
-#'                                      rule = "any",
-#'                                      chi_max = 20,
-#'                                      size = size)
-#' plot(sky)
+#' sky2 <- interpolate_spherical(r, z, a, ootb_sky$sky_points,
+#'                               filling_source =  ootb_sky$sky,
+#'                               k = 10,
+#'                               p = 2,
+#'                               w = 1,
+#'                               rule = "any",
+#'                               chi_max = 20,
+#'                               size = size)
+#' plot(sky2)
 #' }
 interpolate_spherical <- function(r, z, a, sky_points, filling_source, k, p,
                                   chi_max = 20,

@@ -43,13 +43,8 @@ file, use File>Save As...
 \dontrun{
 caim <- read_caim()
 r <- caim$Blue
-bin <- apply_thr(r, thr_isodata(r[]))
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(r, bin, g)
-sky_points <- extract_dn(caim, sky_points)
-head(sky_points)
 
 # See fit_cie_sky_model() for details on below file
 path <- system.file("external/sky_points.csv",
@@ -61,33 +56,7 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-bin <- regional_thresholding(r, rings_segmentation(z, 15), "thr_isodata")
-bin <- bin & select_sky_vault_region(z, 0, 85)
-mx <- optim_max(caim, bin)
-caim <- normalize_minmax(caim, mx = mx, force_range = TRUE)
-m <- !is.na(z)
-
-sky_blue <- extract_dn(caim, sky_points, fun = median)
-as(sky_blue, "polarLAB")
-ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-plot(ecaim)
-.refine_sky_blue <- function(chroma) {
-  ecaim <- enhance_caim(caim, m, polarLAB(50, chroma, 293))
-  total_mu <- -extract_dn(ecaim, sky_points, fun = sum)
-  if (is.na(total_mu)) total_mu <- 0
-  total_mu
-}
-chroma <- seq(0, 1, 0.05) * 100
-total_mu <- Map(.refine_sky_blue, chroma) \%>\% unlist()
-plot(chroma, total_mu, type = "l")
-
-opt_result <- optim(17,
-                      .refine_sky_blue,
-                      method = "L-BFGS-B", lower = 0, upper = 100)
-opt_result$convergence
-opt_result$par
-ecaim <- enhance_caim(caim, m, polarLAB(50, 17, 293))
-plot(ecaim)
-apply_thr(ecaim, thr_isodata(ecaim[m])) \%>\% plot()
+sky_points <- extract_dn(caim, sky_points)
+head(sky_points)
 }
 }

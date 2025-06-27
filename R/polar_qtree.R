@@ -1,22 +1,33 @@
-#' Do quad-tree segmentation in the polar space
+#' Perform approximate quad-tree-like segmentation in the polar space
 #'
-#' The quad-tree segmentation algorithm is a top-down process that makes
-#' recursive divisions in four equal parts until a condition is satisfied and
-#' stops locally. The usual implementation of the quad-tree algorithm is
-#' based on the raster structure and this is why the result are squares of
-#' different sizes. This method implements the quad-tree segmentation in a polar
-#' space, so the segments are shaped like windshields, though some of them will
-#' look elongated in height. The pattern is two opposite and converging straight
-#' sides and two opposite and parallel curvy sides.
+#' This function performs an efficient hierarchical segmentation of the polar
+#' space inspired by the quad-tree algorithm. Instead of applying recursive
+#' subdivision cell-by-cell, it uses several predefined segmentation levels and
+#' evaluates local heterogeneity to decide whether finer subdivisions are
+#' justified and should be retained.
 #'
-#' The algorithm splits segments of 30 degrees resolution into four sub-segments
-#' and calculates the standard deviation of the pixels from `r` delimited
-#' by each of those segments. The splitting process stops locally if the sum of
-#' the standard deviation of the sub-segments minus the standard deviation of
-#' the parent segment (named *delta*) is less or equal than the
-#' `scale_parameter`. If `r` has more than one layer, *delta* is
-#' calculated separately and *delta* mean is used to evaluate the stopping
-#' condition.
+#' The segmentation is performed on polar coordinates, so the resulting shapes
+#' resemble windshield-like segments (i.e., bounded by radial and circular
+#' curves), rather than square blocks. Segments at each level are organized in
+#' such a way that each coarser cell could theoretically be subdivided into four
+#' finer subcells. However, the process does not follow a strict top-down
+#' recursive logic as in a canonical quad-tree.
+#'
+#' The function computes a metric (*delta*) at multiple levels of angular
+#' resolution (from coarser to finer: 15°, 7.5°, 3.75°, and 1.875°). For each
+#' region, *delta* is defined as the sum of the standard deviation of its
+#' subregions minus the standard deviation of the parent region. If the *delta*
+#' is larger than a user-defined `scale_parameter`, then the finer segmentation
+#' level is retained locally. This evaluation is applied globally at each level,
+#' not recursively from cell to cell.
+#'
+#' This implementation results in a segmentation that *resembles* a quad-tree in
+#' appearance, but does not guarantee structural consistency across levels. In
+#' particular, small segments may appear nested within regions that were not
+#' formally subdivided from above, and not all parents have exactly four
+#' children. The benefit of this approach is a significant reduction in
+#' computational cost, at the expense of formal consistency with the classic
+#' quad-tree hierarchy.
 #'
 #' @param r [SpatRaster-class].
 #' @inheritParams sky_grid_segmentation
@@ -53,10 +64,10 @@ polar_qtree <- function(r, z, a,
   ges <- Map(sky_grid_segmentation, z, a, angle.wds)
 
   .calc_delta_single_layer <- function(r) {
-    if (any(is.na(r)[] %>% as.logical())) {
+    if (any(is.na(r)[])) {
       .sd <- function(x) {
         x <- sd(x, na.rm = TRUE)
-        if (is.na(x)) x <- 0
+        if (all(is.na(x))) x <- 0
         x
       }
       sd_now <- Map(function(g) extract_feature(r, g, .sd,

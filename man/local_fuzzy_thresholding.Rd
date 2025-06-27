@@ -49,26 +49,21 @@ If you use this function in your research, please cite
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
-a <- azimuth_image(z)
-m <- !is.na(z)
-
+path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+caim <- read_caim(path)
+z <- zenith_image(2132/2, lens("Olloclip"))
+a <- azimuth_image(z, orientation = 180)
+zenith_colrow <- c(1063, 771)/2
+caim <- expand_noncircular(caim, z, zenith_colrow)
+m <- !is.na(caim$Red) & !is.na(z)
+caim[!m] <- 0
 caim <- normalize_minmax(caim)
 
-# ImageJ can be used to digitize points
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-img_points <- read.csv(path)
-img_points <- img_points[c("Y", "X")]
-colnames(img_points) <- c("row", "col")
-head(img_points)
-target_color <- extract_dn(caim, img_points, fun = median)
-as(target_color, "HSV")
-target_color <- HSV(240, 0.85, 0.5) #to increase saturation
-
-mem <- membership_to_color(caim, target_color)
-mem_thr <- local_fuzzy_thresholding(mean(caim), m,  mem$membership_to_grey)
+mem <- membership_to_color(caim, sRGB(0.1, 0.4, 0.8))
+plot(mem)
+mem_thr <- local_fuzzy_thresholding(caim$Blue, m,
+                                    mem$membership_to_grey,
+                                    fuzziness = 0.1)
 plot(mem_thr)
 }
 }

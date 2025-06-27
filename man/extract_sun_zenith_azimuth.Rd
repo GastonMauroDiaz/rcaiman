@@ -4,7 +4,7 @@
 \alias{extract_sun_zenith_azimuth}
 \title{Extract sun angular coordinates}
 \usage{
-extract_sun_zenith_azimuth(r, z, a, bin, g, max_angular_dist = 30)
+extract_sun_zenith_azimuth(r, z, a, bin, g, chi_max_sun = 30)
 }
 \arguments{
 \item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
@@ -22,10 +22,8 @@ was obtained.}
 between and object-based method when an actual sky grid is provided, and a
 pixel-based method, when \code{NULL} is provided.}
 
-\item{max_angular_dist}{Numeric vector of length one. Specifies the maximum
+\item{chi_max_sun}{Numeric vector of length one. Specifies the maximum
 expected size of the circumsolar region in degrees.}
-
-\item{method}{description}
 }
 \value{
 Numeric vector of length two, where the first element is the solar
@@ -43,21 +41,18 @@ testing this pipeline is under preparation.
 \examples{
 \dontrun{
 caim <- read_caim()
-r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
-bin <- regional_thresholding(r, rings_segmentation(z, 30),
-                             method = "thr_isodata")
-mx <- optim_max(caim, bin)
-caim <- normalize_minmax(caim, 0, mx, TRUE)
-plotRGB(caim*255)
-sky_blue <- polarLAB(50, 17, 293)
-ecaim <- enhance_caim(caim, m, sky_blue = sky_blue)
-bin <- apply_thr(ecaim, thr_isodata(ecaim[m]))
+r <- caim$Blue
+
+com <- compute_complementary_gradients(caim)
+chroma <- max(com$blue_yellow, com$cyan_red)
+bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
+bin <- bin & apply_thr(com$blue_yellow, -0.2)
 g <- sky_grid_segmentation(z, a, 10)
 sun_zenith_azimuth <- extract_sun_zenith_azimuth(r, z, a, bin, g,
-                                                 max_angular_dist = 30)
+                                                 chi_max_sun = 30)
 row_col <- row_col_from_zenith_azimuth(z, a,
                                        sun_zenith_azimuth[1],
                                        sun_zenith_azimuth[2])
