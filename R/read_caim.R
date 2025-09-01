@@ -27,11 +27,11 @@
 #' 2. Draw a rectangular selection.
 #' 3. Go to *Edit > Selection > Specify...* to read `upper_left`, `width`, and `height`.
 #'
-#' @param path Character vector of length one.  Path to an image file, including
+#' @param path character vector of length one.  Path to an image file, including
 #'   extension. If `NULL`, an example image is returned.
-#' @param upper_left Numeric vector of length two. Pixel coordinates of the
+#' @param upper_left numeric vector of length two. Pixel coordinates of the
 #'   upper-left corner of the ROI, in the format `c(column, row)`.
-#' @param width,height Numeric vector of length one. Size (in pixels) of the
+#' @param width,height numeric vector of length one. Size (in pixels) of the
 #'   rectangular ROI to read.
 #'
 #' @return Numeric [terra::SpatRaster-class], typically with layers named `"Red"`,

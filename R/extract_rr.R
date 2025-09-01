@@ -23,11 +23,7 @@
 #'   radiance). If `no_of_points` is `NULL`, `zenith_dn = 1` and `dn = rr`.}
 #' }
 #'
-#' @references \insertAllCited{}
-#'
 #' @export
-#'
-#' @references \insertAllCited{}
 #'
 #' @examples
 #' \dontrun{

@@ -14,9 +14,9 @@ row_col_from_zenith_azimuth(z, a, zenith, azimuth)
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{row, col}{Numeric vectors. raster coodinates. Must have equal length.}
+\item{row, col}{numeric vectors. raster coodinates. Must have equal length.}
 
-\item{zenith, azimuth}{Numeric vectors. Angles in degrees. Must have equal length.}
+\item{zenith, azimuth}{numeric vectors. Angles in degrees. Must have equal length.}
 }
 \value{
 See \emph{Functions}
@@ -27,7 +27,7 @@ hemispherical image (\code{zenith}, \code{azimuth}) and raster
 coordinates (\code{row}, \code{col}).
 }
 \details{
-\strong{Forward mapping (\verb{zenith, azimuth} → \verb{row, col}).}
+\strong{\verb{zenith, azimuth} → \verb{row, col}.}
 A sparse set of valid sky points is sampled over the image and enriched with
 their angular coordinates. Two local least-squares surfaces
 (\code{spatial::surf.ls}, \code{np = 6}) are fitted to predict \code{row} and \code{col} as
@@ -35,7 +35,7 @@ smooth functions of (\code{azimuth}, \code{zenith}). Predictions are rounded to 
 nearest integer index. Out-of-bounds indices are not produced under normal
 conditions; clamp externally if needed.
 
-\strong{Inverse mapping (\verb{row, col} → \verb{zenith, azimuth}).}
+\strong{\verb{row, col} → \verb{zenith, azimuth}.}
 Angles are obtained by direct lookup on \code{z} and \code{a} using
 \code{terra::cellFromRowCol}. If any queried cell is \code{NA} (e.g., outside the
 calibrated lens footprint), a synthetic \code{z} is reconstructed from the lens

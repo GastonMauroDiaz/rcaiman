@@ -10,7 +10,7 @@
 #'
 #' @inheritParams zenith_image
 #'
-#' @returns numeric vector of the same length as `angle`, constrained to \[0, 1\].
+#' @returns Numeric vector of the same length as `angle`, constrained to \[0, 1\].
 #'
 #' @export
 #'

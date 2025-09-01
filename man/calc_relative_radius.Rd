@@ -13,7 +13,7 @@ calc_relative_radius(angle, lens_coef)
 projection function. See \code{\link[=lens]{lens()}}.}
 }
 \value{
-numeric vector of the same length as \code{angle}, constrained to [0, 1].
+Numeric vector of the same length as \code{angle}, constrained to [0, 1].
 }
 \description{
 Convert zenith angles (degrees) to normalized radial distance using the lens

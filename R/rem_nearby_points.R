@@ -23,7 +23,7 @@
 #' It is assumed that `sky_points` were extracted from an image with the same
 #' dimensions as the `r`, `z`, and `a` rasters. No checks are performed.
 #'
-#' @return A [data.frame] with columns `row` and `col` for retained points.
+#' @return A `data.frame` with columns `row` and `col` for retained points.
 #'
 #' @export
 #'

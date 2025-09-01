@@ -26,8 +26,6 @@
 #' }
 #'
 #'
-#' @references \insertAllCited{}
-#'
 #' @export
 #'
 #' @examples

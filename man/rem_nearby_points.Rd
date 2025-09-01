@@ -36,7 +36,7 @@ between retained points. Units: pixels for \code{"planar"}, deg for \code{"spher
 central pixel.}
 }
 \value{
-A \link{data.frame} with columns \code{row} and \code{col} for retained points.
+A \code{data.frame} with columns \code{row} and \code{col} for retained points.
 }
 \description{
 Select a subset of points so that no retained pair is closer than \code{min_dist}

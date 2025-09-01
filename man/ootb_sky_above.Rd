@@ -59,6 +59,3 @@ plot(sky_above$dn_raster)
 plot(caim$Blue/sky_above$dn_raster)
 }
 }
-\references{
-\insertAllCited{}
-}

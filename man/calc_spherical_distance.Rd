@@ -35,11 +35,6 @@ by extension, canopy hemispherical photography.
 Spherical distance corresponds to the arc length of the shortest path between
 two points on the surface of a sphere. When the radius is one, this arc
 length equals the angle itself, expressed in radians.
-
-Internally, the computation is clamped to the interval \eqn{[-1, 1]} before
-calling \code{acos()} to avoid \code{NaN} results caused by floating-point rounding
-errors. This approach is based on a discussion at:
-https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
 }
 \examples{
 set.seed(1)

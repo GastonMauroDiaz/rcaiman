@@ -9,7 +9,7 @@
 #' @param mx numeric vector of length one or `NULL`. Maximum expected value.
 #'   If `NULL` (default), uses the maximum of `r`.
 #' @param clip logical vector of length one. If `TRUE`, clip the output to
-#'   `[0, 1]` after rescaling. If `FALSE`, values greater than `mx` are scaled
+#'   \eqn{[0, 1]} after rescaling. If `FALSE`, values greater than `mx` are scaled
 #'   proportionally to values above `1`, and values less than `mn` to values
 #'   below `0`.
 #'

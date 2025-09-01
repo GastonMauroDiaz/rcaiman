@@ -30,12 +30,12 @@ sampled (or any raster with identical dimensions).}
 
 \item{k}{numeric vector of length one. Number of neighbors.}
 
-\item{angular_radius}{Numeric vector of length one. The maximum radius for
+\item{angular_radius}{numeric vector of length one. The maximum radius for
 searching k-nearest neighbors (KNN) in degrees.}
 
-\item{laxity}{Numeric vector of length one.}
+\item{laxity}{numeric vector of length one.}
 
-\item{cutoff_side}{Character vector of length one. Options are "both"
+\item{cutoff_side}{character vector of length one. Options are "both"
 (default), "upper" or "lower". Controls which side(s) of the inequality are
 evaluated to detect outliers. See Details.}
 
@@ -43,7 +43,7 @@ evaluated to detect outliers. See Details.}
 \eqn{3 \times 3} local mean around each point; if \code{FALSE}, use only the
 central pixel.}
 
-\item{trend}{Numeric vector of length one or \code{NULL}. Zero to three. Specifies
+\item{trend}{numeric vector of length one or \code{NULL}. Zero to three. Specifies
 the order of the polynomial surface fitted to the neighbors to account for
 spatial trends. Use NULL (default) to skip detrending.}
 }
@@ -56,12 +56,13 @@ Remove sky points considered outliers relative to their local
 neighbors in a user-specified variable.
 }
 \details{
-Based on the Statistical Outlier Removal (SOR) filter from the \href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
-surface, which is more appropriate for hemispherical photography. The number
-of neighbors is controlled by \code{k}, and \code{angular_radius} sets the maximum
-search radius (deg). If fewer than \code{k} neighbors are found within that
-radius, the point is retained due to insufficient evidence for removal. The
-decision criterion follows \insertCite{Leys2013;textual}{rcaiman}:
+Based on the Statistical Outlier Removal (SOR) filter from the
+\href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
+surface. The number of neighbors is controlled by \code{k}, and \code{angular_radius}
+sets the maximum search radius (deg). If fewer than \code{k} neighbors are found
+within that radius, the point is retained due to insufficient evidence for
+removal. The decision criterion follows
+\insertCite{Leys2013;textual}{rcaiman}:
 
 \eqn{M - laxity \times MAD < x_i < M + laxity \times MAD}
 

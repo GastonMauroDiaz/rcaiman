@@ -14,11 +14,6 @@
 #' two points on the surface of a sphere. When the radius is one, this arc
 #' length equals the angle itself, expressed in radians.
 #'
-#' Internally, the computation is clamped to the interval \eqn{[-1, 1]} before
-#' calling `acos()` to avoid `NaN` results caused by floating-point rounding
-#' errors. This approach is based on a discussion at:
-#' https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
-#'
 #' @param z1 numeric vector. Zenithal angle in radians.
 #' @param a1 numeric vector. Azimuthal angle in radians.
 #' @param z2 numeric vector of length one. Zenithal angle in radians.

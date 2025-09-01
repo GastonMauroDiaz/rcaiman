@@ -60,8 +60,3 @@ rr <- extract_rr(caim$Blue, z, a, sky_points, 1)
 points(rr$sky_points$col, nrow(caim) - rr$sky_points$row, col = 3, pch = 0)
 }
 }
-\references{
-\insertAllCited{}
-
-\insertAllCited{}
-}

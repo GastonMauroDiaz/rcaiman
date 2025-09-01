@@ -16,7 +16,7 @@ If \code{NULL} (default), uses the minimum of \code{r}.}
 If \code{NULL} (default), uses the maximum of \code{r}.}
 
 \item{clip}{logical vector of length one. If \code{TRUE}, clip the output to
-\verb{[0, 1]} after rescaling. If \code{FALSE}, values greater than \code{mx} are scaled
+\eqn{[0, 1]} after rescaling. If \code{FALSE}, values greater than \code{mx} are scaled
 proportionally to values above \code{1}, and values less than \code{mn} to values
 below \code{0}.}
 }

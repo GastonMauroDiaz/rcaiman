@@ -13,7 +13,7 @@
 #' }
 #'
 #' @details
-#' **Forward mapping (`zenith, azimuth` → `row, col`).**
+#' **`zenith, azimuth` → `row, col`.**
 #' A sparse set of valid sky points is sampled over the image and enriched with
 #' their angular coordinates. Two local least-squares surfaces
 #' (`spatial::surf.ls`, `np = 6`) are fitted to predict `row` and `col` as
@@ -21,7 +21,7 @@
 #' nearest integer index. Out-of-bounds indices are not produced under normal
 #' conditions; clamp externally if needed.
 #'
-#' **Inverse mapping (`row, col` → `zenith, azimuth`).**
+#' **`row, col` → `zenith, azimuth`.**
 #' Angles are obtained by direct lookup on `z` and `a` using
 #' `terra::cellFromRowCol`. If any queried cell is `NA` (e.g., outside the
 #' calibrated lens footprint), a synthetic `z` is reconstructed from the lens
@@ -32,8 +32,8 @@
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams zenith_image
 #'
-#' @param zenith,azimuth Numeric vectors. Angles in degrees. Must have equal length.
-#' @param row,col Numeric vectors. raster coodinates. Must have equal length.
+#' @param zenith,azimuth numeric vectors. Angles in degrees. Must have equal length.
+#' @param row,col numeric vectors. raster coodinates. Must have equal length.
 #'
 #' @return See *Functions*
 #'

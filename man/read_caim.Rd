@@ -7,13 +7,13 @@
 read_caim(path = NULL, upper_left = NULL, width = NULL, height = NULL)
 }
 \arguments{
-\item{path}{Character vector of length one.  Path to an image file, including
+\item{path}{character vector of length one.  Path to an image file, including
 extension. If \code{NULL}, an example image is returned.}
 
-\item{upper_left}{Numeric vector of length two. Pixel coordinates of the
+\item{upper_left}{numeric vector of length two. Pixel coordinates of the
 upper-left corner of the ROI, in the format \code{c(column, row)}.}
 
-\item{width, height}{Numeric vector of length one. Size (in pixels) of the
+\item{width, height}{numeric vector of length one. Size (in pixels) of the
 rectangular ROI to read.}
 }
 \value{

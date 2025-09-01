@@ -40,7 +40,7 @@ in the blend with local estimates (see Eq. 6 in
 
 \item{p}{numeric vector of length one. Inverse distance weighting exponent.}
 
-\item{angular_radius}{Numeric vector of length one. The maximum radius for
+\item{angular_radius}{numeric vector of length one. The maximum radius for
 searching k-nearest neighbors (KNN) in degrees.}
 
 \item{rule}{character vector of length one. Either \code{"any"} or \code{"all"}.
@@ -62,7 +62,7 @@ Interpolate values from canopy photographs using inverse distance weighting
 that map the sky vault. Optionally blend with a model surface to fill voids.
 }
 \details{
-Distances are great-circle distances on the sky. When \code{filling_source} is
+Distances are great-circle distances on the sky vault. When \code{filling_source} is
 provided, local IDW estimates are blended with that surface following Eq. 6
 in \insertCite{Lang2010;textual}{rcaiman}. For efficiency, interpolation runs
 on a temporary low-resolution grid of size \code{size}.
