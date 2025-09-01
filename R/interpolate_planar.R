@@ -1,36 +1,39 @@
-#' Interpolate sky points
+#' Interpolate in planar space
 #'
-#' Interpolate values from canopy photographs.
+#' @description
+#' Interpolate values from canopy photographs using inverse distance weighting
+#' (IDW) with k-nearest neighbors in image (planar) coordinates.
+#' A radius limits neighbor search.
 #'
-#' This function use [lidR::knnidw()] as workhorse function, so arguments `k`,
-#' `p`, and `rmax` are passed to it.
+#' @details
+#' Delegates interpolation to [lidR::knnidw()], passing `k`, `p`, and `rmax`
+#' unchanged. Defaults follow \insertCite{Lang2013;textual}{rcaiman}.
+#' Note that `rmax` is given in pixels but intended to approximate 15–20 deg in
+#' angular terms. Therefore, this value needs fine-tuning based on image
+#' resolution and lens projection. For best results, the interpolated quantity
+#' should be linearly related to scene radiance; see [extract_radiometry()] and
+#' [read_caim_raw()]. For JPEG images, consider [invert_gamma_correction()] to reverse gamma
+#' encoding.
 #'
-#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
-#' the best result would be obtained with data showing a linear relation between
-#' digital numbers and the amount of light reaching the sensor. See
-#' [extract_radiometry()] and [read_caim_raw()] for further details. As a
-#' compromise solution, [gbc()] can be used.
+#' @param sky_points `data.frame` with columns `row`, `col`, and one additional
+#'   numeric column with values to interpolate. Typically returned by
+#'   [extract_rr()] or [extract_dn()].
+#' @param r numeric [terra::SpatRaster-class] with one layer. Image from which
+#'   `sky_points` were derived, or another raster with the same number of rows
+#'   and columns. Used only as geometric template; cell values are ignored.
+#' @param col_id numeric or character vector of length one. The name or position
+#'   of the column in `sky_points` containing the values to interpolate.
 #'
-#' Default parameters are the ones used by
-#' \insertCite{Lang2010;textual}{rcaiman}. According to these authors, the
-#' argument `rmax` should account for between 15 to 20 degrees, but it is
-#' expressed in pixels units. So, image resolution and lens projections should
-#' be taken into account to set this argument properly.
+#' @inheritParams fisheye_to_equidistant
 #'
-#' @param sky_points An object of class *data.frame*. The data.frame returned by
-#'   [extract_rel_radiance()] or [extract_dn()], or a
-#'   *data.frame* with same basic structure and names.
-#' @inheritParams extract_dn
-#' @param k Numeric vector of length one. Number of k-nearest neighbors.
-#' @param p Numeric vector of length one. Power for inverse-distance weighting.
-#' @param rmax Numeric vector of length one. Maximum radius for searching
-#'   k-nearest neighbors (knn).
-#' @param col_id Numeric or character vector of length one. The number or name
-#'   of the colum with the values to interpolate.
+#' @note No consistency checks are performed to ensure that `sky_points` and `r`
+#'   are geometrically compatible. Incorrect combinations may lead to invalid
+#'   outputs.
+#'
+#' @return Numeric [terra::SpatRaster-class] with one layer and the same geometry
+#'   as `r`.
 #'
 #' @references \insertAllCited{}
-#'
-#' @return An object of class [SpatRaster-class].
 #'
 #' @export
 #'
@@ -42,10 +45,8 @@
 #' m <- !is.na(z)
 #' r <- caim$Blue
 #'
-#' com <- compute_complementary_gradients(caim)
-#' chroma <- max(com$blue_yellow, com$cyan_red)
-#' bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
-#' bin <- bin & apply_thr(com$blue_yellow, -0.2)
+#' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+#'   select_sky_region(z, 0, 88)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
@@ -57,21 +58,33 @@
 #' plot(sky)
 #' plot(r/sky)
 #' }
-interpolate_planar <- function(sky_points,
-                               r,
+interpolate_planar <- function(sky_points, r,
                                k = 3,
                                p = 2,
                                rmax = 200,
-                               col_id = "rr") {
-  .is_single_layer_raster(r)
-  stopifnot(length(k) == 1)
-  stopifnot(length(p) == 1)
-  stopifnot(length(rmax) == 1)
-  stopifnot(length(col_id) == 1)
-  stopifnot(.is_whole(k))
-  stopifnot(is.numeric(p))
-  stopifnot(is.numeric(rmax))
-  stopifnot(is.data.frame(sky_points))
+                               col_id = "dn") {
+  if (!is.data.frame(sky_points)) {
+    stop("`sky_points` must be a data frame.")
+  }
+  .check_vector(k, "integerish", 1, sign = "positive")
+  .check_vector(p, "numeric", 1, sign = "positive")
+  .check_vector(rmax, "numeric", 1, sign = "positive")
+  handling_col_id <- c(
+    tryCatch(.check_vector(col_id, "numeric", sign = "any"),
+             error = function(e) FALSE),
+    tryCatch(.check_vector(col_id, "character"),
+             error = function(e) FALSE)
+  )
+  if (!any(handling_col_id)) {
+    stop("`col_id` must be the name or position of the column in `sky_points` containing the values to interpolate.")
+  }
+  if (is.numeric(col_id)) col_id <- names(sky_points)[col_id]
+  required_cols <- c("row", "col", col_id)
+  if (!all(required_cols %in% names(sky_points))) {
+    stop(sprintf("`sky_points` must contain columns %s.",
+                 paste(sprintf('"%s"', required_cols), collapse = ", ")))
+  }
+
 
   cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
   xy <- terra::xyFromCell(r, cells)
@@ -81,7 +94,6 @@ interpolate_planar <- function(sky_points,
   } else {
     const <- 1
   }
-
 
   las <- .make_fake_las(
     c(xy[, 1]     , 0 - rmax, 0 - rmax       , xmax(r) + rmax, xmax(r) + rmax),

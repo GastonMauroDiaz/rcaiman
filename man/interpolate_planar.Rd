@@ -2,49 +2,50 @@
 % Please edit documentation in R/interpolate_planar.R
 \name{interpolate_planar}
 \alias{interpolate_planar}
-\title{Interpolate sky points}
+\title{Interpolate in planar space}
 \usage{
-interpolate_planar(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "rr")
+interpolate_planar(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "dn")
 }
 \arguments{
-\item{sky_points}{An object of class \emph{data.frame}. The data.frame returned by
-\code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
-\emph{data.frame} with same basic structure and names.}
+\item{sky_points}{\code{data.frame} with columns \code{row}, \code{col}, and one additional
+numeric column with values to interpolate. Typically returned by
+\code{\link[=extract_rr]{extract_rr()}} or \code{\link[=extract_dn]{extract_dn()}}.}
 
-\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
-was obtained.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
+\code{sky_points} were derived, or another raster with the same number of rows
+and columns. Used only as geometric template; cell values are ignored.}
 
-\item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
+\item{k, p, rmax}{numeric vector of length one. Parameters passed to
+\code{\link[lidR:dtm_idw]{lidR::knnidw()}}: number of neighbors (\code{k}), inverse distance weighting
+exponent (\code{p}), and maximum search radius (\code{rmax}) in units of the output
+resolution.}
 
-\item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
-
-\item{rmax}{Numeric vector of length one. Maximum radius for searching
-k-nearest neighbors (knn).}
-
-\item{col_id}{Numeric or character vector of length one. The number or name
-of the colum with the values to interpolate.}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sky_points} containing the values to interpolate.}
 }
 \value{
-An object of class \linkS4class{SpatRaster}.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same geometry
+as \code{r}.
 }
 \description{
-Interpolate values from canopy photographs.
+Interpolate values from canopy photographs using inverse distance weighting
+(IDW) with k-nearest neighbors in image (planar) coordinates.
+A radius limits neighbor search.
 }
 \details{
-This function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}} as workhorse function, so arguments \code{k},
-\code{p}, and \code{rmax} are passed to it.
-
-This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
-the best result would be obtained with data showing a linear relation between
-digital numbers and the amount of light reaching the sensor. See
-\code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}} for further details. As a
-compromise solution, \code{\link[=gbc]{gbc()}} can be used.
-
-Default parameters are the ones used by
-\insertCite{Lang2010;textual}{rcaiman}. According to these authors, the
-argument \code{rmax} should account for between 15 to 20 degrees, but it is
-expressed in pixels units. So, image resolution and lens projections should
-be taken into account to set this argument properly.
+Delegates interpolation to \code{\link[lidR:dtm_idw]{lidR::knnidw()}}, passing \code{k}, \code{p}, and \code{rmax}
+unchanged. Defaults follow \insertCite{Lang2013;textual}{rcaiman}.
+Note that \code{rmax} is given in pixels but intended to approximate 15–20 deg in
+angular terms. Therefore, this value needs fine-tuning based on image
+resolution and lens projection. For best results, the interpolated quantity
+should be linearly related to scene radiance; see \code{\link[=extract_radiometry]{extract_radiometry()}} and
+\code{\link[=read_caim_raw]{read_caim_raw()}}. For JPEG images, consider \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} to reverse gamma
+encoding.
+}
+\note{
+No consistency checks are performed to ensure that \code{sky_points} and \code{r}
+are geometrically compatible. Incorrect combinations may lead to invalid
+outputs.
 }
 \examples{
 \dontrun{
@@ -54,10 +55,8 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 r <- caim$Blue
 
-com <- compute_complementary_gradients(caim)
-chroma <- max(com$blue_yellow, com$cyan_red)
-bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
-bin <- bin & apply_thr(com$blue_yellow, -0.2)
+bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+  select_sky_region(z, 0, 88)
 
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)

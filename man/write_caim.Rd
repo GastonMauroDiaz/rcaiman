@@ -7,25 +7,31 @@
 write_caim(caim, path, bit_depth)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}.}
+\item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
 
-\item{path}{Character vector of length one. Path for writing the image.}
+\item{path}{character vector of length one. Destination file path (extension
+\code{.tif} will be enforced).}
 
-\item{bit_depth}{Numeric vector of length one.}
+\item{bit_depth}{numeric vector of length one. Either \code{8} or \code{16}.}
 }
 \value{
 No return value. Called for side effects.
 }
 \description{
-Wrapper function for \code{\link[terra:writeRaster]{terra::writeRaster()}}.
+Wrapper around \code{\link[terra:writeRaster]{terra::writeRaster()}} that writes a canopy image as GeoTIFF
+with 8- or 16-bit unsigned integers, setting CRS and extent.
+}
+\details{
+Adds the \code{.tif} extension to \code{path} if missing. The CRS is set to EPSG:7589
+and the extent to \verb{[0, ncol] × [0, nrow]} in pixel units. Data are written as
+\code{INT1U} when \code{bit_depth = 8} and \code{INT2U} when \code{bit_depth = 16}.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize_minmax(., 0, 255)
-write_caim(caim * 2^8-2, file.path(tempdir(), "test_8bit"), 8)
-write_caim(caim * 2^16-2, file.path(tempdir(), "test_16bit"), 16)
-# Note: the normalized values are scaled by multiplying by 2^bit_depth-2
-# to avoid storing in the maximum bin because those values will be
-# interpreted as NA by read_caim(), and that is undesired.
+caim <- read_caim() \%>\% normalize_minmax(0, 255)
+write_caim(caim * (2^8 - 1),  file.path(tempdir(), "test_8bit"),  8)
+write_caim(caim * (2^16 - 1), file.path(tempdir(), "test_16bit"), 16)
+# Note: values are scaled by (2^bit_depth - 1) to avoid the maximum bin,
+# which read_caim() might turn NA.
 }
 }

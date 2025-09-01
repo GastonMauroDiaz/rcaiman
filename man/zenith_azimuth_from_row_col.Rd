@@ -2,25 +2,63 @@
 % Please edit documentation in R/zenith_azimuth_from_row_col.R
 \name{zenith_azimuth_from_row_col}
 \alias{zenith_azimuth_from_row_col}
-\title{Obtain zenith and azimuth angles from row and col numbers}
+\alias{row_col_from_zenith_azimuth}
+\title{Map between zenith–azimuth angles and raster coordinates}
 \usage{
 zenith_azimuth_from_row_col(z, a, row, col)
+
+row_col_from_zenith_azimuth(z, a, zenith, azimuth)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{row, col}{Numeric vector. Row or column numbers.}
+\item{row, col}{Numeric vectors. raster coodinates. Must have equal length.}
+
+\item{zenith, azimuth}{Numeric vectors. Angles in degrees. Must have equal length.}
 }
 \value{
-An object of the class \emph{data.frame}.
+See \emph{Functions}
 }
 \description{
-Obtain zenith and azimuth angles from row and col numbers
+Bidirectional helpers to convert between angular coordinates on the
+hemispherical image (\code{zenith}, \code{azimuth}) and raster
+coordinates (\code{row}, \code{col}).
 }
+\details{
+\strong{Forward mapping (\verb{zenith, azimuth} → \verb{row, col}).}
+A sparse set of valid sky points is sampled over the image and enriched with
+their angular coordinates. Two local least-squares surfaces
+(\code{spatial::surf.ls}, \code{np = 6}) are fitted to predict \code{row} and \code{col} as
+smooth functions of (\code{azimuth}, \code{zenith}). Predictions are rounded to the
+nearest integer index. Out-of-bounds indices are not produced under normal
+conditions; clamp externally if needed.
+
+\strong{Inverse mapping (\verb{row, col} → \verb{zenith, azimuth}).}
+Angles are obtained by direct lookup on \code{z} and \code{a} using
+\code{terra::cellFromRowCol}. If any queried cell is \code{NA} (e.g., outside the
+calibrated lens footprint), a synthetic \code{z} is reconstructed from the lens
+model attached to \code{z} (attribute \code{lens_coef}), and \code{a} is rebuilt with
+\code{azimuth_image()} using the stored orientation attribute in \code{a}. This yields
+robust angle retrieval near borders.
+}
+\section{Functions}{
+
+\describe{
+\item{\code{row_col_from_zenith_azimuth}}{Return image indices for given angles.}
+\item{\code{zenith_azimuth_from_row_col}}{Return angles in degrees for given
+image indices.}
+}
+}
+
 \examples{
 z <- zenith_image(1000, lens())
 a <- azimuth_image(z)
-zenith_azimuth_from_row_col(z, a, 499, 751)
+
+rc <- row_col_from_zenith_azimuth(z, a, zenith = c(30, 60), azimuth = c(90, 270))
+rc
+
+ang <- zenith_azimuth_from_row_col(z, a, row = rc$row, col = rc$col)
+ang
 }

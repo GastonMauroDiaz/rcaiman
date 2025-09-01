@@ -7,53 +7,40 @@
 read_caim(path = NULL, upper_left = NULL, width = NULL, height = NULL)
 }
 \arguments{
-\item{path}{Character vector of length one. Path to an image, including file
-extension. The function will return a data example if no arguments are
-provided.}
+\item{path}{Character vector of length one.  Path to an image file, including
+extension. If \code{NULL}, an example image is returned.}
 
-\item{upper_left}{An integer vector of length two. The pixels coordinates of
-the upper left corner of a region of interest (ROI). These coordinates
-should be in the raster coordinates system. This system works like a
-spreadsheet, i.e, when going down through the vertical axis, the \emph{row}
-number increases (\strong{IMPORTANT}: column and row must be provided instead of
-row and column, as is the norm for objects of the class \emph{data.frame} and
-others alike)}
+\item{upper_left}{Numeric vector of length two. Pixel coordinates of the
+upper-left corner of the ROI, in the format \code{c(column, row)}.}
 
-\item{width, height}{An integer vector of length one. The size of the boxy ROI
-whose upper left corner is the \code{upper_left} argument.}
+\item{width, height}{Numeric vector of length one. Size (in pixels) of the
+rectangular ROI to read.}
 }
 \value{
-An object from class \linkS4class{SpatRaster} with its layers named
-\emph{Red}, \emph{Green}, and \emph{Blue} when a born-digital color
-photographs is provided as input.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}, typically with layers named \code{"Red"},
+\code{"Green"}, and \code{"Blue"}. If the file format or metadata prevents automatic
+layer naming, names will be inferred and a warning may be issued.
 }
 \description{
-Wrapper function for \code{\link[terra:rast]{terra::rast()}}.
+Reads a born-digital image (typically RGB-JPEG or RGB-TIFF) using
+\code{\link[terra:rast]{terra::rast()}} and returns a \link[terra:SpatRaster-class]{terra::SpatRaster} object. Optionally, it can
+extract a rectangular region of interest (ROI) specified by the user.
 }
 \details{
-Run \code{read_caim()} to obtain an example of a hemispherical photo taken in
-non-diffuse light conditions in a \emph{Nothofagus pumilio} forest with a FC-E9
-auxiliary lens attached to a Nikon Coolpix 5700.
+This function is intended for importing color hemispherical photographs, such
+as those obtained with digital cameras equipped with fisheye lenses. For raw
+image files (e.g., NEF, CR2), see \code{\link[=read_caim_raw]{read_caim_raw()}}.
 
-Since this function aims to read born-digital color photographs, RGB-JPEG and
-RGB-TIFF are the expected input. However, since this function is a wrapper
-for \code{\link[terra:rast]{terra::rast()}}, format compatibility is heritages from it.
+Internally, this is a wrapper around \code{\link[terra:rast]{terra::rast()}}, so support for image
+formats depends on the capabilities of the \code{terra} package.
 
-Use \code{upper_left}, \code{width}, and \code{height} to read a particular region from the
-file. Although any image editor can be used to obtain those parameters, this
-function was tested with \href{https://imagej.net/ij/}{‘ImageJ’}, so it might
-be wise to use it.
-
-\strong{TIP}: For obtaining \code{upper_left}, \code{width}, and
-\code{height}, open the image on the Fiji distro of ImageJ, draw a rectangular
-selection, and go to Edit>Selection>Specify. The same workflow may work with
-other distros.
+If no arguments are provided, a sample image will be returned.
 }
 \note{
-The example image was obtained with this code:
+The example image was created from a raw photograph taken with a Nikon Coolpix
+5700 and a FC-E9 auxiliary lens, processed with the following code:
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{# to dowload the raw file go to https://osf.io/s49py/download
-zenith_colrow <- c(1290, 988)/2
+\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1290, 988)/2
 diameter <- 756
 z <- zenith_image(diameter, lens("Nikon_FCE9"))
 a <- azimuth_image(z)
@@ -66,10 +53,31 @@ caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
 write_caim(caim, "example.tif", 16)
 }\if{html}{\out{</div>}}
 }
+\section{Selecting a Region of Interest}{
+
+To load a specific subregion from the image, use the arguments \code{upper_left},
+\code{width}, and \code{height}. These are expressed in raster coordinates, similar to
+a spreadsheet layout: \strong{columns first, then rows}. In other words, specify
+coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical
+in \code{data.frame} objects.
+
+While any image editor can be used to obtain these values, this function was
+tested with \href{https://imagej.net/ij/}{ImageJ}, particularly the Fiji
+distribution. A recommended workflow:
+\enumerate{
+\item Open the image in Fiji.
+\item Draw a rectangular selection.
+\item Go to \emph{Edit > Selection > Specify...} to read \code{upper_left}, \code{width}, and \code{height}.
+}
+}
+
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 zenith_colrow <- c(1276, 980)
 diameter <- 756*2
 caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
 plot(caim$Blue)
+}
+\seealso{
+\code{\link[=write_caim]{write_caim()}}
 }

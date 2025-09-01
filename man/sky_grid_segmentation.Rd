@@ -2,49 +2,62 @@
 % Please edit documentation in R/sky_grid_segmentation.R
 \name{sky_grid_segmentation}
 \alias{sky_grid_segmentation}
-\title{Do sky grid segmentation}
+\title{Assign sky-grid labels}
 \usage{
-sky_grid_segmentation(
-  z,
-  a,
-  angle_width,
-  first_ring_different = FALSE,
-  sequential = FALSE
-)
+sky_grid_segmentation(z, a, angle_width, first_ring_different = FALSE)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This constrain is
-rooted in the requirement of a value able to divide both the \code{0} to \code{360}
-and \code{0} to \code{90} ranges into a whole number of segments.}
+\item{angle_width}{numeric vector of length one. Angle in deg that must
+divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
+set of valid values by running
+\code{lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))}.}
 
-\item{first_ring_different}{Logical vector of length one. If it is \code{TRUE},
-the first ring (the one containing the zenith) is not divided into cells.}
-
-\item{sequential}{Logical vector of length one. If it is \code{TRUE}, the segments
-are labeled with sequential numbers. By default (\code{FALSE}), labeling numbers
-are not sequential (see Details).}
+\item{first_ring_different}{logical vector of length one. If \code{TRUE}, do not
+subdivide the first ring.}
 }
 \value{
-An object of the class \linkS4class{SpatRaster} with segments shaped like
-windshields, though some of them will look elongated in height. The pattern
-is two opposite and converging straight sides and two opposite and parallel
-curvy sides.
+Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer labels. The
+object carries attributes \code{angle_width} and \code{first_ring_different}.
 }
 \description{
-Segment the hemisphere view into segments of equal angular resolution for
-both zenith and azimuth angles.
+Segment a hemispherical view into equal-angle bins in zenith and azimuth,
+assigning each pixel a grid-cell ID.
 }
 \details{
-Intersecting rings with sectors makes a grid in which each cell is a portion
-of the hemisphere. Each pixel of the grid is labeled with an ID that codify
-both ring and sector IDs. For example, a grid with a regular interval of one
-degree has segment from \code{1001} to \code{360090}. This numbers are calculated with:
-\eqn{sectorID \times 1000 + ringID}, where \eqn{sectorID} is the ID number of
-the sector and \eqn{ringID} is the ID number of the ring.
+The intersection of zenith rings and azimuth sectors forms a grid whose cells
+are circular trapezoids. By default, IDs encode both components as
+\code{sectorID * 1000 + ringID}. If \code{first_ring_different = TRUE}, the zenith ring
+is not subdivided.
+
+The code below outputs a comprehensive list of valid values for \code{angle_width}.
+For convenience, the column \code{radians_denom} can be used to provide
+\code{angle_width} as \code{180 / radians_denom_i}, where \code{radians_denom_i} is a value
+taken from \code{radians_denom}.
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{df <- data.frame(degrees = 90 / 1:180)
+
+deg_to_pi_expr <- function(deg) \{
+  frac <- MASS::fractions(deg / 180)
+  strsplit(as.character(frac), "/")[[1]][2] \%>\% as.numeric()
+\}
+
+df$radians_denom <- sapply(df$degrees, function(deg) deg_to_pi_expr(deg))
+
+z <- zenith_image(10, lens())
+a <- azimuth_image(z)
+u <- c()
+for (i in 1:nrow(df)) \{
+  u <- c(u, tryCatch(is((sky_grid_segmentation(z, a,
+                            180/df$radians_denom[i])), "SpatRaster"),
+                     error = function(e) FALSE))
+\}
+df <- df[u, ]
+df
+}\if{html}{\out{</div>}}
 }
 \examples{
 caim <- read_caim()
@@ -53,38 +66,9 @@ a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)
 \dontrun{
-# This code output the angles that can be used. For convenience, the
-# column radians_denom can be used to provide `angle_width` as:
-# 180/[value from radians_denom]
-df <- data.frame(degrees = 90 / 1:180)
-
-deg_to_pi_expr <- function(deg) {
-  frac <- MASS::fractions(deg / 180)
-  strsplit(as.character(frac), "/")[[1]][2] \%>\% as.numeric()
+display_caim(g = g)
 }
-
-df$radians_denom <- sapply(df$degrees, function(deg) deg_to_pi_expr(deg))
-
-z <- zenith_image(10, lens())
-a <- azimuth_image(z)
-u <- c()
-for (i in 1:nrow(df)) {
-  u <- c(u, tryCatch(is((sky_grid_segmentation(z, a,
-                            180/df$radians_denom[i])), "SpatRaster"),
-                     error = function(e) FALSE))
 }
-df <- df[u,]
-df
-
-# here an example
-g <- sky_grid_segmentation(z, a, 180/14, sequential = TRUE)
-col <- terra::unique(g) \%>\% nrow() \%>\% rainbow() \%>\% sample()
-plot(g, col = col)
-
-g <- terra::focal(g, 3, sd)
-g <- g != 0
-plot(g)
-plot(!g * caim$Blue)
-
-}
+\seealso{
+\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}, \code{\link[=sector_segmentation]{sector_segmentation()}}
 }

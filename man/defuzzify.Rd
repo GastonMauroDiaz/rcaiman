@@ -7,27 +7,31 @@
 defuzzify(mem, segmentation)
 }
 \arguments{
-\item{mem}{A \linkS4class{SpatRaster} object representing the degree of membership
-in a fuzzy classification.}
+\item{mem}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Degree of
+membership in a fuzzy classification.}
 
-\item{segmentation}{An object of the class \linkS4class{SpatRaster} such as an
-object returned by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
+\item{segmentation}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer
+values.}
 }
 \value{
-An object of the class \linkS4class{SpatRaster} containing binary
-information.
+Logical \link[terra:SpatRaster-class]{terra::SpatRaster} of the same dimensions as \code{mem},
+where each pixel value represents the binary version of \code{mem} after
+applying the regional defuzzification procedure.
 }
 \description{
-This function translates degree of membership into Boolean logic using a
-regional approach. The output ensures that the fuzzy and Boolean versions
-remain consistent at the specified level of aggregation (controlled by the
-argument \code{segmentation}). This method makes perfect sense to translate a
-subpixel classification of gap fraction (or a linear ratio) into a binary
-product.
+Converts fuzzy membership values into a binary classification using a
+regional approach that preserves aggregation consistency between the fuzzy
+and binary representations.
+}
+\details{
+The conversion is applied within segments defined by \code{segmentation},
+ensuring that, in each segment, the aggregated Boolean result matches the
+aggregated fuzzy value. This approach is well suited for converting subpixel
+estimates, such as gap fraction, into binary outputs.
 }
 \note{
-This method is also available in the HSP software package
-\insertCite{Lang2013}{rcaiman}.
+This method is also available in the HSP software package. See
+\code{\link[=hsp_compat]{hsp_compat()}}.
 }
 \examples{
 \dontrun{
@@ -36,19 +40,16 @@ r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
+path <- system.file("external/example.txt", package = "rcaiman")
+sky_cie <- read_sky_cie(gsub(".txt", "", path), z, a)
 
-sky <- ootb_build_sky_vault(r, z, a, ootb_sky$sky_points, ootb_sky)
+sky_above <- ootb_sky_above(sky_cie$model$rr$sky_points, z, a, sky_cie)
 
-ratio <- r / sky$sky
+ratio <- r / sky_above$dn_raster
 ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 plot(ratio)
 g <- sky_grid_segmentation(z, a, 10)
 bin2 <- defuzzify(ratio, g)
 plot(bin2) # unsatisfactory results due to light conditions
 }
-}
-\references{
-\insertAllCited{}
 }

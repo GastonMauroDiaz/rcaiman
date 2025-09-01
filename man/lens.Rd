@@ -4,54 +4,59 @@
 \alias{lens}
 \title{Access the lens database}
 \usage{
-lens(type = "equidistant", max_fov = FALSE)
+lens(type = "equidistant", return = "coef")
 }
 \arguments{
-\item{type}{Character vector of length one. The name of the lens.}
+\item{type}{Character vector of length one. Lens identifier. See \emph{Details}.}
 
-\item{max_fov}{Logical vector of length one. Use \code{TRUE} to return the maximum
-field of view in degrees.}
+\item{return}{Character vector of length one. Either \code{"coef"}(default) or
+\code{"fov"}. Controls whether to return projection coefficients or maximum FOV.}
 }
 \value{
-If \code{max_fov} is set to \code{TRUE}, it returns a numeric vector of length
-one, which is the lens maximum field of view in degrees. Otherwise, it
-returns a numeric vector with the coefficients of the lens function.
+Numeric vector. Depends on \code{return}:
+\describe{
+\item{"coef"}{Polynomial coefficients of the projection function
+(relative radius as a function of \code{theta}, radians).}
+\item{"fov"}{numeric vector of length one. Maximum field of view (deg).}
+}
 }
 \description{
-Database of lens projection functions and field of views.
+Retrieve projection coefficients and field-of-view (FOV, deg) for known
+lenses. Coefficients expect zenith angle in radians and return relative
+radius.
 }
 \details{
-In upward-looking leveled hemispherical photography, the zenith is the center
-of a circle whose perimeter is the horizon. This is true only if the lens
-field of view is 180º. The relative radius is the radius of concentric
-circles expressed as a fraction of the radius that belongs to the circle that
-has the horizon as perimeter. The equidistant model, also called polar, is
-the most widely used as a standard reference. Real lenses can approximate the
-projection models, but they always have some kind of distortion. In the
-equidistant model, the relation between zenith angle and relative radius is
-modeled with a straight line. Following \href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, this package uses a
-polynomial curve to model lens distortion. A third-order polynomial is
-sufficient in most cases \insertCite{Frazer2001}{rcaiman}. Equations should
-be fitted with angles in radians.
+In upward-looking leveled hemispherical photography, the zenith corresponds
+to the center of a circular image whose perimeter represents the horizon,
+assuming a lens with a 180° field of view. The relative radius is the radial
+distance to a given point, expressed as a fraction of the maximum radius
+(i.e., the horizon). The equidistant projection model, also called polar
+projection, is the standard reference model, characterized by a linear
+relationship between zenith angle and relative radius.
 
-Eventually, this will be a large database, but only the following lenses are
-available at the moment:
-\itemize{
-\item equidistant: standard equidistant projection
-\insertCite{Schneider2009}{rcaiman}.
-\item Nikkor_10.5mm: AF DX Fisheye Nikkor 10.5mm f/2.8G ED
-\insertCite{Pekin2009}{rcaiman}
-\item Nikon_FCE9: Nikon FC-E9 converter
-\insertCite{Diaz2024}{rcaiman}
-\item Olloclip: Auxiliary lens for mobile devices made by Olloclip
-\insertCite{Diaz2024}{rcaiman}
-\item Nikkor_8mm: AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
-\insertCite{Diaz2024}{rcaiman}
+Real lenses deviate from ideal projections. Following
+\href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, this package
+models deviations with polynomial functions. All angular values are in
+radians.
+
+Currently available lenses:
+\describe{
+\item{"equidistant"}{Ideal equidistant projection
+\insertCite{Schneider2009}{rcaiman}.}
+\item{"Nikkor_10.5mm"}{AF DX Fisheye Nikkor 10.5mm f/2.8G ED
+\insertCite{Pekin2009}{rcaiman}.}
+\item{"Nikon_FCE9"}{Nikon FC-E9 converter \insertCite{Diaz2024}{rcaiman}.}
+\item{"Olloclip"}{Auxiliary lens for mobile devices manufactured by Olloclip
+\insertCite{Diaz2024}{rcaiman}.}
+\item{"Nikkor_8mm"}{AF–S Fisheye Nikkor 8–15mm f/3.5–4.5E ED
+\insertCite{Diaz2024}{rcaiman}.}
 }
+
+See \code{\link[=calibrate_lens]{calibrate_lens()}} for fitting new projection functions.
 }
 \examples{
 lens("Nikon_FCE9")
-lens("Nikon_FCE9", max_fov = TRUE)
+lens("Nikon_FCE9", return = "fov")
 
 .fp <- function(theta, lens_coef) {
   x <- lens_coef[1:5]

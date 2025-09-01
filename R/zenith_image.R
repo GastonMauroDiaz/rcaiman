@@ -5,8 +5,7 @@
 #' @inheritParams zenith_image
 #'
 #' @noRd
-relative_radius_image <- function (diameter)
-{
+relative_radius_image <- function (diameter, m = TRUE){
   r <- terra::rast(ncol = diameter/2, nrow = diameter/2)
   terra::crs(r) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
   terra::ext(r) <- terra::ext(0, diameter/2, 0, diameter/2)
@@ -14,7 +13,7 @@ relative_radius_image <- function (diameter)
   p1 <- terra::vect(matrix(c(zenith, zenith), ncol = 2), crs = terra::crs(r))
   dis <- terra::distance(r, p1)
   dis <- dis / as.numeric(dis[1])
-  dis[dis > 1] <- NA
+  if (m) dis[dis > 1] <- NA
   dis
 }
 
@@ -22,20 +21,21 @@ relative_radius_image <- function (diameter)
 
 #' Build Zenith image
 #'
-#' Build a single layer-image with zenith angle values, assuming upwards-looking
+#' Build a single-layer image with zenith angle values, assuming upwards-looking
 #' hemispherical photography with the optical axis vertically aligned.
 #'
+#' @param diameter numeric vector of length one. Diameter in pixels expressed as
+#'   an even integer. This places the zenith point between pixels. Snapping the
+#'   zenith point between pixels does not affect accuracy because half-pixel
+#'   is less than the uncertainty in localizing the circle within the
+#'   picture.
+#' @param lens_coef numeric vector. Polynomial coefficients of the lens
+#'   projection function. See [lens()].
 #'
-#' @param diameter Numeric vector of length one. Diameter in pixels expressed as
-#'   an even integer. The latter is to simplify calculations by having the
-#'   zenith point located between pixels. Snapping the zenith point between
-#'   pixels does not affect accuracy because half-pixel is less than the
-#'   uncertainty in localizing the circle within the picture.
-#' @param lens_coef Numeric vector. Polynomial coefficients of the lens
-#'   projection function. See [calibrate_lens()].
+#' @return [terra::SpatRaster-class] with zenith angles in
+#'   degrees, showing a complete hemispherical view with the zenith at the
+#'   center. The object carries attributes `lens_coef`.
 #'
-#' @return An object of class [SpatRaster-class] of zenith angles in degrees,
-#'   showing a complete hemispherical view with the zenith on the center.
 #' @export
 #'
 #' @examples
@@ -43,12 +43,11 @@ relative_radius_image <- function (diameter)
 #' plot(z)
 zenith_image <- function (diameter, lens_coef)
 {
-  # Assign zenith angle by inverting relative radius(R) with a Look Up Table
-  stopifnot(.is_whole(diameter))
-  stopifnot(.is_even(diameter))
+  .check_vector(diameter, "even_integerish", 1, sign = "positive")
+  .check_vector(lens_coef, "numeric", sign = "any")
 
   x <- relative_radius_image(diameter)
-  angle <- seq(0, 90,  length.out = nrow(x) + 1)
+  angle <- seq(0, 90, length.out = nrow(x) + 1)
   R <- calc_relative_radius(angle, lens_coef)
   rcl <- matrix(c(c(0, R[-length(R)]), R, angle), ncol = 3)
   z3 <- terra::classify(x, rcl)
@@ -64,5 +63,6 @@ zenith_image <- function (diameter, lens_coef)
   z4 <- terra::extend(z4, terra::ext(0, diameter, 0, diameter))
   z <- sum(z1, z2, z3, z4, na.rm = TRUE)
   names(z) <- "Zenith image"
+  attr(z, "lens_coef") <- lens_coef
   z
 }

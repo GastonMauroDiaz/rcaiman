@@ -1,15 +1,16 @@
 Package: rcaiman
 Type: Package
 Title: CAnopy IMage ANalysis
-Version: 1.4.1.9000
-Date: 2024-09-04
+Version: 2.0.0
+Date: 2025-09-01
 Authors@R: 
     person("Gastón Mauro", "Díaz", , "gastonmaurodiaz@gmail.com", 
            role = c("aut", "cre"), comment = c(ORCID = "0000-0002-0362-8616"))
-Description: Tools for pre-processing and processing canopy photographs with 
-      support for raw data reading. Works with images taken with both regular 
-      and fisheye lenses (all types). Includes algorithms to mitigate errors 
-      caused by non-diffuse light conditions while acquiring images.
+Description: Tools for preprocessing and processing canopy photographs with 
+      support for raw data reading. Provides methods to address variability in 
+      sky brightness and to mitigate errors from image acquisition in 
+      non-diffuse light. Works with all types of fisheye lenses, and some 
+      methods also apply to conventional lenses.
 License: GPL-3
 BugReports: https://github.com/GastonMauroDiaz/rcaiman/issues
 Encoding: UTF-8
@@ -18,7 +19,7 @@ RoxygenNote: 7.3.2
 Depends:
     filenamer,
     magrittr,
-    colorspace,
+    R (>= 3.5),
     terra
 Imports: 
     methods,
@@ -29,12 +30,14 @@ Imports:
     Rdpack,
     spatial,
     lidR,
-    tcltk
+    tcltk,
+    foreach,
+    doParallel
 Suggests: 
     autothresholdr,
-    conicfit,
     EBImage,
     imager,
-    reticulate
+    reticulate, 
+    hemispheR
 RdMacros: Rdpack
 Roxygen: list(markdown = TRUE)

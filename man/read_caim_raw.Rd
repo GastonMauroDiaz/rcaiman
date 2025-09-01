@@ -4,65 +4,39 @@
 \alias{read_caim_raw}
 \title{Read a canopy image from a raw file}
 \usage{
-read_caim_raw(
-  path,
-  z = NULL,
-  a = NULL,
-  zenith_colrow = NULL,
-  radius = 700,
-  k = 1,
-  p = 1,
-  rmax = 100,
-  only_blue = FALSE,
-  offset_value = NULL
-)
+read_caim_raw(path, only_blue = FALSE, offset_value = NULL)
 }
 \arguments{
-\item{path}{Character vector of length one. Path to a raw file, including
-file extension.}
+\item{path}{character vector of length one. Path to a file with raw data
+(including file extension).}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{only_blue}{logical vector of length one. If \code{TRUE}, return only the blue/cyan band.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{zenith_colrow}{Numeric vector of length two. Raster coordinates of the
-zenith. See \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}.}
-
-\item{radius}{Numeric integer of length one. Radius of the reprojected
-hemispherical image (i.e., the output).}
-
-\item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
-
-\item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
-
-\item{rmax}{Numeric vector of length one. Maximum radius where to search for
-\emph{knn}. Increase this value if pixels with value \code{0} or
-\code{FALSE} appears where other values are expected.}
-
-\item{only_blue}{Logical vector of length one. If \code{TRUE}, only values from
-the blue or cyan wavelength will be processed.}
-
-\item{offset_value}{numeric vector. This values will replace the
+\item{offset_value}{numeric vector of length one. Optional black level offsets to replace
 \href{https://www.libraw.org/docs/API-datastruct-eng.html#datastream_data:~:text=Per\%2Dchannel\%20black\%20level\%20correction}{\code{black_level_per_channel}}
 metadata obtained with \code{rawpy}.}
 }
 \value{
-An object from class \linkS4class{SpatRaster}. Single-layer raster if
-\code{only_blue} is equal to \code{TRUE}. Otherwise, a raster with as many layers as
-there are distinct colors in the Color Filter Array. Layer names are taken
-from the color description metadata.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}:
+\itemize{
+\item single-layer if \code{only_blue = TRUE}.
+\item multi-layer if \code{only_blue = FALSE}, with one layer per color per CFA
+color (e.g., R, G, B).
+}
+Layers are named according to metadata in the raw file.
 }
 \description{
-Function that complements \code{\link[=read_caim]{read_caim()}}.
+Read unprocessed sensor data from a camera RAW file and split the signal by
+spectral band according to the in-camera color filter array (CFA). Use this
+to obtain images with precise radiometry.
 }
 \details{
-This function facilitates the integration of the \href{https://pypi.org/project/rawpy/}{\code{rawpy} Python package} into the R environment via the
-\code{reticulate} package. This integration allows \code{rcaiman} to access and
-pre-process raw data.
+Uses Python \href{https://pypi.org/project/rawpy/}{\code{rawpy}} through \code{reticulate}
+to access sensor data and black-level metadata. Optionally extracts only the
+blue/cyan band.
+}
+\section{Check Python Accessibility}{
 
-Here is a step-by-step guide to assist users in setting up the environment
-for efficient processing:
-\subsection{Check Python Accessibility:}{
 
 To ensure that R can access a Python installation, run the following test:
 
@@ -74,7 +48,8 @@ If R can access Python successfully, you will see \code{2} in the console. If no
 you will receive instructions on how to install Python.
 }
 
-\subsection{Create a Virtual Environment:}{
+\section{Create a Virtual Environment}{
+
 
 After passing the Python accessibility test, create a virtual environment
 using the following command:
@@ -84,7 +59,8 @@ using the following command:
 }\if{html}{\out{</div>}}
 }
 
-\subsection{Install \code{rawpy}:}{
+\section{Install \code{rawpy}}{
+
 
 Install the rawpy package within the virtual environment:
 
@@ -93,7 +69,8 @@ Install the rawpy package within the virtual environment:
 }\if{html}{\out{</div>}}
 }
 
-\subsection{For RStudio Users:}{
+\section{For RStudio Users}{
+
 
 If you are an RStudio user who works with projects, you will need a
 \emph{.Renviron} file in the root of each project. To create a \emph{.Renviron} file,
@@ -116,19 +93,20 @@ the .Renviron file. This is an example \verb{RETICULATE_PYTHON = ~/.virtualenvs/
 }
 
 By following these steps, users can easily set up their environment to access
-raw data efficiently, but it is not the only way of doing it.
+raw data efficiently, but it is not the only way of doing it, you might know
+an easier or better one.
 
 See the help page of \code{\link[=read_caim]{read_caim()}} and \code{\link[=fisheye_to_equidistant]{fisheye_to_equidistant()}} as a
 complement to this help page. Further details about raw files can be found in
 \insertCite{Diaz2024;textual}{rcaiman}.
 }
-}
+
 \examples{
 \dontrun{
 file_name <- tempfile(fileext = ".NEF")
 download.file("https://osf.io/s49py/download", file_name, mode = "wb")
 
-#geometric and radiometric correction
+# Geometric and radiometric corrections -----------------------------------
 zenith_colrow <- c(1290, 988)/2
 diameter <- 756
 z <- zenith_image(diameter, lens("Nikon_FCE9"))
@@ -139,17 +117,11 @@ caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
 caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
 caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300,
                                k = 1, p = 1, rmax = 100)
-
-#only geometric correction
-zenith_colrow <- c(1290, 988)
-z <- zenith_image(745*2, lens("Nikon_FCE9"))
-a <- azimuth_image(z)
-r <- read_caim_raw(file_name, z, a, zenith_colrow,
-                   radius = 300, only_blue = TRUE)
-
-file.remove(file_name)
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=read_caim]{read_caim()}}
 }

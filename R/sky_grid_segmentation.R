@@ -1,44 +1,21 @@
-#' Do sky grid segmentation
+#' Assign sky-grid labels
 #'
-#' Segment the hemisphere view into segments of equal angular resolution for
-#' both zenith and azimuth angles.
+#' @description
+#' Segment a hemispherical view into equal-angle bins in zenith and azimuth,
+#' assigning each pixel a grid-cell ID.
 #'
-#' Intersecting rings with sectors makes a grid in which each cell is a portion
-#' of the hemisphere. Each pixel of the grid is labeled with an ID that codify
-#' both ring and sector IDs. For example, a grid with a regular interval of one
-#' degree has segment from `1001` to `360090`. This numbers are calculated with:
-#' \eqn{sectorID \times 1000 + ringID}, where \eqn{sectorID} is the ID number of
-#' the sector and \eqn{ringID} is the ID number of the ring.
+#' @details
+#' The intersection of zenith rings and azimuth sectors forms a grid whose cells
+#' are circular trapezoids. By default, IDs encode both components as
+#' `sectorID * 1000 + ringID`. If `first_ring_different = TRUE`, the zenith ring
+#' is not subdivided.
 #'
+#' The code below outputs a comprehensive list of valid values for `angle_width`.
+#' For convenience, the column `radians_denom` can be used to provide
+#' `angle_width` as `180 / radians_denom_i`, where `radians_denom_i` is a value
+#' taken from `radians_denom`.
 #'
-#' @param z [SpatRaster-class] built with [zenith_image()].
-#' @param a [SpatRaster-class] built with [azimuth_image()].
-#' @param angle_width Numeric vector of length one. It should be `30, 15, 10,
-#'   7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1` or `0.5` degrees. This constrain is
-#'   rooted in the requirement of a value able to divide both the `0` to `360`
-#'   and `0` to `90` ranges into a whole number of segments.
-#' @param first_ring_different Logical vector of length one. If it is `TRUE`,
-#'   the first ring (the one containing the zenith) is not divided into cells.
-#' @param sequential Logical vector of length one. If it is `TRUE`, the segments
-#'   are labeled with sequential numbers. By default (`FALSE`), labeling numbers
-#'   are not sequential (see Details).
-#'
-#' @return An object of the class [SpatRaster-class] with segments shaped like
-#'   windshields, though some of them will look elongated in height. The pattern
-#'   is two opposite and converging straight sides and two opposite and parallel
-#'   curvy sides.
-#' @export
-#'
-#' @examples
-#' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
-#' a <- azimuth_image(z)
-#' g <- sky_grid_segmentation(z, a, 15)
-#' plot(g == 24005)
-#' \dontrun{
-#' # This code output the angles that can be used. For convenience, the
-#' # column radians_denom can be used to provide `angle_width` as:
-#' # 180/[value from radians_denom]
+#' ```
 #' df <- data.frame(degrees = 90 / 1:180)
 #'
 #' deg_to_pi_expr <- function(deg) {
@@ -56,39 +33,44 @@
 #'                             180/df$radians_denom[i])), "SpatRaster"),
 #'                      error = function(e) FALSE))
 #' }
-#' df <- df[u,]
+#' df <- df[u, ]
 #' df
+#' ```
 #'
-#' # here an example
-#' g <- sky_grid_segmentation(z, a, 180/14, sequential = TRUE)
-#' col <- terra::unique(g) %>% nrow() %>% rainbow() %>% sample()
-#' plot(g, col = col)
+#' @param z [terra::SpatRaster-class] generated with [zenith_image()].
+#' @param a [terra::SpatRaster-class] generated with [azimuth_image()].
+#' @param angle_width numeric vector of length one. Angle in deg that must
+#'   divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
+#'   set of valid values by running
+#'   `lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))`.
+#' @param first_ring_different logical vector of length one. If `TRUE`, do not
+#'   subdivide the first ring.
 #'
-#' g <- terra::focal(g, 3, sd)
-#' g <- g != 0
-#' plot(g)
-#' plot(!g * caim$Blue)
+#' @return Single-layer [terra::SpatRaster-class] with integer labels. The
+#'   object carries attributes `angle_width` and `first_ring_different`.
 #'
+#' @seealso [sky_grid_centers()], [ring_segmentation()], [sector_segmentation()]
+#'
+#' @export
+#'
+#' @examples
+#' caim <- read_caim()
+#' z <- zenith_image(ncol(caim), lens())
+#' a <- azimuth_image(z)
+#' g <- sky_grid_segmentation(z, a, 15)
+#' plot(g == 24005)
+#' \dontrun{
+#' display_caim(g = g)
 #' }
 sky_grid_segmentation <- function(z, a, angle_width,
-                                  first_ring_different = FALSE,
-                                  sequential = FALSE) {
-  stopifnot(length(sequential) == 1)
-  stopifnot(class(sequential) == "logical")
-  stopifnot(length(angle_width) == 1)
-
-  # if (!max(angle_width == c(30,  15,    10,   7.5,
-  #                           6,   5,     3.75, 3,
-  #                           2.5, 1.875, 1,    0.5))) {
-  #   stop(
-  #     paste0("angle_width should be 30, 15, 10, 7.5, ",
-  #            "6, 5, 3.75, 3, 2.5, 1.875, 1 or 0.5 degrees.")
-  #   )
-  # }
+                                  first_ring_different = FALSE) {
+  .check_r_z_a_m(NULL, z, a)
+  .check_vector(angle_width, "numeric", 1, sign = "positive")
+  .check_vector(first_ring_different, "logical", 1)
 
   fun <- function(s, r) s * 1000 + r
-  g <- fun(sectors_segmentation(a, angle_width),
-           rings_segmentation(z, angle_width))
+  g <- fun(sector_segmentation(a, angle_width),
+           ring_segmentation(z, angle_width))
 
   if (first_ring_different) {
     for (i in seq(1, 360/angle_width)*1000 + 1) {
@@ -96,11 +78,8 @@ sky_grid_segmentation <- function(z, a, angle_width,
     }
   }
 
-  if (sequential) {
-    from <- unique(terra::values(g))
-    to <- 1:length(from)
-    g <- terra::subst(g, from, to)
-  }
   names(g) <- paste0("Sky grid, ", angle_width, " degrees")
+  attr(g, "angle_width") <- angle_width
+  attr(g, "first_ring_different") <- first_ring_different
   g
 }

@@ -2,32 +2,37 @@
 % Please edit documentation in R/test_lens_coef.R
 \name{test_lens_coef}
 \alias{test_lens_coef}
-\title{Test lens projection functions}
+\title{Test lens projection function}
 \usage{
 test_lens_coef(lens_coef)
 }
 \arguments{
-\item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
+\item{lens_coef}{numeric vector. Polynomial coefficients of the lens
+projection function. See \code{\link[=lens]{lens()}}.}
 }
 \value{
-Returns \code{invisible(TRUE)} and print "Test passed" if all tests
-pass, otherwise throws an error.
+Invisibly returns \code{TRUE} if all checks pass; otherwise an error is
+thrown.
 }
 \description{
-Test if a lens projection function will work between the 0-to-1 range.
+Verify that a lens projection maps zenith 0 deg to 0 and 90 to 1.
 }
 \details{
-The package tolerate a number very close to 1 but not exactly 1 as long as it
-is greater than 1. Therefore, when the test fails at this \emph{"Test that
-lens projection function does not predict values barely below one"}, the best
-practice is to manually edit the last coefficient. For instance, changing it
-from -0.0296 to -0.0295. See \code{\link[testthat:equality-expectations]{testthat::expect_equal()}} for further details.
+The package tolerate a number very close to 1 at 90 deg but not exactly 1 as
+long as it is greater than 1. See \code{\link[testthat:equality-expectations]{testthat::expect_equal()}} for tolerance
+details.
 
-If it fails in \emph{"Test that lens projection function works between the
-0-to-1 range"}, collecting data again might be necessary.
+When the test fails at \emph{"Test that lens projection
+function does not predict values barely below one"}, the best practice is to
+manually edit the last coefficient (e.g., change -0.0296 to -0.0295).
+
+If the check \emph{"works within the 0–1 range"} fails, new calibration data may
+be required.
 }
 \examples{
 test_lens_coef(lens("Nikon_FCE9"))
 test_lens_coef(2/pi)
+}
+\seealso{
+\code{\link[=calc_relative_radius]{calc_relative_radius()}}
 }

@@ -1,10 +1,57 @@
-#' Extract radiometry data
+#' Generate an ellipse projected in equidistant space
 #'
-#' Extract radiometry from images taken with the aid of a portable light source
-#' and the calibration board detailed in [calibrate_lens()]. The end goal is to
-#' obtain the data required to model the vignetting effect.
+#' Compute the image coordinates of an ellipse as it appears under an
+#' equidistant projection, centered at a given pixel and oriented by zenith and
+#' azimuth angles.
 #'
-#' Lenses have the inconvenient property of increasingly attenuating light in
+#' @param x numeric vector of length one. Column coordinate of the ellipse center.
+#' @param y numeric vector of length one. Row coordinate of the ellipse center.
+#' @param theta numeric vector of length one. Zenith angle (deg) at `(x, y)`.
+#' @param phi numeric vector of length one. Azimuth angle (deg). Aligns the
+#'   ellipse minor axis with the radius from the image center.
+#' @param size_px numeric vector of length one. Diameter (pixels) of the
+#'   circular sampling area at the image center; under the equidistant
+#'   projection it becomes an ellipse away from the center.
+#' @param transpose logical vector of length one. Whether to draw the ellipse on
+#'   the transposed image prior to rotation (useful when source data were
+#'   captured in portrait mode to keep on-screen orientation consistent).
+#'
+#' @return two-column matrix with `x` and `y` image coordinates of the ellipse.
+#' @noRd
+.make_elli <- function(x, y, theta, phi, size_px, transpose = FALSE) {
+  # Ellipse aligned with the raster grid
+  theta <- theta*pi/180
+  if (transpose) {
+    rx <- size_px
+    ry <- size_px * (theta/sin(theta))
+    angle <- (360 - phi) * pi / 180
+  } else {
+    rx <- size_px * (theta/sin(theta))
+    ry <- size_px
+    angle <- phi * pi / 180
+  }
+
+  t <- seq(0, 2 * pi, length.out = 50)
+  ell_x <- rx * cos(t)
+  ell_y <- ry * sin(t)
+
+  # Rotate the ellipse to align it with the projection
+  x_rot <- x + ell_x * cos(angle) - ell_y * sin(angle)
+  y_rot <- y + ell_x * sin(angle) + ell_y * cos(angle)
+
+  cbind(x = x_rot, y = y_rot)
+}
+
+
+#' Extract radiometry data for calibration
+#'
+#' @description
+#' Buid a datasets for vignetting modeling by sistematically extracting
+#' radiometry from images taken with the aid of a portable light source and the
+#' calibration board detailed in [calibrate_lens()].
+#'
+#' @section Guidance:
+#' Lenses have the inconvenient property of increasingly attenuating light along
 #' the direction orthogonal to the optical axis. This phenomenon is known as the
 #' vignetting effect and varies with lens model and aperture setting. The method
 #' outlined here, known as the simple method, is explained in details in
@@ -20,7 +67,14 @@
 #' guide pixel sampling. The book holder also facilitated the alignment of the
 #' screen with the dotted lines of the printed quarter-circle.
 #'
-#' ![](lightSource.jpg "Portable light source")
+#' \if{html}{
+#'   \out{<div style="text-align: center">}
+#'   \figure{lightSource.jpg}{options: style="width:750px;max-width:50\%;"}
+#'   \out{</div>}
+#' }
+#' \if{latex}{
+#'   \figure{lightSource.jpg}
+#' }
 #'
 #' As a general guideline, a wide variety of mobile devices could be used as
 #' light sources, but if scattered data points are obtained with it, then other
@@ -36,21 +90,29 @@
 #' photographs should be taken **without changing the camera configuration and
 #' the light conditions**.
 #'
-#' ![](calibrationBoardVignetting.jpg "Obtaining radiometric data")
+#' \if{html}{
+#'   \out{<div style="text-align: center">}
+#'   \figure{calibrationBoardVignetting.jpg}{options: style="width:750px;max-width:50\%;"}
+#'   \out{</div>}
+#' }
+#' \if{latex}{
+#'   \figure{calibrationBoardVignetting.jpg}
+#' }
 #'
-#' This code exemplify how to use the function to obtain the data and base R
+#' This code exemplifies how to use the function to obtain data and base R
 #' functions to obtain the vignetting function (\eqn{f_v}).
 #'
 #' ````
-#' zenith_colrow <- c(1500, 997)*2
-#' diameter <- 947*4
+#' zenith_colrow <- c(1500, 997)
+#' diameter <- 947*2
 #' z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
 #' a <- azimuth_image(z)
 #'
 #' .read_raw <- function(path_to_raw_file) {
-#'   r <- read_caim_raw(path_to_raw_file, z, a, zenith_colrow,
-#'                      radius = 500, only_blue = TRUE)
-#'   r
+#'   r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+#'   r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+#'   r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+#'                               k = 1, p = 1, rmax = 100)
 #' }
 #'
 #' l <- Map(.read_raw, dir("raw/up/", full.names = TRUE))
@@ -81,12 +143,11 @@
 #' all the rest. To do so,  the equipment should be used to take photographs in
 #' all desired exposition and without moving the camera, including the aperture
 #' already calibrated and preferably under an open sky in stable diffuse light
-#' conditions. The same procedure, which minor adaptations, is applicable to
-#' cross-camera calibration. Below code could be used as a template.
+#' conditions. Below code can be used as a template.
 #'
 #' ````
-#' zenith_colrow <- c(1500, 997)*2
-#' diameter <- 947*4
+#' zenith_colrow <- c(1500, 997)
+#' diameter <- 947*2
 #' z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
 #' a <- azimuth_image(z)
 #'
@@ -95,22 +156,30 @@
 #' for (i in seq_along(files)) {
 #'   if (i == 1) {
 #'     # because the first aperture was the one already calibrated
-#'     lens_coef_v <- c(0.0302, -0.320, 0.0908)
+#'     .read_raw <- function(path_to_raw_file) {
+#'         r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+#'         r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+#'         r <- correct_vignetting(r, z, c(0.0302, -0.320, 0.0908))
+#'         r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+#'                                     k = 1, p = 1, rmax = 100)
+#'       }
 #'   } else {
-#'     lens_coef_v <- NULL
+#'       .read_raw <- function(path_to_raw_file) {
+#'           r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+#'           r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+#'           r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+#'                                       k = 1, p = 1, rmax = 100)
+#'         }
 #'   }
-#'   l[[i]] <- read_caim_raw(files[i], z, a, zenith_colrow,
-#'                           radius = 500,
-#'                           only_blue = TRUE,
-#'                           lens_coef_v = lens_coef_v)
+#'   l[[i]] <- .read_raw(files[i])
 #' }
 #'
 #' ref <- l[[1]]
-#' rings <- rings_segmentation(zenith_image(ncol(ref), lens()), 3)
+#' rings <- ring_segmentation(zenith_image(ncol(ref), lens()), 3)
 #' theta <- seq(1.5, 90 - 1.5, 3) * pi/180
 #'
 #' .fun <- function(r) {
-#'   r <- extract_feature(r, rings, return_raster = FALSE)
+#'   r <- extract_feature(r, rings, return = "vector")
 #'   r/r[1]
 #' }
 #'
@@ -132,26 +201,38 @@
 #'
 #' ````
 #'
-#' @param l List of prepossessed images ([SpatRaster-class]) for radiometry
-#'   sampling. These images must comply with the equidistant projection.
-#' @param size_px Numeric vector of length one. Diameter in pixels of the
-#'   circular sampling area at the image center. This area is modified
-#'   considering the equidistant projection distortion. Therefore, it will be
-#'   visualized as an ellipse at any other place but the image center.
-#'
+#' @param l list of preprocessed images ([terra::SpatRaster-class]) suitable for
+#'   radiometry sampling. Images must comply with the equidistant projection.
+#' @param size_px numeric vector of length one. Diameter (pixels) of the
+#'   circular sampling area at the image center; off-center, the sampled region
+#'   becomes an ellipse under the equidistant projection. If `NULL` (default),
+#'   two percent of image width is used (`round(terra::ncol(r) * 0.02`).
 #'
 #' @references \insertAllCited{}
 #'
-#' @return An object of the class `data.frame` with columns *theta* (zenith
-#'   angle in radians) and *radiometry* (digital number (DN) or relative digital
-#'   number (RDN), depending on argument `z_thr`.
-#' @export
+#' @note
+#' This function does not fit the vignetting function itself. The output is a
+#' dataset to be used in subsequent modeling steps. See above sections for
+#' guidance.
 #'
-extract_radiometry <- function(l,
-                               size_px = NULL) {
-  .this_requires_conicfit()
-
-  z_thr <-  15
+#' @return `data.frame` con dos columnas:
+#' \describe{
+#'   \item{`theta`}{zenith angle en radianes.}
+#'   \item{`radiometry`}{digital number normalizado.}
+#' }
+#'
+#' @export
+extract_radiometry <- function(l, size_px = NULL) {
+  msn <- "`l` must be a list composed of single-layer [terra::SpatRaster-class]."
+  if (is.list(l)) {
+    tryCatch(rast(l), error = function(e) stop(msn))
+    lapply(l, function(x) tryCatch(.assert_single_layer(x),
+                                   error = function(e) stop(msn))
+           )
+  } else {
+    stop(msn)
+  }
+  .check_vector(size_px, "numeric", 1, allow_null = TRUE, sign = "positive")
 
   r <- max(terra::rast(l))
   z <- zenith_image(ncol(r), lens())
@@ -180,17 +261,9 @@ extract_radiometry <- function(l,
     r <- terra::t(r)
     z <- terra::t(z)
     a <- terra::t(a)
-    .make_elli <- function(x, y, theta, phi, size_px) {
-      conicfit::calculateEllipse(x, y,
-                                 size_px, .size_fun(theta, size_px),
-                                 360 - phi, 50)
-    }
+    transpose <- TRUE
   } else {
-    .make_elli <- function(x, y, theta, phi, size_px) {
-      conicfit::calculateEllipse(x, y,
-                                 .size_fun(theta, size_px), size_px,
-                                 phi, 50)
-    }
+    transpose <- FALSE
   }
   plot(r, legend = FALSE, col = grDevices::grey((1:255)/255))
 
@@ -215,9 +288,11 @@ extract_radiometry <- function(l,
   z <- matrix(ncol = 5) %>% as.data.frame()
   colnames(z) <- c("object", "part", "x", "y", "hole")
   for (i in seq_along(img_points$row)) {
-    elli <- .make_elli(coords[i,1], coords[i,2], theta[i], phi[i], size_px)
+    elli <- .make_elli(coords[i,1], coords[i,2], theta[i], phi[i], size_px,
+                       transpose)
     elli <- cbind(i, 1, elli, 0)
-    elli2 <- .make_elli(coords[i,1], coords[i,2], theta[i], phi[i], size_px/2)
+    elli2 <- .make_elli(coords[i,1], coords[i,2], theta[i], phi[i], size_px/2,
+                        transpose)
     elli2 <- cbind(i, 1, elli2, 1)
     colnames(elli) <- c("object", "part", "x", "y", "hole")
     if (i == 1) {

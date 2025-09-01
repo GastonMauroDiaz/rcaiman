@@ -7,29 +7,34 @@
 azimuth_image(z, orientation = 0)
 }
 \arguments{
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{orientation}{Azimuth angle (degrees) at which the top of the image was
-pointing at the moment of taking the picture. This design decision was made
-because the usual field protocol is recording the angle at which the top of
-the camera points.}
+\item{orientation}{numeric vector of length one. Azimuth angle (in degrees)
+corresponding to the direction at which the top of the image was pointing
+when the picture was taken. This design follows the common field protocol
+of recording the angle at which the top of the camera points.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with azimuth angles in degrees.
-If the \code{orientation} argument is zero, North (0º) is pointing up as in
-maps, but East (90º) and West (270º) are flipped regarding to maps. To
-understand why, take two flash-card size pieces of paper; put one on a
-table in front of you and draw on it a compass rose; take the other and
-hold it with your arms extended over your head and, following the
-directions of the compass rose in front of you, draw another one in the
-paper side that is facing down---it will be an awkward position, like if
-you were taking an upward-looking photo with a mobile device while looking
-at the screen---; finally, put it down and compare both compass roses.
+\link[terra:SpatRaster-class]{terra::SpatRaster} with the same dimensions as the input
+zenith image. Each pixel contains the azimuth angle in degrees, with zero
+representing North and angles increasing counter-clockwise. The
+object carries attributes \code{orientation} and \code{lens_coef}.
 }
 \description{
-Build a single-layer image with azimuth angles as pixel values, assuming
-upwards-looking hemispherical photography with the optical axis vertically
-aligned.
+Creates a single-layer raster in which pixel values represent azimuth
+angles, assuming an upwards-looking hemispherical photograph with the
+optical axis vertically aligned.
+}
+\note{
+If \code{orientation = 0}, North (0 deg) is located at the top of the image, as in
+conventional maps, but East (90 deg) and West (270 deg) appear flipped
+relative to maps. To understand this, take two flash-card-sized pieces of
+paper. Place one on a table in front of you and draw a compass rose on it.
+Hold the other above your head, with the side facing down toward you, and
+draw another compass rose following the directions from the one on the table.
+This mimics the situation of taking an upwards-looking photo with a
+smartphone while viewing the screen, and it will result in a mirrored
+arrangement. Compare both drawings to see the inversion.
 }
 \examples{
 z <- zenith_image(600, lens("Nikon_FCE9"))

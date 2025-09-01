@@ -2,42 +2,38 @@
 % Please edit documentation in R/extract_dn.R
 \name{extract_dn}
 \alias{extract_dn}
-\title{Extract digital numbers}
+\title{Extract digital numbers from sky points}
 \usage{
-extract_dn(r, sky_points, use_window = TRUE, fun = NULL)
+extract_dn(r, sky_points, use_window = TRUE)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
-was obtained.}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which \code{sky_points} were
+sampled (or any raster with identical dimensions).}
 
-\item{sky_points}{The output of \code{\link[=extract_sky_points]{extract_sky_points()}}
-or an object of the same class and structure.}
+\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
+coordinates).}
 
-\item{use_window}{Logical vector of length one. If \code{TRUE}, a window of \eqn{3
-\times 3} pixels will be used to extract the digital number from \code{r}.}
-
-\item{fun}{A \code{function} that takes a vector as input and returns a
-one-length numeric or logical vector as output (e.g. mean).}
+\item{use_window}{logical of length one. If \code{TRUE} (default), use a
+\eqn{3 \times 3} local mean around each point; if \code{FALSE}, use only the
+central pixel.}
 }
 \value{
-An object of the class \emph{data.frame}. It is the argument
-\code{sky_points} with an added column per each layer from \code{r}. The
-layer names are used to name the new columns. If a function is provided as
-the \code{fun} argument, the result will be summarized per column using the
-provided function, and the \emph{row} and \emph{col} information will be
-omitted. Moreover, if \code{r} is an RGB image, a \linkS4class{color} will
-be returned instead of a \emph{data.frame}. The latter feature is useful
-for obtaining  the \code{sky_blue} argument for \code{\link[=enhance_caim]{enhance_caim()}}.
+\code{data.frame} containing the original \code{sky_points} plus one column per
+layer in \code{r} (named after the layers).
 }
 \description{
-Wrapper function around \code{\link[terra:extract]{terra::extract()}}.
+Obtain digital numbers from a raster at positions defined by sky points,
+with optional local averaging.
+}
+\details{
+Wraps \code{\link[terra:extract]{terra::extract()}} to support a \eqn{3 \times 3} window centered on
+each target pixel (local mean). When it is disabled, only the central
+pixel value is retrieved.
 }
 \note{
-The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
-can be used to manually digitize points and create a CSV file from which to read
-coordinates (see Examples). After digitizing the points on the image, use the
-dropdown menu Analyze>Measure to open the Results window. To obtain the CSV
-file, use File>Save As...
+For instructions on manually digitizing sky points, see the “Digitizing sky
+points with ImageJ” and “Digitizing sky points with QGIS” sections in
+\code{\link[=fit_cie_model]{fit_cie_model()}}.
 }
 \examples{
 \dontrun{
@@ -46,7 +42,7 @@ r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-# See fit_cie_sky_model() for details on below file
+# See fit_cie_model() for details on below file
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
 sky_points <- read.csv(path)
@@ -58,5 +54,11 @@ points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
 sky_points <- extract_dn(caim, sky_points)
 head(sky_points)
+
+# To aggregate DNs across points (excluding 'row' and 'col'):
+apply(sky_points[, -(1:2)], 2, mean, na.rm = TRUE)
 }
+}
+\seealso{
+\code{\link[=extract_sky_points]{extract_sky_points()}}
 }

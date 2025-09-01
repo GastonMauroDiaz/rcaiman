@@ -2,31 +2,39 @@
 % Please edit documentation in R/extract_radiometry.R
 \name{extract_radiometry}
 \alias{extract_radiometry}
-\title{Extract radiometry data}
+\title{Extract radiometry data for calibration}
 \usage{
 extract_radiometry(l, size_px = NULL)
 }
 \arguments{
-\item{l}{List of prepossessed images (\linkS4class{SpatRaster}) for radiometry
-sampling. These images must comply with the equidistant projection.}
+\item{l}{list of preprocessed images (\link[terra:SpatRaster-class]{terra::SpatRaster}) suitable for
+radiometry sampling. Images must comply with the equidistant projection.}
 
-\item{size_px}{Numeric vector of length one. Diameter in pixels of the
-circular sampling area at the image center. This area is modified
-considering the equidistant projection distortion. Therefore, it will be
-visualized as an ellipse at any other place but the image center.}
+\item{size_px}{numeric vector of length one. Diameter (pixels) of the
+circular sampling area at the image center; off-center, the sampled region
+becomes an ellipse under the equidistant projection. If \code{NULL} (default),
+two percent of image width is used (\verb{round(terra::ncol(r) * 0.02}).}
 }
 \value{
-An object of the class \code{data.frame} with columns \emph{theta} (zenith
-angle in radians) and \emph{radiometry} (digital number (DN) or relative digital
-number (RDN), depending on argument \code{z_thr}.
+\code{data.frame} con dos columnas:
+\describe{
+\item{\code{theta}}{zenith angle en radianes.}
+\item{\code{radiometry}}{digital number normalizado.}
+}
 }
 \description{
-Extract radiometry from images taken with the aid of a portable light source
-and the calibration board detailed in \code{\link[=calibrate_lens]{calibrate_lens()}}. The end goal is to
-obtain the data required to model the vignetting effect.
+Buid a datasets for vignetting modeling by sistematically extracting
+radiometry from images taken with the aid of a portable light source and the
+calibration board detailed in \code{\link[=calibrate_lens]{calibrate_lens()}}.
 }
-\details{
-Lenses have the inconvenient property of increasingly attenuating light in
+\note{
+This function does not fit the vignetting function itself. The output is a
+dataset to be used in subsequent modeling steps. See above sections for
+guidance.
+}
+\section{Guidance}{
+
+Lenses have the inconvenient property of increasingly attenuating light along
 the direction orthogonal to the optical axis. This phenomenon is known as the
 vignetting effect and varies with lens model and aperture setting. The method
 outlined here, known as the simple method, is explained in details in
@@ -42,7 +50,14 @@ distribution. In addition, the latter was used to draw on in order to
 guide pixel sampling. The book holder also facilitated the alignment of the
 screen with the dotted lines of the printed quarter-circle.
 
-\figure{lightSource.jpg}{Portable light source}
+\if{html}{
+  \out{<div style="text-align: center">}
+  \figure{lightSource.jpg}{options: style="width:750px;max-width:50\%;"}
+  \out{</div>}
+}
+\if{latex}{
+  \figure{lightSource.jpg}
+}
 
 As a general guideline, a wide variety of mobile devices could be used as
 light sources, but if scattered data points are obtained with it, then other
@@ -58,20 +73,28 @@ regulated to obtain light-source pixels with middle grey values. The nine
 photographs should be taken \strong{without changing the camera configuration and
 the light conditions}.
 
-\figure{calibrationBoardVignetting.jpg}{Obtaining radiometric data}
+\if{html}{
+  \out{<div style="text-align: center">}
+  \figure{calibrationBoardVignetting.jpg}{options: style="width:750px;max-width:50\%;"}
+  \out{</div>}
+}
+\if{latex}{
+  \figure{calibrationBoardVignetting.jpg}
+}
 
-This code exemplify how to use the function to obtain the data and base R
+This code exemplifies how to use the function to obtain data and base R
 functions to obtain the vignetting function (\eqn{f_v}).
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1500, 997)*2
-diameter <- 947*4
+\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1500, 997)
+diameter <- 947*2
 z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
 a <- azimuth_image(z)
 
 .read_raw <- function(path_to_raw_file) \{
-  r <- read_caim_raw(path_to_raw_file, z, a, zenith_colrow,
-                     radius = 500, only_blue = TRUE)
-  r
+  r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+  r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+  r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+                              k = 1, p = 1, rmax = 100)
 \}
 
 l <- Map(.read_raw, dir("raw/up/", full.names = TRUE))
@@ -103,11 +126,10 @@ Once one of the aperture settings is calibrated, it can be used to calibrate
 all the rest. To do so,  the equipment should be used to take photographs in
 all desired exposition and without moving the camera, including the aperture
 already calibrated and preferably under an open sky in stable diffuse light
-conditions. The same procedure, which minor adaptations, is applicable to
-cross-camera calibration. Below code could be used as a template.
+conditions. Below code can be used as a template.
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1500, 997)*2
-diameter <- 947*4
+\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1500, 997)
+diameter <- 947*2
 z <- zenith_image(diameter, c(0.689, 0.0131, -0.0295))
 a <- azimuth_image(z)
 
@@ -116,22 +138,30 @@ l <- list()
 for (i in seq_along(files)) \{
   if (i == 1) \{
     # because the first aperture was the one already calibrated
-    lens_coef_v <- c(0.0302, -0.320, 0.0908)
+    .read_raw <- function(path_to_raw_file) \{
+        r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+        r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+        r <- correct_vignetting(r, z, c(0.0302, -0.320, 0.0908))
+        r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+                                    k = 1, p = 1, rmax = 100)
+      \}
   \} else \{
-    lens_coef_v <- NULL
+      .read_raw <- function(path_to_raw_file) \{
+          r <- read_caim_raw(path_to_raw_file, only_blue = TRUE)
+          r <- crop_caim(r, zenith_colrow - diameter/2, diameter, diameter)
+          r <- fisheye_to_equidistant(r, z, a, m, radius = diameter/2,
+                                      k = 1, p = 1, rmax = 100)
+        \}
   \}
-  l[[i]] <- read_caim_raw(files[i], z, a, zenith_colrow,
-                          radius = 500,
-                          only_blue = TRUE,
-                          lens_coef_v = lens_coef_v)
+  l[[i]] <- .read_raw(files[i])
 \}
 
 ref <- l[[1]]
-rings <- rings_segmentation(zenith_image(ncol(ref), lens()), 3)
+rings <- ring_segmentation(zenith_image(ncol(ref), lens()), 3)
 theta <- seq(1.5, 90 - 1.5, 3) * pi/180
 
 .fun <- function(r) \{
-  r <- extract_feature(r, rings, return_raster = FALSE)
+  r <- extract_feature(r, rings, return = "vector")
   r/r[1]
 \}
 
@@ -153,6 +183,7 @@ head(ds)
 
 }\if{html}{\out{</div>}}
 }
+
 \references{
 \insertAllCited{}
 }

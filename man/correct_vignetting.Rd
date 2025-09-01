@@ -7,42 +7,47 @@
 correct_vignetting(r, z, lens_coef_v)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
+binary masks) in fisheye projection.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{lens_coef_v}{Numeric vector. Coefficients of a vignetting
-function (\eqn{f_v}) of the type \eqn{f_v = 1 + a \cdot \theta +
-  b \cdot \theta^2 + ... + m \cdot \theta^n}, where \eqn{\theta} is the
-zenith angle, \eqn{a, b, c} and \eqn{m} are the coefficients. The maximum
-polynomial degree supported is sixth. See \code{\link[=extract_radiometry]{extract_radiometry()}} for
-additional details.}
+\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function
+\eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
+\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
+polynomial coefficients. Degrees up to 6 are supported. See
+\code{\link[=extract_radiometry]{extract_radiometry()}} for guidance on estimating these coefficients.}
 }
 \value{
-The argument \code{r} but with corrected values.
+\link[terra:SpatRaster-class]{terra::SpatRaster} with the same content as \code{r} but with
+pixel values adjusted to correct for vignetting, preserving all other
+properties (layers, names, extent, and CRS).
 }
 \description{
-Correct vignetting effect
+Apply a vignetting correction to an image using a polynomial model.
+}
+\details{
+Vignetting is the gradual reduction of image brightness toward the periphery.
+This function corrects it by applying a device-specific correction as a
+function of the zenith angle at each pixel.
 }
 \examples{
 \dontrun{
-path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 caim <- read_caim(path)
-z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
+z <- zenith_image(2132, lens("Olloclip"))
 a <- azimuth_image(z)
-zenith_colrow <- c(1063, 771)/2
+zenith_colrow <- c(1063, 771)
 
 caim <- expand_noncircular(caim, z, zenith_colrow)
 m <- !is.na(caim$Red) & !is.na(z)
 caim[!m] <- 0
 
-bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
-
+bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 display_caim(caim$Blue, bin)
 
-caim <- gbc(caim, 2.2)
+caim <- invert_gamma_correction(caim, 2.2)
 caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
-                                                     normalize_minmax()
-# The lens_coef_v are here coef 10.1016/j.agrformet.2024.110020
+        normalize_minmax()
 }
 }

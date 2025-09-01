@@ -7,73 +7,57 @@
 fisheye_to_equidistant(r, z, a, m, radius = NULL, k = 1, p = 1, rmax = 100)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
+binary masks) in fisheye projection.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{m}{\linkS4class{SpatRaster}. A mask. For hemispherical photographs,
-check \code{\link[=select_sky_vault_region]{select_sky_vault_region()}}.}
+\item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
+\code{TRUE} for selected pixels.}
 
-\item{radius}{Numeric integer of length one. Radius of the reprojected
-hemispherical image (i.e., the output).}
+\item{radius}{numeric vector of length one. Radius (in pixels) of the
+reprojected hemispherical image. Must be an integer value (no decimal
+part). If \code{NULL} (default), it is set to \code{ncol(r) / 2}.}
 
-\item{k}{Numeric vector of length one. Number of k-nearest neighbors.}
-
-\item{p}{Numeric vector of length one. Power for inverse-distance weighting.}
-
-\item{rmax}{Numeric vector of length one. Maximum radius where to search for
-\emph{knn}. Increase this value if pixels with value \code{0} or
-\code{FALSE} appears where other values are expected.}
+\item{k, p, rmax}{numeric vector of length one. Parameters passed to
+\code{\link[lidR:dtm_idw]{lidR::knnidw()}}: number of neighbors (\code{k}), inverse distance weighting
+exponent (\code{p}), and maximum search radius (\code{rmax}) in units of the output
+resolution.}
+}
+\value{
+\link[terra:SpatRaster-class]{terra::SpatRaster} with the same number of layers as \code{r},
+reprojected to equidistant projection with circular shape and radius
+given by `radius
 }
 \description{
-Fisheye to equidistant projection (also known as polar projection).
+Reproject a hemispherical image from fisheye to equidistant projection
+(also known as polar projection) to standardize its geometry for
+subsequent analysis and comparison between images.
 }
 \details{
-The pixel values and their image coordinates are treated as points to be
-reprojected and interpolated. To that end, this function use \code{\link[lidR:dtm_idw]{lidR::knnidw()}}
-as workhorse function, so arguments \code{k}, \code{p}, and \code{rmax} are passed to it.
-}
-\note{
-Default value for the \code{radius} argument is equivalent to input the
-radius of the \code{r} argument.
+Pixel values and coordinates are treated as 3D points and reprojected
+using Cartesian interpolation. Internally, this function uses
+\code{\link[lidR:dtm_idw]{lidR::knnidw()}} as interpolation engine, so arguments \code{k}, \code{p}, and
+\code{rmax} are passed to it without modification.
 }
 \examples{
 \dontrun{
-path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 caim <- read_caim(path)
-calc_diameter(c(0.801, 0.178, -0.179), 1052/2, 86.2)
-z <- zenith_image(1058,  c(0.801, 0.178, -0.179))
+calc_diameter(c(0.801, 0.178, -0.179), 1052, 86.2)
+z <- zenith_image(2216,  c(0.801, 0.178, -0.179))
 a <- azimuth_image(z)
-zenith_colrow <- c(532, 386)
+zenith_colrow <- c(1063, 771)
 
 caim <- expand_noncircular(caim, z, zenith_colrow)
-m <- !is.na(caim$Red) & select_sky_vault_region(z, 0, 86.2)
+m <- !is.na(caim$Red) & select_sky_region(z, 0, 86.2)
 caim[!m] <- 0
-
-bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
-
-display_caim(caim$Blue, bin)
-
-caim <- gbc(caim, 2.2)
-caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
-  normalize_minmax()
-
-caim2 <- fisheye_to_equidistant(caim$Blue, z, a, m, radius = 600)
-bin2 <- fisheye_to_equidistant(bin, z, a, m, radius = 600)
-bin2 <- apply_thr(bin2, 0.5) #to turn it logical
-# Use write_bin(bin2, "path/file_name") to have a file ready
-# to calcute LAI with CIMES, GLA, CAN-EYE, etc.
-
 m2 <- fisheye_to_equidistant(m, z, a, !is.na(z), radius = 600)
+m2 <- binarize_with_thr(m2, 0.5) #to turn it logical
+caim2[!m2] <- 0
 
-
-caim <- read_caim(path)
-caim <- expand_noncircular(caim, z, zenith_colrow)
-plotRGB(caim)
-caim <- fisheye_to_equidistant(caim, z, a, !is.na(z), radius = 600)
-caim[!m2] <- 0
-plotRGB(caim)
+plot(caim)
 }
 }

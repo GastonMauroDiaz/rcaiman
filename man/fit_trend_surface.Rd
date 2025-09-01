@@ -4,36 +4,45 @@
 \alias{fit_trend_surface}
 \title{Fit a trend surface to sky digital numbers}
 \usage{
-fit_trend_surface(sky_points, r, np = 6, col_id = "dn")
+fit_trend_surface(sky_points, r, np = 6, col_id = "dn", extrapolate = FALSE)
 }
 \arguments{
-\item{sky_points}{An object of class \emph{data.frame}. The data.frame returned by
-\code{\link[=extract_rel_radiance]{extract_rel_radiance()}} or \code{\link[=extract_dn]{extract_dn()}}, or a
-\emph{data.frame} with same basic structure and names.}
+\item{sky_points}{\code{data.frame} with columns \code{row}, \code{col}, and one additional
+numeric column with values to interpolate. Typically returned by
+\code{\link[=extract_rr]{extract_rr()}} or \code{\link[=extract_dn]{extract_dn()}}.}
 
-\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
-was obtained.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
+\code{sky_points} were derived, or another raster with the same number of rows
+and columns. Used only as geometric template; cell values are ignored.}
 
 \item{np}{
 degree of polynomial surface
 }
 
-\item{col_id}{Numeric or character vector of length one. The number or name
-of the colum with the values to interpolate.}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sky_points} containing the values to interpolate.}
+
+\item{extrapolate}{logical vector of length one. If \code{TRUE}, predictions
+are extrapolated to the entire extent of \code{r}; otherwise, predictions
+are limited to the convex hull of the input sky points.}
 }
 \value{
-A list with an object of class \linkS4class{SpatRaster}, and object of
-class \code{trls} (see \code{\link[spatial:surf.ls]{spatial::surf.ls()}}), and the coefficient of
-determination.
+List with named elements:
+\describe{
+\item{\code{raster}}{\link[terra:SpatRaster-class]{terra::SpatRaster} containing the fitted surface.}
+\item{\code{model}}{object of class \code{trls} returned by \code{\link[spatial:surf.ls]{spatial::surf.ls()}}.}
+\item{\code{r2}}{numeric value giving the coefficient of determination (R\eqn{^2}) of the fit.}
+}
 }
 \description{
-Fit a trend surface using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as workhorse function.
+Fits a trend surface to sky digital numbers using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as
+the computational workhorse.
 }
 \details{
-The first application of trend surface fitting to modelling sky digital
-numbers was presented in \insertCite{Diaz2018;textual}{rcaiman}, under the
-heading \emph{Estimation of the sky DN as a previous step for our method}. The
-example shows a pipeline that resemble the one presented in that paper.
+This function models the variation in digital numbers across the sky dome
+by fitting a polynomial surface in Cartesian space. It is intended to
+capture smooth large-scale gradients and is more effective when called
+via \code{\link[=apply_by_direction]{apply_by_direction()}}.
 }
 \examples{
 \dontrun{
@@ -43,38 +52,24 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 r <- caim$Blue
 
-com <- compute_complementary_gradients(caim)
-chroma <- max(com$blue_yellow, com$cyan_red)
-bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
-bin <- bin & apply_thr(com$blue_yellow, -0.2)
+bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+  select_sky_region(z, 0, 88)
 
 g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-rr <- extract_rel_radiance(r, z, a, sky_points)
+sky_points <- extract_dn(r, sky_points, use_window = TRUE)
 
-sky_s <- fit_trend_surface(rr$sky_points, r, col_id = "dn")
+sky_s <- fit_trend_surface(sky_points, r, np = 4, col_id = 3,
+                           extrapolate = TRUE)
 plot(sky_s$raster)
-plot(r/sky_s$raster)
-apply_thr(r/sky_s$raster, 0.5) \%>\% plot()
+binarize_with_thr(r/sky_s$raster, 0.5) \%>\% plot()
 
-model <- fit_coneshaped_model(rr$sky_points)
-summary(model$model)
-sky_cs <- model$fun(z, a) * rr$zenith_dn
-plot(sky_cs)
-
-.r <- r
-.r[!bin] <- sky_cs
-plot(.r)
-sky_points <- extract_sky_points(.r, m, g, dist_to_black = 3)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-rr <- extract_rel_radiance(.r, z, a, sky_points)
-
-sky_s <- fit_trend_surface(rr$sky_points, .r, col_id = "dn")
+sky_s <- fit_trend_surface(sky_points, r, np = 6, col_id = 3,
+                           extrapolate = FALSE)
 plot(sky_s$raster)
-plot(r/sky_s$raster)
-apply_thr(r/sky_s$raster, 0.5) \%>\% plot()
+binarize_with_thr(r/sky_s$raster, 0.5) \%>\% plot()
 }
 }
 \references{

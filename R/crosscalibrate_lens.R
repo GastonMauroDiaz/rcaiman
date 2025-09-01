@@ -1,51 +1,62 @@
 #' Cross-calibrate lens
 #'
-#' Cross-calibrate lens
+#' Estimate a lens projection for an uncalibrated camera by referencing a
+#' calibrated camera photographed from the exact same location.
 #'
-#' Read the help page of [calibrate_lens()] for understanding the theory
-#' being this function.
+#' @description
+#' Given two photographs taken from the same point (matching entrance pupils and
+#' aligned optical axes), with calibrated and uncalibrated cameras, derives a
+#' polynomial projection for the uncalibrated device. Intended for cases where a
+#' camera calibrated with a method of higher accuracy than [calibrate_lens()] is
+#' available, or when there is a main camera to which all other devices should
+#' be adjusted.
 #'
-#' This function is intended to be used when a camera calibrated with a method
-#' of higher accuracy than the one proposed in [calibrate_lens()] is
-#' available or there is a main camera to which all other devices should be
-#' adjusted.
+#' Points must be digitized in tandem with ImageJ and saved as CSV files.
+#' See [calibrate_lens()] for background and general concepts.
 #'
-#' It requires two photographs taken from the exact same location with the
-#' calibrated and uncalibrated camera. This means that the lens entrance pupils
-#' should match and the optical axes should be aligned.
+#' @param path_to_csv_uncal,path_to_csv_cal character vectors of length one.
+#'   Paths to CSV files created with ImageJ’s point selection tool (uncalibrated
+#'   and calibrated images, respectively).
+#' @param zenith_colrow_uncal,zenith_colrow_cal numeric vectors of length two.
+#'   Raster coordinates of the zenith for the uncalibrated and calibrated
+#'   images; see [calc_zenith_colrow()].
+#' @param diameter_cal numeric vector of length one. Image diameter (pixels) of
+#'   the calibrated camera.
+#' @param lens_coef numeric vector. Lens projection coefficients of the
+#'   calibrated camera.
+#' @param degree numeric vector of length one. Polynomial degree for the
+#'   uncalibrated model fit (default 3).
 #'
-#' Points should be digitized in tandem with ImageJ and saved as CSV files.
+#' @return List with components:
+#' \describe{
+#'   \item{`ds`}{`data.frame` with zenith angle (`theta`, radians) and pixel radius
+#'     (`px`) from the uncalibrated camera.}
+#'   \item{`model`}{`lm` object: polynomial fit of `px` ~ `theta`.}
+#'   \item{`horizon_radius`}{numeric vector of length one. Pixel radius at 90 deg.}
+#'   \item{`lens_coef`}{numeric vector. Distortion coefficients normalized by
+#'     `horizon_radius`.}
+#' }
 #'
-#' @param path_to_csv_uncal,path_to_csv_cal Character vector of length one. Path
-#'   to a CSV file created with the
-#'   [point
-#'   selection tool of ‘ImageJ’
-#'   software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
-#'   (*cal* and *uncal* stand for calibrated and uncalibrated, respectively).
-#' @param zenith_colrow_uncal,zenith_colrow_cal Numeric vector of length two.
-#'   Raster coordinates of the zenith. See
-#'   [calc_zenith_colrow()] (*cal* and *uncal* stand
-#'   for calibrated and uncalibrated, respectively).
-#' @param diameter_cal Numeric vector of length one. Diameter in pixels of the
-#'   image taken with the calibrated camera.
-#' @param lens_coef numeric
-#' @inheritParams calibrate_lens
-#'
-#' @return An object of class *list* with named elements. *ds* is the dataset
-#'   used to fit the model, *model* is the fitted model (class `lm`, see
-#'   [stats::lm()]), *horizon_radius* is the radius at 90º, *lens_coef* is a
-#'   numeric vector of length equal to the `degree` argument containing the
-#'   polynomial model coefficients for predicting relative radius
-#'   (`coefficients(model)/horizon_radius`).
+#' @seealso [calibrate_lens()], [calc_zenith_colrow()]
 #'
 #' @export
 crosscalibrate_lens <- function(path_to_csv_uncal,
-                           path_to_csv_cal,
-                           zenith_colrow_uncal,
-                           zenith_colrow_cal,
-                           diameter_cal,
-                           lens_coef,
-                           degree = 3) {
+                                path_to_csv_cal,
+                                zenith_colrow_uncal,
+                                zenith_colrow_cal,
+                                diameter_cal,
+                                lens_coef,
+                                degree = 3) {
+
+  .check_vector(path_to_csv_uncal, "character", 1)
+  .assert_file_exists(path_to_csv_uncal)
+  .check_vector(path_to_csv_cal, "character", 1)
+  .assert_file_exists(path_to_csv_cal)
+  .check_vector(zenith_colrow_uncal, "numeric", 2, sign = "positive")
+  .check_vector(zenith_colrow_cal, "numeric", 2, sign = "positive")
+  .check_vector(diameter_cal, "numeric", 1, sign = "positive")
+  .check_vector(lens_coef, "numeric", sign = "any")
+  .check_vector(degree, "integerish", 1, sign = "positive")
 
   csv_uncal <- utils::read.csv(path_to_csv_uncal)
   csv_uncal <- cbind(csv_uncal$X, csv_uncal$Y)

@@ -1,38 +1,50 @@
 #' Correct vignetting effect
 #'
-#' @inheritParams fisheye_to_equidistant
-#' @param lens_coef_v Numeric vector. Coefficients of a vignetting
-#'   function (\eqn{f_v}) of the type \eqn{f_v = 1 + a \cdot \theta +
-#'   b \cdot \theta^2 + ... + m \cdot \theta^n}, where \eqn{\theta} is the
-#'   zenith angle, \eqn{a, b, c} and \eqn{m} are the coefficients. The maximum
-#'   polynomial degree supported is sixth. See [extract_radiometry()] for
-#'   additional details.
+#' Apply a vignetting correction to an image using a polynomial model.
 #'
-#' @return The argument `r` but with corrected values.
+#' Vignetting is the gradual reduction of image brightness toward the periphery.
+#' This function corrects it by applying a device-specific correction as a
+#' function of the zenith angle at each pixel.
+#'
+#' @inheritParams fisheye_to_equidistant
+#'
+#' @param lens_coef_v numeric vector. Coefficients of the vignetting function
+#'   \eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
+#'   \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
+#'   polynomial coefficients. Degrees up to 6 are supported. See
+#'   [extract_radiometry()] for guidance on estimating these coefficients.
+#'
+#' @return [terra::SpatRaster-class] with the same content as `r` but with
+#'   pixel values adjusted to correct for vignetting, preserving all other
+#'   properties (layers, names, extent, and CRS).
+#'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 #' caim <- read_caim(path)
-#' z <- zenith_image(2132/2,  c(0.7836, 0.1512, -0.1558))
+#' z <- zenith_image(2132, lens("Olloclip"))
 #' a <- azimuth_image(z)
-#' zenith_colrow <- c(1063, 771)/2
+#' zenith_colrow <- c(1063, 771)
 #'
 #' caim <- expand_noncircular(caim, z, zenith_colrow)
 #' m <- !is.na(caim$Red) & !is.na(z)
 #' caim[!m] <- 0
 #'
-#' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
-#'
+#' bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 #' display_caim(caim$Blue, bin)
 #'
-#' caim <- gbc(caim, 2.2)
+#' caim <- invert_gamma_correction(caim, 2.2)
 #' caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) %>%
-#'                                                      normalize_minmax()
-#' # The lens_coef_v are here coef 10.1016/j.agrformet.2024.110020
+#'         normalize_minmax()
+
+# The lens_coef_v values are from doi:10.1016/j.agrformet.2024.110020
 #' }
 correct_vignetting <- function(r, z, lens_coef_v) {
+  .check_r_z_a_m(r, z, r_type = "any")
+  .check_vector(lens_coef_v, "numeric", sign = "any")
+
   # only to avoid note from check, code is OK without this line.
   a <- b <- d <- e <- f <- NA
 

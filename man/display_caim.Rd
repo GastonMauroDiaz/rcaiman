@@ -2,33 +2,36 @@
 % Please edit documentation in R/display_caim.R
 \name{display_caim}
 \alias{display_caim}
-\title{Dysplay a canopy image}
+\title{Display a canopy image}
 \usage{
 display_caim(caim = NULL, bin = NULL, g = NULL)
 }
 \arguments{
-\item{caim}{\linkS4class{SpatRaster}, such as the output of \code{\link[=read_caim]{read_caim()}} or
-\code{\link[=read_caim_raw]{read_caim_raw()}}, or a single layer raster such as the output of
-\code{\link[=enhance_caim]{enhance_caim()}}.}
+\item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Typically the output of \code{\link[=read_caim]{read_caim()}}.
+Can be multi- or single-layer.}
 
-\item{bin}{description}
+\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
+hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
-\item{g}{description}
+\item{g}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values. Sky
+segmentation map produced by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 }
 \value{
-No return value. Called for side effects
+Invisible \code{NULL}. Called for side effects (image viewer popup).
 }
 \description{
-Wrapper function for \code{\link[EBImage:display]{EBImage::display()}}
+Wrapper for \code{\link[EBImage:display]{EBImage::display()}} that streamlines the visualization of
+canopy images, optionally overlaying binary masks and segmentation borders.
+It is intended for quick inspection of processed or intermediate results in
+a graphical viewer.
 }
 \examples{
 \dontrun{
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 r <- normalize_minmax(caim$Blue)
-g <- rings_segmentation(z, 30)
-bin <- regional_thresholding(r, g,
-                             method = "thr_isodata")
-display_caim(caim, bin, g)
+g <- ring_segmentation(z, 30)
+bin <- binarize_by_region(r, g, method = "thr_isodata")
+display_caim(caim$Blue, bin, g)
 }
 }

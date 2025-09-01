@@ -7,39 +7,48 @@
 calibrate_lens(path_to_csv, degree = 3)
 }
 \arguments{
-\item{path_to_csv}{Character vector. Path to a CSV file created with the
-\href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}.}
+\item{path_to_csv}{character vector. Path(s) to CSV file(s) created with the
+ImageJ point selection tool. See \emph{Note}.}
 
-\item{degree}{Numeric vector of length one. Polynomial model degree.}
+\item{degree}{numeric vector of length one. Polynomial model degree.}
 }
 \value{
-An object of class \emph{list} with named elements. \emph{ds} is the dataset
-used to fit the model, \emph{model} is the fitted model (class \code{lm}, see
-\code{\link[stats:lm]{stats::lm()}}), \emph{horizon_radius} is the radius at 90º, \emph{lens_coef} is a
-numeric vector of length equal to the \code{degree} argument containing the
-polynomial model coefficients for predicting relative radius
-(\code{coefficients(model)/horizon_radius}),
-\emph{zenith_colrow} are the raster coordinates of the zenith push pin,
-\emph{max_theta} is the maximum zenith angle in degrees, and \emph{max_theta_px} is
-the distance in pixels between the zenith and the maximum zenith angle in
-pixels units.
+List with named elements:
+\describe{
+\item{\code{ds}}{Data frame used to fit the model.}
+\item{\code{model}}{\code{lm} object fitted to pixel distance vs. zenith angle.}
+\item{\code{horizon_radius}}{Radius at 90 deg.}
+\item{\code{lens_coef}}{Numeric vector of polynomial model coefficients
+for predicting relative radius.}
+\item{\code{zenith_colrow}}{Raster coordinates of the zenith push pin.}
+\item{\code{max_theta}}{Maximum zenith angle (deg).}
+\item{\code{max_theta_px}}{Distance in pixels between the zenith and the
+maximum zenith angle.}
+}
 }
 \description{
-Calibrate a fisheye lens
+Calibrate a fisheye lens to derive the mathematical relationship between
+image-space radial distances from the zenith and zenith angles in
+hemispherical space (assuming upward-looking hemispherical photography with
+the optical axis vertically aligned).
 }
 \details{
-Fisheye lenses have a wide field of view and the same distortion in all
-directions running orthogonally to the optical axis. The latter property
-allows fitting a precise mathematical relationship between distances to the
-zenith on the image space and zenith angles on the hemispherical space
-(assuming upward-looking hemispherical photography with the optical axis
-vertically aligned).
+Fisheye lenses have a wide field of view and radial symmetry with respect to
+distortion. This property allows precise fitting of a polynomial model to
+relate pixel distances to zenith angles. The method implemented here, known
+as the "simple method", is described in detail by
+\insertCite{Diaz2024;textual}{rcaiman}.
+}
+\note{
+To calibrate different directions, think of the fisheye image as an analog
+clock. To calibrate 3 o'clock, attach the camera to the tripod in landscape
+mode while leaving the quarter-circle at the lens's right side. To calibrate
+9 o'clock, rotate the camera to put the quarter-circle at the lens's left
+side. To calibrate 12 and 6 o'clock, do the same but with the camera in
+portrait mode.
+}
+\section{Step-by-step guide for producing a CSV file to feed this function}{
 
-The method
-outlined here, known as the simple method, is explained in details in
-\insertCite{Diaz2024;textual}{rcaiman}. Next explanation might serve mostly
-as a handbook.
-\subsection{Step-by-step guide for producing a CSV file to feed this function}{
 \subsection{Materials}{
 \itemize{
 \item this package and \href{https://imagej.net/ij/download.html}{ImageJ}
@@ -64,7 +73,14 @@ gentle, the yoga mat will allow you to do that without damaging the table. Of
 course, other materials could be used to obtain the same result, such as
 cardboard, foam, nails, etc.
 
-\figure{calibrationBoard.jpg}{Calibration board}
+\if{html}{
+  \out{<div style="text-align: center">}
+  \figure{calibrationBoard.jpg}{options: style="width:750px;max-width:90\%;"}
+  \out{</div>}
+}
+\if{latex}{
+  \figure{calibrationBoard.jpg}
+}
 
 Place the camera on the tripod. Align its optical axis with the table while
 looking for getting an image showing the overlapping of the three pairs of
@@ -86,24 +102,17 @@ it is not a circular hemispherical image. There is no need to follow the line
 formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
 the window Results. To obtain the CSV, use File>Save As...
 
-\figure{pushpinsImageJ.jpg}{Points digitization with ImageJ}
-
-Use \code{\link[=test_lens_coef]{test_lens_coef()}} to test if coefficients are OK.
+\if{html}{
+  \out{<div style="text-align: center">}
+  \figure{pushpinsImageJ.jpg}{options: style="width:750px;max-width:90\%;"}
+  \out{</div>}
+}
+\if{latex}{
+  \figure{pushpinsImageJ.jpg}
+}
+}
 }
 
-}
-}
-\note{
-If we imagine the fisheye image as an analog clock, it is possible to
-calibrate 3 o'clock by attaching the camera to the tripod in landscape mode
-while leaving the quarter-circle at the lens's right side. To calibrate 9
-o'clock, it will be necessary to rotate the camera to put the quarter-circle
-at the lens's left side. To calibrate 12 and 6 o'clock, it will be necessary
-to do the same but with the camera in portrait mode. If several directions
-are sampled with this procedure, a character vector of length greater than
-one in which each element is a path to a CSV files could be provided as the
-\code{path_to_csv} argument.
-}
 \examples{
 path <- system.file("external/Results_calibration.csv", package = "rcaiman")
 calibration <- calibrate_lens(path)
@@ -129,4 +138,7 @@ lines(theta, .fp(theta, coefficients(calibration$model)))
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=test_lens_coef]{test_lens_coef()}}, \code{\link[=crosscalibrate_lens]{crosscalibrate_lens()}}, \code{\link[=extract_radiometry]{extract_radiometry()}}
 }

@@ -1,43 +1,62 @@
-# rcaiman 1.4.0 
+# rcaiman 2.0.0
 
-* sky_grid_points
-* thr_twocorner
-* add method in regional
-* detect_sky_dn
-* compute_complementary_gradients
+Version 2.0 is a major overhaul of **rcaiman** that introduces a more consistent function naming and removes unuseful functions. Therefore, scripts written for version 1.2.x will need updating. The main goal of this release is to present a clear and cohesive interface accompanying our latest developments.
 
 ## Breaking changes
-* `extract_sun_coord()` rename to `extract_sun_zenith_azimuth()` and now returns a numeric vector intead of a list. As a consequence, all function with input argument `sun_coord` of the class _list_ now change to a numeric vector named `sun_zenith_azimuth`.
-* `extract_rl()` rename to `extract_rel_radiance()` and argument `z_thr` is no longer required. 
-* `mask_hs()` rename to `select_sky_vault_region()` for better consistency in package naming convention.
-* `cie_sky_model_raster()` rename to `cie_sky_image()` for better consistency in package naming convention.
-* `normalize()` rename to `normalize_minmax()` to avoid conflict with EBImage package.
-* `interpolate_sky_points()` rename to `interpolate_planar()` for better consistency in package naming convention.
-* Argument `za` from `row_col_from_zenith_azimuth()` remane to `zenith_azimuth` for better consistency in package naming convention.
-* `ootb_sky_reconstruction()` was splitted into `oot_fit_cie_sky_model()`, `ootb_build_sky_vault()`, `validate_cie_sky_model()`, `optim_sun_zenith_azimuth()`, and `calc_oor_index()`.
-* `fit_cie_sky_model()` optimization was redesigned and improved. Arguments `r`, `z`, `a`, `sky_points`, and `zenith_dn` were replaced for `rr`. Argument `rmse` was removed. The output of this new version will be different from previous versions since many minor changes and fixes had been done.
-* `fit_trend_surfacel()` now can be used similarly to `interpolate_planar()`.
+
+* **Function removals.**  A number of legacy functions have been removed because their functionality is now provided by other functions or is no longer needed: `write_sky_points()`, `write_sun_coord()`, `enhance_caim()`, `mask_sunlit_canopy()`, `local_fuzzy_thresholding()`, `membership_to_color()`, `obia()`, and `ootb_obia()`.  If you relied on these helpers, please check the documentation for updated workflows.
+
+* **Renamed functions.**  To make the interface more idiomatic and self‑describing, many functions have new names. The most important renamings are:
+
+  - `extract_sun_coord()` → **`estimate_sun_angles()`** (it now returns a numeric vector `sun_angles` instead of a list).
+  - `extract_rl()` → **`extract_rr()`** (the `z_thr` argument has been removed).
+  - `mask_hs()` → **`select_sky_region()`**.
+  - `regional_thresholding()` → **`binarize_by_region()`**.
+  - `rings_segmentation()` → **`ring_segmentation()`**.
+  - `sectors_segmentation()` → **`sector_segmentation()`**.
+  - `apply_thr()` → **`binarize_with_thr()`**.
+  - `cie_sky_model_raster()` → **`cie_image()`**.
+  - `interpolate_sky_points()` → **`interpolate_planar()`**.
+  - `calc_co` → **`compute_canopy_openness()`**.
+  - `normalize()` → **`normalize_minmax()`**.
+  - `fit_cie_sky_model()` → **`fit_cie_model()`**; the optimisation routine has been redesigned, arguments `r`, `z`, `a`, `sky_points` and `zenith_dn` are replaced by `rr`, and the `rmse` argument has been dropped.  The output structure has also changed.
+  - In `row_col_from_zenith_azimuth()` the argument `za` has been renamed to `zenith_azimuth`.
+  - `ootb_sky_reconstruction()` has been split into **`ootb_sky_cie()`**, **`ootb_sky_above()`**, **`validate_cie_model()`**, and **`optim_sun_angles()`**.
+  - `fit_trend_surface()` now has behaviour similar to `interpolate_planar()`.
+  
+  All former function names have been removed instead of deprecated. Scripts must be updated to call the new names directly. This provides a cleaner user experience with predictive keyboards.
+
+* **Changed return values and argument orders.**  Functions such as `lens()`, `extract_feature()` and `ring_segmentation()` now return different classes or component names.  The order of arguments in `calc_co()` has been changed for consistency.  When a function takes a `sun_coord` argument, it is now named `sun_angles` and must be a numeric vector.
+
+* **Removed thresholding methods.**  The `"Diaz2018"` method for regional thresholding has been removed.  
+
+* **Behavioural changes.**  The default values and error handling of many functions have been adjusted. There was also changes in arguments and returns. 
 
 ## New features
-* New `display_caim` facilitate visualizing canopy images in R.
-* New `write_ootb_sky_model()` and `read_ootb_sky_model()` allow storing and recovering the output of `ootb_fit_cie_sky_model()`.
-* New `sor_filter()` and `vicinity_filter()` allow flexible methods for filtering sky points.
-* New `calc_spherical_distance()` to make the package internal calculations easier to understand.
-* New `interpolate_spherical()` allows interpolation in the spherical space.
+
+* **Out-of-the-box pipeline.** `ootb_bin()`, `ootb_sky_cie()`, and `ootb_sky_above()` offer a robust and accurate processing workflow for gap fraction computation that does not require manual parameter tuning.
+
+* **Directional processing.**  `apply_by_direction()` applies a built‑in method or user‑supplied function over subsets of pixels defined by a direction and field of view, enabling directional thresholding and sky brightness estimation.
+
+* **Complementary gradients.**  `complementary_gradients()` computes complementary gradients from RGB imagery.
+
+* **Morphological helpers.**  `grow_black()` fills black holes in binarised images, complementing dilation operations.
+
+* **Sky points helpers.**  `sky_grid_centers()` returns the centre coordinates of sky grid cells, facilitating interpolation and modelling, and `rem_outliers()` and `rem_nearby_points()` implement flexible filters for selecting or discarding sky points.
+
+* **Two‑corner thresholding.**  `thr_twocorner()` implements a geometric two‑corner thresholding strategy with robust fall‑backs for failure cases.
+
+* **Display and I/O.**  `display_caim()` provides convenient display of canopy photographs.  `write_sky_cie()` and `read_sky_cie()` allow saving and loading the output of `ootb_sky_cie()` to file for later analysis.
+
+* **Spherical utilities.**  `calc_spherical_distance()` computes great‑circle distances, and `interpolate_spherical()` performs interpolation on the sphere.
 
 ## Minor improvements and fixes
 * Fix rotation argument of `azimuth_image()`.
 * `sky_grid_segmentation()` gains `first_ring_different` to avoid small cells around the zenith.
 * `extract_sky_points()` is now more robust.
-* Delete `find_sky_pixels_nonnull()` since it was deamed obsolete.
-* Delete `find_sky_pixels()` since it was deamed obsolete.
-* Delete `fix_reconstructed_sky()` since it was deamed obsolete.
-* Delete `extrac_sky_points_simple()` since it was deamed obsolete.
-* Delete `ootb_mblt()` since it was deamed obsolete (use `ootb_fit_cie_sky_model()` instead).
-* Delete `optim_normalize()` since it was deamed obsolete.
-* Change the order in the arguments of `calc_co()` to homogeneize criteria within the package.
-* `extract_sky_points()` lose the argument `min_raster_dist` because of the new function `vicinity_filter()`.
-* `regional_thresholding()` lose the method "Diaz2018". 
+* `extract_sky_points()` lose the argument `min_raster_dist` because of the new function `rem_nearby_points()`.
+* `regional_thresholding()` lose the method `"Diaz2018"`. 
+* `regional_thresholding()` gain method `"thr_twocorner"`. 
 
 # rcaiman 1.2.0 
 

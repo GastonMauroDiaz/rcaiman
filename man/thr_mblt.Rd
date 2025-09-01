@@ -2,132 +2,53 @@
 % Please edit documentation in R/thr_mblt.R
 \name{thr_mblt}
 \alias{thr_mblt}
-\title{Calculate thresholds with the model-based method}
+\title{Compute model-based thresholds}
 \usage{
 thr_mblt(dn, intercept, slope)
 }
 \arguments{
-\item{dn}{Numeric vector or \linkS4class{SpatRaster}. Digital number of the
-background. These values should be normalized and, if they are extracted
-from a JPEG image, gamma back corrected.}
+\item{dn}{numeric vector or \link[terra:SpatRaster-class]{terra::SpatRaster}. Background digital
+number. Values must be normalized; if taken from JPEG, apply gamma back
+correction.}
 
-\item{intercept, slope}{Numeric vector of length one. These are linear
-function coefficients.}
+\item{intercept, slope}{numeric vectors of length one. Linear coefficients.}
 }
 \value{
-An object of the same class and dimensions than \code{dn}.
+An object of the same class and dimensions as \code{dn}.
 }
 \description{
-Transform background digital number into threshold values
+Compute threshold values from background digital numbers (DN) using
+Equation 1 in \insertCite{Diaz2018;textual}{rcaiman}, a linear function
+whose slope can be weighted.
 }
 \details{
-This function transforms background digital numbers into threshold values by
-means of the Equation 1 from \insertCite{Diaz2018;textual}{rcaiman}, which is
-a linear function with the slope modified by a weighting parameter. This
-simple function was found by studying canopy models, also known as targets,
-which are perforated surfaces made of a rigid and dark material . These
-models were backlighted with homogeneous lighting, photographed with a Nikon
-Coolpix 5700 set to acquire in JPEG format, and those images were gamma back
-corrected with a default gamma value equal to 2.2 (see \code{\link[=gbc]{gbc()}}). Results
-shown that the optimal threshold value was linearly related with the
-background digital number (see Figure 1 and Figure 7 from
-\insertCite{Diaz2018;textual}{rcaiman}). This shifted the aim from finding
-the optimal threshold, following \insertCite{Song2014;textual}{rcaiman}
-method, to obtaining the background DN as if the canopy was not there, as
-\insertCite{Lang2010;textual}{rcaiman} proposed.
-\subsection{Working principle}{
+The model was derived from canopy targets (perforated, rigid, dark
+surfaces) backlit under homogeneous illumination, photographed with a
+Nikon Coolpix 5700 in JPEG mode. Images were gamma-back-corrected with
+a default gamma of 2.2 (see \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}). Results showed that the optimal
+threshold is linearly related to the background DN (see Figures 1 and 7
+in \insertCite{Diaz2018;textual}{rcaiman}). This shifted the goal from
+estimating an optimal threshold \insertCite{Song2014;textual}{rcaiman} to
+estimating the background DN as if the canopy were absent, as proposed by
+\insertCite{Lang2010;textual}{rcaiman}.
 
-\insertCite{Diaz2018;textual}{rcaiman} observed the following linear
-relationship between the background value, usually the sky digital number
-(SDN), and the optimal threshold value (OTV):\tabular{llllllllllllr}{
-   \eqn{IV = a + b \cdot SDN} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 1a) \cr
-}
-\tabular{llllllllllllr}{
-   \eqn{OTV = a + b \cdot w \cdot SDN} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 1b) \cr
-}
+To apply the weighting parameter (w) from Equation 1, supply \code{slope} as
+\eqn{slope \times w}.
 
-
-were IV is the initial value \insertCite{Wagner2001}{rcaiman}, which is the
-boundary between SDN and the mixed pixels, i.e, the pixels that are neither
-\emph{Gap} or \emph{Non-gap} \insertCite{Macfarlane2011}{rcaiman}, \eqn{a} and \eqn{b}
-are the intercept and slope coefficients, respectively, and \eqn{w} is a
-weighting parameter that takes into account that OTV is always lower than IV.
-If SDN is calculated at the pixel level, a local thresholding method can be
-applied by evaluating, pixel by pixel, if the below canopy digital number
-(CDN) is greater than the OTV. Formally, If \eqn{CDN>OTV}, then assign \emph{Gap}
-class, else assign \emph{Non-gap} class.
-
-This conclusion drawn from an image processing point of view matches with
-previous findings drawn from a radiometric measurement paradigm, which are
-introduced next.
-
-\insertCite{Cescatti2007;textual}{rcaiman} posed that cameras can be used as
-a radiation measurement device if they are properly calibrated. This method,
-denominated by the author as LinearRatio, seeks to obtain the transmittance
-(T) as the ratio of below to above canopy radiation:\tabular{llllllllllllr}{
-   \eqn{T = CDN/SDN} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 2) \cr
-}
-
-
-were CDN is below canopy digital number (DN), i.e., the DN extracted from a
-canopy hemispherical photograph.
-
-The LinearRatio method uses T as a proxy for gap fraction. It
-requires twin cameras, one below and the other above the canopy. In contrast,
-\insertCite{Lang2010;textual}{rcaiman} proposed to obtain SDN by manually
-selecting pure sky pixels from canopy hemispherical photographs and
-reconstructing the whole sky by subsequent modeling and interpolating---this
-method is often referred to as LinearRatio single camera or LinearRatioSC.
-
-Equation 2 can be seen as a standardization of the distance between CDN and
-SDN. With that in mind, it is useful to rewrite Equation 1b as an inequality
-that can be evaluated to return a logical statement that is directly
-translated into the desired binary classification:\tabular{llllllllllllr}{
-   \eqn{CDN > a + b \cdot w \cdot SDN} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 3) \cr
-}
-
-
-Then, combining Equation 2 and 3, we find that
-\insertCite{Diaz2018;textual}{rcaiman} parameters can be applied to T:\tabular{llllllllllllr}{
-   \eqn{CDN/SDN > a + b \cdot w \cdot SDN/SDN} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 4a) \cr
-}
-\tabular{llllllllllllr}{
-   \eqn{T > a + b \cdot w} \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab  \tab (Equation 4b) \cr
-}
-
-
-From Equation 2 it is evident that any bias introduced by the camera optical
-and electronic system will be canceled during the calculation of T as long as
-only one camera is involved. Therefore, After examining Equation 4b, we can
-conclude that intercept 0 and slope 1 are theoretically correct.In addition,
-the w parameter can be used to filter out mixed pixels. The greater w, the
-greater the possibility of selecting pure sky pixels.
-}
+Equation 1 was developed with 8-bit images. New coefficients should be
+calibrated in the 0–255 domain, which is what \code{\link[=thr_mblt]{thr_mblt()}} expects, even
+though the \code{dn} argument must be normalized. This design choice harmonizes
+behavior across the package.
 }
 \note{
-It is worth noting that Equation 1 was developed with 8-bit images, so
-calibration of new coefficient should be done in the 0 to 255 domain since
-that is what \code{\link[=thr_mblt]{thr_mblt()}} expect, although the \code{dn} argument should be
-normalized. The latter, in spite of sounding counter intuitive, was a design
-decision aiming to harmonize the whole package.
-
-Nevertheless, new empirical calibration on JPEG files may be unnecessary
-since the values -7.8 \code{intercept} and 0.95 \code{slope} that had been observed
-with back-gamma corrected JPEG files produced with the Nikon Coolpix 5700
-camera are sufficiently close to the theoretical values that it sounds
-reasonable to interpret them as a confirmation of the theory.
-
-Users are encouraged to adopt raw file acquisition (\code{\link[=read_caim_raw]{read_caim_raw()}}).
-
-To apply the weighting parameter (w) from Equation 1, just provide the
-argument \code{slope} as \eqn{slope \times w}.
+Users are encouraged to acquire raw files (see \code{\link[=read_caim_raw]{read_caim_raw()}}).
 }
 \examples{
-thr_mblt(gbc(125), -7.8, 0.95 * 0.5)
+thr_mblt(invert_gamma_correction(125), -7.8, 0.95 * 0.5)
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=normalize_minmax]{normalize_minmax()}}, \code{\link[=gbc]{gbc()}}, \code{\link[=apply_thr]{apply_thr()}} and \code{\link[=regional_thresholding]{regional_thresholding()}}.
+\code{\link[=normalize_minmax]{normalize_minmax()}}, \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}
 }

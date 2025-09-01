@@ -1,29 +1,37 @@
 #' Extract sky points
 #'
-#' Extract sky points for model fitting
+#' @description
+#' Sample representative sky pixels for use in model fitting or interpolation.
 #'
-#' This function will automatically sample sky pixels from the sky regions
-#' delimited by `bin`. The density and distribution of the sampling points is
-#' controlled by the arguments `g` and `dist_to_black`.
+#' @details
+#' Two sampling strategies are provided:
+#' \describe{
+#'   \item{`"grid"`}{select one sky point per cell of a segmentation grid (`g`)
+#'     as the brightest pixel marked `TRUE` in `bin`, provided the cell’s white
+#'     pixel count exceeds one fourth of the mean across valid cells.}
+#'   \item{`"local_max"`}{detect local maxima within a fixed \eqn{9 \times 9}
+#'     window, restricted to pixels marked `TRUE` in `bin`, after removing
+#'     patches of connected `TRUE` pixels that are implausible based on fixed
+#'     area/size thresholds. Each detected maximum is taken as a sky point.}
+#' }
+#' Use `"grid"` to promote an even, representative spatial distribution (good
+#' for model fitting), and `"local_max"` to be exhaustive for interpolation.
 #'
-#' As the first step, sky pixels from `r` are evaluated to find the pixel with
-#' maximum digital value per cell of the `g` argument. The `dist_to_black`
-#' argument allows users to establish a buffer zone for `bin`, meaning a size
-#' reduction of the original sky regions.
+#' @param r numeric [terra::SpatRaster-class] of one layer. Typically the blue
+#'   band of a canopy image.
+#' @param bin logical [terra::SpatRaster-class] of one layer. Binary image where
+#'   `TRUE` marks candidate sky pixels. Typically the output of
+#'   [binarize_with_thr()].
+#' @param g numeric [terra::SpatRaster-class] of one layer. Segmentation grid,
+#'   usually built with [sky_grid_segmentation()] or [chessboard()]. Ignored
+#'   when `method = "local_max"`.
+#' @param dist_to_black numeric vector of length one or `NULL`. Minimum distance
+#'   (pixels) to the nearest black pixel for a candidate sky pixel to be valid.
+#'   If `NULL`, no distance constraint is applied.
+#' @param method character vector of length one. Sampling method; either
+#'   `"grid"` (default) or `"local_max"`.
 #'
-#' @inheritParams interpolate_planar
-#' @param bin [SpatRaster-class]. This should be a preliminary binarization of
-#'   `r` useful for masking pixels that are very likely pure sky pixels.
-#' @param g [SpatRaster-class] built with [sky_grid_segmentation()] or
-#'   [chessboard()].
-#' @param dist_to_black Numeric vector of length one or `NULL`. A minimum
-#'   distance to a black pixel can be set as a constraint. Useful to avoid mixed
-#'   pixels since they are close to the silhouette contour.
-#'
-#' @seealso [fit_cie_sky_model()]
-#'
-#' @return An object of the class *data.frame* with two columns named
-#'   *row* and *col*.
+#' @return `data.frame` with columns `row` and `col`.
 #'
 #' @export
 #'
@@ -35,10 +43,8 @@
 #' m <- !is.na(z)
 #' r <- caim$Blue
 #'
-#' com <- compute_complementary_gradients(caim)
-#' chroma <- max(com$blue_yellow, com$cyan_red)
-#' bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
-#' bin <- bin & apply_thr(com$blue_yellow, -0.2)
+#' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+#'   select_sky_region(z, 0, 88)
 #'
 #' g <- sky_grid_segmentation(z, a, 10)
 #' sky_points <- extract_sky_points(r, bin, g,
@@ -46,38 +52,30 @@
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
-extract_sky_points <- function(r, bin, g,
-                               dist_to_black = 3) {
-
+extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
   .this_requires_EBImage()
-  .is_single_layer_raster(r)
-  .is_single_layer_raster(bin, "bin")
-  .is_logic_and_NA_free(bin, "bin")
-  if (!is.null(g)) {
-    .is_single_layer_raster(g, "g")
-    terra::compareGeom(r, g)
-  }
-  terra::compareGeom(r, bin)
-  if (!is.null(dist_to_black)) stopifnot(length(dist_to_black) == 1)
+
+  .assert_single_layer(r)
+  .assert_logical_mask(bin)
+  .assert_same_geom(r, bin)
+  .check_vector(dist_to_black, "integerish", 1, allow_null = TRUE, sign = "positive")
+  .assert_choice(method, c("grid", "local_max"))
 
   if (!is.null(dist_to_black)) {
-    stopifnot(.is_whole(dist_to_black))
-    kern <- EBImage::makeBrush(dist_to_black, "box")
-    bin2 <- bin
-    bin2 <- EBImage::erode(as.array(bin2), kern) %>%
-      terra::setValues(bin2, .)
-    bin2[is.na(bin2)] <- 0
-    bin2 <- as.logical(bin2)
+    bin2 <- grow_black(bin, dist_to_black)
   } else {
     bin2 <- bin
   }
 
-  if (!is.null(g)) {
+  if (method == "grid") {
+    .assert_sky_grid(g)
+    .assert_same_geom(g, r)
+
     # sky-grid approach
     ## remove cells with not enough white pixels
-    nwp <- extract_feature(bin, g, sum, return_raster = FALSE)
+    nwp <- extract_feature(bin, g, sum, return = "vector")
     mean_nwp <- mean(nwp[nwp != 0])
-    nwp <- extract_feature(bin, g, sum, return_raster = TRUE)
+    nwp <- extract_feature(bin, g, sum, return = "raster")
     nwp <- nwp > mean_nwp/4
     g[!nwp] <- 0
 

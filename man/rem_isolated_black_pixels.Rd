@@ -7,13 +7,14 @@
 rem_isolated_black_pixels(bin)
 }
 \arguments{
-\item{bin}{\linkS4class{SpatRaster}. Binarized canopy image.}
+\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with a single layer.}
 }
 \value{
-An object of class \linkS4class{SpatRaster} with values \code{0} and \code{1}.
+Logical \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.
 }
 \description{
-Remove isolated black pixels
+Replace single black pixels (\code{FALSE}) that are fully surrounded by white
+pixels (\code{TRUE}) with white. Uses 8-connectivity.
 }
 \examples{
 \dontrun{
@@ -22,13 +23,14 @@ r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 
-path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
+path <- system.file("external/example.txt", package = "rcaiman")
+sky <- read_sky_cie(gsub(".txt", "", path), caim$Blue, z, a)
+plot(sky$rr_raster)
+sky <- sky$rr_raster * sky$model$rr$zenith_dn
 
-bin <- apply_thr(r/sky$sky, 0.9)
+bin <- binarize_with_thr(r / sky, 0.9)
 plot(bin)
 bin2 <- rem_isolated_black_pixels(bin)
 plot(bin2)
-plot(bin2 - bin)
 }
 }

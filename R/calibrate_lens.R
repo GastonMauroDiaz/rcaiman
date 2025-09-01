@@ -1,20 +1,19 @@
 #' Calibrate lens
 #'
-#' Calibrate a fisheye lens
+#' @description
+#' Calibrate a fisheye lens to derive the mathematical relationship between
+#' image-space radial distances from the zenith and zenith angles in
+#' hemispherical space (assuming upward-looking hemispherical photography with
+#' the optical axis vertically aligned).
 #'
-#' Fisheye lenses have a wide field of view and the same distortion in all
-#' directions running orthogonally to the optical axis. The latter property
-#' allows fitting a precise mathematical relationship between distances to the
-#' zenith on the image space and zenith angles on the hemispherical space
-#' (assuming upward-looking hemispherical photography with the optical axis
-#' vertically aligned).
+#' @details
+#' Fisheye lenses have a wide field of view and radial symmetry with respect to
+#' distortion. This property allows precise fitting of a polynomial model to
+#' relate pixel distances to zenith angles. The method implemented here, known
+#' as the "simple method", is described in detail by
+#' \insertCite{Diaz2024;textual}{rcaiman}.
 #'
-#' The method
-#' outlined here, known as the simple method, is explained in details in
-#' \insertCite{Diaz2024;textual}{rcaiman}. Next explanation might serve mostly
-#' as a handbook.
-#'
-#' ## Step-by-step guide for producing a CSV file to feed this function
+#' @section Step-by-step guide for producing a CSV file to feed this function:
 #'
 #' ### Materials
 #'
@@ -38,7 +37,14 @@
 #' course, other materials could be used to obtain the same result, such as
 #' cardboard, foam, nails, etc.
 #'
-#' ![](calibrationBoard.jpg "Calibration board")
+#' \if{html}{
+#'   \out{<div style="text-align: center">}
+#'   \figure{calibrationBoard.jpg}{options: style="width:750px;max-width:90\%;"}
+#'   \out{</div>}
+#' }
+#' \if{latex}{
+#'   \figure{calibrationBoard.jpg}
+#' }
 #'
 #' Place the camera on the tripod. Align its optical axis with the table while
 #' looking for getting an image showing the overlapping of the three pairs of
@@ -61,40 +67,43 @@
 #' formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
 #' the window Results. To obtain the CSV, use File>Save As...
 #'
-#' ![](pushpinsImageJ.jpg "Points digitization with ImageJ")
-#'
-#' Use [test_lens_coef()] to test if coefficients are OK.
-#'
+#' \if{html}{
+#'   \out{<div style="text-align: center">}
+#'   \figure{pushpinsImageJ.jpg}{options: style="width:750px;max-width:90\%;"}
+#'   \out{</div>}
+#' }
+#' \if{latex}{
+#'   \figure{pushpinsImageJ.jpg}
+#' }
 #'
 #' @note
+#' To calibrate different directions, think of the fisheye image as an analog
+#' clock. To calibrate 3 o'clock, attach the camera to the tripod in landscape
+#' mode while leaving the quarter-circle at the lens's right side. To calibrate
+#' 9 o'clock, rotate the camera to put the quarter-circle at the lens's left
+#' side. To calibrate 12 and 6 o'clock, do the same but with the camera in
+#' portrait mode.
 #'
-#' If we imagine the fisheye image as an analog clock, it is possible to
-#' calibrate 3 o'clock by attaching the camera to the tripod in landscape mode
-#' while leaving the quarter-circle at the lens's right side. To calibrate 9
-#' o'clock, it will be necessary to rotate the camera to put the quarter-circle
-#' at the lens's left side. To calibrate 12 and 6 o'clock, it will be necessary
-#' to do the same but with the camera in portrait mode. If several directions
-#' are sampled with this procedure, a character vector of length greater than
-#' one in which each element is a path to a CSV files could be provided as the
-#' `path_to_csv` argument.
+#' @param path_to_csv character vector. Path(s) to CSV file(s) created with the
+#'   ImageJ point selection tool. See *Note*.
+#' @param degree numeric vector of length one. Polynomial model degree.
 #'
-#' @param path_to_csv Character vector. Path to a CSV file created with the
-#'   [point selection tool of ‘ImageJ’
-#'   software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool).
-#' @param degree Numeric vector of length one. Polynomial model degree.
-#'
-#' @return An object of class *list* with named elements. *ds* is the dataset
-#'   used to fit the model, *model* is the fitted model (class `lm`, see
-#'   [stats::lm()]), *horizon_radius* is the radius at 90º, *lens_coef* is a
-#'   numeric vector of length equal to the `degree` argument containing the
-#'   polynomial model coefficients for predicting relative radius
-#'   (`coefficients(model)/horizon_radius`),
-#'   *zenith_colrow* are the raster coordinates of the zenith push pin,
-#'   *max_theta* is the maximum zenith angle in degrees, and *max_theta_px* is
-#'   the distance in pixels between the zenith and the maximum zenith angle in
-#'   pixels units.
+#' @return List with named elements:
+#' \describe{
+#'   \item{`ds`}{Data frame used to fit the model.}
+#'   \item{`model`}{`lm` object fitted to pixel distance vs. zenith angle.}
+#'   \item{`horizon_radius`}{Radius at 90 deg.}
+#'   \item{`lens_coef`}{Numeric vector of polynomial model coefficients
+#'     for predicting relative radius.}
+#'   \item{`zenith_colrow`}{Raster coordinates of the zenith push pin.}
+#'   \item{`max_theta`}{Maximum zenith angle (deg).}
+#'   \item{`max_theta_px`}{Distance in pixels between the zenith and the
+#'     maximum zenith angle.}
+#' }
 #'
 #' @references \insertAllCited{}
+#'
+#' @seealso [test_lens_coef()], [crosscalibrate_lens()], [extract_radiometry()]
 #'
 #'
 #' @export
@@ -122,6 +131,10 @@
 #' theta <- seq(0, pi/2, pi/180)
 #' lines(theta, .fp(theta, coefficients(calibration$model)))
 calibrate_lens <- function(path_to_csv, degree = 3) {
+  .check_vector(path_to_csv, "character")
+  .assert_file_exists(path_to_csv)
+  .check_vector(degree, "integerish", 1)
+
   .fun <- function(path_to_csv) {
     csv <- utils::read.csv(path_to_csv)
     csv <- cbind(csv$X, csv$Y)

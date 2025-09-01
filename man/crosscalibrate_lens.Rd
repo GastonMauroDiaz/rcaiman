@@ -15,46 +15,49 @@ crosscalibrate_lens(
 )
 }
 \arguments{
-\item{path_to_csv_uncal, path_to_csv_cal}{Character vector of length one. Path
-to a CSV file created with the
-\href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}
-(\emph{cal} and \emph{uncal} stand for calibrated and uncalibrated, respectively).}
+\item{path_to_csv_uncal, path_to_csv_cal}{character vectors of length one.
+Paths to CSV files created with ImageJ’s point selection tool (uncalibrated
+and calibrated images, respectively).}
 
-\item{zenith_colrow_uncal, zenith_colrow_cal}{Numeric vector of length two.
-Raster coordinates of the zenith. See
-\code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}} (\emph{cal} and \emph{uncal} stand
-for calibrated and uncalibrated, respectively).}
+\item{zenith_colrow_uncal, zenith_colrow_cal}{numeric vectors of length two.
+Raster coordinates of the zenith for the uncalibrated and calibrated
+images; see \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}.}
 
-\item{diameter_cal}{Numeric vector of length one. Diameter in pixels of the
-image taken with the calibrated camera.}
+\item{diameter_cal}{numeric vector of length one. Image diameter (pixels) of
+the calibrated camera.}
 
-\item{lens_coef}{numeric}
+\item{lens_coef}{numeric vector. Lens projection coefficients of the
+calibrated camera.}
 
-\item{degree}{Numeric vector of length one. Polynomial model degree.}
+\item{degree}{numeric vector of length one. Polynomial degree for the
+uncalibrated model fit (default 3).}
 }
 \value{
-An object of class \emph{list} with named elements. \emph{ds} is the dataset
-used to fit the model, \emph{model} is the fitted model (class \code{lm}, see
-\code{\link[stats:lm]{stats::lm()}}), \emph{horizon_radius} is the radius at 90º, \emph{lens_coef} is a
-numeric vector of length equal to the \code{degree} argument containing the
-polynomial model coefficients for predicting relative radius
-(\code{coefficients(model)/horizon_radius}).
+List with components:
+\describe{
+\item{\code{ds}}{\code{data.frame} with zenith angle (\code{theta}, radians) and pixel radius
+(\code{px}) from the uncalibrated camera.}
+\item{\code{model}}{\code{lm} object: polynomial fit of \code{px} ~ \code{theta}.}
+\item{\code{horizon_radius}}{numeric vector of length one. Pixel radius at 90 deg.}
+\item{\code{lens_coef}}{numeric vector. Distortion coefficients normalized by
+\code{horizon_radius}.}
+}
 }
 \description{
-Cross-calibrate lens
+Given two photographs taken from the same point (matching entrance pupils and
+aligned optical axes), with calibrated and uncalibrated cameras, derives a
+polynomial projection for the uncalibrated device. Intended for cases where a
+camera calibrated with a method of higher accuracy than \code{\link[=calibrate_lens]{calibrate_lens()}} is
+available, or when there is a main camera to which all other devices should
+be adjusted.
+
+Points must be digitized in tandem with ImageJ and saved as CSV files.
+See \code{\link[=calibrate_lens]{calibrate_lens()}} for background and general concepts.
 }
 \details{
-Read the help page of \code{\link[=calibrate_lens]{calibrate_lens()}} for understanding the theory
-being this function.
-
-This function is intended to be used when a camera calibrated with a method
-of higher accuracy than the one proposed in \code{\link[=calibrate_lens]{calibrate_lens()}} is
-available or there is a main camera to which all other devices should be
-adjusted.
-
-It requires two photographs taken from the exact same location with the
-calibrated and uncalibrated camera. This means that the lens entrance pupils
-should match and the optical axes should be aligned.
-
-Points should be digitized in tandem with ImageJ and saved as CSV files.
+Estimate a lens projection for an uncalibrated camera by referencing a
+calibrated camera photographed from the exact same location.
+}
+\seealso{
+\code{\link[=calibrate_lens]{calibrate_lens()}}, \code{\link[=calc_zenith_colrow]{calc_zenith_colrow()}}
 }

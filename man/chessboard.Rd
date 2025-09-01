@@ -2,21 +2,30 @@
 % Please edit documentation in R/chessboard.R
 \name{chessboard}
 \alias{chessboard}
-\title{Do chessboard segmentation}
+\title{Perform chessboard segmentation}
 \usage{
 chessboard(r, size)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. One or more layers used to drive
+heterogeneity.}
 
-\item{size}{Numeric vector of length one. Size of the square segments.}
+\item{size}{Numeric vector of length one. Size (in pixels) of each square
+segment. Must be a positive integer.}
 }
 \value{
-A single layer image of the class \linkS4class{SpatRaster} with integer
-values.
+\link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and integer values, where
+each unique value corresponds to a square-segment ID.
 }
 \description{
-Do chessboard segmentation
+Segment a raster into square regions of equal size arranged in a
+chessboard-like pattern.
+}
+\details{
+This function divides the extent of a \link[terra:SpatRaster-class]{terra::SpatRaster} into
+non-overlapping square segments of the given size, producing a segmentation
+map where each segment has a unique integer label. It can be an alternative
+to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} in special cases.
 }
 \examples{
 caim <- read_caim()

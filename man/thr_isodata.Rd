@@ -2,35 +2,30 @@
 % Please edit documentation in R/thr_isodata.R
 \name{thr_isodata}
 \alias{thr_isodata}
-\title{Calculate a threshold with the isodata method}
+\title{Compute IsoData threshold}
 \usage{
 thr_isodata(x)
 }
 \arguments{
-\item{x}{Numeric vector or a single-column \emph{matrix} or \emph{data.frame}
-able to be coerced to numeric.}
+\item{x}{numeric vector or a single-column \code{matrix} or \code{data.frame} able to
+be coerced to numeric.}
 }
 \value{
 Numeric vector of length one.
 }
 \description{
-Threshold calculated with the algorithm by
-\insertCite{isodata;textual}{rcaiman}, which was recommended by
+Compute a threshold using the IsoData algorithm
+\insertCite{isodata;textual}{rcaiman}, recommended by
 \insertCite{Jonckheere2005;textual}{rcaiman}.
 }
 \details{
-The implementation is based on
-\href{https://imagej.net/plugins/auto-threshold#IsoData}{the IsoData method of Auto Threshold ImageJ plugin by Gabriel Landini}, which is now available
-in the \code{autothresholdr} package (\code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}).
-However, I found this implementarion more versatile since it is not
-restricted to an 8-bit input.
+Implementation follows the IsoData method by Gabriel Landini, as implemented
+in \code{\link[autothresholdr:auto_thresh]{autothresholdr::auto_thresh()}}. Unlike that version, this function
+accepts numeric data over an arbitrary range. \code{NA} values are ignored.
 }
 \examples{
 caim <- read_caim()
-r <- gbc(caim$Blue)
-thr <- thr_isodata(values(r))
-bin <- apply_thr(r, thr)
-plot(bin)
+thr_isodata(caim$Blue[])
 }
 \references{
 \insertAllCited{}

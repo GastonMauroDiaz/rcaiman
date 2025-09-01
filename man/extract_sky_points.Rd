@@ -4,38 +4,46 @@
 \alias{extract_sky_points}
 \title{Extract sky points}
 \usage{
-extract_sky_points(r, bin, g, dist_to_black = 3)
+extract_sky_points(r, bin, g, dist_to_black = 3, method = "grid")
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. The image from which the argument \code{sky_points}
-was obtained.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
+band of a canopy image.}
 
-\item{bin}{\linkS4class{SpatRaster}. This should be a preliminary binarization of
-\code{r} useful for masking pixels that are very likely pure sky pixels.}
+\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Binary image where
+\code{TRUE} marks candidate sky pixels. Typically the output of
+\code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
-\item{g}{\linkS4class{SpatRaster} built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or
-\code{\link[=chessboard]{chessboard()}}.}
+\item{g}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Segmentation grid,
+usually built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or \code{\link[=chessboard]{chessboard()}}. Ignored
+when \code{method = "local_max"}.}
 
-\item{dist_to_black}{Numeric vector of length one or \code{NULL}. A minimum
-distance to a black pixel can be set as a constraint. Useful to avoid mixed
-pixels since they are close to the silhouette contour.}
+\item{dist_to_black}{numeric vector of length one or \code{NULL}. Minimum distance
+(pixels) to the nearest black pixel for a candidate sky pixel to be valid.
+If \code{NULL}, no distance constraint is applied.}
+
+\item{method}{character vector of length one. Sampling method; either
+\code{"grid"} (default) or \code{"local_max"}.}
 }
 \value{
-An object of the class \emph{data.frame} with two columns named
-\emph{row} and \emph{col}.
+\code{data.frame} with columns \code{row} and \code{col}.
 }
 \description{
-Extract sky points for model fitting
+Sample representative sky pixels for use in model fitting or interpolation.
 }
 \details{
-This function will automatically sample sky pixels from the sky regions
-delimited by \code{bin}. The density and distribution of the sampling points is
-controlled by the arguments \code{g} and \code{dist_to_black}.
-
-As the first step, sky pixels from \code{r} are evaluated to find the pixel with
-maximum digital value per cell of the \code{g} argument. The \code{dist_to_black}
-argument allows users to establish a buffer zone for \code{bin}, meaning a size
-reduction of the original sky regions.
+Two sampling strategies are provided:
+\describe{
+\item{\code{"grid"}}{select one sky point per cell of a segmentation grid (\code{g})
+as the brightest pixel marked \code{TRUE} in \code{bin}, provided the cell’s white
+pixel count exceeds one fourth of the mean across valid cells.}
+\item{\code{"local_max"}}{detect local maxima within a fixed \eqn{9 \times 9}
+window, restricted to pixels marked \code{TRUE} in \code{bin}, after removing
+patches of connected \code{TRUE} pixels that are implausible based on fixed
+area/size thresholds. Each detected maximum is taken as a sky point.}
+}
+Use \code{"grid"} to promote an even, representative spatial distribution (good
+for model fitting), and \code{"local_max"} to be exhaustive for interpolation.
 }
 \examples{
 \dontrun{
@@ -45,10 +53,8 @@ a <- azimuth_image(z)
 m <- !is.na(z)
 r <- caim$Blue
 
-com <- compute_complementary_gradients(caim)
-chroma <- max(com$blue_yellow, com$cyan_red)
-bin <- apply_thr(chroma, thr_isodata(chroma[!is.na(chroma)]))
-bin <- bin & apply_thr(com$blue_yellow, -0.2)
+bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+  select_sky_region(z, 0, 88)
 
 g <- sky_grid_segmentation(z, a, 10)
 sky_points <- extract_sky_points(r, bin, g,
@@ -56,7 +62,4 @@ sky_points <- extract_sky_points(r, bin, g,
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 }
-}
-\seealso{
-\code{\link[=fit_cie_sky_model]{fit_cie_sky_model()}}
 }

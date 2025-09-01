@@ -1,17 +1,49 @@
-#' Optimize distance to black
+#' Optimize minimum distance to black pixels
+#'
+#' @description
+#' Estimate an optimal buffer (`dist_to_black`) to keep sampled sky points away
+#' from candidate canopy pixels (black pixels).
+#'
+#' @details
+#' The heuristic seeks the largest buffer that still yields uniform angular
+#' coverage. It iteratively decreases `dist_to_black` while monitoring the
+#' percentage of 30 deg sky‑grid cells covered by sampled points. If coverage
+#' is low, the buffer is relaxed (and may be removed). This balances border
+#' avoidance with representativeness across the sky vault.
 #'
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_sky_points
-#' @param bin [SpatRaster-class]. This should be a preliminary binarization of
-#'   `r` useful for masking pixels that are very likely pure sky pixels.
-#' @inheritParams calc_co
+#' @inheritParams compute_canopy_openness
 #'
+#' @return numeric vector of length one to be passed as `dist_to_black` to
+#'   [extract_sky_points()], or `NULL` if no buffer is advised.
 #'
+#' @examples
+#' \dontrun{
+#' caim <- read_caim()
+#' z <- zenith_image(ncol(caim), lens())
+#' a <- azimuth_image(z)
+#' m <- !is.na(z)
+#' r <- caim$Blue
 #'
-#' @returns Numeric vector of length one.
+#' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
+#'   select_sky_region(z, 0, 88)
+#' g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+#'
+#' dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
+#' dist_to_black
+#'
+#' bin <- grow_black(bin, 11)
+#' plot(bin)
+#' dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
+#' dist_to_black
+#' }
 #' @export
-#'
 optim_dist_to_black <- function(r, z, a, m, bin, g) {
+  .check_r_z_a_m(r, z, a, m, r_type = "single")
+  .assert_logical_mask(bin)
+  .assert_sky_grid(g)
+
   g30 <- sky_grid_segmentation(z, a, 30)
   g30[!m] <- 0
   dist_to_black <- 11

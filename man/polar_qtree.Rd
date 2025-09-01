@@ -2,64 +2,60 @@
 % Please edit documentation in R/polar_qtree.R
 \name{polar_qtree}
 \alias{polar_qtree}
-\title{Perform approximate quad-tree-like segmentation in the polar space}
+\title{Generate polar quadtree segmentation}
 \usage{
-polar_qtree(r, z, a, scale_parameter = 0.2)
+polar_qtree(r, z, a, scale_parameter, angle_width = 30, max_splittings = 6)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. One or more layers used to drive
+heterogeneity.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{scale_parameter}{Numeric vector of length one. Quad-tree is a top-down
-method. This parameter controls the stopping condition. Therefore, it
-allows controlling the size of the resulting segments. Ultimately, segments
-sizes will depend on both this parameter and the heterogeneity of \code{r}.}
+\item{scale_parameter}{numeric vector of length one. Threshold on \code{delta}
+controlling splits (see \emph{Details}).}
+
+\item{angle_width}{numeric vector of length one. Angle in deg that must
+divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
+set of valid values by running
+\code{lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))}.}
+
+\item{max_splittings}{numeric vector of length one. Maximum recursion depth.}
 }
 \value{
-A single layer image of the class \linkS4class{SpatRaster} with
-integer values.
+Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values and the
+same number of rows and columns as \code{r}.
 }
 \description{
-This function performs an efficient hierarchical segmentation of the polar
-space inspired by the quad-tree algorithm. Instead of applying recursive
-subdivision cell-by-cell, it uses several predefined segmentation levels and
-evaluates local heterogeneity to decide whether finer subdivisions are
-justified and should be retained.
+Segment a hemispherical image into large circular trapezoids and
+recursively split them into four trapezoids of equal angular size whenever
+brightness heterogeneity exceeds a predefined threshold.
 }
 \details{
-The segmentation is performed on polar coordinates, so the resulting shapes
-resemble windshield-like segments (i.e., bounded by radial and circular
-curves), rather than square blocks. Segments at each level are organized in
-such a way that each coarser cell could theoretically be subdivided into four
-finer subcells. However, the process does not follow a strict top-down
-recursive logic as in a canonical quad-tree.
-
-The function computes a metric (\emph{delta}) at multiple levels of angular
-resolution (from coarser to finer: 15°, 7.5°, 3.75°, and 1.875°). For each
-region, \emph{delta} is defined as the sum of the standard deviation of its
-subregions minus the standard deviation of the parent region. If the \emph{delta}
-is larger than a user-defined \code{scale_parameter}, then the finer segmentation
-level is retained locally. This evaluation is applied globally at each level,
-not recursively from cell to cell.
-
-This implementation results in a segmentation that \emph{resembles} a quad-tree in
-appearance, but does not guarantee structural consistency across levels. In
-particular, small segments may appear nested within regions that were not
-formally subdivided from above, and not all parents have exactly four
-children. The benefit of this approach is a significant reduction in
-computational cost, at the expense of formal consistency with the classic
-quad-tree hierarchy.
+A circular trapezoid, hereafter referred to as a cell, is the
+intersection of a ring (zenith‑angle band) and a sector (azimuth‑angle band).
+Heterogeneity within a cell is measured as the standard deviation of pixel
+values (a first‑order texture metric). The change in heterogeneity due to
+splitting is \code{delta}, defined as the sum of the standard deviations of the
+four subcells minus the standard deviation of the parent cell. A split is
+kept where \code{delta > scale_parameter}. For multi‑layer \code{r}, \code{delta} is
+computed per layer and averaged to decide splits. Angular resolution at level
+\code{i} is \code{angle_width / 2^i}.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize_minmax()
+# Find large patches of white ---------------------------------------------
+caim <- read_caim()
+r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-seg <- polar_qtree(caim, z, a)
-plot(seg)
-plot(extract_feature(caim$Blue, seg))
+
+bin <- binarize_with_thr(r, thr_isodata(r[]))
+plot(bin)
+
+seg <- polar_qtree(bin, z, a, 0, 30, 3)
+plot(extract_feature(bin, seg) == 1)
 }
 }

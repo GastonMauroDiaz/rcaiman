@@ -7,12 +7,22 @@
 calc_relative_radius(angle, lens_coef)
 }
 \arguments{
-\item{angle}{Numeric vector. Zenith angles in degrees.}
+\item{angle}{numeric vector. Zenith angles in degrees.}
 
-\item{lens_coef}{Numeric vector. Polynomial coefficients of the lens
-projection function. See \code{\link[=calibrate_lens]{calibrate_lens()}}.}
+\item{lens_coef}{numeric vector. Polynomial coefficients of the lens
+projection function. See \code{\link[=lens]{lens()}}.}
+}
+\value{
+numeric vector of the same length as \code{angle}, constrained to [0, 1].
 }
 \description{
-Calculate the relative radius given a zenith angle and lens function. This is
-known as the projection function.
+Convert zenith angles (degrees) to normalized radial distance using the lens
+projection model.
+}
+\details{
+This helper maps zenith angle(s) to a relative radius in [0, 1] given the
+lens projection coefficients.
+}
+\examples{
+calc_relative_radius(45, lens())
 }

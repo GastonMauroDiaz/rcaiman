@@ -4,37 +4,29 @@
 \alias{normalize_minmax}
 \title{Normalize data using min-max rescaling}
 \usage{
-normalize_minmax(r, mn = NULL, mx = NULL, force_range = FALSE)
+normalize_minmax(r, mn = NULL, mx = NULL, clip = FALSE)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster} or numeric vector.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} or numeric vector. Input data.}
 
-\item{mn}{Numeric vector of length one. Minimum expected value. Default is
-equivalent to enter the minimum value from \code{r}.}
+\item{mn}{numeric vector of length one or \code{NULL}. Minimum expected value.
+If \code{NULL} (default), uses the minimum of \code{r}.}
 
-\item{mx}{Numeric vector of length one. Maximum expected value. Default is
-equivalent to enter the maximum value from \code{r}.}
+\item{mx}{numeric vector of length one or \code{NULL}. Maximum expected value.
+If \code{NULL} (default), uses the maximum of \code{r}.}
 
-\item{force_range}{Logical vector of length one. If it is \code{TRUE}, the
-range is forced to be between \code{0} and \code{1} by flattening values
-found below and above those limits.}
+\item{clip}{logical vector of length one. If \code{TRUE}, clip the output to
+\verb{[0, 1]} after rescaling. If \code{FALSE}, values greater than \code{mx} are scaled
+proportionally to values above \code{1}, and values less than \code{mn} to values
+below \code{0}.}
 }
 \value{
-An object from the same class as \code{r} with values from \code{r}
-linearly rescaled to make \code{mn} equal to zero and \code{mx} equal to
-one. Therefore, if \code{mn} and \code{mx} do not match the actual minimum
-and maximum from \code{r}, then the output will not cover the 0-to-1 range
-and may be outside that range if \code{force_range} is set to \code{FALSE}.
+Same properties as \code{r}, with values rescaled to the range \eqn{[0, 1]} if
+\code{mn} and \code{mx} match the range of \code{r} or extend beyond it. If \code{clip = TRUE},
+values will be within \eqn{[0, 1]} even if this implies data loss.
 }
 \description{
-Normalize numeric and raster data using the min-max method.
-}
-\details{
-Normalize data laying between \code{mn} and \code{mx} to the range \code{0}
-to \code{1}. Data greater than \code{mx} get values greater than \code{1} in
-a proportional fashion. Conversely, data less than \code{mn} get values less
-than \code{0}.This function can be used for linear stretching of the
-histogram.
+Rescale numeric or raster data from an expected range to the range \eqn{[0, 1]}.
 }
 \examples{
 normalize_minmax(read_caim())

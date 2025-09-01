@@ -8,46 +8,48 @@ extract_feature(
   r,
   segmentation,
   fun = mean,
-  return_raster = TRUE,
+  return = "raster",
   ignore_label_0 = TRUE
 )
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. Single layer raster.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer.}
 
-\item{segmentation}{\linkS4class{SpatRaster}. The segmentation of \code{r}.}
+\item{segmentation}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
+of r, typically created with functions such as \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}},
+\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
+integer segment labels is accepted.}
 
-\item{fun}{A \code{function} that takes a vector as input and returns a
-one-length numeric or logical vector as output (e.g. mean).}
+\item{fun}{function taking a numeric/logical vector and returning a single
+numeric or logical value (default \code{mean}).}
 
-\item{return_raster}{Logical vector of length one, see details.}
+\item{return}{character of length one. Either \code{"raster"} (default) or
+\code{"vector"}, controlling whether to return a map with per-segment values or
+a named vector (one value per segment).}
 
-\item{ignore_label_0}{Logical vector of length one. If this is \code{TRUE},
-the segment labeled with \code{0} will be ignored.}
+\item{ignore_label_0}{logical of length one. If \code{TRUE}, the segment labeled
+\code{0} is ignored.}
 }
 \value{
-If \code{return_raster} is set to \code{TRUE}, then an object of
-class \linkS4class{SpatRaster} with the same pixel dimensions than \code{r}
-will be returned. Otherwise, the return is a numeric vector of length equal
-to the number of segments found in \code{segmentation}.
+If \code{return = "raster"}, a \link[terra:SpatRaster-class]{terra::SpatRaster} where each pixel
+holds its segment’s feature value. If \code{return = "vector"}, a named numeric
+(or logical) vector with one value per segment.
 }
 \description{
-Extract features from raster images.
+Extract a numeric or logical summary from segmented raster
+regions using a user-defined reducer, returning one value per segment as a
+raster map or a named vector.
 }
 \details{
-Given a single-layer raster, a segmentation, and a function,
-\code{extract_features} will return a numeric vector or a \linkS4class{SpatRaster}
-depending on whether the parameter \code{return_raster} is \code{TRUE} or \code{FALSE}. For
-the first case, each pixel of each segment will adopt the respective
-extracted feature value. For the second case, the return will be a vector of
-length equal to the total number of segments. Each value will be obtained by
-processing all pixels that belong to a segment with the provided function.
+Segments labeled \code{0} can be ignored via \code{ignore_label_0 = TRUE}. The
+function in \code{fun} must return a single numeric or logical value for any input
+vector (e.g., \code{mean}, \code{median}, or a custom reducer).
 }
 \examples{
 r <- read_caim()
 z <- zenith_image(ncol(r),lens())
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 10)
-print(extract_feature(r$Blue, g, return_raster = FALSE))
-# plot(extract_feature(r$Blue, g, return_raster = TRUE))
+print(extract_feature(r$Blue, g, return = "vector"))
+# plot(extract_feature(r$Blue, g, return = "raster"))
 }

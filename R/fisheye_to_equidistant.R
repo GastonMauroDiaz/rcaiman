@@ -1,62 +1,50 @@
 #' Fisheye to equidistant
 #'
-#' Fisheye to equidistant projection (also known as polar projection).
+#' Reproject a hemispherical image from fisheye to equidistant projection
+#' (also known as polar projection) to standardize its geometry for
+#' subsequent analysis and comparison between images.
 #'
-#' The pixel values and their image coordinates are treated as points to be
-#' reprojected and interpolated. To that end, this function use [lidR::knnidw()]
-#' as workhorse function, so arguments `k`, `p`, and `rmax` are passed to it.
+#' Pixel values and coordinates are treated as 3D points and reprojected
+#' using Cartesian interpolation. Internally, this function uses
+#' [lidR::knnidw()] as interpolation engine, so arguments `k`, `p`, and
+#' `rmax` are passed to it without modification.
 #'
-#' @param r [SpatRaster-class]. A fish-eye image.
-#' @inheritParams calc_co
+#' @param r [terra::SpatRaster-class] of one or more layers (e.g., RGB channels or
+#'   binary masks) in fisheye projection.
+#' @param radius numeric vector of length one. Radius (in pixels) of the
+#'   reprojected hemispherical image. Must be an integer value (no decimal
+#'   part). If `NULL` (default), it is set to `ncol(r) / 2`.
+#' @param k,p,rmax numeric vector of length one. Parameters passed to
+#'   [lidR::knnidw()]: number of neighbors (`k`), inverse distance weighting
+#'   exponent (`p`), and maximum search radius (`rmax`) in units of the output
+#'   resolution.
+#'
+#' @inheritParams compute_canopy_openness
 #' @inheritParams sky_grid_segmentation
-#' @inheritParams interpolate_planar
-#' @param rmax Numeric vector of length one. Maximum radius where to search for
-#'   *knn*. Increase this value if pixels with value `0` or
-#'   `FALSE` appears where other values are expected.
-#' @param radius Numeric integer of length one. Radius of the reprojected
-#'   hemispherical image (i.e., the output).
 #'
-#' @note Default value for the `radius` argument is equivalent to input the
-#' radius of the `r` argument.
+#' @return [terra::SpatRaster-class] with the same number of layers as `r`,
+#'   reprojected to equidistant projection with circular shape and radius
+#'   given by `radius
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' path <- system.file("external/APC_0581.jpg", package = "rcaiman")
+#' path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 #' caim <- read_caim(path)
-#' calc_diameter(c(0.801, 0.178, -0.179), 1052/2, 86.2)
-#' z <- zenith_image(1058,  c(0.801, 0.178, -0.179))
+#' calc_diameter(c(0.801, 0.178, -0.179), 1052, 86.2)
+#' z <- zenith_image(2216,  c(0.801, 0.178, -0.179))
 #' a <- azimuth_image(z)
-#' zenith_colrow <- c(532, 386)
+#' zenith_colrow <- c(1063, 771)
 #'
 #' caim <- expand_noncircular(caim, z, zenith_colrow)
-#' m <- !is.na(caim$Red) & select_sky_vault_region(z, 0, 86.2)
+#' m <- !is.na(caim$Red) & select_sky_region(z, 0, 86.2)
 #' caim[!m] <- 0
-#'
-#' bin <- apply_thr(caim$Blue, thr_isodata(caim$Blue[m]))
-#'
-#' display_caim(caim$Blue, bin)
-#'
-#' caim <- gbc(caim, 2.2)
-#' caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) %>%
-#'   normalize_minmax()
-#'
-#' caim2 <- fisheye_to_equidistant(caim$Blue, z, a, m, radius = 600)
-#' bin2 <- fisheye_to_equidistant(bin, z, a, m, radius = 600)
-#' bin2 <- apply_thr(bin2, 0.5) #to turn it logical
-#' # Use write_bin(bin2, "path/file_name") to have a file ready
-#' # to calcute LAI with CIMES, GLA, CAN-EYE, etc.
-#'
 #' m2 <- fisheye_to_equidistant(m, z, a, !is.na(z), radius = 600)
+#' m2 <- binarize_with_thr(m2, 0.5) #to turn it logical
+#' caim2[!m2] <- 0
 #'
-#'
-#' caim <- read_caim(path)
-#' caim <- expand_noncircular(caim, z, zenith_colrow)
-#' plotRGB(caim)
-#' caim <- fisheye_to_equidistant(caim, z, a, !is.na(z), radius = 600)
-#' caim[!m2] <- 0
-#' plotRGB(caim)
+#' plot(caim)
 #' }
 fisheye_to_equidistant <- function(r, z, a, m,
                                    radius = NULL,
@@ -64,12 +52,11 @@ fisheye_to_equidistant <- function(r, z, a, m,
                                    p = 1,
                                    rmax = 100)
   {
-  .is_single_layer_raster(z, "z")
-  .is_single_layer_raster(a, "a")
-  stopifnot(.get_max(z) <= 90)
-  stopifnot(.get_max(a) <= 360)
-  terra::compareGeom(r, z)
-  terra::compareGeom(r, a)
+  .check_r_z_a_m(r, z, a, m, r_type = "any")
+  .check_vector(radius, "numeric", 1, allow_null = TRUE, sign = "positive")
+  .check_vector(k, "integerish", 1, sign = "positive")
+  .check_vector(p, "numeric", 1, sign = "positive")
+  .check_vector(rmax, "numeric", 1, sign = "positive")
 
   if (is.null(radius)) radius <- ncol(r) / 2
 
@@ -77,9 +64,6 @@ fisheye_to_equidistant <- function(r, z, a, m,
     new_r <- zenith_image(radius * 2, lens())
     terra::ext(new_r) <- terra::ext(-pi / 2, pi / 2, -pi / 2, pi / 2)
 
-    terra::compareGeom(r, m)
-    .is_single_layer_raster(m)
-    .is_logic_and_NA_free(m)
     m <- !is.na(z) & !is.na(r) & m
 
     pol <- data.frame(theta = a[m] * pi / 180 + pi / 2,

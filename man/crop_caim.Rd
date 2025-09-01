@@ -2,29 +2,31 @@
 % Please edit documentation in R/crop_caim.R
 \name{crop_caim}
 \alias{crop_caim}
-\title{Crop a canopy image from a file}
+\title{Crop a canopy image}
 \usage{
 crop_caim(r, upper_left = NULL, width = NULL, height = NULL)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
 
-\item{upper_left}{An integer vector of length two. The pixels coordinates of
-the upper left corner of a region of interest (ROI). These coordinates
-should be in the raster coordinates system. This system works like a
-spreadsheet, i.e, when going down through the vertical axis, the \emph{row}
-number increases (\strong{IMPORTANT}: column and row must be provided instead of
-row and column, as is the norm for objects of the class \emph{data.frame} and
-others alike)}
+\item{upper_left}{Numeric vector of length two. Pixel coordinates of the
+upper-left corner of the ROI, in the format \code{c(column, row)}.}
 
-\item{width, height}{An integer vector of length one. The size of the boxy ROI
-whose upper left corner is the \code{upper_left} argument.}
+\item{width, height}{Numeric vector of length one. Size (in pixels) of the
+rectangular ROI to read.}
 }
 \value{
-\linkS4class{SpatRaster}
+\link[terra:SpatRaster-class]{terra::SpatRaster} object containing the same layers and values
+as \code{r} but restricted to the selected ROI, preserving all other properties.
 }
 \description{
-Function that complements \code{\link[=read_caim]{read_caim()}} and \code{\link[=read_caim_raw]{read_caim_raw()}}
+Extracts a rectangular region of interest (ROI) from a canopy image. This
+function complements \code{\link[=read_caim]{read_caim()}} and \code{\link[=read_caim_raw]{read_caim_raw()}}.
+}
+\note{
+\code{rcaiman} uses terra without geographic semantics: rasters are kept with
+unit resolution (cell size = 1) and a standardized extent
+\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589.
 }
 \examples{
 caim <- read_caim()

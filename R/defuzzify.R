@@ -1,27 +1,27 @@
 #' Defuzzify a fuzzy classification
 #'
-#' This function translates degree of membership into Boolean logic using a
-#' regional approach. The output ensures that the fuzzy and Boolean versions
-#' remain consistent at the specified level of aggregation (controlled by the
-#' argument `segmentation`). This method makes perfect sense to translate a
-#' subpixel classification of gap fraction (or a linear ratio) into a binary
-#' product.
+#' Converts fuzzy membership values into a binary classification using a
+#' regional approach that preserves aggregation consistency between the fuzzy
+#' and binary representations.
 #'
-#' @note
+#' The conversion is applied within segments defined by `segmentation`,
+#' ensuring that, in each segment, the aggregated Boolean result matches the
+#' aggregated fuzzy value. This approach is well suited for converting subpixel
+#' estimates, such as gap fraction, into binary outputs.
 #'
-#' This method is also available in the HSP software package
-#' \insertCite{Lang2013}{rcaiman}.
+#' @param mem numeric [terra::SpatRaster-class] of one layer. Degree of
+#'   membership in a fuzzy classification.
+#' @param segmentation single-layer [terra::SpatRaster-class] with integer
+#'   values.
 #'
-#' @param mem A [SpatRaster-class] object representing the degree of membership
-#'   in a fuzzy classification.
-#' @param segmentation An object of the class [SpatRaster-class] such as an
-#'   object returned by [sky_grid_segmentation()].
+#' @return Logical [terra::SpatRaster-class] of the same dimensions as `mem`,
+#'   where each pixel value represents the binary version of `mem` after
+#'   applying the regional defuzzification procedure.
 #'
-#' @return An object of the class [SpatRaster-class] containing binary
-#'   information.
+#' @note This method is also available in the HSP software package. See
+#'   [hsp_compat()].
+#'
 #' @export
-#'
-#' @references \insertAllCited{}
 #'
 #' @examples
 #' \dontrun{
@@ -30,12 +30,12 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #'
-#' path <- system.file("external/ootb_sky.txt", package = "rcaiman")
-#' ootb_sky <- read_ootb_sky_model(gsub(".txt", "", path), z, a)
+#' path <- system.file("external/example.txt", package = "rcaiman")
+#' sky_cie <- read_sky_cie(gsub(".txt", "", path), z, a)
 #'
-#' sky <- ootb_build_sky_vault(r, z, a, ootb_sky$sky_points, ootb_sky)
+#' sky_above <- ootb_sky_above(sky_cie$model$rr$sky_points, z, a, sky_cie)
 #'
-#' ratio <- r / sky$sky
+#' ratio <- r / sky_above$dn_raster
 #' ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 #' plot(ratio)
 #' g <- sky_grid_segmentation(z, a, 10)
@@ -43,10 +43,14 @@
 #' plot(bin2) # unsatisfactory results due to light conditions
 #' }
 defuzzify <- function (mem, segmentation) {
-  .is_single_layer_raster(mem)
-  .was_normalized(mem)
+  .assert_single_layer(mem)
+  if (any(.get_max(mem) > 1, .get_min(mem) < 0)) {
+    warning("Check if 'mem' values are degree of membership in a fuzzy classification.")
+  }
+  .assert_single_layer(segmentation)
+  .assert_same_geom(mem, segmentation)
+
   mem[is.na(mem)] <- 0
-  .is_single_layer_raster(segmentation)
 
   .fun <- function(x) {
     no_of_pixels <- round(mean(x) * length(x))

@@ -62,3 +62,24 @@
   tcltk::tkwait.window(win)
 }
 
+
+.cores <- function() {
+  cores <- parallel::detectCores(logical = FALSE)
+  if (is.na(cores) || cores < 1) cores <- 1
+  cores
+}
+.with_cluster <- function(cores, expr) {
+  if (!requireNamespace("doParallel", quietly = TRUE)) {
+    stop("The 'doParallel' package is required but not available.", call. = FALSE)
+  }
+
+  cl <- parallel::makeCluster(cores)
+  on.exit(parallel::stopCluster(cl), add = TRUE)
+  doParallel::registerDoParallel(cl)
+
+  force(expr)
+}
+
+
+
+

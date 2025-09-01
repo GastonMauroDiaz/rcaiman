@@ -7,23 +7,39 @@
 fisheye_to_pano(r, z, a, fun = mean, angle_width = 1)
 }
 \arguments{
-\item{r}{\linkS4class{SpatRaster}. A fish-eye image.}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
+binary masks) in fisheye projection.}
 
-\item{z}{\linkS4class{SpatRaster} built with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{a}{\linkS4class{SpatRaster} built with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{fun}{A \code{function} that takes a vector as input and returns a
-one-length numeric or logical vector as output (e.g. mean).}
+\item{fun}{function taking a numeric/logical vector and returning a single
+numeric or logical value (default \code{mean}).}
 
-\item{angle_width}{Numeric vector of length one. It should be \verb{30, 15, 10, 7.5, 6, 5, 3.75, 3, 2.5, 1.875, 1} or \code{0.5} degrees. This constrain is
-rooted in the requirement of a value able to divide both the \code{0} to \code{360}
-and \code{0} to \code{90} ranges into a whole number of segments.}
+\item{angle_width}{numeric vector of length one. Angle in deg that must
+divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
+set of valid values by running
+\code{lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))}.}
+}
+\value{
+\link[terra:SpatRaster-class]{terra::SpatRaster} with rows representing zenith angle bands and
+columns representing azimuthal sectors. The number of layers and names
+matches that of the input \code{r}.
 }
 \description{
-Fisheye to panoramic (cylindrical projection)
+Reprojects a fisheye (hemispherical) image into a panoramic view using a
+cylindrical projection. The output is standardized so that rows correspond
+to zenith angle bands and columns to azimuthal sectors.
 }
 \details{
+This function computes a cylindrical projection by aggregating pixel values
+according to their zenith and azimuth angles. Internally, it creates a
+segmentation grid with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} and applies
+\code{\link[=extract_feature]{extract_feature()}} to compute a summary statistic (e.g., mean) of pixel
+values within each cell.
+}
+\note{
 An early version of this function was used in
 \insertCite{Diaz2021;textual}{rcaiman}.
 }

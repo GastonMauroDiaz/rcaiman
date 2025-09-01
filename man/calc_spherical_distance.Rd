@@ -7,21 +7,39 @@
 calc_spherical_distance(z1, a1, z2, a2)
 }
 \arguments{
-\item{z1}{Numeric vector. Zenithal angle in radians.}
+\item{z1}{numeric vector. Zenithal angle in radians.}
 
-\item{a1}{Numeric vector. Azimuthal angle in radians.}
+\item{a1}{numeric vector. Azimuthal angle in radians.}
 
-\item{z2}{Numeric vector of length one. Zenithal angle in radians.}
+\item{z2}{numeric vector of length one. Zenithal angle in radians.}
 
-\item{a2}{Numeric vector of length one. Azimuthal angle in radians.}
+\item{a2}{numeric vector of length one. Azimuthal angle in radians.}
 }
 \value{
-Numeric vector.
+Numeric vector of the same length as \code{z1} and \code{a1}, containing the
+spherical distance (in radians) from each (\code{z1}, \code{a1}) point to the
+reference direction (\code{z2}, \code{a2}).
 }
 \description{
-Calculate angles in radians between objects in the sky, which are
-proportional to the shortest distances between then over a conceptual sky
-vault.
+Computes the angular distance, in radians, between directions defined by
+zenith and azimuth angles on the unit sphere.
+}
+\details{
+This function calculates the angle between two directions
+originating from the center of a unit sphere, using spherical trigonometry.
+The result is commonly referred to as \emph{spherical distance} or \emph{angular
+distance}. These terms are interchangeable when the sphere has radius one, as
+is standard in many applications, including celestial coordinate systems and,
+by extension, canopy hemispherical photography.
+
+Spherical distance corresponds to the arc length of the shortest path between
+two points on the surface of a sphere. When the radius is one, this arc
+length equals the angle itself, expressed in radians.
+
+Internally, the computation is clamped to the interval \eqn{[-1, 1]} before
+calling \code{acos()} to avoid \code{NaN} results caused by floating-point rounding
+errors. This approach is based on a discussion at:
+https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
 }
 \examples{
 set.seed(1)

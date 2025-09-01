@@ -1,10 +1,21 @@
-#' Do chessboard segmentation
+#' Perform chessboard segmentation
+#'
+#' Segment a raster into square regions of equal size arranged in a
+#' chessboard-like pattern.
+#'
+#' This function divides the extent of a [terra::SpatRaster-class] into
+#' non-overlapping square segments of the given size, producing a segmentation
+#' map where each segment has a unique integer label. It can be an alternative
+#' to [sky_grid_segmentation()] in special cases.
 #'
 #' @inheritParams polar_qtree
-#' @param size Numeric vector of length one. Size of the square segments.
 #'
-#' @return A single layer image of the class [SpatRaster-class] with integer
-#'   values.
+#' @param size Numeric vector of length one. Size (in pixels) of each square
+#'   segment. Must be a positive integer.
+#'
+#' @return [terra::SpatRaster-class] with one layer and integer values, where
+#'   each unique value corresponds to a square-segment ID.
+#'
 #' @export
 #'
 #' @examples
@@ -13,9 +24,8 @@
 #' plot(caim$Blue)
 #' plot(extract_feature(caim$Blue, seg))
 chessboard <- function(r, size) {
-  is(r, "SpatRaster")
-  stopifnot(length(size) == 1)
-  stopifnot(.is_whole(size))
+  .assert_spatraster(r)
+  .check_vector(size, "integerish", sign = "positive")
 
   x <- ncol(r)/size %>% trunc()
   y <- nrow(r)/size %>% trunc()

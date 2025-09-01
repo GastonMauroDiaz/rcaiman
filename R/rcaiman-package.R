@@ -11,8 +11,11 @@ NULL
 #' @importFrom magrittr %>%
 #' @importFrom magrittr subtract
 #' @importFrom stats lm poly coefficients IQR sd splinefun
-#' @importFrom colorspace sRGB
 #' @importClassesFrom lidR LAS
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
+#' @importFrom graphics abline par segments
+#' @importFrom stats line
 NULL
 
 # https://groups.google.com/g/rdevtools/c/qT6cJt6DLJ0
