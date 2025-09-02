@@ -23,16 +23,10 @@ data reading. Provides methods to address variability in sky brightness and to
 mitigate errors from image acquisition in non-diffuse light. Works with all
 types of fisheye lenses, and some methods also apply to conventional lenses.
 
-It offers a simple method to calibrate fisheye lense, more details [here](https://www.sciencedirect.com/science/article/abs/pii/S0168192324001357?via%3Dihub).
-
-It integrates well with other software, such as
-[CIMES](http://jmnw.free.fr/), and
-[Hemisfer](https://www.schleppi.ch/patrick/hemisfer/).
-
 
 ## Installation
 
-You can install the development version of rcaiman from [GitHub](https://github.com/) with:
+You can install the development version of rcaiman from GitHub with:
 
 ``` r
 # install.packages("devtools")
