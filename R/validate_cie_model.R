@@ -78,7 +78,7 @@ validate_cie_model <- function(model, k = 10) {
   }
 
   .noise <- function(w = 1) {
-    coef_sd <- apply((cie_table[, 1:5]), 2, sd) * w
+    coef_sd <- apply((rcaiman::cie_table[, 1:5]), 2, sd) * w
     Map(function(i) stats::rnorm(1, 0, coef_sd[i]), 1:5) %>% unlist()
   }
 

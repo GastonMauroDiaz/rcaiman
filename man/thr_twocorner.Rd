@@ -88,15 +88,8 @@ where \eqn{DN_{lc}} and \eqn{DN_{uc}} are the lower and upper corners.
 
 When \code{diagnose = TRUE}, a geometric construction like the one shown below is
 sent to the active graphics device.
-\if{html}{
-  \out{<div style="text-align: center">}
-  \figure{twocorner_method.jpg}{options: style="width:750px;max-width:40\%;"}
-  \out{</div>}
-}
-\if{latex}{
-  \figure{twocorner_method.jpg}
-}
-
+\if{html}{\figure{twocorner_method.png}{options: style="display:block;margin:0 auto;max-width:40\%;"}}
+\if{latex}{\figure{twocorner_method.png}}
 When \code{diagnose = TRUE} and \code{adjust_par = TRUE}, the function temporarily
 adjusts margins to draw the geometric construction in a large square format
 and restores the previous settings on exit. If \code{adjust_par = FALSE}, no

@@ -66,16 +66,8 @@
 #' distribution. In addition, the latter was used to draw on in order to
 #' guide pixel sampling. The book holder also facilitated the alignment of the
 #' screen with the dotted lines of the printed quarter-circle.
-#'
-#' \if{html}{
-#'   \out{<div style="text-align: center">}
-#'   \figure{lightSource.jpg}{options: style="width:750px;max-width:50\%;"}
-#'   \out{</div>}
-#' }
-#' \if{latex}{
-#'   \figure{lightSource.jpg}
-#' }
-#'
+#' \if{html}{\figure{lightSource.jpg}{options: style="display:block;margin:0 auto;max-width:50%;"}}
+#' \if{latex}{\figure{lightSource.jpg}}
 #' As a general guideline, a wide variety of mobile devices could be used as
 #' light sources, but if scattered data points are obtained with it, then other
 #' light sources should be tested in order to double check that the light
@@ -89,19 +81,10 @@
 #' regulated to obtain light-source pixels with middle grey values. The nine
 #' photographs should be taken **without changing the camera configuration and
 #' the light conditions**.
-#'
-#' \if{html}{
-#'   \out{<div style="text-align: center">}
-#'   \figure{calibrationBoardVignetting.jpg}{options: style="width:750px;max-width:50\%;"}
-#'   \out{</div>}
-#' }
-#' \if{latex}{
-#'   \figure{calibrationBoardVignetting.jpg}
-#' }
-#'
+#' \if{html}{\figure{calibrationBoardVignetting.jpg}{options: style="display:block;margin:0 auto;max-width:50%;"}}
+#' \if{latex}{\figure{calibrationBoardVignetting.jpg}}
 #' This code exemplifies how to use the function to obtain data and base R
 #' functions to obtain the vignetting function (\eqn{f_v}).
-#'
 #' ````
 #' zenith_colrow <- c(1500, 997)
 #' diameter <- 947*2
@@ -137,7 +120,6 @@
 #' .fv <- function(x) 1 + coef[1] * x + coef[2] * x^2 + coef[3] * x^3
 #' curve(.fv, add = TRUE, col = 2)
 #' coef
-#'
 #' ````
 #' Once one of the aperture settings is calibrated, it can be used to calibrate
 #' all the rest. To do so,  the equipment should be used to take photographs in
@@ -196,17 +178,16 @@
 #' }
 #' ds <- l[[1]]
 #' head(ds)
-#' # The result is one dataset (ds) for each file. This is all what it is needed
-#' # before using base R functions to fit a vignetting function
-#'
 #' ````
+#' The result is one dataset (ds) for each file. This is all what it is needed
+#' before using base R functions to fit a vignetting function
 #'
 #' @param l list of preprocessed images ([terra::SpatRaster-class]) suitable for
 #'   radiometry sampling. Images must comply with the equidistant projection.
 #' @param size_px numeric vector of length one. Diameter (pixels) of the
 #'   circular sampling area at the image center; off-center, the sampled region
 #'   becomes an ellipse under the equidistant projection. If `NULL` (default),
-#'   two percent of image width is used (`round(terra::ncol(r) * 0.02`).
+#'   two percent of image width is used (`round(terra::ncol(r) * 0.02)`).
 #'
 #' @references \insertAllCited{}
 #'

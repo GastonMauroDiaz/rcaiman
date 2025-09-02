@@ -1,5 +1,10 @@
+# r <- conventional_lens_image()$Blue
+# jpeg(filename = "man/figures/twocorner_method.jpg", width=400, height=400, quality = 100)
+# thr_twocorner(r[], diagnose = TRUE, sigma = 2, slope_reduction = FALSE,
+#               adjust_par = TRUE)
+# dev.off()
 r <- conventional_lens_image()$Blue
-jpeg(filename = "man/figures/twocorner_method.jpg", width=400, height=400)
+png(filename = "man/figures/twocorner_method.png", width=400, height=400)
 thr_twocorner(r[], diagnose = TRUE, sigma = 2, slope_reduction = FALSE,
               adjust_par = TRUE)
 dev.off()

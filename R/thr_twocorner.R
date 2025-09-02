@@ -43,15 +43,8 @@
 #'
 #' When `diagnose = TRUE`, a geometric construction like the one shown below is
 #' sent to the active graphics device.
-#' \if{html}{
-#'   \out{<div style="text-align: center">}
-#'   \figure{twocorner_method.jpg}{options: style="width:750px;max-width:40\%;"}
-#'   \out{</div>}
-#' }
-#' \if{latex}{
-#'   \figure{twocorner_method.jpg}
-#' }
-#'
+#' \if{html}{\figure{twocorner_method.png}{options: style="display:block;margin:0 auto;max-width:40%;"}}
+#' \if{latex}{\figure{twocorner_method.png}}
 #' When `diagnose = TRUE` and `adjust_par = TRUE`, the function temporarily
 #' adjusts margins to draw the geometric construction in a large square format
 #' and restores the previous settings on exit. If `adjust_par = FALSE`, no

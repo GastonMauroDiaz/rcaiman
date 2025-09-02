@@ -72,16 +72,8 @@ yoga mat border closest to you. Place push pins on each cross. If you are
 gentle, the yoga mat will allow you to do that without damaging the table. Of
 course, other materials could be used to obtain the same result, such as
 cardboard, foam, nails, etc.
-
-\if{html}{
-  \out{<div style="text-align: center">}
-  \figure{calibrationBoard.jpg}{options: style="width:750px;max-width:90\%;"}
-  \out{</div>}
-}
-\if{latex}{
-  \figure{calibrationBoard.jpg}
-}
-
+\if{html}{\figure{calibrationBoard.jpg}{options: style="display:block;margin:0 auto;max-width:90\%;width:750px;"}}
+\if{latex}{\figure{calibrationBoard.jpg}}
 Place the camera on the tripod. Align its optical axis with the table while
 looking for getting an image showing the overlapping of the three pairs of
 push pins, as instructed in the print. In order to take care of the line of
@@ -101,15 +93,8 @@ surrounding black (or the last pixel in case there is not blackness because
 it is not a circular hemispherical image. There is no need to follow the line
 formed by the push pins). Then, use the dropdown menu Analyze>Measure to open
 the window Results. To obtain the CSV, use File>Save As...
-
-\if{html}{
-  \out{<div style="text-align: center">}
-  \figure{pushpinsImageJ.jpg}{options: style="width:750px;max-width:90\%;"}
-  \out{</div>}
-}
-\if{latex}{
-  \figure{pushpinsImageJ.jpg}
-}
+\if{html}{\figure{pushpinsImageJ.jpg}{options: style="display:block;margin:0 auto;max-width:90\%;width:750px;"}}
+\if{latex}{\figure{pushpinsImageJ.jpg}}
 }
 }
 

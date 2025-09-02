@@ -185,7 +185,7 @@ fit_cie_model <- function(rr, sun_angles,
   }
 
   # Manage the set of start parameter according to user choice
-  skies <- cie_table
+  skies <- rcaiman::cie_table
   if (!is.null(custom_sky_coef)) {
     if (is.vector(custom_sky_coef)) {
       skies <- skies[1,]
