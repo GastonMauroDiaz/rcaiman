@@ -1,27 +1,27 @@
 #' Extract digital numbers from sky points
 #'
-#' Obtain digital numbers from a raster at positions defined by sky points,
-#' with optional local averaging.
+#' Obtain digital numbers from a raster at positions defined by sky points, with
+#' optional local averaging.
 #'
-#' @details
-#' Wraps [terra::extract()] to support a \eqn{3 \times 3} window centered on
-#' each target pixel (local mean). When it is disabled, only the central
-#' pixel value is retrieved.
+#' @details Wraps [terra::extract()] to support a \eqn{3 \times 3} window
+#' centered on each target pixel (local mean). When it is disabled, only the
+#' central pixel value is retrieved.
 #'
 #' @param r [terra::SpatRaster-class]. Image from which `sky_points` were
 #'   sampled (or any raster with identical dimensions).
 #' @param sky_points `data.frame` with columns `row` and `col` (raster
 #'   coordinates).
-#' @param use_window logical of length one. If `TRUE` (default), use a
-#'   \eqn{3 \times 3} local mean around each point; if `FALSE`, use only the
-#'   central pixel.
+#' @param use_window logical vector of length one. If `TRUE` (default), the
+#'   digital number at each sky point is the average of the values extracted
+#'   from input `r` with a window of \eqn{3 \times 3} pixels centered on the
+#'   pixel that includes the point. If `FALSE`, only the value of the central
+#'   pixel is retrieved.
 #'
 #' @return `data.frame` containing the original `sky_points` plus one column per
 #'   layer in `r` (named after the layers).
 #'
-#' @note
-#' For instructions on manually digitizing sky points, see the “Digitizing sky
-#' points with ImageJ” and “Digitizing sky points with QGIS” sections in
+#' @note For instructions on manually digitizing sky points, see the “Digitizing
+#' sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
 #' [fit_cie_model()].
 #'
 #' @seealso [extract_sky_points()]

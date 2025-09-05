@@ -27,9 +27,9 @@
 #' # (also applicable to non-circular fisheye images from DSLR cameras)
 #' path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 #' caim <- read_caim(path)
-#' z <- zenith_image(2132/2,  lens("Olloclip"))
+#' z <- zenith_image(2132,  lens("Olloclip"))
 #' a <- azimuth_image(z)
-#' zenith_colrow <- c(1063, 771)/2
+#' zenith_colrow <- c(1063, 771)
 #' caim <- expand_noncircular(caim, z, zenith_colrow)
 #' plot(caim$Blue, col = seq(0, 1, 1/255) %>% grey())
 #' m <- !is.na(caim$Red) & !is.na(z)

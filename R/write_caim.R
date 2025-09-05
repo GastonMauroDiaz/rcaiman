@@ -16,6 +16,8 @@
 #'
 #' @return No return value. Called for side effects.
 #'
+#' @export
+#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim() %>% normalize_minmax(0, 255)

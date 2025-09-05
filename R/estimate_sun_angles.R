@@ -9,7 +9,8 @@
 #'
 #' \describe{
 #'   \item{Veiled sun}{The solar disk is visible or partially obscured; the
-#'   position is inferred from localized brightness peaks.}
+#'   position is inferred from localized brightness peaks. It is also useful
+#'   when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
 #'   \item{Obscured sun}{The solar disk is not visible; the position is inferred
 #'   from radiometric and spatial cues aggregated over the circumsolar region.}
 #' }
@@ -34,6 +35,8 @@
 #'
 #' @returns Named numeric vector of length two, with names `z` and `a`,
 #'   representing the sun’s zenith and azimuth angles (in degrees).
+#'
+#' @references \insertAllCited{}
 #'
 #' @export
 #'

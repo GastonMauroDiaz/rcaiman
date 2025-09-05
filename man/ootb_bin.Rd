@@ -62,16 +62,6 @@ value, use it to normalize per segment
 (\code{ratio <- Blue / sky_segment_max}), interpret the normalization as the degree
 of membership to the sky class, and then defuzzify with a fixed threshold
 \code{0.5}.
-
-\item \emph{Blue–Red Index (BRI).} Compute
-\deqn{\mathrm{BRI} = \frac{B - R}{B + R}}
-where \eqn{B} and \eqn{R} are blue and red digital numbers. BRI decreases
-on sunlit canopy because direct sunlight is warmer than diffuse skylight.
-Use a scene-adaptive threshold given by the median BRI over the current
-non-sky region to flip misclassified sky pixels to non-sky.
-
-\item \emph{Zenith mask.} Apply the final zenith-angle gate (e.g.,
-keep \eqn{\theta_z \le 88^\circ}).
 }
 }
 \note{

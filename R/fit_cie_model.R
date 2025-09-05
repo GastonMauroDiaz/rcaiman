@@ -50,13 +50,6 @@
 #'
 #' @export
 #'
-#' @section Background:
-#' This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
-#' the best result would be obtained with data showing a linear relation between
-#' digital numbers and the amount of light reaching the sensor. See
-#' [extract_radiometry()] and [read_caim_raw()] for further details. As a
-#' compromise solution, [invert_gamma_correction()] can be used.
-#'
 #' @section Digitizing sky points with ImageJ:
 #' The [point selection tool of ‘ImageJ’
 #' software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)

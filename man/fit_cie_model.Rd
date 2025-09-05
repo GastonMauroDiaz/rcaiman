@@ -66,15 +66,6 @@ digital numbers and the amount of light reaching the sensor. See
 \code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}} for details.
 As a compromise solution, \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} can be used.
 }
-\section{Background}{
-
-This function is based on \insertCite{Lang2010;textual}{rcaiman}. In theory,
-the best result would be obtained with data showing a linear relation between
-digital numbers and the amount of light reaching the sensor. See
-\code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}} for further details. As a
-compromise solution, \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} can be used.
-}
-
 \section{Digitizing sky points with ImageJ}{
 
 The \href{https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool}{point selection tool of ‘ImageJ’ software}

@@ -50,7 +50,8 @@ estimating the sun position:
 
 \describe{
 \item{Veiled sun}{The solar disk is visible or partially obscured; the
-position is inferred from localized brightness peaks.}
+position is inferred from localized brightness peaks. It is also useful
+when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
 \item{Obscured sun}{The solar disk is not visible; the position is inferred
 from radiometric and spatial cues aggregated over the circumsolar region.}
 }
@@ -85,4 +86,7 @@ plot(caim$Blue)
 points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
        pch = 8, cex = 3)
 }
+}
+\references{
+\insertAllCited{}
 }

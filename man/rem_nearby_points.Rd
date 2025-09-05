@@ -31,9 +31,11 @@ between retained points. Units: pixels for \code{"planar"}, deg for \code{"spher
 \item{space}{character vector of length one. Coordinate system for distances:
 \code{"planar"} (default) or \code{"spherical"}.}
 
-\item{use_window}{logical of length one. If \code{TRUE} (default), use a
-\eqn{3 \times 3} local mean around each point; if \code{FALSE}, use only the
-central pixel.}
+\item{use_window}{logical vector of length one. If \code{TRUE} (default), the
+digital number at each sky point is the average of the values extracted
+from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
+pixel that includes the point. If \code{FALSE}, only the value of the central
+pixel is retrieved.}
 }
 \value{
 A \code{data.frame} with columns \code{row} and \code{col} for retained points.

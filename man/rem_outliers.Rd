@@ -39,9 +39,11 @@ searching k-nearest neighbors (KNN) in degrees.}
 (default), "upper" or "lower". Controls which side(s) of the inequality are
 evaluated to detect outliers. See Details.}
 
-\item{use_window}{logical of length one. If \code{TRUE} (default), use a
-\eqn{3 \times 3} local mean around each point; if \code{FALSE}, use only the
-central pixel.}
+\item{use_window}{logical vector of length one. If \code{TRUE} (default), the
+digital number at each sky point is the average of the values extracted
+from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
+pixel that includes the point. If \code{FALSE}, only the value of the central
+pixel is retrieved.}
 
 \item{trend}{numeric vector of length one or \code{NULL}. Zero to three. Specifies
 the order of the polynomial surface fitted to the neighbors to account for

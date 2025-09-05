@@ -36,18 +36,7 @@
 #'   (`ratio <- Blue / sky_segment_max`), interpret the normalization as the degree
 #'   of membership to the sky class, and then defuzzify with a fixed threshold
 #'   `0.5`.
-#'
-#'   \item \emph{Blue–Red Index (BRI).} Compute
-#'   \deqn{\mathrm{BRI} = \frac{B - R}{B + R}}
-#'   where \eqn{B} and \eqn{R} are blue and red digital numbers. BRI decreases
-#'   on sunlit canopy because direct sunlight is warmer than diffuse skylight.
-#'   Use a scene-adaptive threshold given by the median BRI over the current
-#'   non-sky region to flip misclassified sky pixels to non-sky.
-#'
-#'   \item \emph{Zenith mask.} Apply the final zenith-angle gate (e.g.,
-#'   keep \eqn{\theta_z \le 88^\circ}).
 #' }
-#'
 #'
 #' @note
 #' This function is part of a paper under preparation.
@@ -72,7 +61,6 @@
 #' bin <- ootb_bin(caim, z, a, m)
 #' plot(bin)
 #' }
-
 ootb_bin <- function(caim, z, a, m, parallel = TRUE){
   #basic checks handled by the functions called below
   com <- complementary_gradients(caim)
@@ -92,10 +80,6 @@ ootb_bin <- function(caim, z, a, m, parallel = TRUE){
   ratio <- caim$Blue/sky
   ratio[is.na(ratio)] <- 1
   bin <- binarize_with_thr(ratio, 0.5) & bin
-
-  bri <- (caim$Blue - caim$Red) / (caim$Blue + caim$Red)
-  thr <- median(bri[!bin], na.rm = TRUE)
-  bin <- bin & binarize_with_thr(bri, pmin(0.05, thr))
 
   bin <- bin & select_sky_region(z, 0, 88)
   bin

@@ -13,26 +13,28 @@ sampled (or any raster with identical dimensions).}
 \item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
-\item{use_window}{logical of length one. If \code{TRUE} (default), use a
-\eqn{3 \times 3} local mean around each point; if \code{FALSE}, use only the
-central pixel.}
+\item{use_window}{logical vector of length one. If \code{TRUE} (default), the
+digital number at each sky point is the average of the values extracted
+from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
+pixel that includes the point. If \code{FALSE}, only the value of the central
+pixel is retrieved.}
 }
 \value{
 \code{data.frame} containing the original \code{sky_points} plus one column per
 layer in \code{r} (named after the layers).
 }
 \description{
-Obtain digital numbers from a raster at positions defined by sky points,
-with optional local averaging.
+Obtain digital numbers from a raster at positions defined by sky points, with
+optional local averaging.
 }
 \details{
-Wraps \code{\link[terra:extract]{terra::extract()}} to support a \eqn{3 \times 3} window centered on
-each target pixel (local mean). When it is disabled, only the central
-pixel value is retrieved.
+Wraps \code{\link[terra:extract]{terra::extract()}} to support a \eqn{3 \times 3} window
+centered on each target pixel (local mean). When it is disabled, only the
+central pixel value is retrieved.
 }
 \note{
-For instructions on manually digitizing sky points, see the “Digitizing sky
-points with ImageJ” and “Digitizing sky points with QGIS” sections in
+For instructions on manually digitizing sky points, see the “Digitizing
+sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
 \code{\link[=fit_cie_model]{fit_cie_model()}}.
 }
 \examples{

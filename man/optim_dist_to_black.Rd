@@ -59,5 +59,10 @@ bin <- grow_black(bin, 11)
 plot(bin)
 dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
 dist_to_black
+
+bin <- grow_black(bin, 21)
+plot(bin)
+dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
+dist_to_black
 }
 }
