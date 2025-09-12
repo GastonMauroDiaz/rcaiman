@@ -91,7 +91,7 @@
 #'                                 angular_radius = 20,
 #'                                 rule = "any",
 #'                                 size = 50)
-#' plot(r/sky_rr/rr$zenith_dn)
+#' plot(caim$Blue/sky_rr/rr$zenith_dn)
 #' }
 interpolate_spherical <- function(sky_points, z, a,
                                   filling_source = NULL,
@@ -103,17 +103,13 @@ interpolate_spherical <- function(sky_points, z, a,
                                   size = 50
                               ) {
 
-  # rr should be a list with a data frame component named `sky_points`
-  if (!is.list(rr) || !("sky_points" %in% names(rr))) {
-    stop("`rr` must be a list containing a component named `sky_points`.")
+  if (!is.data.frame(sky_points)) {
+    stop("`sky_points` must be a data frame.")
   }
-  if (!is.data.frame(rr$sky_points)) {
-    stop("`rr$sky_points` must be a data frame.")
-  }
-  # rr$sky_points should have the expected columns
+  # sky_points should have the expected columns
   required_cols <- c("a", "z", "rr")
-  if (!all(required_cols %in% names(rr$sky_points))) {
-    stop(sprintf("`rr$sky_points` must contain columns %s.",
+  if (!all(required_cols %in% names(sky_points))) {
+    stop(sprintf("`sky_points` must contain columns %s.",
                  paste(sprintf('"%s"', required_cols), collapse = ", ")))
   }
   .check_r_z_a_m(NULL, z, a)
