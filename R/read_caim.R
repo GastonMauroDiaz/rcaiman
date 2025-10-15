@@ -79,8 +79,15 @@ read_caim <- function(path = NULL, upper_left = NULL, width = NULL,
   .check_vector(height, "numeric", 1, allow_null = TRUE, sign = "positive")
 
 
+  # When the image is a JPEG or a TIFF that is not a Geo-TIFF, rast produces a
+  # warning about unknown extent and makes something weird with the coordinates,
+  # so there is the need of flip
   r <- tryCatch(terra::rast(path),
-                warning = function(w) terra::flip(terra::rast(path)))
+                warning = function(w) {
+                  message("'terra::rast()' flips images that do not have CRS. This action was countered.")
+                  terra::flip(terra::rast(path))
+                }) %>%
+    suppressWarnings()
 
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
   # https://spatialreference.org/ref/sr-org/7589/

@@ -22,6 +22,9 @@
 #' If R can access Python successfully, you will see `2` in the console. If not,
 #' you will receive instructions on how to install Python.
 #'
+#' **Hint**: If you are temporarily offline, try setting `Sys.setenv(UV_OFFLINE=1)`.
+#' Run `reticulate::py_last_error()` for details. Try to load rawpy explicitly.
+#'
 #' @section Create a Virtual Environment:
 #'
 #' After passing the Python accessibility test, create a virtual environment

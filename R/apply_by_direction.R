@@ -102,7 +102,7 @@ apply_by_direction <- function(r, z, a, m,
     for (gamma in c(1, 1.8, 2.2, 2.6)) {
       result <- tryCatch(
         (thr_twocorner(x^(1/gamma), sigma = 2, method = "prominence",
-                       slope_reduction = TRUE)$up)^gamma,
+                       slope_reduction = FALSE)$up)^gamma,
         error = function(e) NULL)
       if (!is.null(result)) return(result)
     }
@@ -110,23 +110,25 @@ apply_by_direction <- function(r, z, a, m,
       for (gamma in c(1, 1.8, 2.2, 2.6)) {
         result <- tryCatch(
           (thr_twocorner(x^(1/gamma), sigma = 2,  method = "prominence",
+                         slope_reduction = TRUE)$up)^gamma,
+          error = function(e) NULL)
+        if (!is.null(result)) return(result)
+      }
+    }
+    if (is.null(result)) {
+      for (gamma in c(1, 1.8, 2.2, 2.6)) {
+        result <- tryCatch(
+          (thr_twocorner(x^(1/gamma), sigma = 2,  method = "macfarlane",
                          slope_reduction = FALSE)$up)^gamma,
           error = function(e) NULL)
         if (!is.null(result)) return(result)
       }
     }
-    for (gamma in c(1, 1.8, 2.2, 2.6)) {
-      result <- tryCatch(
-        (thr_twocorner(x^(1/gamma), sigma = 3, method = "prominence",
-                       slope_reduction = TRUE)$up)^gamma,
-        error = function(e) NULL)
-      if (!is.null(result)) return(result)
-    }
     if (is.null(result)) {
       for (gamma in c(1, 1.8, 2.2, 2.6)) {
         result <- tryCatch(
-          (thr_twocorner(x^(1/gamma), sigma = 3,  method = "prominence",
-                         slope_reduction = FALSE)$up)^gamma,
+          (thr_twocorner(x^(1/gamma), sigma = 2,  method = "macfarlane",
+                         slope_reduction = TRUE)$up)^gamma,
           error = function(e) NULL)
         if (!is.null(result)) return(result)
       }
@@ -223,7 +225,8 @@ apply_by_direction <- function(r, z, a, m,
   sky_points <- rem_nearby_points(sky_points, NULL, z, a, spacing,
                                   space = "spherical")
 
-  i <- extract_dn(m, sky_points, use_window = FALSE)[,3]
+  i <- extract_dn(m & select_sky_region(z, 0, 90 - spacing/2),
+                  sky_points, use_window = FALSE)[,3]
   sky_points <- sky_points[i, ]
   rr <- extract_rr(z, z, a, sky_points, NULL, FALSE)
   n_directions <- nrow(sky_points)

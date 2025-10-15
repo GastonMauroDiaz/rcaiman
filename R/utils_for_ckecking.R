@@ -231,11 +231,7 @@
     } else if (r_type == "rgb") {
       .assert_rgb3(r, r_name)
     } else { # any
-      if (terra::nlyr(r) == 1) {
-        # ok
-      } else {
-        .assert_rgb3(r, r_name)
-      }
+      # ok
     }
 
     .assert_same_geom(r[[1]], z, r_name, "z")
