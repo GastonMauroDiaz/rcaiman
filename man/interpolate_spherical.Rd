@@ -115,7 +115,7 @@ sky_rr <- interpolate_spherical(rr$sky_points, z, a,
                                 angular_radius = 20,
                                 rule = "any",
                                 size = 50)
-plot(r/sky_rr/rr$zenith_dn)
+plot(caim$Blue/sky_rr/rr$zenith_dn)
 }
 }
 \references{

@@ -46,6 +46,9 @@ To ensure that R can access a Python installation, run the following test:
 
 If R can access Python successfully, you will see \code{2} in the console. If not,
 you will receive instructions on how to install Python.
+
+\strong{Hint}: If you are temporarily offline, try setting \code{Sys.setenv(UV_OFFLINE=1)}.
+Run \code{reticulate::py_last_error()} for details. Try to load rawpy explicitly.
 }
 
 \section{Create a Virtual Environment}{

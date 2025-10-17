@@ -52,7 +52,7 @@ resulting from the radiometric-first policy of \code{\link[=read_caim_raw]{read_
 
 \item \emph{Polar quadtree segmentation.} Segment this preclassification of
 sky and non-sky pixels with \code{\link[=polar_qtree]{polar_qtree()}} parameterized to yield circular
-trapezoids never smaller than \eqn{3 \times 3} degrees and to minimize
+trapezoids never smaller than \eqn{2.25 \times 2.25} degrees and to minimize
 segments with mixed classes.
 
 \item \emph{Object-based image analysis.}

@@ -52,12 +52,13 @@ a <- azimuth_image(z)
 zenith_colrow <- c(1063, 771)
 
 caim <- expand_noncircular(caim, z, zenith_colrow)
+caim2 <- fisheye_to_equidistant(caim, z, a, !is.na(z), radius = 600)
 m <- !is.na(caim$Red) & select_sky_region(z, 0, 86.2)
 caim[!m] <- 0
 m2 <- fisheye_to_equidistant(m, z, a, !is.na(z), radius = 600)
 m2 <- binarize_with_thr(m2, 0.5) #to turn it logical
 caim2[!m2] <- 0
 
-plot(caim)
+plotRGB(normalize_minmax(caim2)*255)
 }
 }

@@ -22,12 +22,12 @@ The package tolerate a number very close to 1 at 90 deg but not exactly 1 as
 long as it is greater than 1. See \code{\link[testthat:equality-expectations]{testthat::expect_equal()}} for tolerance
 details.
 
-When the test fails at \emph{"Test that lens projection
-function does not predict values barely below one"}, the best practice is to
+When the test fails at \emph{Test that lens projection
+function does not predict values barely below one}, the best practice is to
 manually edit the last coefficient (e.g., change -0.0296 to -0.0295).
 
-If the check \emph{"works within the 0–1 range"} fails, new calibration data may
-be required.
+If it fails at \emph{Test that lens projection function works within the 0–1
+range}, new calibration data may be required.
 }
 \examples{
 test_lens_coef(lens("Nikon_FCE9"))
