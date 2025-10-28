@@ -38,12 +38,15 @@ hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} f
 \item{min_spherical_dist}{numeric vector. Values passed to
 \code{\link[=rem_nearby_points]{rem_nearby_points()}}.}
 
-\item{method}{character vector. Optimization methods for \code{\link[=fit_cie_model]{fit_cie_model()}}.}
+\item{method}{character vector. Optimization methods for \code{\link[=fit_cie_model]{fit_cie_model()}}
+and \code{\link[=optim_sun_angles]{optim_sun_angles()}}.}
 
 \item{custom_sky_coef}{optional numeric vector of length five. If \code{NULL}
-(default), the 15 standard CIE skies are tested as starting conditions. Use
-this to avoid recomputing the initial step (depending only on \code{method})
-when testing other inputs.}
+(default), the 15 standard CIE skies are tested as starting
+conditions. Specific standard CIE sky or skies can be provided with
+\code{as.numeric(cie_table[i,  1:5])}, where \code{i} must be a numeric vector with
+values between 1 and 15. Coefficients can also be obtained with
+\code{\link[=ootb_cie_model]{ootb_cie_model()}}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -70,23 +73,15 @@ image coordinates.}
 \code{rem_nearby_points(space = "spherical")}.}
 \item{\code{tested_methods}}{character vector of optimization methods tested in
 \code{\link[=fit_cie_model]{fit_cie_model()}}.}
-\item{\code{optimal_start}}{starting parameters selected after testing the 15 CIE skies.}
-\item{\code{model_up}}{model fitted to relative radiance detected with the
-two‑corner method, if that step succeeded; otherwise \code{NULL}.}
 }
 }
 \description{
-Fit and validate a CIE general sky model from a canopy photograph without
-manual parameter tuning, and return the predicted raster.
+Fit and validate a CIE general sky model to radiance sampled on canopy
+gaps and return the predicted raster.
 }
 \details{
-Runs a full pipeline to fit a CIE sky model to radiance from a canopy
-image:
-
+Runs a the following pipeline:
 \enumerate{
-\item a preliminary estimate of sky digital numbers is attempted using the
-two-corner method  aiming to start with a comprehensive sampling of the sky
-vault (see \code{method = "detect_bg_dn"} of \code{\link[=apply_by_direction]{apply_by_direction()}}).
 \item sky point extraction is performed with \code{\link[=extract_sky_points]{extract_sky_points()}}, using
 information from a binary mask (\code{bin}) and post-filtering with
 \code{\link[=rem_nearby_points]{rem_nearby_points()}} and \code{\link[=rem_outliers]{rem_outliers()}}.
@@ -108,6 +103,8 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 
+model <- ootb_cie_model(r, z, a, m)
+
 bin <- ootb_bin(caim, z, a, m, TRUE)
 
 set.seed(7)
@@ -126,6 +123,7 @@ gs <- list(
 sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,
                         method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
                         min_spherical_dist = seq(0, 12, 3),
+                        custom_sky_coef = model$coef,
                         parallel = TRUE)
 
 sky_cie$rr_raster

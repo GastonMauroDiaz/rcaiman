@@ -18,7 +18,6 @@
 #' \itemize{
 #'   \item Plain text manifest: `name.txt`
 #'   \item CSV with sky radiance samples: `name_rr.csv`
-#'   \item CSV with sky radiance samples for the upward pass: `name_rr_up.csv` (optional)
 #'   \item GeoPackage with sky sample points: `name_sky_points.gpkg`
 #'   \item GeoPackage with the sun disk location: `name_sun_disk.gpkg`
 #'   \item CSV with validation pairs: `name_val.csv`
@@ -33,7 +32,6 @@
 #'   \item{`method_sun:`}{Method used to optimize sun coordinates.}
 #'   \item{`zenith_dn:`}{Reference DN at zenith.}
 #'   \item{`start_a:`…`start_e:`}{Initial CIE coefficients.}
-#'   \item{`is_from_detected_sky_dn:`}{Enables `_rr_up.csv` if `TRUE`.}
 #'   \item{`fit_a:`…`fit_e:`}{Fitted CIE coefficients.}
 #'   \item{`method:`}{Method used to fit CIE coefficients.}
 #'   \item{`dist_to_black:`}{Argument passed to `extract_sky_points()`.}
@@ -103,8 +101,7 @@ write_sky_cie <- function(sky_cie, name) {
                       "tested_grids",
                       "tested_distances",
                       "tested_methods",
-                      "optimal_start",
-                      "model_up"
+                      "optimal_start"
                       )
   if (!all(required_names %in% names(sky_cie))) {
     stop(sprintf("`sky_cie` must contain %s.",
@@ -121,7 +118,7 @@ write_sky_cie <- function(sky_cie, name) {
   on.exit(close(con), add = TRUE)
   sink(con)
   .print_line(.hr("-"))
-  .print_line("format_version:", " 1.0")
+  .print_line("format_version:", " 1.1")
   .print_line("generated_by:", " rcaiman::write_sky_cie()  # do not edit by hand")
   .print_line(.hr("-"))
 
@@ -137,11 +134,10 @@ write_sky_cie <- function(sky_cie, name) {
   # starts
   .print_line("zenith_dn:", sky_cie$model$rr$zenith_dn)
   starts <- unname(sky_cie$optimal_start)
+  if (length(starts) != 5) starts <- rep(NULL, 5)
   .print_line("start_a:", starts[1]); .print_line("start_b:", starts[2])
   .print_line("start_c:", starts[3]); .print_line("start_d:", starts[4])
   .print_line("start_e:", starts[5])
-  .print_line("is_from_detected_sky_dn:",
-              unname(isTRUE(attr(sky_cie$optimal_start, "is_from_detected_sky_dn"))))
 
   .print_line(.hr("."))
   # fit
@@ -205,14 +201,6 @@ write_sky_cie <- function(sky_cie, name) {
                       row.names = FALSE)
   }
 
-  # rr_up CSV (optional)
-  if (isTRUE(attr(sky_cie$optimal_start, "is_from_detected_sky_dn")) &&
-      !is.null(sky_cie$model_up$rr$sky_points)) {
-    utils::write.csv2(sky_cie$model_up$rr$sky_points,
-                      paste0(name, "_rr_up.csv"),
-                      row.names = FALSE)
-  }
-
   invisible(NULL)
 }
 
@@ -259,8 +247,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   sky_cie$io <- list()
   sky_cie$model <- list()
   sky_cie$model$rr <- list()
-  sky_cie$model_up <- list()
-  sky_cie$model_up$rr <- list()
   sky_cie$model_validation <- list()
 
   # parse manifest --------------------------------------------------------
@@ -292,8 +278,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     ),
     c("a","b","c","d","e")
   )
-  attr(sky_cie$optimal_start, "is_from_detected_sky_dn") <-
-    .get_token_after(lines, "is_from_detected_sky_dn", "log", TRUE)
 
   sky_cie$model$coef <- c(
     .get_token_after(lines, "fit_a", "num", TRUE),
@@ -330,14 +314,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
 
   # rr
   sky_cie$model$rr$sky_points <- utils::read.csv2(paste0(name, "_rr.csv"))
-
-  # rr_up (optional)
-  if (isTRUE(attr(sky_cie$optimal_start, "is_from_detected_sky_dn"))) {
-    f_up <- paste0(name, "_rr_up.csv")
-    sky_cie$model_up$rr$sky_points <- if (file.exists(f_up)) utils::read.csv2(f_up) else NULL
-  } else {
-    sky_cie$model_up$rr$sky_points <- NULL
-  }
 
   # sky_points from GPKG → row/col
   sp <- terra::vect(paste0(name, "_sky_points.gpkg"))

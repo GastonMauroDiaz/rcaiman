@@ -8,7 +8,7 @@
 #' @param spacing numeric vector of length one. Angular spacing (in degrees)
 #'   between directions to process.
 #' @param method character vector of length one. Built-in method to apply.
-#'   Available options are `"thr_isodata"`, `"detect_bg_dn"`,
+#'   Available options are `"thr_isodata"`, `"thr_twocorner"`, `"detect_bg_dn"`,
 #'   `"fit_coneshaped_model"`, `"fit_trend_surface_np1"`, and
 #'   `"fit_trend_surface_np6"`. Ignored if `fun` is provided.
 #' @param fov numeric vector. Field of view in degrees. If more than one value
@@ -77,6 +77,7 @@ apply_by_direction <- function(r, z, a, m,
                                laxity = 2.5,
                                fov = c(30, 40, 50),
                                method = c("thr_isodata",
+                                          "thr_twocorner",
                                           "detect_bg_dn",
                                           "fit_coneshaped_model",
                                           "fit_trend_surface_np1",
@@ -98,42 +99,13 @@ apply_by_direction <- function(r, z, a, m,
               layers named 'Red', 'Green', and 'Blue'."))
   }
 
-  .thr_twocorner_up <- function(x) {
-    for (gamma in c(1, 1.8, 2.2, 2.6)) {
-      result <- tryCatch(
-        (thr_twocorner(x^(1/gamma), sigma = 2, method = "prominence",
-                       slope_reduction = FALSE)$up)^gamma,
-        error = function(e) NULL)
-      if (!is.null(result)) return(result)
-    }
-    if (is.null(result)) {
-      for (gamma in c(1, 1.8, 2.2, 2.6)) {
-        result <- tryCatch(
-          (thr_twocorner(x^(1/gamma), sigma = 2,  method = "prominence",
-                         slope_reduction = TRUE)$up)^gamma,
-          error = function(e) NULL)
-        if (!is.null(result)) return(result)
-      }
-    }
-    if (is.null(result)) {
-      for (gamma in c(1, 1.8, 2.2, 2.6)) {
-        result <- tryCatch(
-          (thr_twocorner(x^(1/gamma), sigma = 2,  method = "macfarlane",
-                         slope_reduction = FALSE)$up)^gamma,
-          error = function(e) NULL)
-        if (!is.null(result)) return(result)
-      }
-    }
-    if (is.null(result)) {
-      for (gamma in c(1, 1.8, 2.2, 2.6)) {
-        result <- tryCatch(
-          (thr_twocorner(x^(1/gamma), sigma = 2,  method = "macfarlane",
-                         slope_reduction = TRUE)$up)^gamma,
-          error = function(e) NULL)
-        if (!is.null(result)) return(result)
-      }
-    }
-    return(NA)
+  if (is.null(fun) && method %in% c("thr_twocorner", "detect_bg_dn")) {
+    .this_requires_multimode()
+  }
+
+  if (is.null(fun) &&
+      method %in% c("thr_isodata", "thr_twocorner", "detect_bg_dn")) {
+    .assert_single_layer(r)
   }
 
   radians_denom <- c(
@@ -240,9 +212,19 @@ apply_by_direction <- function(r, z, a, m,
     if (is.null(thr)) return(NA)
     thr
   }
+  .thr_twocorner <- function(m_fov) {
+    v <- r_vals[m_fov]
+    thr <- tryCatch(return(thr_twocorner(v)$tm), error = function(e) NULL)
+    if (is.null(thr)) return(NA)
+    thr
+  }
+
   .detect_bg_dn <- function(m_fov) {
     v <- r_vals[m_fov]
-    thr <- tryCatch(.thr_twocorner_up(v), error = function(e) NULL)
+    thr <- tryCatch(return(thr_twocorner(v)$up), error = function(e) NULL)
+    # modes <- tryCatch(multimode::locmodes(v, mod0 = 2),
+    #                   error = function(e) NULL)
+    # thr <- tryCatch(modes$locations[3], error = function(e) NULL)
     if (is.null(thr)) return(NA)
     thr
   }
@@ -327,6 +309,7 @@ apply_by_direction <- function(r, z, a, m,
   if (is.null(fun)) {
     .fun <- switch(method,
                    thr_isodata = .thr_isodata,
+                   thr_twocorner = .thr_twocorner,
                    detect_bg_dn = .detect_bg_dn,
                    fit_coneshaped_model = .fit_coneshaped_model,
                    fit_trend_surface_np1 = .fit_trend_surface_np1,

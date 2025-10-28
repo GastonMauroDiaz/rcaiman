@@ -12,7 +12,7 @@ apply_by_direction(
   spacing = 10,
   laxity = 2.5,
   fov = c(30, 40, 50),
-  method = c("thr_isodata", "detect_bg_dn", "fit_coneshaped_model",
+  method = c("thr_isodata", "thr_twocorner", "detect_bg_dn", "fit_coneshaped_model",
     "fit_trend_surface_np1", "fit_trend_surface_np6"),
   fun = NULL,
   parallel = FALSE
@@ -38,7 +38,7 @@ between directions to process.}
 is provided, they are tried in order when a method fails.}
 
 \item{method}{character vector of length one. Built-in method to apply.
-Available options are \code{"thr_isodata"}, \code{"detect_bg_dn"},
+Available options are \code{"thr_isodata"}, \code{"thr_twocorner"}, \code{"detect_bg_dn"},
 \code{"fit_coneshaped_model"}, \code{"fit_trend_surface_np1"}, and
 \code{"fit_trend_surface_np6"}. Ignored if \code{fun} is provided.}
 

@@ -60,7 +60,6 @@ prefix \code{name} (see below).}
 \itemize{
 \item Plain text manifest: \code{name.txt}
 \item CSV with sky radiance samples: \code{name_rr.csv}
-\item CSV with sky radiance samples for the upward pass: \code{name_rr_up.csv} (optional)
 \item GeoPackage with sky sample points: \code{name_sky_points.gpkg}
 \item GeoPackage with the sun disk location: \code{name_sun_disk.gpkg}
 \item CSV with validation pairs: \code{name_val.csv}
@@ -77,7 +76,6 @@ prefix \code{name} (see below).}
 \item{\verb{method_sun:}}{Method used to optimize sun coordinates.}
 \item{\verb{zenith_dn:}}{Reference DN at zenith.}
 \item{\verb{start_a:}…\verb{start_e:}}{Initial CIE coefficients.}
-\item{\verb{is_from_detected_sky_dn:}}{Enables \verb{_rr_up.csv} if \code{TRUE}.}
 \item{\verb{fit_a:}…\verb{fit_e:}}{Fitted CIE coefficients.}
 \item{\verb{method:}}{Method used to fit CIE coefficients.}
 \item{\verb{dist_to_black:}}{Argument passed to \code{extract_sky_points()}.}

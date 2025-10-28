@@ -1,17 +1,12 @@
 #' Out-of-the-box CIE sky model and raster
 #'
 #' @description
-#' Fit and validate a CIE general sky model from a canopy photograph without
-#' manual parameter tuning, and return the predicted raster.
+#' Fit and validate a CIE general sky model to radiance sampled on canopy
+#' gaps and return the predicted raster.
 #'
 #' @details
-#' Runs a full pipeline to fit a CIE sky model to radiance from a canopy
-#' image:
-#'
+#' Runs a the following pipeline:
 #' \enumerate{
-#'   \item a preliminary estimate of sky digital numbers is attempted using the
-#'   two-corner method  aiming to start with a comprehensive sampling of the sky
-#'   vault (see `method = "detect_bg_dn"` of [apply_by_direction()]).
 #'   \item sky point extraction is performed with [extract_sky_points()], using
 #'   information from a binary mask (`bin`) and post-filtering with
 #'   [rem_nearby_points()] and [rem_outliers()].
@@ -25,19 +20,18 @@
 #' @note
 #' This function is part of a paper under preparation.
 #'
-#' @param r numeric [terra::SpatRaster-class] of one layer. Typically, the blue
-#'   band of a a canopy photograph. Digital numbers should be linearly related
-#'   to radiance. See [read_caim_raw()] for details.
 #' @param gs `list` where each element is the output of
 #'   [sky_grid_segmentation()]. See *Examples* for guidance.
 #' @param min_spherical_dist numeric vector. Values passed to
 #'   [rem_nearby_points()].
-#' @param method character vector. Optimization methods for [fit_cie_model()].
 #' @param custom_sky_coef optional numeric vector of length five. If `NULL`
-#'   (default), the 15 standard CIE skies are tested as starting conditions. Use
-#'   this to avoid recomputing the initial step (depending only on `method`)
-#'   when testing other inputs.
+#'   (default), the 15 standard CIE skies are tested as starting
+#'   conditions. Specific standard CIE sky or skies can be provided with
+#'   `as.numeric(cie_table[i,  1:5])`, where `i` must be a numeric vector with
+#'   values between 1 and 15. Coefficients can also be obtained with
+#'   [ootb_cie_model()].
 #'
+#' @inheritParams ootb_cie_model
 #' @inheritParams compute_canopy_openness
 #' @inheritParams sky_grid_segmentation
 #' @inheritParams extract_sky_points
@@ -68,9 +62,6 @@
 #'     `rem_nearby_points(space = "spherical")`.}
 #'   \item{`tested_methods`}{character vector of optimization methods tested in
 #'     [fit_cie_model()].}
-#'   \item{`optimal_start`}{starting parameters selected after testing the 15 CIE skies.}
-#'   \item{`model_up`}{model fitted to relative radiance detected with the
-#'     two‑corner method, if that step succeeded; otherwise `NULL`.}
 #' }
 #'
 #'
@@ -81,6 +72,8 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
+#'
+#' model <- ootb_cie_model(r, z, a, m)
 #'
 #' bin <- ootb_bin(caim, z, a, m, TRUE)
 #'
@@ -100,6 +93,7 @@
 #' sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,
 #'                         method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
 #'                         min_spherical_dist = seq(0, 12, 3),
+#'                         custom_sky_coef = model$coef,
 #'                         parallel = TRUE)
 #'
 #' sky_cie$rr_raster
@@ -302,7 +296,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 
 # Extract vectors ---------------------------------------------------------
 
-    if (parallel) {
+  if (parallel) {
     row_vals <- terra::rowFromCell(r, terra::cells(r))
     col_vals <- terra::colFromCell(r, terra::cells(r))
     r_vals <- terra::values(r)
@@ -315,73 +309,6 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 
   sun_angles2 <- estimate_sun_angles(r, z, a, bin, NULL, NULL,
                                      method = "assume_veiled")
-
-
-# Detect sky dn -----------------------------------------------------------
-
-  if (is.null(custom_sky_coef)) {
-    is_from_detected_sky_dn <- TRUE
-    sky <- apply_by_direction(r, z, a, m,
-                              spacing = 5, laxity = 2.5,
-                              fov = c(30, 40),
-                              method = "detect_bg_dn",
-                              parallel = parallel)
-    g <- sky_grid_segmentation(z, a, 22.5, first_ring_different = FALSE)
-    sky_points <- extract_sky_points(sky$n, !is.na(sky$dn), g,
-                                     dist_to_black = 1)
-
-    if (nrow(sky_points) > ((unique(g[m]) %>% length()) * 0.75)) {
-      rr <- extract_rr(sky$dn, z, a, sky_points,
-                                 no_of_points = 3,
-                                 use_window = FALSE)
-
-      # Sun coordinate
-      sun_angles <- estimate_sun_angles(r, z, a, bin, g,
-                                        angular_radius_sun = 30,
-                                        method = "assume_obscured")
-
-      # Force the sun low and add that to the results
-      civic_twilight <- c(seq(sun_angles["z"], 90, length = 5), seq(91, 96, 1))
-
-      suns <- lapply(seq_along(civic_twilight),
-                     function(i) c(z = civic_twilight[i], sun_angles["a"]))
-      suns[[length(suns) + 1]] <- sun_angles2
-
-      # Model
-      if (parallel) {
-        # Only to avoid note from check, code is OK without this line.
-        sun <- NA
-
-        .with_cluster(.cores(), {
-          models <- foreach(sun = suns) %dopar% {
-            fit_cie_model(rr, sun, method = method)
-          }
-        })
-      } else {
-        models <- lapply(suns, function(sun) fit_cie_model(rr, sun,
-                                                          method = method))
-      }
-
-      metrics <- lapply(seq_along(models), function(i) models[[i]]$metric) %>%
-        unlist
-      i <- which.min(metrics)
-      model_up <- models[[i]]
-
-      if (is.null(model_up$opt_result$message)) {
-        custom_sky_coef <- model_up$coef
-      } else {
-        custom_sky_coef <- NULL
-      }
-    } else {
-      custom_sky_coef <- NULL
-    }
-  } else {
-    is_from_detected_sky_dn <- FALSE
-  }
-
-  if (is.null(custom_sky_coef)) {
-    is_from_detected_sky_dn <- FALSE
-  }
 
 
 # Get marks ---------------------------------------------------------------
@@ -399,7 +326,6 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
   } else {
      Map(.get_marks_single, r, z, a, m, bin, cv,gs)
   }
-
 
 
 # Fit ---------------------------------------------------------------------
@@ -436,7 +362,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 
 # Try subsamples ----------------------------------------------------------
 
-  l.min_spherical_dist.model <-if (any(min_spherical_dist != 0)) {
+  l.min_spherical_dist.model <- if (any(min_spherical_dist != 0)) {
     if (parallel && length(gs) > 1) {
       .with_cluster(.cores(), {
         foreach(i = seq_along(gs)) %dopar% {
@@ -492,8 +418,6 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
     warning("`ootb_sky_cie()` failed unexpectedly.")
     return(NULL)
   } else {
-    custom_sky_coef <- models[[i]]$start
-    attr(custom_sky_coef, "is_from_detected_sky_dn") <- is_from_detected_sky_dn
     .get_sky_cie <- function(z, a, model) {
       cie_image(z, a, model$sun_angles,  model$coef)
     }
@@ -517,8 +441,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
           }) %>% unlist %>% paste0(., collapse = "; "),
          tested_distances = paste0(min_spherical_dist, collapse = "; "),
          tested_methods = paste0(method, collapse = "; "),
-         optimal_start = custom_sky_coef,
-         model_up = if (is_from_detected_sky_dn) model_up else NULL
+         optimal_start = custom_sky_coef
          )
   }
 }

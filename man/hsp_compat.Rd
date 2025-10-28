@@ -39,10 +39,10 @@ required when working fully within \code{rcaiman}.
 \section{About HSP software}{
 
 
-HSP (introduced in \insertCite{Lang2013}{rcaiman}, based on the method in
-\insertCite{Lang2010}{rcaiman}) runs exclusively on Windows. HSP stores
-pre-processed images as PGM files in the \code{manipulate} subfolder of each
-project (itself inside the \code{projects} folder).
+HSP was introduced in \insertCite{Lang2013}{rcaiman} and is based on the
+method presented in \insertCite{Lang2010;textual}{rcaiman}). It runs
+exclusively on Windows. HSP stores pre-processed images as PGM files in the
+\code{manipulate} subfolder of each project (itself inside the \code{projects} folder).
 }
 
 \section{Functions}{

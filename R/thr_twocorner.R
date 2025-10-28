@@ -4,9 +4,9 @@
 #' Apply Rosin’s geometric corner detector for unimodal histograms
 #' \insertCite{Rosin2001;textual}{rcaiman} to both sides of a bimodal canopy
 #' histogram as in Macfarlane’s two-corner approach
-#' \insertCite{Macfarlane2011;textual}{rcaiman}. Optional slope-reduction as in
-#' Macfarlane is supported. Peak detection can use a prominence-based method or
-#' Macfarlane’s original windowed maxima.
+#' \insertCite{Macfarlane2011}{rcaiman}. Optional slope-reduction as in
+#' \insertCite{Macfarlane2011;textual}{rcaiman} is supported. Peak detection can
+#' use the multimode package or Macfarlane’s original windowed maxima.
 #'
 #' @details
 #'
@@ -19,18 +19,12 @@
 #'   bias.
 #'   \item Detect the two mode peaks according to `method`:
 #'     \itemize{
-#'       \item `method = "prominence"`: find local maxima via discrete
-#'       derivatives with plateau handling; find nearest left/right minima; compute
-#'       peak prominence as \eqn{\min(y[p]-y[L],\,y[p]-y[R])}; filter by minimum
-#'       prominence and minimum peak separation; select the pair that maximizes
-#'       \eqn{\min(\mathrm{prom}_\mathrm{left},\,\mathrm{prom}_\mathrm{right})}.
+#'       \item `method = "multimode"`: use `multimode::locmodes(mod0 = 2)`.
 #'       \item `method = "macfarlane"`: search peaks within fixed DN windows as in
 #'       \insertCite{Macfarlane2011;textual}{rcaiman}. Peak search is performed on the
 #'       **unsmoothed** histogram, as originally proposed.
 #'     }
-#'   \item Apply Rosin’s corner construction on each mode. The line end at the
-#'   “first empty bin after the last filled bin” is determined on the
-#'   **unsmoothed** histogram \insertCite{Rosin2001;textual}{rcaiman}. If
+#'   \item Apply Rosin’s corner construction on each mode. If
 #'   `slope_reduction = TRUE` and the peak height exceeds the mean of the
 #'   smoothed histogram, the peak height is reduced to that mean before the
 #'   geometric construction (Macfarlane’s variant).
@@ -50,9 +44,9 @@
 #' and restores the previous settings on exit. If `adjust_par = FALSE`, no
 #' parameters are changed and the plot respects the current device/layout.
 #'
-#' @param sigma numeric vector of length one. Standard deviation (DN) of the
-#'   Gaussian kernel used to smooth the histogram prior to peak detection and
-#'   Rosin’s construction.
+#' @param sigma numeric vector of length one or `NULL`. Standard deviation (DN)
+#'   of the Gaussian kernel used to smooth the histogram prior to Rosin’s
+#'   construction.
 #' @param method character vector of length one. Peak detection strategy. One of
 #'   `"prominence"` (default) or `"macfarlane"`.
 #' @param slope_reduction logical vector of length one. If `TRUE`, apply
@@ -81,21 +75,31 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' caim <- conventional_lens_image()
-#' # Prominence-based peak detection, Gaussian smoothing with sigma = 2 DN
-#' thr <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = FALSE,
-#'                      method = "prominence")
-#' # Original Macfarlane peak search (for comparison)
-#' thr2 <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = TRUE,
-#'                       method = "macfarlane")
-#' data.frame(unlist(thr), unlist(thr2))
+#' par(mfrow = c(1,2))
+#' # Original Macfarlane
+#' thr <- thr_twocorner(caim$Blue[], sigma = NULL, slope_reduction = TRUE,
+#'                      method = "macfarlane",
+#'                      diagnose = T,
+#'                      adjust_par = FALSE)
+#' # Alternative with multimode
+#' thr2 <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = FALSE,
+#'                       method = "multimode",
+#'                       diagnose = T,
+#'                       adjust_par = FALSE)
+#'
+#' data.frame(macfarlane = unlist(thr), alternative = unlist(thr2))
+#' }
 thr_twocorner <- function(x,
                           sigma = 2,
-                          slope_reduction = TRUE,
-                          method = "prominence",
+                          slope_reduction = FALSE,
+                          method = "multimode",
                           diagnose = FALSE,
                           adjust_par = TRUE
                           ) {
+
+  .this_requires_multimode()
 
   # Coerce matrix or data.frame to numeric
   if (is.matrix(x) | is.data.frame(x)) {
@@ -105,122 +109,43 @@ thr_twocorner <- function(x,
   if (!is.numeric(x)) {
     stop("`x` must be a numeric vector or coercible to numeric.")
   }
-  .check_vector(sigma, "numeric", 1, sign = "positive")
+  .check_vector(sigma, "numeric", 1, sign = "positive", allow_null = TRUE)
   .check_vector(slope_reduction, "logical", 1)
-  .assert_choice(method, c("prominence", "macfarlane"))
+  .assert_choice(method, c("macfarlane", "multimode"))
   .check_vector(diagnose, "logical", 1)
   .check_vector(adjust_par, "logical", 1)
-
-  #hardcoded parameters
-  peak_min_sep = 20L
-  peak_min_prom = 0.05
-  peak_edge_guard = 5L
 
   # Remove NA values
   x <- x[!is.na(x)]
 
-  .find_dn_of_first_empty_bin <- function(h, peak) {
-    # “the line starts at the largest bin and finishes at the first empty bin of
-    # the histogram following the last filled bin.” ([Rosin, 2001, p. 2084]
-    h[1:peak] <- max(h)
-    zero_bins <- h == 0
-    if (any(zero_bins)) {
-      x2 <- which.max(zero_bins) - 1
-    } else {
-      x2 <- 256
-    }
-    x2
-  }
-
   # Gaussian smoothing of a discrete histogram (length 256)
   .smooth_hist_gaussian <- function(h, sigma, pad = c("reflect","replicate")) {
-    pad <- match.arg(pad)
-    stopifnot(length(h) >= 3, is.finite(sigma), sigma > 0)
-    r <- ceiling(3 * sigma)
-    x <- -r:r
-    k <- exp(-(x*x) / (2 * sigma * sigma))
-    k <- k / sum(k)  # normalize kernel to unit area
-
-    # build padded vector
-    if (pad == "replicate") {
-      padL <- rep(h[1], r); padR <- rep(h[length(h)], r)
-    } else { # reflect
-      padL <- h[seq.int(r+1, 2, by = -1)]
-      padR <- h[seq.int(length(h)-1, length(h)-r, by = -1)]
-    }
-    hp <- c(padL, h, padR)
-
-    # convolution (centered, same length)
-    ys <- as.numeric(stats::filter(hp, k, sides = 2))
-    ys[(r + 1):(length(ys) - r)]
-  }
-
-  .find_extrema <- function(y, kind = c("peak","pit"), eps = 1e-8,
-                            edge_guard = 1L, min_sep = NULL) {
-    kind <- match.arg(kind)
-    n <- length(y); stopifnot(n >= 3)
-
-    dy <- diff(y)
-    s  <- ifelse(dy > eps,  1L, ifelse(dy < -eps, -1L, 0L))
-
-    sL <- s; for (i in 2:(n-1)) if (sL[i] == 0L) sL[i] <- sL[i-1]
-    sR <- s; for (i in (n-2):1)  if (sR[i] == 0L) sR[i] <- sR[i+1]
-
-    if (kind == "peak") {
-      cand <- which(sL[1:(n-2)] ==  1L & sR[2:(n-1)] == -1L) + 1L
+    if (is.null(sigma)) {
+      ys <- h
     } else {
-      cand <- which(sL[1:(n-2)] == -1L & sR[2:(n-1)] ==  1L) + 1L
-    }
-    if (!length(cand)) return(integer())
+      pad <- match.arg(pad)
+      stopifnot(length(h) >= 3, is.finite(sigma), sigma > 0)
+      r <- ceiling(3 * sigma)
+      x <- -r:r
+      k <- exp(-(x*x) / (2 * sigma * sigma))
+      k <- k / sum(k)  # normalize kernel to unit area
 
-    expand_plateau <- function(i) {
-      L <- i; while (L > 1L && abs(y[L] - y[L-1L]) <= eps) L <- L - 1L
-      R <- i; while (R < n  && abs(y[R] - y[R+1L]) <= eps) R <- R + 1L
-      as.integer((L + R) %/% 2L)
-    }
-    idx <- vapply(cand, expand_plateau, 0L)
-    idx <- idx[idx > edge_guard & idx < (n - edge_guard)]
-    idx <- unique(idx)
-    if (!length(idx)) return(integer())
+      # build padded vector
+      if (pad == "replicate") {
+        padL <- rep(h[1], r); padR <- rep(h[length(h)], r)
+      } else { # reflect
+        padL <- h[seq.int(r+1, 2, by = -1)]
+        padR <- h[seq.int(length(h)-1, length(h)-r, by = -1)]
+      }
+      hp <- c(padL, h, padR)
 
-    if (!is.null(min_sep) && kind == "peak" && length(idx) > 1L) {
-      ord <- idx[order(-y[idx])]
-      kept <- integer(0)
-      for (p in ord) if (!any(abs(p - kept) < min_sep)) kept <- c(kept, p)
-      idx <- sort(kept)
+      # convolution (centered, same length)
+      ys <- as.numeric(stats::filter(hp, k, sides = 2))
+      ys <- ys[(r + 1):(length(ys) - r)]
     }
-    idx
+    ys
   }
 
-  .compute_prominence <- function(y, peaks, pits, mode = c("side-min","nearest")) {
-    mode <- match.arg(mode); n <- length(y)
-    vapply(peaks, function(p) {
-      Lc <- pits[pits < p]; Rc <- pits[pits > p]
-      L <- if (length(Lc)) max(Lc) else if (mode=="nearest") 1L else if (p>1L) which.min(y[1L:(p-1L)]) else 1L
-      R <- if (length(Rc)) min(Rc) else if (mode=="nearest") n  else if (p<n) which.min(y[(p+1L):n]) + p else n
-      max(0, min(y[p] - y[L], y[p] - y[R]))
-    }, 0.0)
-  }
-
-  .select_bimodal_pair <- function(y, peaks, pits, min_prom = 0.05, min_sep = 20L) {
-    if (length(peaks) < 2L) return(NULL)
-    prom <- .compute_prominence(y, peaks, pits, mode = "side-min")
-    keep <- prom >= min_prom * max(y)
-    peaks <- peaks[keep]; prom <- prom[keep]
-    if (length(peaks) < 2L) return(NULL)
-
-    pr  <- t(utils::combn(seq_along(peaks), 2L))
-    sep <- abs(peaks[pr[,2]] - peaks[pr[,1]])
-    ok  <- sep >= min_sep
-    if (!any(ok)) return(NULL)
-
-    score <- pmin(prom[pr[ok,1]], prom[pr[ok,2]])
-    tb2   <- sep[ok]
-    tb3   <- (y[peaks[pr[ok,1]]] + y[peaks[pr[ok,2]]]) / 2
-    ord   <- order(-score, -tb2, -tb3)
-    best  <- pr[ok,,drop=FALSE][ord[1],]
-    list(left = min(peaks[best]), right = max(peaks[best]))
-  }
 
   .exact_geometric_construction <- function(h, peak_dn, sigma = NULL,
                                             slope_reduction = FALSE) {
@@ -228,8 +153,7 @@ thr_twocorner <- function(x,
     # 2083–2096. https://doi.org/10.1016/S0031-3203(00)00136-9
 
     # p2
-    # It is important to apply this before smoothing
-    x2 <- .find_dn_of_first_empty_bin(h, peak_dn)
+    x2 <- 256
     y2 <- 0
 
     h <- .smooth_hist_gaussian(h, sigma)
@@ -316,17 +240,17 @@ thr_twocorner <- function(x,
   vals <- (normalize_minmax(x, mn, mx) * 255) %>% round()
   h <- as.numeric(table(factor(vals, levels = 0:255)))
 
-  if (identical(method, "prominence")) {
-    h_s <- .smooth_hist_gaussian(h, sigma)
-    peaks <- .find_extrema(h_s, "peak", edge_guard = peak_edge_guard)
-    pits  <- .find_extrema(h_s, "pit",  edge_guard = peak_edge_guard)
-    pair  <- .select_bimodal_pair(h_s, peaks, pits,
-                                  min_prom = peak_min_prom,
-                                  min_sep  = peak_min_sep)
-    if (is.null(pair)) stop("Unimodal histogram")
-    DNMAX_left  <- pair$left
-    DNMAX_right <- pair$right
 
+# find peaks --------------------------------------------------------------
+  if (identical(method, "multimode")) {
+    modes <- multimode::locmodes(vals, mod0 = 2) %>% suppressWarnings()
+    if (is.null(modes$locations)) {
+      stop("'multimode' has fail")
+    } else if (length(modes$locations) != 3) {
+      stop("'multimode' has fail")
+    }
+    DNMAX_left <- round(modes$locations[1])
+    DNMAX_right <- round(modes$locations[3])
   } else {
     # Find peaks (Macfarlane 2011)
     DNL1 <- 5; DNL2 <- 55; DNR1 <- 200; DNR2 <- 250

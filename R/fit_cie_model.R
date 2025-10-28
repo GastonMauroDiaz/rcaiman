@@ -40,7 +40,7 @@
 #'   \item{`coef`}{Numeric vector of length five. CIE model coefficients.}
 #'   \item{`sun_angles`}{Numeric vector of length two. Sun zenith and azimuth
 #'     (degrees).}
-#'   \item{`method`}{Character string. Optimization method used.}
+#'   \item{`method`}{Character vector of length one. Optimization method used.}
 #'   \item{`start`}{Numeric vector of length five. Starting parameters.}
 #'   \item{`metric`}{Numeric value. Mean squared deviation as in
 #'     \insertCite{Gauch2003;textual}{rcaiman}.}

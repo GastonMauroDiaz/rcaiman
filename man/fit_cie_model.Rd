@@ -49,7 +49,7 @@ List with the following components:
 \item{\code{coef}}{Numeric vector of length five. CIE model coefficients.}
 \item{\code{sun_angles}}{Numeric vector of length two. Sun zenith and azimuth
 (degrees).}
-\item{\code{method}}{Character string. Optimization method used.}
+\item{\code{method}}{Character vector of length one. Optimization method used.}
 \item{\code{start}}{Numeric vector of length five. Starting parameters.}
 \item{\code{metric}}{Numeric value. Mean squared deviation as in
 \insertCite{Gauch2003;textual}{rcaiman}.}

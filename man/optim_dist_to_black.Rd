@@ -26,7 +26,7 @@ usually built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}
 when \code{method = "local_max"}.}
 }
 \value{
-numeric vector of length one to be passed as \code{dist_to_black} to
+Numeric vector of length one to be passed as \code{dist_to_black} to
 \code{\link[=extract_sky_points]{extract_sky_points()}}, or \code{NULL} if no buffer is advised.
 }
 \description{

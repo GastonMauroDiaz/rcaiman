@@ -7,10 +7,10 @@
 #'
 #' @section About HSP software:
 #'
-#' HSP (introduced in \insertCite{Lang2013}{rcaiman}, based on the method in
-#' \insertCite{Lang2010}{rcaiman}) runs exclusively on Windows. HSP stores
-#' pre-processed images as PGM files in the `manipulate` subfolder of each
-#' project (itself inside the `projects` folder).
+#' HSP was introduced in \insertCite{Lang2013}{rcaiman} and is based on the
+#' method presented in \insertCite{Lang2010;textual}{rcaiman}). It runs
+#' exclusively on Windows. HSP stores pre-processed images as PGM files in the
+#' `manipulate` subfolder of each project (itself inside the `projects` folder).
 #'
 #' @section Functions:
 #'
@@ -104,7 +104,7 @@
 #' }
 hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "img_name", 1)
+  .check_vector(path_to_HSP_project, "character", 1)
 
   files <- dir(file.path(path_to_HSP_project, "manipulate"),
                pattern = "settings", full.names = TRUE)
@@ -156,7 +156,7 @@ hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
 #' @export
 hsp_read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "img_name", 1)
+  .check_vector(path_to_HSP_project, "character", 1)
 
   files <- dir(file.path(path_to_HSP_project, "manipulate"),
                pattern = "opt-parameters", full.names = TRUE)
@@ -174,7 +174,7 @@ hsp_read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
 hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
   .check_sky_points(sky_points)
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "img_name", 1)
+  .check_vector(path_to_HSP_project, "character", 1)
 
   no <- nrow(sky_points)
 
@@ -199,7 +199,7 @@ hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
 hsp_write_sun_coord <- function(sun_row_col, path_to_HSP_project, img_name) {
   .check_vector(sun_row_col, "numeric", 2, sign = "positive")
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "img_name", 1)
+  .check_vector(path_to_HSP_project, "character", 1)
 
   sun_col_row <- paste(sun_row_col[c(2,1)], collapse = ".")
 

@@ -15,7 +15,7 @@
 #' @inheritParams extract_sky_points
 #' @inheritParams compute_canopy_openness
 #'
-#' @return numeric vector of length one to be passed as `dist_to_black` to
+#' @return Numeric vector of length one to be passed as `dist_to_black` to
 #'   [extract_sky_points()], or `NULL` if no buffer is advised.
 #'
 #' @examples

@@ -7,8 +7,8 @@
 thr_twocorner(
   x,
   sigma = 2,
-  slope_reduction = TRUE,
-  method = "prominence",
+  slope_reduction = FALSE,
+  method = "multimode",
   diagnose = FALSE,
   adjust_par = TRUE
 )
@@ -17,9 +17,9 @@ thr_twocorner(
 \item{x}{numeric vector or a single-column \code{matrix} or \code{data.frame} able to
 be coerced to numeric.}
 
-\item{sigma}{numeric vector of length one. Standard deviation (DN) of the
-Gaussian kernel used to smooth the histogram prior to peak detection and
-Rosin’s construction.}
+\item{sigma}{numeric vector of length one or \code{NULL}. Standard deviation (DN)
+of the Gaussian kernel used to smooth the histogram prior to Rosin’s
+construction.}
 
 \item{slope_reduction}{logical vector of length one. If \code{TRUE}, apply
 Macfarlane’s slope-reduction before Rosin’s construction on each side.}
@@ -50,9 +50,9 @@ A list with:
 Apply Rosin’s geometric corner detector for unimodal histograms
 \insertCite{Rosin2001;textual}{rcaiman} to both sides of a bimodal canopy
 histogram as in Macfarlane’s two-corner approach
-\insertCite{Macfarlane2011;textual}{rcaiman}. Optional slope-reduction as in
-Macfarlane is supported. Peak detection can use a prominence-based method or
-Macfarlane’s original windowed maxima.
+\insertCite{Macfarlane2011}{rcaiman}. Optional slope-reduction as in
+\insertCite{Macfarlane2011;textual}{rcaiman} is supported. Peak detection can
+use the multimode package or Macfarlane’s original windowed maxima.
 }
 \details{
 Runs the following pipeline:
@@ -64,18 +64,12 @@ deviation \code{sigma} (in DN), using reflective padding to mitigate edge
 bias.
 \item Detect the two mode peaks according to \code{method}:
 \itemize{
-\item \code{method = "prominence"}: find local maxima via discrete
-derivatives with plateau handling; find nearest left/right minima; compute
-peak prominence as \eqn{\min(y[p]-y[L],\,y[p]-y[R])}; filter by minimum
-prominence and minimum peak separation; select the pair that maximizes
-\eqn{\min(\mathrm{prom}_\mathrm{left},\,\mathrm{prom}_\mathrm{right})}.
+\item \code{method = "multimode"}: use \code{multimode::locmodes(mod0 = 2)}.
 \item \code{method = "macfarlane"}: search peaks within fixed DN windows as in
 \insertCite{Macfarlane2011;textual}{rcaiman}. Peak search is performed on the
 \strong{unsmoothed} histogram, as originally proposed.
 }
-\item Apply Rosin’s corner construction on each mode. The line end at the
-“first empty bin after the last filled bin” is determined on the
-\strong{unsmoothed} histogram \insertCite{Rosin2001;textual}{rcaiman}. If
+\item Apply Rosin’s corner construction on each mode. If
 \code{slope_reduction = TRUE} and the peak height exceeds the mean of the
 smoothed histogram, the peak height is reduced to that mean before the
 geometric construction (Macfarlane’s variant).
@@ -96,14 +90,22 @@ and restores the previous settings on exit. If \code{adjust_par = FALSE}, no
 parameters are changed and the plot respects the current device/layout.
 }
 \examples{
+\dontrun{
 caim <- conventional_lens_image()
-# Prominence-based peak detection, Gaussian smoothing with sigma = 2 DN
-thr <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = FALSE,
-                     method = "prominence")
-# Original Macfarlane peak search (for comparison)
-thr2 <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = TRUE,
-                      method = "macfarlane")
-data.frame(unlist(thr), unlist(thr2))
+par(mfrow = c(1,2))
+# Original Macfarlane
+thr <- thr_twocorner(caim$Blue[], sigma = NULL, slope_reduction = TRUE,
+                     method = "macfarlane",
+                     diagnose = T,
+                     adjust_par = FALSE)
+# Alternative with multimode
+thr2 <- thr_twocorner(caim$Blue[], sigma = 2, slope_reduction = FALSE,
+                      method = "multimode",
+                      diagnose = T,
+                      adjust_par = FALSE)
+
+data.frame(macfarlane = unlist(thr), alternative = unlist(thr2))
+}
 }
 \references{
 \insertAllCited{}

@@ -13,6 +13,14 @@
   }
 }
 
+.this_requires_multimode <- function() {
+  if (!requireNamespace("multimode", quietly = TRUE)) {
+    stop(paste("Package \"multimode\" needed for this function to work.",
+               "Please install it."),
+         call. = FALSE)
+  }
+}
+
 .is_sky_grid <- function(g) {
   if (!inherits(g, "SpatRaster")) return(FALSE)
 
