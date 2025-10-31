@@ -4,7 +4,7 @@
 \alias{fisheye_to_equidistant}
 \title{Fisheye to equidistant}
 \usage{
-fisheye_to_equidistant(r, z, a, m, radius = NULL, k = 1, p = 1, rmax = 100)
+fisheye_to_equidistant(r, z, a, m, radius = NULL, k = 1, p = 1, rmax = 10)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or

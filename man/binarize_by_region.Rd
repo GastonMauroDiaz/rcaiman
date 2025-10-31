@@ -42,7 +42,7 @@ for canopy photography \insertCite{Jonckheere2005}{rcaiman}.}
 \code{\link[=thr_twocorner]{thr_twocorner()}}, which implements a geometric thresholding strategy based
 on identifying inflection points in the histogram, first introduced to
 canopy photography by \insertCite{Macfarlane2011;textual}{rcaiman}. Since
-this method tend to fail, the fallback is \code{thr_isodata}}
+this method might fail, the fallback is \code{thr_isodata}}
 }
 }
 \note{
@@ -59,7 +59,7 @@ z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
 r <- invert_gamma_correction(caim$Blue)
 r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
 rings <- ring_segmentation(z, 15)
-bin <- binarize_by_region(r, rings, "thr_isodata")
+bin <- binarize_by_region(r, rings, "thr_twocorner")
 plot(bin)
 }
 }

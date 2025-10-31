@@ -19,7 +19,7 @@
 #'   [thr_twocorner()], which implements a geometric thresholding strategy based
 #'   on identifying inflection points in the histogram, first introduced to
 #'   canopy photography by \insertCite{Macfarlane2011;textual}{rcaiman}. Since
-#'   this method tend to fail, the fallback is `thr_isodata`}
+#'   this method might fail, the fallback is `thr_isodata`}
 #' }
 #'
 #' @param r numeric [terra::SpatRaster-class] of one layer. Typically the blue
@@ -52,7 +52,7 @@
 #' r <- invert_gamma_correction(caim$Blue)
 #' r <- correct_vignetting(r, z, c(0.0638, -0.101)) %>% normalize_minmax()
 #' rings <- ring_segmentation(z, 15)
-#' bin <- binarize_by_region(r, rings, "thr_isodata")
+#' bin <- binarize_by_region(r, rings, "thr_twocorner")
 #' plot(bin)
 #' }
 binarize_by_region <- function(r, segmentation, method) {
@@ -63,8 +63,14 @@ binarize_by_region <- function(r, segmentation, method) {
 
   .fun <- switch(method,
     thr_isodata = thr_isodata,
-    thr_twocorner = function(x) tryCatch(thr_twocorner(x)$tm,
-                                         error = function(e) thr_isodata(x))
+    thr_twocorner = function(x) {
+      thr <- tryCatch(thr_twocorner(x)$tm, error = function(e) NULL)
+      if (is.null(thr)) {
+        message("Fallback to 'thr_isodata()'")
+        thr <- thr_isodata(x)
+      }
+      thr
+    }
   )
 
   if (is.null(.fun)) {

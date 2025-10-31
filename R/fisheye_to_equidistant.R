@@ -51,7 +51,7 @@ fisheye_to_equidistant <- function(r, z, a, m,
                                    radius = NULL,
                                    k = 1,
                                    p = 1,
-                                   rmax = 100)
+                                   rmax = 10)
   {
   .check_r_z_a_m(r, z, a, m, r_type = "any")
   .check_vector(radius, "numeric", 1, allow_null = TRUE, sign = "positive")
@@ -91,6 +91,26 @@ fisheye_to_equidistant <- function(r, z, a, m,
     ir[is.na(ir)] <- 0
     ir / const
   }
+  .fisheye_to_equidistant_terra <- function(r) {
+    new_r <- zenith_image(radius * 2, lens())
+    terra::ext(new_r) <- terra::ext(-pi / 2, pi / 2, -pi / 2, pi / 2)
+
+    m <- !is.na(z) & !is.na(r) & m
+    pol <- data.frame(theta = a[m] * pi / 180 + pi / 2,
+                      r = z[m] * pi / 180,
+                      z = r[m])
+    names(pol) <- c("theta", "r", "z")
+    cart <- pracma::pol2cart(as.matrix(pol))
+    v <- terra::vect(cart[, c("x", "y")], crs = crs(r),
+                     atts = data.frame(z = cart[,"z"]))
+
+    ir <- terra::interpIDW(new_r, v, field = "z", radius = (pi/2)/radius*rmax,
+                           power = p,
+                           maxPoints = k, minPoints = 1)
+    ir[is.na(ir)] <- 0
+    ir
+  }
+
   layer_names <- names(r)
   r <- Map(function(r) .fisheye_to_equidistant(r), as.list(r))
   r <- terra::rast(r)

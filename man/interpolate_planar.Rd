@@ -4,7 +4,16 @@
 \alias{interpolate_planar}
 \title{Interpolate in planar space}
 \usage{
-interpolate_planar(sky_points, r, k = 3, p = 2, rmax = 200, col_id = "dn")
+interpolate_planar(
+  sky_points,
+  r,
+  k = 3,
+  p = 2,
+  rmax = 200,
+  col_id = "dn",
+  rigorous = FALSE,
+  engine = "lidR"
+)
 }
 \arguments{
 \item{sky_points}{\code{data.frame} with columns \code{row}, \code{col}, and one additional
@@ -22,6 +31,18 @@ resolution.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
 of the column in \code{sky_points} containing the values to interpolate.}
+
+\item{rigorous}{logical vector of length one. By default (\code{FALSE}), the
+method interpolates as long as there is at least one point not farther than
+\code{rmax}. If it is \code{TRUE}, it requires \code{k} points at range. Ignored when
+\code{engine = "lidR"}.}
+
+\item{engine}{character vector of length one. Interpolation engine to be used.
+Allowed choises are "lidR", in which case delegates to \code{\link[lidR:dtm_idw]{lidR::knnidw()}},
+passing \code{k}, \code{p}, and \code{rmax} unchanged, or "terra", which delegates to
+\code{\link[terra:interpIDW]{terra::interpIDW()}}, passing \code{k}, \code{p}, and \code{rmax} to \code{maxPoints}, \code{power},
+and \code{radius}, respectively, and when \code{rigorous = TRUE}, changes from
+\code{minPoints = 1} (default) to \code{minPoints = k}.}
 }
 \value{
 Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same geometry
@@ -33,13 +54,12 @@ Interpolate values from canopy photographs using inverse distance weighting
 A radius limits neighbor search.
 }
 \details{
-Delegates interpolation to \code{\link[lidR:dtm_idw]{lidR::knnidw()}}, passing \code{k}, \code{p}, and \code{rmax}
-unchanged. Defaults follow \insertCite{Lang2013;textual}{rcaiman}.
-Note that \code{rmax} is given in pixels but intended to approximate 15–20 deg in
-angular terms. Therefore, this value needs fine-tuning based on image
-resolution and lens projection. For best results, the interpolated quantity
-should be linearly related to scene radiance; see \code{\link[=extract_radiometry]{extract_radiometry()}} and
-\code{\link[=read_caim_raw]{read_caim_raw()}}. For JPEG images, consider \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} to reverse gamma
+Defaults follow \insertCite{Lang2013;textual}{rcaiman}. Note that \code{rmax} is
+given in pixels but intended to approximate 15–20 deg in angular terms.
+Therefore, this value needs fine-tuning based on image resolution and lens
+projection. For best results, the interpolated quantity should be linearly
+related to scene radiance; see \code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}}.
+For JPEG images, consider \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} to reverse gamma
 encoding.
 }
 \note{
