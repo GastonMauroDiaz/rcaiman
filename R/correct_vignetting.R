@@ -6,17 +6,30 @@
 #' This function corrects it by applying a device-specific correction as a
 #' function of the zenith angle at each pixel.
 #'
-#' @inheritParams fisheye_to_equidistant
+#' The methodology used to acquire data allows different level of accuracy.
 #'
-#' @param lens_coef_v numeric vector. Coefficients of the vignetting function
+#' \describe{
+#'   \item{simple:}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
 #'   \eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
 #'   \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
 #'   polynomial coefficients. Degrees up to 6 are supported. See
-#'   [extract_radiometry()] for guidance on estimating these coefficients.
+#'   [extract_radiometry()] for guidance on estimating these coefficients.}
+#'   \item{photometric_sphere:}{method described in \insertCite{Lang2010;textual}{rcaiman}.
+#'    \eqn{f_v(\theta) = a + b\theta + c\theta^2 + \dots + m\theta^n}, where
+#'   \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
+#'   parameters. Up to 7 parameters are supported.}
+#' }
+#'
+#' @inheritParams fisheye_to_equidistant
+#'
+#' @param lens_coef_v numeric vector. Coefficients of the vignetting function. See details.
+#' @param method character vector of length one.
 #'
 #' @return [terra::SpatRaster-class] with the same content as `r` but with
 #'   pixel values adjusted to correct for vignetting, preserving all other
 #'   properties (layers, names, extent, and CRS).
+#'
+#' @references \insertAllCited{}
 #'
 #' @export
 #'
@@ -41,20 +54,36 @@
 
 # The lens_coef_v values are from doi:10.1016/j.agrformet.2024.110020
 #' }
-correct_vignetting <- function(r, z, lens_coef_v) {
+correct_vignetting <- function(r, z, lens_coef_v, method = "simple") {
+
   .check_r_z_a_m(r, z, r_type = "any")
   .check_vector(lens_coef_v, "numeric", sign = "any")
+  .assert_choice(method, c("simple", "photometric_sphere"))
 
-  # only to avoid note from check, code is OK without this line.
-  a <- b <- d <- e <- f <- NA
+  if (method == "simple") {
+    # only to avoid note from check, code is OK without this line.
+    a <- b <- d <- e <- f <- NA
 
-  .fv <- function(theta, lens_coef_v) {
-    x <- lens_coef_v[1:6]
-    x[is.na(x)] <- 0
-    for (i in 1:6) assign(letters[i], x[i])
-    1 + a * theta + b * theta^2 + c * theta^3 +
-      d * theta^4 + e * theta^5 + f * theta^6
+    .fv <- function(theta, lens_coef_v) {
+      x <- lens_coef_v[1:6]
+      x[is.na(x)] <- 0
+      for (i in 1:6) assign(letters[i], x[i])
+      1 + a * theta + b * theta^2 + c * theta^3 +
+        d * theta^4 + e * theta^5 + f * theta^6
+    }
+  } else {
+    a <- b <- d <- e <- f <- g <- NA
+
+    .fv <- function(theta, lens_coef_v) {
+      x <- lens_coef_v[1:7]
+      x[is.na(x)] <- 0
+      for (i in 1:7) assign(letters[i], x[i])
+      a + b * theta + c * theta^2 + d * theta^3 +
+        e * theta^4 + f * theta^5 + g * theta^6
+    }
+
   }
+
   r <- r / .fv(z * pi / 180, lens_coef_v)
   r[is.na(z)] <- 0
   r

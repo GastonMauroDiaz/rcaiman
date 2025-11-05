@@ -18,8 +18,8 @@
 #'   \item{\code{hsp_read_manual_input()}}{read sky marks and sun position
 #'   defined manually within an HSP project; returns a named list with
 #'   components \code{weight}, \code{max_points}, \code{angle},
-#'   \code{point_radius}, \code{sun_row_col}, \code{sky_points}, and
-#'   \code{zenith_dn}.}
+#'   \code{point_radius}, \code{sun_row_col}, \code{sky_points},
+#'   \code{zenith_dn}, \code{masks}, and \code{marked_areas}.}
 #'
 #'   \item{\code{hsp_read_opt_sky_coef()}}{read optimized CIE sky coefficients
 #'   from an HSP project; returns a numeric vector of length five.}
@@ -106,6 +106,44 @@ hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
   .check_vector(path_to_HSP_project, "character", 1)
   .check_vector(path_to_HSP_project, "character", 1)
 
+  .get_vect_from_plain <- function(file) {
+    # Mait Lang, 04.11.2025.
+    masks <- NULL
+    # Read file content to vector of strings
+    masks.vertices <- readLines(file)
+
+    .m <- as.integer(masks.vertices[1])
+    if (.m != 0) {
+      while (.m >= 1 ) {
+
+        # remove the count from vertex list
+        vertices  <- strsplit( gsub("^\\S+ ", "",masks.vertices[.m+1]), split="[ \\.]") %>%
+          unlist() %>%
+          as.numeric() %>%
+          matrix(., ncol = 2, byrow = TRUE)
+
+        if (is.null(masks)) {
+          masks <- cbind(object=.m, part=1,vertices , hole=0)
+        } else {
+          masks <- rbind(masks, cbind(object=.m, part=1,vertices , hole=0))
+        }
+        .m <- .m -1
+      }
+      # leave it col and row. The row has to be converted to y coordinate later when the number of image lines is known.
+      colnames(masks)[3:4] <- c("col", "row" )
+
+      #Below code is by Gastón
+      r <- read_caim(file.path(path_to_HSP_project, "manipulate",
+                               paste0(img_name, ".pgm")))
+      x <- terra::xFromCol(r, masks[, "col"])
+      y <- terra::yFromRow(r, masks[, "row"])
+      masks[, c("col", "row")] <- cbind(x, y)
+      colnames(masks)[3:4] <- c("x", "y")
+      masks <- terra::vect(masks, "polygons", crs = crs(r))
+    }
+    masks
+  }
+
   files <- dir(file.path(path_to_HSP_project, "manipulate"),
                pattern = "settings", full.names = TRUE)
   file <- files[grep(img_name, files)]
@@ -143,13 +181,25 @@ hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
   zenith_dn <- strsplit(zenith_dn, "=")[[1]][2] %>%
     sub(",", ".", .) %>% as.numeric()
 
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "masks", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  masks <- .get_vect_from_plain(file)
+
+  files <- dir(file.path(path_to_HSP_project, "manipulate"),
+               pattern = "polygons", full.names = TRUE)
+  file <- files[grep(img_name, files)]
+  marked_areas <- .get_vect_from_plain(file)
+
   list(weight = settings[1,2] %>% as.numeric(),
        max_points = settings[2,2] %>% as.numeric(),
        angle = settings[3,2] %>% as.numeric(),
        point_radius = settings[4,2] %>% as.numeric(),
        sun_row_col = sun_row_col,
        sky_points = sky_marks,
-       zenith_dn = zenith_dn)
+       zenith_dn = zenith_dn,
+       masks = masks,
+       marked_areas = marked_areas)
 }
 
 #' @rdname hsp_compat

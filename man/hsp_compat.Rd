@@ -52,8 +52,8 @@ exclusively on Windows. HSP stores pre-processed images as PGM files in the
 \item{\code{hsp_read_manual_input()}}{read sky marks and sun position
 defined manually within an HSP project; returns a named list with
 components \code{weight}, \code{max_points}, \code{angle},
-\code{point_radius}, \code{sun_row_col}, \code{sky_points}, and
-\code{zenith_dn}.}
+\code{point_radius}, \code{sun_row_col}, \code{sky_points},
+\code{zenith_dn}, \code{masks}, and \code{marked_areas}.}
 
 \item{\code{hsp_read_opt_sky_coef()}}{read optimized CIE sky coefficients
 from an HSP project; returns a numeric vector of length five.}

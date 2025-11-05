@@ -4,7 +4,7 @@
 \alias{correct_vignetting}
 \title{Correct vignetting effect}
 \usage{
-correct_vignetting(r, z, lens_coef_v)
+correct_vignetting(r, z, lens_coef_v, method = "simple")
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
@@ -12,11 +12,9 @@ binary masks) in fisheye projection.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function
-\eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
-\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
-polynomial coefficients. Degrees up to 6 are supported. See
-\code{\link[=extract_radiometry]{extract_radiometry()}} for guidance on estimating these coefficients.}
+\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function. See details.}
+
+\item{method}{character vector of length one.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} with the same content as \code{r} but with
@@ -30,6 +28,20 @@ Apply a vignetting correction to an image using a polynomial model.
 Vignetting is the gradual reduction of image brightness toward the periphery.
 This function corrects it by applying a device-specific correction as a
 function of the zenith angle at each pixel.
+
+The methodology used to acquire data allows different level of accuracy.
+
+\describe{
+\item{simple:}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
+\eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
+\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
+polynomial coefficients. Degrees up to 6 are supported. See
+\code{\link[=extract_radiometry]{extract_radiometry()}} for guidance on estimating these coefficients.}
+\item{photometric_sphere:}{method described in \insertCite{Lang2010;textual}{rcaiman}.
+\eqn{f_v(\theta) = a + b\theta + c\theta^2 + \dots + m\theta^n}, where
+\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
+parameters. Up to 7 parameters are supported.}
+}
 }
 \examples{
 \dontrun{
@@ -50,4 +62,7 @@ caim <- invert_gamma_correction(caim, 2.2)
 caim <- correct_vignetting(caim, z, c(-0.0546, -0.561, 0.22)) \%>\%
         normalize_minmax()
 }
+}
+\references{
+\insertAllCited{}
 }
