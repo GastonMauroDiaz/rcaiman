@@ -62,8 +62,8 @@
   tcltk::tkwait.window(win)
 }
 
-.cores <- function(cores = NULL, leave_free = 0) {
-  total <- parallel::detectCores(logical = FALSE) # physical cores
+.cores <- function(cores = NULL, leave_free = 0, logical = FALSE) {
+  total <- parallel::detectCores(logical = logical) # physical or logical cores?
   if (is.na(total) || total < 1) total <- 1
 
   # explicit request

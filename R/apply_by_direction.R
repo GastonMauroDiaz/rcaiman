@@ -27,6 +27,9 @@
 #'   free when `parallel = TRUE`. Ignored when `cores` is not `NULL`. Must be
 #'   greater than or equal to 0. If `total_cores - leave_free` is less than 2,
 #'   `parallel` is silently set to `FALSE`.
+#' @param logical logical vector of length one. Internally it is passed unchanged
+#'   to the argument `logical` in [parallel::detectCores()]. Ignored when
+#'   `parallel = FALSE`.
 #'
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams binarize_with_thr
@@ -94,7 +97,8 @@ apply_by_direction <- function(r, z, a, m,
                                fun = NULL,
                                parallel = TRUE,
                                cores = NULL,
-                               leave_free = 0) {
+                               leave_free = 1,
+                               logical = TRUE) {
 
   .check_r_z_a_m(r, z, a, m, r_type = "any")
   .check_vector(spacing, "numeric", 1, sign = "positive")
@@ -103,9 +107,10 @@ apply_by_direction <- function(r, z, a, m,
   .check_vector(parallel, "logical", 1)
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
   .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+  .check_vector(logical, "logical", 1)
 
   if (parallel) {
-    cores <- .cores(cores, leave_free)
+    cores <- .cores(cores, leave_free, logical)
     if (cores < 2) parallel <- FALSE
   }
 

@@ -61,14 +61,16 @@ ootb_cie_model <- function(r, z, a, m,
                            method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
                            parallel = TRUE,
                            cores = NULL,
-                           leave_free = 0
+                           leave_free = 1,
+                           logical = TRUE
 ) {
 
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
   .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+  .check_vector(logical, "logical", 1)
 
   if (parallel) {
-    cores <- .cores(cores, leave_free)
+    cores <- .cores(cores, leave_free, logical)
     if (cores < 2) parallel <- FALSE
   }
   #more basic checks are handled by the functions called below

@@ -12,7 +12,8 @@ ootb_cie_model(
   method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
   parallel = TRUE,
   cores = NULL,
-  leave_free = 0
+  leave_free = 1,
+  logical = TRUE
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
 free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
 greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
+
+\item{logical}{logical vector of length one. Internally it is passed unchanged
+to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
+\code{parallel = FALSE}.}
 }
 \value{
 List with the following components:

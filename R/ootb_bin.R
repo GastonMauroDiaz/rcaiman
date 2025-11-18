@@ -35,7 +35,7 @@
 #'   value, use it to normalize per segment
 #'   (`ratio <- Blue / sky_segment_max`), interpret the normalization as the degree
 #'   of membership to the sky class, and then defuzzify with a fixed threshold
-#'   `0.5`.
+#'   equal to `0.5`.
 #' }
 #'
 #' @note
@@ -61,7 +61,11 @@
 #' bin <- ootb_bin(caim, z, a, m)
 #' plot(bin)
 #' }
-ootb_bin <- function(caim, z, a, m, parallel = TRUE, cores = NULL, leave_free = 0){
+ootb_bin <- function(caim, z, a, m,
+                     parallel = TRUE,
+                     cores = NULL,
+                     leave_free = 1,
+                     logical = TRUE){
   #basic checks handled by the functions called below
   com <- complementary_gradients(caim)
   mem <- max(com$yellow_blue, com$red_cyan)
@@ -71,7 +75,8 @@ ootb_bin <- function(caim, z, a, m, parallel = TRUE, cores = NULL, leave_free = 
                             method = "thr_isodata",
                             parallel = parallel,
                             cores = cores,
-                            leave_free = leave_free)
+                            leave_free = leave_free,
+                            logical = logical)
   bin <- binarize_with_thr(mem, thr$dn)
   bin <- rem_isolated_black_pixels(bin)
   bin <- grow_black(bin, 1)
