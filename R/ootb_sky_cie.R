@@ -116,10 +116,20 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
                          min_spherical_dist = seq(0, 12, 3),
                          method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
                          custom_sky_coef = NULL,
-                         parallel = TRUE
+                         parallel = TRUE,
+                         cores = NULL,
+                         leave_free = 0
                          ) {
 
-  #basic checks handled by the functions called below
+  .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+
+  if (parallel) {
+    cores <- .cores(cores, leave_free)
+    if (cores < 2) parallel <- FALSE
+  }
+  #more basic checks are handled by the functions called below
+
 
 # Functions ---------------------------------------------------------------
 
@@ -215,7 +225,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
       # Only to avoid note from check, code is OK without this line.
       sun <- NA
 
-      .with_cluster(.cores(), {
+      .with_cluster(cores, {
         foreach(sun = suns) %dopar% {
           fit_cie_model(dist_to_black.rr.sun_angles$rr,
                         sun,
@@ -314,7 +324,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 # Get marks ---------------------------------------------------------------
 
   l.dist_to_black.rr.sun_angles <- if (parallel && length(gs) > 1) {
-    .with_cluster(.cores(), {
+    .with_cluster(cores, {
       foreach(i = seq_along(gs)) %dopar% {
         .get_marks_multi(row_vals, col_vals,
                          r_vals, z_vals, a_vals,
@@ -348,7 +358,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 # Optim sun ---------------------------------------------------------------
 
   l.model_osun <- if (parallel && length(gs) > 1) {
-    .with_cluster(.cores(), {
+    .with_cluster(cores, {
         foreach(i = seq_along(gs)) %dopar% {
           optim_sun_angles(models[[i]], method)
         }
@@ -364,7 +374,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 
   l.min_spherical_dist.model <- if (any(min_spherical_dist != 0)) {
     if (parallel && length(gs) > 1) {
-      .with_cluster(.cores(), {
+      .with_cluster(cores, {
         foreach(i = seq_along(gs)) %dopar% {
           .find_best_dist_multi(row_vals, col_vals,
                                 r_vals, z_vals, a_vals,
@@ -400,7 +410,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
 
   }
   l.model_validation <- if (parallel && length(gs) > 1) {
-    .with_cluster(.cores(), {
+    .with_cluster(cores, {
       foreach(i = seq_along(gs)) %dopar% .validate(i)
     })
   } else {

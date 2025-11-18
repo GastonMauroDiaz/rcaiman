@@ -17,6 +17,8 @@
 #' @inheritParams interpolate_planar
 #' @inheritParams spatial::surf.ls
 #'
+#' @export
+#'
 #' @return
 #' List with named elements:
 #' \describe{

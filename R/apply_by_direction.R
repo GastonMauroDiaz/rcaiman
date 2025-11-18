@@ -18,6 +18,15 @@
 #'   the same number of rows and columns as its first input, `r`.
 #' @param parallel logical vector of length one. If `TRUE`, operations are
 #'   executed in parallel.
+#' @param cores numeric vector of length one. Number of CPU cores to use when
+#'   `parallel = TRUE`. If `NULL`, the function uses all available physical
+#'   cores detected internally. Values greater than the number of available
+#'   cores are silently reduced to the maximum allowed. If the resulting number
+#'   of cores is less than 2, `parallel` is silently set to `FALSE`.
+#' @param leave_free numeric vector of length one. Number of CPU cores to leave
+#'   free when `parallel = TRUE`. Ignored when `cores` is not `NULL`. Must be
+#'   greater than or equal to 0. If `total_cores - leave_free` is less than 2,
+#'   `parallel` is silently set to `FALSE`.
 #'
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams binarize_with_thr
@@ -83,13 +92,22 @@ apply_by_direction <- function(r, z, a, m,
                                           "fit_trend_surface_np1",
                                           "fit_trend_surface_np6"),
                                fun = NULL,
-                               parallel = FALSE) {
+                               parallel = TRUE,
+                               cores = NULL,
+                               leave_free = 0) {
 
   .check_r_z_a_m(r, z, a, m, r_type = "any")
   .check_vector(spacing, "numeric", 1, sign = "positive")
   .check_vector(laxity, "numeric", 1, sign = "positive")
   .check_vector(fov, "numeric", sign = "positive")
   .check_vector(parallel, "logical", 1)
+  .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+
+  if (parallel) {
+    cores <- .cores(cores, leave_free)
+    if (cores < 2) parallel <- FALSE
+  }
 
   if (is.null(fun) &&
       method %in% c("fit_coneshaped_model", "fit_trend_surface_np6",
@@ -343,7 +361,6 @@ apply_by_direction <- function(r, z, a, m,
   }
 
   if (parallel) {
-    cores <- .cores()
     acc <- .with_cluster(cores, {
       i_chunks <- split(seq_len(n_directions), 1:cores) %>% suppressWarnings()
 

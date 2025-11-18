@@ -15,7 +15,9 @@ apply_by_direction(
   method = c("thr_isodata", "thr_twocorner", "detect_bg_dn", "fit_coneshaped_model",
     "fit_trend_surface_np1", "fit_trend_surface_np6"),
   fun = NULL,
-  parallel = FALSE
+  parallel = TRUE,
+  cores = NULL,
+  leave_free = 0
 )
 }
 \arguments{
@@ -48,6 +50,17 @@ the same number of rows and columns as its first input, \code{r}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
+
+\item{cores}{numeric vector of length one. Number of CPU cores to use when
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available physical
+cores detected internally. Values greater than the number of available
+cores are silently reduced to the maximum allowed. If the resulting number
+of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+
+\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
+free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
+greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
+\code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} object with two layers: \code{"dn"} for digital

@@ -4,7 +4,7 @@
 \alias{ootb_bin}
 \title{Out-of-the-box reliable binarized image}
 \usage{
-ootb_bin(caim, z, a, m, parallel = TRUE)
+ootb_bin(caim, z, a, m, parallel = TRUE, cores = NULL, leave_free = 0)
 }
 \arguments{
 \item{caim}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with three layers named
@@ -20,6 +20,17 @@ related to radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for detai
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
+
+\item{cores}{numeric vector of length one. Number of CPU cores to use when
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available physical
+cores detected internally. Values greater than the number of available
+cores are silently reduced to the maximum allowed. If the resulting number
+of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+
+\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
+free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
+greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
+\code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
 Logical \link[terra:SpatRaster-class]{terra::SpatRaster} (\code{TRUE} for sky, \code{FALSE} for non-sky)

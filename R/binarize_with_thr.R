@@ -61,10 +61,10 @@ binarize_with_thr <- function (r, thr)
     if (length(thr) != 1) {
       stop("`thr` must be of length one.")
     }
-    tmp <- values(r)
-    if (thr < min(tmp, na.rm = TRUE))
+    v <- values(r)
+    if (thr < min(v, na.rm = TRUE))
       stop("`thr` must be greater than or equal to minimum layer value.")
-    if (thr >= max(tmp, na.rm = TRUE))
+    if (thr >= max(v, na.rm = TRUE))
       stop("`thr` must be lower than maximum layer value.")
   } else {
     .assert_single_layer(thr)

@@ -88,7 +88,9 @@ rem_outliers <- function(sky_points, r, z, a,
   .assert_choice(cutoff_side, c("both", "left", "right"))
   .check_vector(use_window, "logical", 1)
   .check_vector(trend, "integerish", 1, allow_null = TRUE,  sign = "positive")
-  if (!is.null(trend)) stop("`trend` must be lower than four.")
+  if (!is.null(trend)){
+    if (trend > 3.5) stop("`trend` must be lower than four.")
+  }
 
   angular_radius <- .degree2radian(angular_radius)
 

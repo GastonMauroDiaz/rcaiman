@@ -35,8 +35,17 @@ grow_black <- function(bin, dist_to_black) {
   .assert_logical_mask(bin)
   .check_vector(dist_to_black, "integerish", 1, sign = "positive")
 
-  kern <- EBImage::makeBrush(dist_to_black + 2, "box")
-  bin <- EBImage::erode(as.array(bin), kern) %>%
-    terra::setValues(bin, .)
-  binarize_with_thr(bin, 0)
+  if (max(values(bin), na.rm = TRUE) == 0) {
+    warning("`bin` does not have white values to grow black to. The original input is returned unchanged.")
+  } else {
+    kern <- EBImage::makeBrush(dist_to_black + 2, "box")
+    bin <- EBImage::erode(as.array(bin), kern) %>%
+      terra::setValues(bin, .)
+    if (max(values(bin), na.rm = TRUE) == 0) {
+      bin <- as.logical(bin)
+    } else {
+      bin <- binarize_with_thr(bin, 0)
+    }
+  }
+  bin
 }

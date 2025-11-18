@@ -59,16 +59,26 @@
 #' }
 ootb_cie_model <- function(r, z, a, m,
                            method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
-                           parallel = TRUE
+                           parallel = TRUE,
+                           cores = NULL,
+                           leave_free = 0
 ) {
 
-  #basic checks handled by the functions called below
+  .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+
+  if (parallel) {
+    cores <- .cores(cores, leave_free)
+    if (cores < 2) parallel <- FALSE
+  }
+  #more basic checks are handled by the functions called below
 
   sky <- apply_by_direction(r, z, a, m,
                             spacing = 10, laxity = 2.5,
                             fov = 40,
                             method = "detect_bg_dn",
-                            parallel = parallel)
+                            parallel = parallel,
+                            cores = cores)
 
   g <- sky_grid_segmentation(z, a, 22.5, first_ring_different = FALSE)
 
@@ -94,7 +104,7 @@ ootb_cie_model <- function(r, z, a, m,
     # Only to avoid note from check, code is OK without this line.
     sun <- NA
 
-    .with_cluster(.cores(), {
+    .with_cluster(cores, {
       models <- foreach(sun = suns) %dopar% {
         fit_cie_model(rr, sun, method = method)
       }

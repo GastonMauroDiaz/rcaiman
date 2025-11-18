@@ -62,10 +62,21 @@
   tcltk::tkwait.window(win)
 }
 
+.cores <- function(cores = NULL, leave_free = 0) {
+  total <- parallel::detectCores(logical = FALSE) # physical cores
+  if (is.na(total) || total < 1) total <- 1
 
-.cores <- function() {
-  cores <- parallel::detectCores(logical = FALSE)
-  if (is.na(cores) || cores < 1) cores <- 1
+  # explicit request
+  if (!is.null(cores)) {
+    cores <- min(total, cores)
+  } else {
+    # implicit request
+    cores <- total - leave_free
+  }
+
+  # ensure meaningful parallelism
+  if (cores < 2) cores <- 1
+
   cores
 }
 .with_cluster <- function(cores, expr) {

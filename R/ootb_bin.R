@@ -61,14 +61,17 @@
 #' bin <- ootb_bin(caim, z, a, m)
 #' plot(bin)
 #' }
-ootb_bin <- function(caim, z, a, m, parallel = TRUE){
+ootb_bin <- function(caim, z, a, m, parallel = TRUE, cores = NULL, leave_free = 0){
   #basic checks handled by the functions called below
   com <- complementary_gradients(caim)
   mem <- max(com$yellow_blue, com$red_cyan)
   mem <- mean(normalize_minmax(mem), normalize_minmax(caim$Blue^(1/2.2)))
   thr <- apply_by_direction(mem, z, a, m, spacing = 15,
-                            fov = 60, parallel = parallel,
-                            method = "thr_isodata")
+                            fov = 60,
+                            method = "thr_isodata",
+                            parallel = parallel,
+                            cores = cores,
+                            leave_free = leave_free)
   bin <- binarize_with_thr(mem, thr$dn)
   bin <- rem_isolated_black_pixels(bin)
   bin <- grow_black(bin, 1)
