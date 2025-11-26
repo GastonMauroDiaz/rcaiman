@@ -32,7 +32,7 @@
 #' @param laxity numeric vector of length one.
 #' @param cutoff_side character vector of length one. Options are "both"
 #'   (default), "upper" or "lower". Controls which side(s) of the inequality are
-#'   evaluated to detect outliers. See Details.
+#'   evaluated to detect outliers. See *Details*.
 #' @param trend numeric vector of length one or `NULL`. Zero to three. Specifies
 #'   the order of the polynomial surface fitted to the neighbors to account for
 #'   spatial trends. Use NULL (default) to skip detrending.

@@ -35,7 +35,7 @@ and \code{\link[=optim_sun_angles]{optim_sun_angles()}}.}
 executed in parallel.}
 
 \item{cores}{numeric vector of length one. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available physical
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available
 cores detected internally. Values greater than the number of available
 cores are silently reduced to the maximum allowed. If the resulting number
 of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}

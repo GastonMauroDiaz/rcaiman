@@ -19,7 +19,7 @@
 #' @param parallel logical vector of length one. If `TRUE`, operations are
 #'   executed in parallel.
 #' @param cores numeric vector of length one. Number of CPU cores to use when
-#'   `parallel = TRUE`. If `NULL`, the function uses all available physical
+#'   `parallel = TRUE`. If `NULL`, the function uses all available
 #'   cores detected internally. Values greater than the number of available
 #'   cores are silently reduced to the maximum allowed. If the resulting number
 #'   of cores is less than 2, `parallel` is silently set to `FALSE`.
@@ -97,8 +97,9 @@ apply_by_direction <- function(r, z, a, m,
                                fun = NULL,
                                parallel = TRUE,
                                cores = NULL,
-                               leave_free = 1,
-                               logical = TRUE) {
+                               logical = TRUE,
+                               leave_free = 1
+                               ) {
 
   .check_r_z_a_m(r, z, a, m, r_type = "any")
   .check_vector(spacing, "numeric", 1, sign = "positive")
@@ -106,11 +107,11 @@ apply_by_direction <- function(r, z, a, m,
   .check_vector(fov, "numeric", sign = "positive")
   .check_vector(parallel, "logical", 1)
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
-  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
   .check_vector(logical, "logical", 1)
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
 
   if (parallel) {
-    cores <- .cores(cores, leave_free, logical)
+    cores <- .cores(cores, logical, leave_free)
     if (cores < 2) parallel <- FALSE
   }
 

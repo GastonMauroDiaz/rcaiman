@@ -9,12 +9,12 @@
 #' The methodology used to acquire data allows different level of accuracy.
 #'
 #' \describe{
-#'   \item{simple:}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
+#'   \item{simple}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
 #'   \eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
 #'   \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
 #'   polynomial coefficients. Degrees up to 6 are supported. See
 #'   [extract_radiometry()] for guidance on estimating these coefficients.}
-#'   \item{photometric_sphere:}{method described in \insertCite{Lang2010;textual}{rcaiman}.
+#'   \item{photometric_sphere}{method described in \insertCite{Lang2010;textual}{rcaiman}.
 #'    \eqn{f_v(\theta) = a + b\theta + c\theta^2 + \dots + m\theta^n}, where
 #'   \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
 #'   parameters. Up to 7 parameters are supported.}
@@ -22,7 +22,7 @@
 #'
 #' @inheritParams fisheye_to_equidistant
 #'
-#' @param lens_coef_v numeric vector. Coefficients of the vignetting function. See details.
+#' @param lens_coef_v numeric vector. Coefficients of the vignetting function. See *Details*.
 #' @param method character vector of length one.
 #'
 #' @return [terra::SpatRaster-class] with the same content as `r` but with

@@ -74,19 +74,14 @@ estimate_sun_angles <- function(r, z, a, bin, g,
 
 
   if (method == "assume_obscured") {
-    .assert_sky_grid(g)
+    .assert_sky_segmentation(g)
     .assert_same_geom(r, g)
     .check_vector(angular_radius_sun, "numeric", 1, sign = "positive")
 
     if (!is.numeric(angular_radius_sun) || length(angular_radius_sun) != 1) {
       stop("`angular_radius_sun` must be a numeric vector of length one.")
     }
-    if (!.is_sky_grid(g)) {
-      stop("'g' must be the output of 'sky_grid_segmentation()'.")
-    }
-    if (!terra::compareGeom(r, g, stopOnError = FALSE, messages = FALSE)) {
-      stop("`g` must be of the same dimensions as `r`")
-    }
+
 
     # Select cells with at least one extremely bright sky pixel
     g[!bin] <- NA

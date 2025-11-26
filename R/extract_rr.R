@@ -89,6 +89,12 @@ extract_rr <- function(r, z, a, sky_points,
   }
 
   # Calculate relative radiance
+  if (!is.null(no_of_points)) {
+    if (min(sky_points$z) > 10) {
+      warning(paste("The nearest sampled sky point lies at a zenith distance of",
+                    min(sky_points$z), "deg from the zenith." ))
+    }
+  }
   sky_points$rr <- sky_points$dn / zenith_dn
 
 

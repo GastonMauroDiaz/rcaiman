@@ -46,6 +46,37 @@
   invisible(TRUE)
 }
 
+.is_sky_segmentation <- function(g) {
+  if (!inherits(g, "SpatRaster")) return(FALSE)
+
+  ring_mode <- attr(g, "ring_mode")
+  angle_width <- attr(g, "angle_width")
+  ring_flag   <- attr(g, "first_ring_different")
+
+  if (!is.character(ring_mode) || length(ring_mode) != 1 ||
+      anyNA(ring_mode)) {
+    if (!is.numeric(angle_width) || length(angle_width) != 1 ||
+        !is.finite(angle_width)) return(FALSE)
+    if (!is.logical(ring_flag) || length(ring_flag) != 1 ||
+        anyNA(ring_flag)) return(FALSE)
+    nm <- names(g)
+    if (is.null(nm)) return(FALSE)
+    return(all(nm == paste0("Sky grid, ", angle_width, " degrees")))
+  } else {
+    nm <- names(g)
+    if (is.null(nm)) return(FALSE)
+    return(nm == "Sky segments of quasi-equal area")
+  }
+}
+
+.assert_sky_segmentation <- function(g, name = deparse(substitute(g))) {
+  if (!.is_sky_segmentation(g)) {
+    stop(sprintf("`%s` must be the output of `sky_grid_segmentation()` or `sky_equalarea_segmentation()`.", name),
+         call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
 .check_vector <- function(x,
                          type = c("numeric", "character", "logical",
                                   "integerish", "even_integerish"),

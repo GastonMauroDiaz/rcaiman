@@ -118,16 +118,16 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
                          custom_sky_coef = NULL,
                          parallel = TRUE,
                          cores = NULL,
-                         leave_free = 1,
-                         logical = TRUE
+                         logical = TRUE,
+                         leave_free = 1
                          ) {
 
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
-  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
   .check_vector(logical, "logical", 1)
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
 
   if (parallel) {
-    cores <- .cores(cores, leave_free, logical)
+    cores <- .cores(cores, logical, leave_free)
     if (cores < 2) parallel <- FALSE
   }
   #more basic checks are handled by the functions called below

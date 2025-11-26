@@ -29,6 +29,8 @@
 #' @param general_sky_type character vector of length one. Must be `"Overcast"`,
 #'   `"Clear"`, or `"Partly cloudy"`. See column `general_sky_type` in
 #'   [cie_table] for details. If not provided, all sky types are used.
+#' @param optim_zenith_dn logical vector of length one. Whether `zenith_dn` value
+#'   provided via `rr` should be optimized.
 #' @param method character vector. Optimization methods passed to
 #'   [stats::optim()]. See that function for supported names.
 #'
@@ -136,6 +138,7 @@ fit_cie_model <- function(rr, sun_angles,
                           custom_sky_coef = NULL,
                           std_sky_no = NULL,
                           general_sky_type = NULL ,
+                          optim_zenith_dn = FALSE,
                           method = c("Nelder-Mead", "BFGS", "CG", "SANN")) {
 
   # Validate inputs -----------------------------------------------------------
@@ -210,95 +213,197 @@ fit_cie_model <- function(rr, sun_angles,
   AzS <- .degree2radian(sun_angles["a"])
   Zs <- .degree2radian(sun_angles["z"])
 
+  # Note on fcost:
   # When the c or e parameters are negative, the sun can be darker than the
   # sky, which is unrealistic. So, the code avoids that possibility by using
   # abs(). Dark suns can also be seen with a low values of a. It will depend
   # on the indicatrix function, but anything below -1 might be a problem.
   # Positive values of b create unrealistic values at the horizon. Positive
   # values of d produce negative values, which are unrealistc
-  fcost <- function(params) {
-    .a <- params[1]
-    .b <- params[2]
-    .c <- params[3]
-    .d <- params[4]
-    .e <- params[5]
 
-    w <- 1e10
-    penalty_param <- w * max(0, .b) + w * max(0, -.e)
+  if (optim_zenith_dn) {
+    # Standardize zenith_dn
+    mu_dn <- mean(rr$sky_points$dn)
+    sigma_dn <- sd(rr$sky_points$dn)
+    .calc_z_score <- function(dn) (dn -  mu_dn) / sigma_dn
+    .calc_dn <- function(z_score) (z_score * sigma_dn) +  mu_dn
+    ref_z_score <- .calc_z_score(rr$zenith_dn)
+    w_dist_zenith <- min(rr$sky_points$z)/90
 
-    vault_values <- .cie_sky_model(vault[,2],
-                                   vault[,1], AzS, Zs, .a, .b, .c, .d, .e)
-    vault_values[vault_values > 0] <- 0
+    fcost <- function(params) {
+      .a <- params[1]
+      .b <- params[2]
+      .c <- params[3]
+      .d <- params[4]
+      .e <- params[5]
 
-    x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
-    x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
-    penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun) +
-      w * sum(vault_values)^2
+      w <- 1e10
+      penalty_param <- w * max(0, .b) + w * max(0, -.e)
 
-    x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
-    residuals <- x - rr$sky_points$rr
+      vault_values <- .cie_sky_model(vault[,2],
+                                     vault[,1], AzS, Zs, .a, .b, .c, .d, .e)
+      vault_values[vault_values > 0] <- 0
 
-    loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
+      x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
+      penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun) +
+        w * sum(vault_values)^2
 
-    loss_value + penalty_behavior + penalty_param
-  }
-  fcost <- compiler::cmpfun(fcost)
-  y <- rr$sky_points$rr
+      x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      residuals <- x - rr$sky_points$dn / .calc_dn(params[6])
+      penalty_zenith_dn <- max(0, abs(ref_z_score - params[6]) - w_dist_zenith)
 
-  # Try all start parameters (brute force approach)
-  .optim_multi <- function(i, method) {
-    start_params <- skies[i, 1:5] %>% as.numeric()
-    .optim_single <- function(method) {
-      fit <- tryCatch(
-        stats::optim(par = start_params,
-                     fn = fcost,
-                     method = method),
-        error = function(e) {
-          warning("`optim` failed unexpectedly.")
-          list(par = start_params, convergence = NULL)
-        }
-      )
+      loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
 
-      coef <- fit$par
-      names(coef) <- c("a", "b", "c", "d", "e")
-      pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
-                             .a = coef[1],
-                             .b = coef[2],
-                             .c = coef[3],
-                             .d = coef[4],
-                             .e = coef[5])
-
-      #10.2134/agronj2003.1442
-      x <- pred
-      reg <- tryCatch(lm(x~y),
-                      error = function(e) NULL,
-                      warning = function(w) NULL)
-
-      if (is.null(reg)) {
-        MSE <- 1e10
-      } else if (!is.na(summary(reg) %>% .$r.squared %>% suppressWarnings())){
-        m <- stats::coef(reg)[2]
-        r_squared <- summary(reg) %>% .$r.squared
-        SB <- (mean(x) - mean(y))^2
-        NU <- (1 - m)^2 * mean(x^2)
-        LC <- (1 - r_squared) * mean(y^2)
-        MSE <- SB + NU + LC
-        MSE
-      } else {
-        MSE <- 1e10
-      }
-
-      rr$sky_points$pred <- x
-
-      list(rr = rr,
-           opt_result = fit,
-           coef = coef,
-           sun_angles = sun_angles,
-           method = method,
-           start = start_params,
-           metric = unname(MSE))
+      loss_value + penalty_behavior + penalty_param + penalty_zenith_dn
     }
-    lapply(method, .optim_single)
+    fcost <- compiler::cmpfun(fcost)
+
+    # Try all start parameters (brute force approach)
+    .optim_multi <- function(i, method) {
+      start_params <- skies[i, 1:5] %>% as.numeric()
+      start_params <- c(start_params, .calc_z_score(rr$zenith_dn))
+      .optim_single <- function(method) {
+        fit <- tryCatch(
+          stats::optim(par = start_params,
+                       fn = fcost,
+                       method = method),
+          error = function(e) {
+            warning("`optim` failed unexpectedly.")
+            list(par = start_params, convergence = NULL)
+          }
+        )
+
+        coef <- fit$par[-6]
+        names(coef) <- c("a", "b", "c", "d", "e")
+        pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
+                               .a = coef[1],
+                               .b = coef[2],
+                               .c = coef[3],
+                               .d = coef[4],
+                               .e = coef[5])
+
+        #10.2134/agronj2003.1442
+        rr$zenith_dn <- .calc_dn(fit$par[6])
+        rr$sky_points$rr <- rr$sky_points$dn / rr$zenith_dn
+        y <- rr$sky_points$rr
+        x <- pred
+        reg <- tryCatch(lm(x~y),
+                        error = function(e) NULL,
+                        warning = function(w) NULL)
+
+        if (is.null(reg)) {
+          MSE <- 1e10
+        } else if (!is.na(summary(reg) %>% .$r.squared %>% suppressWarnings())){
+          m <- stats::coef(reg)[2]
+          r_squared <- summary(reg) %>% .$r.squared
+          SB <- (mean(x) - mean(y))^2
+          NU <- (1 - m)^2 * mean(x^2)
+          LC <- (1 - r_squared) * mean(y^2)
+          MSE <- SB + NU + LC
+          MSE
+        } else {
+          MSE <- 1e10
+        }
+
+        rr$sky_points$pred <- x
+
+        list(rr = rr,
+             opt_result = fit,
+             coef = coef,
+             sun_angles = sun_angles,
+             method = method,
+             start = start_params,
+             metric = unname(MSE))
+      }
+      lapply(method, .optim_single)
+    }
+  } else {
+
+    fcost <- function(params) {
+      .a <- params[1]
+      .b <- params[2]
+      .c <- params[3]
+      .d <- params[4]
+      .e <- params[5]
+
+      w <- 1e10
+      penalty_param <- w * max(0, .b) + w * max(0, -.e)
+
+      vault_values <- .cie_sky_model(vault[,2],
+                                     vault[,1], AzS, Zs, .a, .b, .c, .d, .e)
+      vault_values[vault_values > 0] <- 0
+
+      x     <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      x_sun <- .cie_sky_model(AzS, Zs, AzS, Zs, .a, .b, .c, .d, .e)
+      penalty_behavior <- w * abs(.c) * max(0, max(x) - x_sun) +
+        w * sum(vault_values)^2
+
+      x <- .cie_sky_model(AzP, Zp, AzS, Zs, .a, .b, .c, .d, .e)
+      residuals <- x - rr$sky_points$rr
+
+      loss_value <- sqrt(mean(residuals^2)) / mean(rr$sky_points$rr)
+
+      loss_value + penalty_behavior + penalty_param
+    }
+    fcost <- compiler::cmpfun(fcost)
+    y <- rr$sky_points$rr
+
+    # Try all start parameters (brute force approach)
+    .optim_multi <- function(i, method) {
+      start_params <- skies[i, 1:5] %>% as.numeric()
+      .optim_single <- function(method) {
+        fit <- tryCatch(
+          stats::optim(par = start_params,
+                       fn = fcost,
+                       method = method),
+          error = function(e) {
+            warning("`optim` failed unexpectedly.")
+            list(par = start_params, convergence = NULL)
+          }
+        )
+
+        coef <- fit$par
+        names(coef) <- c("a", "b", "c", "d", "e")
+        pred <- .cie_sky_model(AzP, Zp, AzS, Zs,
+                               .a = coef[1],
+                               .b = coef[2],
+                               .c = coef[3],
+                               .d = coef[4],
+                               .e = coef[5])
+
+        #10.2134/agronj2003.1442
+        x <- pred
+        reg <- tryCatch(lm(x~y),
+                        error = function(e) NULL,
+                        warning = function(w) NULL)
+
+        if (is.null(reg)) {
+          MSE <- 1e10
+        } else if (!is.na(summary(reg) %>% .$r.squared %>% suppressWarnings())){
+          m <- stats::coef(reg)[2]
+          r_squared <- summary(reg) %>% .$r.squared
+          SB <- (mean(x) - mean(y))^2
+          NU <- (1 - m)^2 * mean(x^2)
+          LC <- (1 - r_squared) * mean(y^2)
+          MSE <- SB + NU + LC
+          MSE
+        } else {
+          MSE <- 1e10
+        }
+
+        rr$sky_points$pred <- x
+
+        list(rr = rr,
+             opt_result = fit,
+             coef = coef,
+             sun_angles = sun_angles,
+             method = method,
+             start = start_params,
+             metric = unname(MSE))
+      }
+      lapply(method, .optim_single)
+    }
   }
 
   models <- Map(.optim_multi, 1:nrow(skies), method) %>% suppressWarnings()

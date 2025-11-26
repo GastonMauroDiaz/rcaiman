@@ -20,7 +20,7 @@ when \code{method = "local_max"}.}
 
 \item{dist_to_black}{numeric vector of length one or \code{NULL}. Minimum distance
 (pixels) to the nearest black pixel for a candidate sky pixel to be valid.
-If \code{NULL}, no distance constraint is applied.}
+If \code{NULL}, no distance constraint is applied. Ignored with \code{method = local_max}.}
 
 \item{method}{character vector of length one. Sampling method; either
 \code{"grid"} (default) or \code{"local_max"}.}
@@ -40,7 +40,8 @@ pixel count exceeds one fourth of the mean across valid cells.}
 \item{\code{"local_max"}}{detect local maxima within a fixed \eqn{9 \times 9}
 window, restricted to pixels marked \code{TRUE} in \code{bin}, after removing
 patches of connected \code{TRUE} pixels that are implausible based on fixed
-area/size thresholds. Each detected maximum is taken as a sky point.}
+area/size thresholds. Each detected maximum is taken as a sky point.
+}
 }
 Use \code{"grid"} to promote an even, representative spatial distribution (good
 for model fitting), and \code{"local_max"} to be exhaustive for interpolation.

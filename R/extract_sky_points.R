@@ -12,7 +12,8 @@
 #'   \item{`"local_max"`}{detect local maxima within a fixed \eqn{9 \times 9}
 #'     window, restricted to pixels marked `TRUE` in `bin`, after removing
 #'     patches of connected `TRUE` pixels that are implausible based on fixed
-#'     area/size thresholds. Each detected maximum is taken as a sky point.}
+#'     area/size thresholds. Each detected maximum is taken as a sky point.
+#'     }
 #' }
 #' Use `"grid"` to promote an even, representative spatial distribution (good
 #' for model fitting), and `"local_max"` to be exhaustive for interpolation.
@@ -27,7 +28,7 @@
 #'   when `method = "local_max"`.
 #' @param dist_to_black numeric vector of length one or `NULL`. Minimum distance
 #'   (pixels) to the nearest black pixel for a candidate sky pixel to be valid.
-#'   If `NULL`, no distance constraint is applied.
+#'   If `NULL`, no distance constraint is applied. Ignored with `method = local_max`.
 #' @param method character vector of length one. Sampling method; either
 #'   `"grid"` (default) or `"local_max"`.
 #'
@@ -61,14 +62,13 @@ extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
   .check_vector(dist_to_black, "integerish", 1, allow_null = TRUE, sign = "positive")
   .assert_choice(method, c("grid", "local_max"))
 
-  if (!is.null(dist_to_black)) {
-    bin2 <- grow_black(bin, dist_to_black)
-  } else {
-    bin2 <- bin
-  }
-
   if (method == "grid") {
-    .assert_sky_grid(g)
+    if (!is.null(dist_to_black)) {
+      bin2 <- grow_black(bin, dist_to_black)
+    } else {
+      bin2 <- bin
+    }
+    .assert_sky_segmentation(g)
     .assert_same_geom(g, r)
 
     # sky-grid approach
@@ -101,9 +101,9 @@ extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
   } else {
     # local-maximum approach
 
-    bwlabels <- EBImage::bwlabel(as.array(bin2))
+    bwlabels <- EBImage::bwlabel(as.array(bin))
     shape <- EBImage::computeFeatures.shape(bwlabels)
-    bwlabels <- terra::setValues(bin2, bwlabels)
+    bwlabels <- terra::setValues(bin, bwlabels)
     shape <- terra::subst(bwlabels, 1:nrow(shape), shape)
 
     ## Remove large gaps and artifacts
@@ -111,11 +111,11 @@ extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
 
     ## Use effective circular area (ECA)
     eca <- shape$s.area / (shape$s.radius.sd + 1)
-    bin2[eca < 9] <- 0
+    bin[eca < 9] <- 0
 
     ## find local maximum
-    lmax <- terra::focal(r*bin2, 9, "max")
-    lmax <- (lmax == r) * bin2
+    lmax <- terra::focal(r*bin, 9, "max")
+    lmax <- (lmax == r) * bin
     lmax[is.na(lmax)] <- 0
     i <- lmax[] %>% as.numeric() %>% as.logical()
 

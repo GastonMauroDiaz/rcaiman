@@ -4,42 +4,49 @@
 \alias{rem_small_gaps}
 \title{Remove small gaps}
 \usage{
-rem_small_gaps(bin, eca_thr = 9)
+rem_small_gaps(bin, size = 9, method = "pixel-based")
 }
 \arguments{
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
-\item{eca_thr}{numeric vector of length one. Threshold of effective circular
-area for recognizing small gaps.}
+\item{size}{numeric vector of length one. See \emph{Details}.}
 }
 \value{
 Logical \link[terra:SpatRaster-class]{terra::SpatRaster} with the same dimensions as \code{bin}.
-Compared to the input \code{bin}, black regions (\code{FALSE}) have been expanded by
-the specified buffer distance.
 }
 \description{
-Remove patches of connected \code{TRUE} pixels based on fixed area/size
-thresholds.
+Remove patches of connected \code{TRUE} pixels based on a white top-hat pixel-based
+morphological filter or an object-based fixed area/size threshold.
 }
 \details{
-Pathes of connected \code{TRUE} pixes (canopy gaps) are turn \code{FALSE} if they are
-rounded but too small, or if they are of a shape and size unlikely for a real
-canopy gap. The function internally uses \emph{EBImage} for calculates the area
-($A$) and radii standard deviation ($SD_r$) of canopy gaps. While $A$ is
-simply the total number of pixels of the segment, $SD_r$ is the standard
+Methods provided:
+\describe{
+\item{pixel-based:}{Internally runs \code{\link[EBImage:morphology]{EBImage::whiteTopHat()}} with a kernel
+of size equal to \code{size} and diamond shape.}
+\item{object-based:}{
+Patches of connected \code{TRUE} pixes (canopy gaps) are turn \code{FALSE} if they are
+rounded but too small, or if they are of a shape and size unlikely for a
+real canopy gap. The function internally uses \emph{EBImage} for calculates the
+area (\eqn{A}) and radii standard deviation (\eqn{SD_r}) of canopy gaps. While \eqn{A}
+is simply the total number of pixels of the segment, \eqn{SD_r} is the standard
 deviation of the Euclidean distance between the gap center and the pixels
 that are in the gap contour. The center is computed as the average of the
 coordinates of the contour pixels. The effective circular area equation is
-$ECA = A / SD_r$, providing a size metric that accounts for deviations from
-circularity.
+\eqn{ECA = A / SD_r}, providing a size metric that accounts for deviations from
+circularity. With this method, argument \code{size} is a threshold of ECA for
+recognizing small gaps.
+}
+}
 }
 \examples{
 \dontrun{
 r <- read_caim()
 bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
 plot(bin)
-bin <- grow_black(bin, 11)
+bin <- rem_small_gaps(bin, 5, method = "pixel-based")
+plot(bin)
+bin <- rem_small_gaps(bin, 11, method = "object-based")
 plot(bin)
 }
 }

@@ -10,6 +10,7 @@ fit_cie_model(
   custom_sky_coef = NULL,
   std_sky_no = NULL,
   general_sky_type = NULL,
+  optim_zenith_dn = FALSE,
   method = c("Nelder-Mead", "BFGS", "CG", "SANN")
 )
 }
@@ -36,6 +37,9 @@ If not provided, all are used.}
 \item{general_sky_type}{character vector of length one. Must be \code{"Overcast"},
 \code{"Clear"}, or \code{"Partly cloudy"}. See column \code{general_sky_type} in
 \link{cie_table} for details. If not provided, all sky types are used.}
+
+\item{optim_zenith_dn}{logical vector of length one. Whether \code{zenith_dn} value
+provided via \code{rr} should be optimized.}
 
 \item{method}{character vector. Optimization methods passed to
 \code{\link[stats:optim]{stats::optim()}}. See that function for supported names.}

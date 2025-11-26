@@ -37,7 +37,7 @@ searching k-nearest neighbors (KNN) in degrees.}
 
 \item{cutoff_side}{character vector of length one. Options are "both"
 (default), "upper" or "lower". Controls which side(s) of the inequality are
-evaluated to detect outliers. See Details.}
+evaluated to detect outliers. See \emph{Details}.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
 digital number at each sky point is the average of the values extracted

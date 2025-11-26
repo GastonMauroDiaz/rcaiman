@@ -12,7 +12,7 @@ binary masks) in fisheye projection.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function. See details.}
+\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function. See \emph{Details}.}
 
 \item{method}{character vector of length one.}
 }
@@ -32,12 +32,12 @@ function of the zenith angle at each pixel.
 The methodology used to acquire data allows different level of accuracy.
 
 \describe{
-\item{simple:}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
+\item{simple}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
 \eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
 \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
 polynomial coefficients. Degrees up to 6 are supported. See
 \code{\link[=extract_radiometry]{extract_radiometry()}} for guidance on estimating these coefficients.}
-\item{photometric_sphere:}{method described in \insertCite{Lang2010;textual}{rcaiman}.
+\item{photometric_sphere}{method described in \insertCite{Lang2010;textual}{rcaiman}.
 \eqn{f_v(\theta) = a + b\theta + c\theta^2 + \dots + m\theta^n}, where
 \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
 parameters. Up to 7 parameters are supported.}

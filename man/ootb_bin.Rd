@@ -11,8 +11,8 @@ ootb_bin(
   m,
   parallel = TRUE,
   cores = NULL,
-  leave_free = 1,
-  logical = TRUE
+  logical = TRUE,
+  leave_free = 1
 )
 }
 \arguments{
@@ -31,19 +31,19 @@ related to radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for detai
 executed in parallel.}
 
 \item{cores}{numeric vector of length one. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available physical
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available
 cores detected internally. Values greater than the number of available
 cores are silently reduced to the maximum allowed. If the resulting number
 of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+
+\item{logical}{logical vector of length one. Internally it is passed unchanged
+to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
+\code{parallel = FALSE}.}
 
 \item{leave_free}{numeric vector of length one. Number of CPU cores to leave
 free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
 greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
-
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
 }
 \value{
 Logical \link[terra:SpatRaster-class]{terra::SpatRaster} (\code{TRUE} for sky, \code{FALSE} for non-sky)
@@ -85,7 +85,7 @@ For each kept segment, estimate a local sky reference as the maximum blue
 value, use it to normalize per segment
 (\code{ratio <- Blue / sky_segment_max}), interpret the normalization as the degree
 of membership to the sky class, and then defuzzify with a fixed threshold
-\code{0.5}.
+equal to \code{0.5}.
 }
 }
 \note{
