@@ -8,8 +8,8 @@
 #' function in `fun` must return a single numeric or logical value for any input
 #' vector (e.g., `mean`, `median`, or a custom reducer).
 #'
-#' @param segmentation single-layer [terra::SpatRaster-class]. Segmentation map
-#'   of r, typically created with functions such as [sky_grid_segmentation()],
+#' @param seg single-layer [terra::SpatRaster-class]. Segmentation map
+#'   of r, typically created with functions such as [skygrid_segmentation()],
 #'   [ring_segmentation()] or [sector_segmentation()], but any raster with
 #'   integer segment labels is accepted.
 #' @param fun function taking a numeric/logical vector and returning a single
@@ -32,29 +32,29 @@
 #' r <- read_caim()
 #' z <- zenith_image(ncol(r),lens())
 #' a <- azimuth_image(z)
-#' g <- sky_grid_segmentation(z, a, 10)
+#' g <- skygrid_segmentation(z, a, 10)
 #' print(extract_feature(r$Blue, g, return = "vector"))
 #' # plot(extract_feature(r$Blue, g, return = "raster"))
-extract_feature <- function(r, segmentation,
+extract_feature <- function(r, seg,
                             fun = mean,
                             return = "raster",
                             ignore_label_0 = TRUE) {
   .assert_single_layer(r)
-  .assert_single_layer(segmentation)
-  .assert_same_geom(r, segmentation)
+  .assert_single_layer(seg)
+  .assert_same_geom(r, seg)
   if (!is.function(fun) && !methods::is(fun, "standardGeneric")) {
     stop("`fun` must be a function or a standard generic.")
   }
   .assert_choice(return, c("vector", "raster"))
   .check_vector(ignore_label_0, "logical", 1)
 
-  if (ignore_label_0 == TRUE) segmentation[segmentation == 0] <- NA
+  if (ignore_label_0 == TRUE) seg[seg == 0] <- NA
 
-  feature <- tapply(terra::values(r), terra::values(segmentation), fun)
+  feature <- tapply(terra::values(r), terra::values(seg), fun)
 
   if (return == "raster") {
     id <- as.numeric(names(feature))
-    return(terra::subst(segmentation, id, feature))
+    return(terra::subst(seg, id, feature))
   } else {
     ids <- names(feature)
     feature <- as.numeric(feature)

@@ -4,7 +4,18 @@
 \alias{optim_dist_to_black}
 \title{Optimize minimum distance to black pixels}
 \usage{
-optim_dist_to_black(r, z, a, m, bin, g)
+optim_dist_to_black(
+  r,
+  z,
+  a,
+  m,
+  bin,
+  g,
+  parallel = FALSE,
+  cores = NULL,
+  logical = TRUE,
+  leave_free = 1
+)
 }
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
@@ -20,10 +31,6 @@ band of a canopy image.}
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Binary image where
 \code{TRUE} marks candidate sky pixels. Typically the output of
 \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
-
-\item{g}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Segmentation grid,
-usually built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or \code{\link[=chessboard]{chessboard()}}. Ignored
-when \code{method = "local_max"}.}
 }
 \value{
 Numeric vector of length one to be passed as \code{dist_to_black} to
@@ -50,7 +57,7 @@ r <- caim$Blue
 
 bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
   select_sky_region(z, 0, 88)
-g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
 
 dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
 dist_to_black

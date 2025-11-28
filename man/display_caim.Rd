@@ -12,9 +12,6 @@ Can be multi- or single-layer.}
 
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
-
-\item{g}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values. Sky
-segmentation map produced by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
 }
 \value{
 Invisible \code{NULL}. Called for side effects (image viewer popup).

@@ -4,15 +4,15 @@
 #' regional approach that preserves aggregation consistency between the fuzzy
 #' and binary representations.
 #'
-#' The conversion is applied within segments defined by `segmentation`,
+#' The conversion is applied within segments defined by `seg`,
 #' ensuring that, in each segment, the aggregated Boolean result matches the
 #' aggregated fuzzy value. This approach is well suited for converting subpixel
 #' estimates, such as gap fraction, into binary outputs.
 #'
 #' @param mem numeric [terra::SpatRaster-class] of one layer. Degree of
 #'   membership in a fuzzy classification.
-#' @param segmentation single-layer [terra::SpatRaster-class] with integer
-#'   values.
+#'
+#' @inheritParams extract_feature
 #'
 #' @return Logical [terra::SpatRaster-class] of the same dimensions as `mem`,
 #'   where each pixel value represents the binary version of `mem` after
@@ -38,17 +38,17 @@
 #' ratio <- r / sky_above$dn_raster
 #' ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 #' plot(ratio)
-#' g <- sky_grid_segmentation(z, a, 10)
+#' g <- skygrid_segmentation(z, a, 10)
 #' bin2 <- defuzzify(ratio, g)
 #' plot(bin2) # unsatisfactory results due to light conditions
 #' }
-defuzzify <- function (mem, segmentation) {
+defuzzify <- function (mem, seg) {
   .assert_single_layer(mem)
   if (any(.get_max(mem) > 1, .get_min(mem) < 0)) {
     warning("Check if 'mem' values are degree of membership in a fuzzy classification.")
   }
-  .assert_single_layer(segmentation)
-  .assert_same_geom(mem, segmentation)
+  .assert_single_layer(seg)
+  .assert_same_geom(mem, seg)
 
   mem[is.na(mem)] <- 0
 
@@ -68,9 +68,9 @@ defuzzify <- function (mem, segmentation) {
   cells <- mem
   terra::values(cells) <- 1:ncell(mem)
   cells <- tapply(terra::values(cells),
-                   terra::values(segmentation), function(x) x)
+                   terra::values(seg), function(x) x)
   cells <- unlist(cells)
-  bin <- tapply(terra::values(mem), terra::values(segmentation), .fun)
+  bin <- tapply(terra::values(mem), terra::values(seg), .fun)
   mem[cells] <- unlist(bin)
   as.logical(mem)
 }

@@ -104,7 +104,7 @@ r <- read_caim("manipulate/IMG_1014.pgm")
 z <- zenith_image(ncol(r), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
-g <- sky_grid_segmentation(z, a, 10)
+g <- skygrid_segmentation(z, a, 10)
 bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
 bin <- select_sky_region(z, 0, 85) & bin
 

@@ -61,7 +61,7 @@
 #' @param r numeric [terra::SpatRaster-class] of one layer. The canopy image
 #'   used in the out-of-the-box workflow (used by `read_sky_cie()` when
 #'   refitting).
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @param refit_allowed logical vector of length one. If `TRUE`, allow automatic
 #'   re-fit when manual edits are detected.
 #'
@@ -294,7 +294,7 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
 
   gd <- .get_two_tokens_after(lines, "grid")
   sky_cie$g <- tryCatch(
-    sky_grid_segmentation(z, a, gd$tok1, gd$tok2),
+    skygrid_segmentation(z, a, gd$tok1, gd$tok2),
     error = function(e) NA
   )
 

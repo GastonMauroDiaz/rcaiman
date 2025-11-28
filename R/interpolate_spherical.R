@@ -32,7 +32,7 @@
 #' @param size numeric vector of length one. Number of rows and columns of the
 #'   low-resolution grid used before resampling to full resolution.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams interpolate_planar
 #' @inheritParams rem_outliers
 #'

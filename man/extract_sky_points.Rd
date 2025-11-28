@@ -4,7 +4,7 @@
 \alias{extract_sky_points}
 \title{Extract sky points}
 \usage{
-extract_sky_points(r, bin, g, dist_to_black = 3, method = "grid")
+extract_sky_points(r, bin, seg, dist_to_black = 3, method = "per_cell")
 }
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
@@ -14,16 +14,17 @@ band of a canopy image.}
 \code{TRUE} marks candidate sky pixels. Typically the output of
 \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
-\item{g}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Segmentation grid,
-usually built with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} or \code{\link[=chessboard]{chessboard()}}. Ignored
-when \code{method = "local_max"}.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map of r,
+typically created with functions such as \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
+\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
+integer segment labels is accepted. Ignored when \code{method = "local_max"}.}
 
 \item{dist_to_black}{numeric vector of length one or \code{NULL}. Minimum distance
 (pixels) to the nearest black pixel for a candidate sky pixel to be valid.
 If \code{NULL}, no distance constraint is applied. Ignored with \code{method = local_max}.}
 
 \item{method}{character vector of length one. Sampling method; either
-\code{"grid"} (default) or \code{"local_max"}.}
+\code{"per_cell"} (default) or \code{"local_max"}.}
 }
 \value{
 \code{data.frame} with columns \code{row} and \code{col}.
@@ -34,7 +35,7 @@ Sample representative sky pixels for use in model fitting or interpolation.
 \details{
 Two sampling strategies are provided:
 \describe{
-\item{\code{"grid"}}{select one sky point per cell of a segmentation grid (\code{g})
+\item{\code{"per_cell"}}{select one sky point per cell of a segmentation (\code{seg})
 as the brightest pixel marked \code{TRUE} in \code{bin}, provided the cell’s white
 pixel count exceeds one fourth of the mean across valid cells.}
 \item{\code{"local_max"}}{detect local maxima within a fixed \eqn{9 \times 9}
@@ -43,7 +44,7 @@ patches of connected \code{TRUE} pixels that are implausible based on fixed
 area/size thresholds. Each detected maximum is taken as a sky point.
 }
 }
-Use \code{"grid"} to promote an even, representative spatial distribution (good
+Use \code{"per_cell"} to promote an even, representative spatial distribution (good
 for model fitting), and \code{"local_max"} to be exhaustive for interpolation.
 }
 \examples{
@@ -57,8 +58,8 @@ r <- caim$Blue
 bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
   select_sky_region(z, 0, 88)
 
-g <- sky_grid_segmentation(z, a, 10)
-sky_points <- extract_sky_points(r, bin, g,
+seg <- skygrid_segmentation(z, a, 10)
+sky_points <- extract_sky_points(r, bin, seg,
                                  dist_to_black = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)

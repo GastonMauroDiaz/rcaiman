@@ -4,7 +4,7 @@
 #' Segment a hemispherical view into equal azimuth sectors by slicing the
 #' azimuth angle from `0` to `360` deg at fixed steps.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @param angle_width numeric vector of lenght one. Sector width in degrees.
 #'   Must divide the 0–360 deg range into an integer number of sectors.
 #'

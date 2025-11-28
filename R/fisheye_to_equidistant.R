@@ -20,7 +20,7 @@
 #'   resolution.
 #'
 #' @inheritParams compute_canopy_openness
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return [terra::SpatRaster-class] with the same number of layers as `r`,
 #'   reprojected to equidistant projection with circular shape and radius

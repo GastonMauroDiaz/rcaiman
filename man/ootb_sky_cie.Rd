@@ -36,7 +36,7 @@ to radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for details.}
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
 \item{gs}{\code{list} where each element is the output of
-\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}. See \emph{Examples} for guidance.}
+\code{\link[=skygrid_segmentation]{skygrid_segmentation()}}. See \emph{Examples} for guidance.}
 
 \item{min_spherical_dist}{numeric vector. Values passed to
 \code{\link[=rem_nearby_points]{rem_nearby_points()}}.}
@@ -85,7 +85,7 @@ for the optimal fit.}
 sky points.}
 \item{\code{sun_row_col}}{\code{data.frame} with the estimated sun‑disk position in
 image coordinates.}
-\item{\code{g}}{Sky grid used for the optimal fit (as returned by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}).}
+\item{\code{g}}{Sky grid used for the optimal fit (as returned by \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}).}
 \item{\code{tested_grids}}{character vector describing the tested grid configurations.}
 \item{\code{tested_distances}}{character vector of tested \code{min_dist} values in
 \code{rem_nearby_points(space = "spherical")}.}
@@ -128,14 +128,14 @@ bin <- ootb_bin(caim, z, a, m, TRUE)
 set.seed(7)
 gs <- list(
   #high res
-  sky_grid_segmentation(z, a, 2.25, first_ring_different = TRUE),
-  sky_grid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
+  skygrid_segmentation(z, a, 2.25, first_ring_different = TRUE),
+  skygrid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
   #medium res
-  sky_grid_segmentation(z, a, 9, first_ring_different = TRUE),
-  sky_grid_segmentation(z, a, 10, first_ring_different = TRUE),
+  skygrid_segmentation(z, a, 9, first_ring_different = TRUE),
+  skygrid_segmentation(z, a, 10, first_ring_different = TRUE),
   #low res
-  sky_grid_segmentation(z, a, 15, first_ring_different = FALSE),
-  sky_grid_segmentation(z, a, 18, first_ring_different = FALSE)
+  skygrid_segmentation(z, a, 15, first_ring_different = FALSE),
+  skygrid_segmentation(z, a, 18, first_ring_different = FALSE)
 )
 
 sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,

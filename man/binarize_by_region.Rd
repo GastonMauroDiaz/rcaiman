@@ -4,13 +4,13 @@
 \alias{binarize_by_region}
 \title{Regional thresholding of greyscale images}
 \usage{
-binarize_by_region(r, segmentation, method)
+binarize_by_region(r, seg, method)
 }
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
 channel of a canopy photograph.}
 
-\item{segmentation}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. A labeled
+\item{seg}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. A labeled
 segmentation map defining the regions over which to apply the thresholding
 method. Ring segmentation (see \code{\link[=ring_segmentation]{ring_segmentation()}}) is often preferred
 for fisheye images \insertCite{Leblanc2005}{rcaiman}.}
@@ -28,7 +28,7 @@ regionally, using a segmentation map.
 }
 \details{
 This function supports several thresholding methods applied within the
-regions defined by \code{segmentation}:
+regions defined by \code{seg}:
 
 \describe{
 \item{Methods from the \code{autothresholdr} package:}{Any method supported by

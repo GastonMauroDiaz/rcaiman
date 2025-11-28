@@ -21,7 +21,7 @@
 #' This function is part of a paper under preparation.
 #'
 #' @param gs `list` where each element is the output of
-#'   [sky_grid_segmentation()]. See *Examples* for guidance.
+#'   [skygrid_segmentation()]. See *Examples* for guidance.
 #' @param min_spherical_dist numeric vector. Values passed to
 #'   [rem_nearby_points()].
 #' @param custom_sky_coef optional numeric vector of length five. If `NULL`
@@ -33,7 +33,7 @@
 #'
 #' @inheritParams ootb_cie_model
 #' @inheritParams compute_canopy_openness
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams extract_sky_points
 #' @inheritParams fit_trend_surface
 #' @inheritParams fit_cie_model
@@ -56,7 +56,7 @@
 #'     sky points.}
 #'   \item{`sun_row_col`}{`data.frame` with the estimated sun‑disk position in
 #'     image coordinates.}
-#'   \item{`g`}{Sky grid used for the optimal fit (as returned by [sky_grid_segmentation()]).}
+#'   \item{`g`}{Sky grid used for the optimal fit (as returned by [skygrid_segmentation()]).}
 #'   \item{`tested_grids`}{character vector describing the tested grid configurations.}
 #'   \item{`tested_distances`}{character vector of tested `min_dist` values in
 #'     `rem_nearby_points(space = "spherical")`.}
@@ -80,14 +80,14 @@
 #' set.seed(7)
 #' gs <- list(
 #'   #high res
-#'   sky_grid_segmentation(z, a, 2.25, first_ring_different = TRUE),
-#'   sky_grid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
+#'   skygrid_segmentation(z, a, 2.25, first_ring_different = TRUE),
+#'   skygrid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
 #'   #medium res
-#'   sky_grid_segmentation(z, a, 9, first_ring_different = TRUE),
-#'   sky_grid_segmentation(z, a, 10, first_ring_different = TRUE),
+#'   skygrid_segmentation(z, a, 9, first_ring_different = TRUE),
+#'   skygrid_segmentation(z, a, 10, first_ring_different = TRUE),
 #'   #low res
-#'   sky_grid_segmentation(z, a, 15, first_ring_different = FALSE),
-#'   sky_grid_segmentation(z, a, 18, first_ring_different = FALSE)
+#'   skygrid_segmentation(z, a, 15, first_ring_different = FALSE),
+#'   skygrid_segmentation(z, a, 18, first_ring_different = FALSE)
 #' )
 #'
 #' sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,
@@ -203,7 +203,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
     bin <- binarize_with_thr(bin, 0.5)
     terra::values(cv) <- cv_vals
 
-    g <- sky_grid_segmentation(z, a, angle_width, first_ring_different)
+    g <- skygrid_segmentation(z, a, angle_width, first_ring_different)
 
     .get_marks_single(r, z, a, m, bin, cv, g)
   }

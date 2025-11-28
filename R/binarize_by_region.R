@@ -5,7 +5,7 @@
 #'
 #' @details
 #' This function supports several thresholding methods applied within the
-#' regions defined by `segmentation`:
+#' regions defined by `seg`:
 #'
 #' \describe{
 #'   \item{Methods from the `autothresholdr` package:}{Any method supported by
@@ -24,7 +24,7 @@
 #'
 #' @param r numeric [terra::SpatRaster-class] of one layer. Typically the blue
 #'   channel of a canopy photograph.
-#' @param segmentation numeric [terra::SpatRaster-class] of one layer. A labeled
+#' @param seg numeric [terra::SpatRaster-class] of one layer. A labeled
 #'   segmentation map defining the regions over which to apply the thresholding
 #'   method. Ring segmentation (see [ring_segmentation()]) is often preferred
 #'   for fisheye images \insertCite{Leblanc2005}{rcaiman}.
@@ -55,10 +55,10 @@
 #' bin <- binarize_by_region(r, rings, "thr_twocorner")
 #' plot(bin)
 #' }
-binarize_by_region <- function(r, segmentation, method) {
+binarize_by_region <- function(r, seg, method) {
   .assert_single_layer(r)
-  .assert_single_layer(segmentation)
-  .assert_same_geom(r, segmentation)
+  .assert_single_layer(seg)
+  .assert_same_geom(r, seg)
   .check_vector(method, "character", 1)
 
   .fun <- switch(method,
@@ -94,11 +94,11 @@ binarize_by_region <- function(r, segmentation, method) {
   }
   bin <- binarize_with_thr(r, .get_min(r))
   .binarize_per_ring <- function(segment_id) {
-    indices <- segmentation == segment_id
+    indices <- seg == segment_id
     thr <- .fun(r[indices])
     bin[indices] <<- r[indices] > thr
   }
-  segs <- unique(terra::values(segmentation)) %>% as.numeric()
+  segs <- unique(terra::values(seg)) %>% as.numeric()
   segs <- segs[!is.na(segs)]
   segs <- segs[segs != 0]
   Map(.binarize_per_ring, segs)

@@ -3,13 +3,12 @@
 #' Segment a raster into square regions of equal size arranged in a
 #' chessboard-like pattern.
 #'
-#' This function divides the extent of a [terra::SpatRaster-class] into
+#' This function divides the extent of `r` into
 #' non-overlapping square segments of the given size, producing a segmentation
 #' map where each segment has a unique integer label. It can be an alternative
-#' to [sky_grid_segmentation()] in special cases.
+#' to [skygrid_segmentation()] in special cases.
 #'
-#' @inheritParams polar_qtree
-#'
+#' @param r [terra::SpatRaster-class]
 #' @param size Numeric vector of length one. Size (in pixels) of each square
 #'   segment. Must be a positive integer.
 #'
@@ -35,5 +34,6 @@ chessboard <- function(r, size) {
   terra::ext(.r) <- terra::ext(0,ncol(.r),0,nrow(.r))
   .r <- terra::crop(.r, r)
   terra::crs(.r) <- terra::crs(r)
+  names(.r) <- "Chessborad segmentation"
   .r
 }

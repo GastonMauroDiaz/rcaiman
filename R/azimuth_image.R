@@ -4,7 +4,7 @@
 #' angles, assuming an upwards-looking hemispherical photograph with the
 #' optical axis vertically aligned.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @param orientation numeric vector of length one. Azimuth angle (in degrees)
 #'   corresponding to the direction at which the top of the image was pointing

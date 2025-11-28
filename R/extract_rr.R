@@ -13,7 +13,7 @@
 #'   dn`.
 #'
 #' @inheritParams extract_dn
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return List with named elements:
 #' \describe{

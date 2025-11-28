@@ -5,19 +5,19 @@
 #' cell in a sky grid composed of circular trapezoids of equal angular
 #' resolution defined by `angle_width`.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return `data.frame` with integer columns `row` and `col`, one per grid cell.
 #'
-#' @seealso [sky_grid_segmentation()]
+#' @seealso [skygrid_segmentation()]
 #'
 #' @export
 #'
 #' @examples
 #' z <- zenith_image(100, lens())
 #' a <- azimuth_image(z)
-#' sky_grid_centers(z, a, 45)
-sky_grid_centers <- function(z, a, angle_width) {
+#' skygrid_centers(z, a, 45)
+skygrid_centers <- function(z, a, angle_width) {
   .check_r_z_a_m(NULL, z, a)
   .check_vector(angle_width, "numeric", 1, sign = "positive")
 

@@ -22,7 +22,7 @@
 #'   controlling splits (see *Details*).
 #' @param max_splittings numeric vector of length one. Maximum recursion depth.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return  Single-layer [terra::SpatRaster-class] with integer values and the
 #'   same number of rows and columns as `r`.
@@ -53,7 +53,7 @@ polar_qtree <- function(r, z, a,
   .check_vector(max_splittings, "integerish", 1, sign = "positive")
 
   angle.wds <- vapply(0:max_splittings, function(x) angle_width/2^x, 1)
-  ges <- Map(sky_grid_segmentation, z, a, angle.wds)
+  ges <- Map(skygrid_segmentation, z, a, angle.wds)
   .calc_delta_single_layer <- function(r) {
     if (any(is.na(r)[])) {
       .sd <- function(x) {

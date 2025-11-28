@@ -4,14 +4,16 @@
 \alias{defuzzify}
 \title{Defuzzify a fuzzy classification}
 \usage{
-defuzzify(mem, segmentation)
+defuzzify(mem, seg)
 }
 \arguments{
 \item{mem}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Degree of
 membership in a fuzzy classification.}
 
-\item{segmentation}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer
-values.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
+of r, typically created with functions such as \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
+\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
+integer segment labels is accepted.}
 }
 \value{
 Logical \link[terra:SpatRaster-class]{terra::SpatRaster} of the same dimensions as \code{mem},
@@ -24,7 +26,7 @@ regional approach that preserves aggregation consistency between the fuzzy
 and binary representations.
 }
 \details{
-The conversion is applied within segments defined by \code{segmentation},
+The conversion is applied within segments defined by \code{seg},
 ensuring that, in each segment, the aggregated Boolean result matches the
 aggregated fuzzy value. This approach is well suited for converting subpixel
 estimates, such as gap fraction, into binary outputs.
@@ -48,7 +50,7 @@ sky_above <- ootb_sky_above(sky_cie$model$rr$sky_points, z, a, sky_cie)
 ratio <- r / sky_above$dn_raster
 ratio <- normalize_minmax(ratio, 0, 1, TRUE)
 plot(ratio)
-g <- sky_grid_segmentation(z, a, 10)
+g <- skygrid_segmentation(z, a, 10)
 bin2 <- defuzzify(ratio, g)
 plot(bin2) # unsatisfactory results due to light conditions
 }

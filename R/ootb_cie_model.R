@@ -14,7 +14,7 @@
 #'   and [optim_sun_angles()].
 #'
 #' @inheritParams compute_canopy_openness
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams fit_cie_model
 #' @inheritParams apply_by_direction
 #'
@@ -82,7 +82,7 @@ ootb_cie_model <- function(r, z, a, m,
                             parallel = parallel,
                             cores = cores)
 
-  g <- sky_grid_segmentation(z, a, 22.5, first_ring_different = FALSE)
+  g <- skygrid_segmentation(z, a, 22.5, first_ring_different = FALSE)
 
   sky_points <- extract_sky_points(sky$n, !is.na(sky$dn), g,
                                    dist_to_black = 1)

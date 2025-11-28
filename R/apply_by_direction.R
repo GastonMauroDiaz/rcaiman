@@ -33,7 +33,7 @@
 #'
 #' @inheritParams fisheye_to_equidistant
 #' @inheritParams binarize_with_thr
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams compute_canopy_openness
 #' @inheritParams rem_outliers
 #'
@@ -183,7 +183,7 @@ apply_by_direction <- function(r, z, a, m,
     j <- 0
     repeat {
       j <- j + 1
-      g <- tryCatch(sky_grid_segmentation(z, a, valid_angle_width[j]),
+      g <- tryCatch(skygrid_segmentation(z, a, valid_angle_width[j]),
                     error = function(e) NULL)
       if (!is.null(g)) break
       if (j == length(length(valid_angle_width))) break
@@ -217,7 +217,7 @@ apply_by_direction <- function(r, z, a, m,
   m_vals <- terra::values(m)
   names_of_r <- names(r)
 
-  sky_points <- sky_grid_centers(z, a, spacing / 3)
+  sky_points <- skygrid_centers(z, a, spacing / 3)
   sky_points <- rem_nearby_points(sky_points, NULL, z, a, spacing,
                                   space = "spherical")
 

@@ -9,7 +9,7 @@ estimate_sun_angles(
   z,
   a,
   bin,
-  g,
+  seg,
   angular_radius_sun = 30,
   method = "assume_obscured"
 )
@@ -26,8 +26,10 @@ band of a canopy image.}
 \code{TRUE} marks candidate sky pixels. Typically the output of
 \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
-\item{g}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values. Sky
-segmentation map produced by \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map of r,
+typically created with functions such as \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
+\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
+integer segment labels is accepted. Ignored when \code{method = "local_max"}.}
 
 \item{angular_radius_sun}{numeric vector of length one. Maximum angular
 radius (in degrees) used to define the circumsolar region.}
@@ -56,7 +58,7 @@ when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
 from radiometric and spatial cues aggregated over the circumsolar region.}
 }
 
-When \code{method = "assume_veiled"}, \code{g} and \code{angular_radius_sun} are ignored.
+When \code{method = "assume_veiled"}, \code{seg} and \code{angular_radius_sun} are ignored.
 Estimates refer to positions above the horizon; therefore, estimated angles
 may require further manipulation if the photograph was acquired under
 crepuscular light.
@@ -76,8 +78,8 @@ r <- caim$Blue
 bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
   select_sky_region(z, 0, 88)
 
-g <- sky_grid_segmentation(z, a, 10)
-sun_angles <- estimate_sun_angles(r, z, a, bin, g,
+seg <- skygrid_segmentation(z, a, 10)
+sun_angles <- estimate_sun_angles(r, z, a, bin, seg,
                                   angular_radius_sun = 30)
 row_col <- row_col_from_zenith_azimuth(z, a,
                                        sun_angles["z"],

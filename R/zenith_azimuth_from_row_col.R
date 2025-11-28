@@ -29,7 +29,7 @@
 #' `azimuth_image()` using the stored orientation attribute in `a`. This yields
 #' robust angle retrieval near borders.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams zenith_image
 #'
 #' @param zenith,azimuth numeric vectors. Angles in degrees. Must have equal length.

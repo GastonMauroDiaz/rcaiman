@@ -15,7 +15,7 @@
 #'   from radiometric and spatial cues aggregated over the circumsolar region.}
 #' }
 #'
-#' When `method = "assume_veiled"`, `g` and `angular_radius_sun` are ignored.
+#' When `method = "assume_veiled"`, `seg` and `angular_radius_sun` are ignored.
 #' Estimates refer to positions above the horizon; therefore, estimated angles
 #' may require further manipulation if the photograph was acquired under
 #' crepuscular light.
@@ -23,15 +23,14 @@
 #' @note A scientific article presenting and validating this method is currently
 #' under preparation.
 #'
-#' @param g single-layer [terra::SpatRaster-class] with integer values. Sky
-#'   segmentation map produced by [sky_grid_segmentation()].
 #' @param method character vector of length one. Estimation mode:
 #'   `"assume_obscured"` (default) or `"assume_veiled"`.
 #' @param angular_radius_sun numeric vector of length one. Maximum angular
 #'   radius (in degrees) used to define the circumsolar region.
 #'
 #' @inheritParams extract_sky_points
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
+#' @inheritParams extract_feature
 #'
 #' @returns Named numeric vector of length two, with names `z` and `a`,
 #'   representing the sun’s zenith and azimuth angles (in degrees).
@@ -51,8 +50,8 @@
 #' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
 #'   select_sky_region(z, 0, 88)
 #'
-#' g <- sky_grid_segmentation(z, a, 10)
-#' sun_angles <- estimate_sun_angles(r, z, a, bin, g,
+#' seg <- skygrid_segmentation(z, a, 10)
+#' sun_angles <- estimate_sun_angles(r, z, a, bin, seg,
 #'                                   angular_radius_sun = 30)
 #' row_col <- row_col_from_zenith_azimuth(z, a,
 #'                                        sun_angles["z"],
@@ -61,7 +60,7 @@
 #' points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
 #'        pch = 8, cex = 3)
 #' }
-estimate_sun_angles <- function(r, z, a, bin, g,
+estimate_sun_angles <- function(r, z, a, bin, seg,
                                 angular_radius_sun = 30,
                                 method = "assume_obscured") {
 
@@ -74,8 +73,8 @@ estimate_sun_angles <- function(r, z, a, bin, g,
 
 
   if (method == "assume_obscured") {
-    .assert_sky_segmentation(g)
-    .assert_same_geom(r, g)
+    .assert_single_layer(seg)
+    .assert_same_geom(r, seg)
     .check_vector(angular_radius_sun, "numeric", 1, sign = "positive")
 
     if (!is.numeric(angular_radius_sun) || length(angular_radius_sun) != 1) {
@@ -84,8 +83,8 @@ estimate_sun_angles <- function(r, z, a, bin, g,
 
 
     # Select cells with at least one extremely bright sky pixel
-    g[!bin] <- NA
-    r <- extract_feature(r, g, function(x) quantile(x, 0.99, na.rm = TRUE))
+    seg[!bin] <- NA
+    r <- extract_feature(r, seg, function(x) quantile(x, 0.99, na.rm = TRUE))
     m <- r >= quantile(unique(terra::values(r)), 0.9, na.rm = TRUE)
     m[is.na(m)] <- 0
 
@@ -99,7 +98,7 @@ estimate_sun_angles <- function(r, z, a, bin, g,
       x <- unique(x) # to count the cells instead of the pixels
       length(x)
     }
-    size <- extract_feature(g, labeled_m, .fun, return = "vector") %>%
+    size <- extract_feature(seg, labeled_m, .fun, return = "vector") %>%
       normalize_minmax()
     dn <- extract_feature(r, labeled_m, median, return = "vector") %>%
       normalize_minmax()

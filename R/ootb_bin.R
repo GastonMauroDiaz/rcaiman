@@ -42,7 +42,7 @@
 #' This function is part of a paper under preparation.
 #'
 #' @inheritParams complementary_gradients
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams compute_canopy_openness
 #' @inheritParams apply_by_direction
 #'

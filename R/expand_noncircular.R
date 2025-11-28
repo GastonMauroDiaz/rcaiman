@@ -10,7 +10,7 @@
 #'   zenith (column, row). See [calc_zenith_colrow()]. Coordinates follow the
 #'   raster convention (column, row), not matrix order.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return [terra::SpatRaster-class] with the same layers and pixel values as `caim`,
 #'   but with `NA` margins added to center the zenith.

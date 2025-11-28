@@ -92,7 +92,7 @@ m <- !is.na(z)
 bin <- binarize_by_region(r, ring_segmentation(z, 30),
                           method = "thr_isodata")
 bin <- bin & select_sky_region(z, 0, 80)
-g <- sky_grid_segmentation(z, a, 5, first_ring_different = TRUE)
+g <- skygrid_segmentation(z, a, 5, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g,
                                  dist_to_black = 3)
 plot(r)

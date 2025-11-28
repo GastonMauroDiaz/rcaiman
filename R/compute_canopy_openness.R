@@ -35,7 +35,7 @@
 #' @param m logical [terra::SpatRaster-class] with one layer. A binary mask with
 #'   `TRUE` for selected pixels.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return Numeric vector of length one, constrained to the range \eqn{[0, 1]}.
 #'
@@ -54,9 +54,9 @@
 compute_canopy_openness <- function(bin, z, a, m = NULL, angle_width = 10) {
   .assert_logical_mask(bin)
   .check_r_z_a_m(NULL, z, a, m)
-  # angle_width is check by sky_grid_segmentation
+  # angle_width is check by skygrid_segmentation
 
-  g <- sky_grid_segmentation(z, a, angle_width)
+  g <- skygrid_segmentation(z, a, angle_width)
   g[!m] <- 0
   ds <- extract_feature(bin, g, return = "vector")
   ids <- .decode_label(as.numeric(names(ds)))

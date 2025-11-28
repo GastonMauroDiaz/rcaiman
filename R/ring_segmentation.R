@@ -9,7 +9,7 @@
 #' @param return character vector of length one. Output mode: "id" (default)
 #'   or "angle".
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #'
 #' @return Single-layer [terra::SpatRaster-class]: ring IDs if `return = "id"`,
 #'   or mean zenith angle (deg) if `return = "angle"`.

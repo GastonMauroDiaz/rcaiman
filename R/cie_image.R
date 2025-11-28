@@ -39,7 +39,7 @@
 #' Generate an image of relative radiance or luminance based on the CIE
 #' General Sky model.
 #'
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams fit_cie_model
 #'
 #' @param sky_coef numeric vector of length five. Parameters of the CIE sky model.

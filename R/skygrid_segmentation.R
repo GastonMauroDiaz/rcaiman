@@ -29,7 +29,7 @@
 #' a <- azimuth_image(z)
 #' u <- c()
 #' for (i in 1:nrow(df)) {
-#'   u <- c(u, tryCatch(is((sky_grid_segmentation(z, a,
+#'   u <- c(u, tryCatch(is((skygrid_segmentation(z, a,
 #'                             180/df$radians_denom[i])), "SpatRaster"),
 #'                      error = function(e) FALSE))
 #' }
@@ -49,7 +49,7 @@
 #' @return Single-layer [terra::SpatRaster-class] with integer labels. The
 #'   object carries attributes `angle_width` and `first_ring_different`.
 #'
-#' @seealso [sky_grid_centers()], [ring_segmentation()], [sector_segmentation()]
+#' @seealso [equalarea_segmentation()]
 #'
 #' @export
 #'
@@ -57,12 +57,12 @@
 #' caim <- read_caim()
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
-#' g <- sky_grid_segmentation(z, a, 15)
+#' g <- skygrid_segmentation(z, a, 15)
 #' plot(g == 24005)
 #' \dontrun{
 #' display_caim(g = g)
 #' }
-sky_grid_segmentation <- function(z, a, angle_width,
+skygrid_segmentation <- function(z, a, angle_width,
                                   first_ring_different = FALSE) {
   .check_r_z_a_m(NULL, z, a)
   .check_vector(angle_width, "numeric", 1, sign = "positive")

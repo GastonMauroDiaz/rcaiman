@@ -8,7 +8,7 @@
 #' @details
 #' This function computes a cylindrical projection by aggregating pixel values
 #' according to their zenith and azimuth angles. Internally, it creates a
-#' segmentation grid with [sky_grid_segmentation()] and applies
+#' segmentation grid with [skygrid_segmentation()] and applies
 #' [extract_feature()] to compute a summary statistic (e.g., mean) of pixel
 #' values within each cell.
 #'
@@ -17,7 +17,7 @@
 #' \insertCite{Diaz2021;textual}{rcaiman}.
 #'
 #' @inheritParams fisheye_to_equidistant
-#' @inheritParams sky_grid_segmentation
+#' @inheritParams skygrid_segmentation
 #' @inheritParams extract_feature
 #'
 #' @returns
@@ -45,7 +45,7 @@ fisheye_to_pano<- function(r, z, a, fun = mean, angle_width = 1) {
   .check_vector(angle_width, "numeric", 1, sign = "positive")
 
   .fisheye_to_pano <- function(r) {
-    g <- sky_grid_segmentation(z, a, angle_width)
+    g <- skygrid_segmentation(z, a, angle_width)
     blue <- extract_feature(r, g, fun, return = "vector")
     xy <- .decode_label(as.numeric(names(blue)))
     r <- matrix(NA, ncol = max(xy$sector_ID), nrow = max(xy$ring_ID))

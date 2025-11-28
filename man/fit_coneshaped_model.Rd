@@ -54,7 +54,7 @@ r <- caim$Blue
 bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
   select_sky_region(z, 0, 88)
 
-g <- sky_grid_segmentation(z, a, 10, first_ring_different = TRUE)
+g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
 sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
 plot(bin)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)

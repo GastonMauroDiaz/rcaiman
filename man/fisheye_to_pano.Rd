@@ -35,7 +35,7 @@ to zenith angle bands and columns to azimuthal sectors.
 \details{
 This function computes a cylindrical projection by aggregating pixel values
 according to their zenith and azimuth angles. Internally, it creates a
-segmentation grid with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} and applies
+segmentation grid with \code{\link[=skygrid_segmentation]{skygrid_segmentation()}} and applies
 \code{\link[=extract_feature]{extract_feature()}} to compute a summary statistic (e.g., mean) of pixel
 values within each cell.
 }

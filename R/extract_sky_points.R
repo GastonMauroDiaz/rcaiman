@@ -6,7 +6,7 @@
 #' @details
 #' Two sampling strategies are provided:
 #' \describe{
-#'   \item{`"grid"`}{select one sky point per cell of a segmentation grid (`g`)
+#'   \item{`"per_cell"`}{select one sky point per cell of a segmentation (`seg`)
 #'     as the brightest pixel marked `TRUE` in `bin`, provided the cell’s white
 #'     pixel count exceeds one fourth of the mean across valid cells.}
 #'   \item{`"local_max"`}{detect local maxima within a fixed \eqn{9 \times 9}
@@ -15,7 +15,7 @@
 #'     area/size thresholds. Each detected maximum is taken as a sky point.
 #'     }
 #' }
-#' Use `"grid"` to promote an even, representative spatial distribution (good
+#' Use `"per_cell"` to promote an even, representative spatial distribution (good
 #' for model fitting), and `"local_max"` to be exhaustive for interpolation.
 #'
 #' @param r numeric [terra::SpatRaster-class] of one layer. Typically the blue
@@ -23,14 +23,15 @@
 #' @param bin logical [terra::SpatRaster-class] of one layer. Binary image where
 #'   `TRUE` marks candidate sky pixels. Typically the output of
 #'   [binarize_with_thr()].
-#' @param g numeric [terra::SpatRaster-class] of one layer. Segmentation grid,
-#'   usually built with [sky_grid_segmentation()] or [chessboard()]. Ignored
-#'   when `method = "local_max"`.
+#' @param seg single-layer [terra::SpatRaster-class]. Segmentation map of r,
+#'   typically created with functions such as [skygrid_segmentation()],
+#'   [ring_segmentation()] or [sector_segmentation()], but any raster with
+#'   integer segment labels is accepted. Ignored when `method = "local_max"`.
 #' @param dist_to_black numeric vector of length one or `NULL`. Minimum distance
 #'   (pixels) to the nearest black pixel for a candidate sky pixel to be valid.
 #'   If `NULL`, no distance constraint is applied. Ignored with `method = local_max`.
 #' @param method character vector of length one. Sampling method; either
-#'   `"grid"` (default) or `"local_max"`.
+#'   `"per_cell"` (default) or `"local_max"`.
 #'
 #' @return `data.frame` with columns `row` and `col`.
 #'
@@ -47,37 +48,37 @@
 #' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
 #'   select_sky_region(z, 0, 88)
 #'
-#' g <- sky_grid_segmentation(z, a, 10)
-#' sky_points <- extract_sky_points(r, bin, g,
+#' seg <- skygrid_segmentation(z, a, 10)
+#' sky_points <- extract_sky_points(r, bin, seg,
 #'                                  dist_to_black = 3)
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
-extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
+extract_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell") {
   .this_requires_EBImage()
 
   .assert_single_layer(r)
   .assert_logical_mask(bin)
   .assert_same_geom(r, bin)
   .check_vector(dist_to_black, "integerish", 1, allow_null = TRUE, sign = "positive")
-  .assert_choice(method, c("grid", "local_max"))
+  .assert_choice(method, c("per_cell", "local_max"))
 
-  if (method == "grid") {
+  if (method == "per_cell") {
     if (!is.null(dist_to_black)) {
       bin2 <- grow_black(bin, dist_to_black)
     } else {
       bin2 <- bin
     }
-    .assert_sky_segmentation(g)
-    .assert_same_geom(g, r)
+    .assert_single_layer(g)
+    .assert_same_geom(seg, r)
 
-    # sky-grid approach
+    # per-cell approach
     ## remove cells with not enough white pixels
-    nwp <- extract_feature(bin, g, sum, return = "vector")
+    nwp <- extract_feature(bin, seg, sum, return = "vector")
     mean_nwp <- mean(nwp[nwp != 0])
-    nwp <- extract_feature(bin, g, sum, return = "raster")
+    nwp <- extract_feature(bin, seg, sum, return = "raster")
     nwp <- nwp > mean_nwp/4
-    g[!nwp] <- 0
+    seg[!nwp] <- 0
 
     no_col <- no_row <- bin
     terra::values(no_col) <- .col(dim(bin)[1:2])
@@ -85,11 +86,11 @@ extract_sky_points <- function(r, bin, g, dist_to_black = 3, method = "grid") {
 
     ds <- data.frame(col = no_col[bin2],
                      row = no_row[bin2],
-                     g = g[bin2],
+                     seg = seg[bin2],
                      dn = r[bin2])
-    names(ds) <- c("col", "row", "g", "dn")
+    names(ds) <- c("col", "row", "seg", "dn")
     if (nrow(ds) != 0) { #to avoid crashing when there is no white pixels
-        i <- tapply(1:nrow(ds), ds$g,
+        i <- tapply(1:nrow(ds), ds$seg,
                       function(x) {
                         x[which.max(ds$dn[x])]
                       })

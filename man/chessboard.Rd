@@ -7,8 +7,7 @@
 chessboard(r, size)
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. One or more layers used to drive
-heterogeneity.}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}}
 
 \item{size}{Numeric vector of length one. Size (in pixels) of each square
 segment. Must be a positive integer.}
@@ -22,10 +21,10 @@ Segment a raster into square regions of equal size arranged in a
 chessboard-like pattern.
 }
 \details{
-This function divides the extent of a \link[terra:SpatRaster-class]{terra::SpatRaster} into
+This function divides the extent of \code{r} into
 non-overlapping square segments of the given size, producing a segmentation
 map where each segment has a unique integer label. It can be an alternative
-to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} in special cases.
+to \code{\link[=skygrid_segmentation]{skygrid_segmentation()}} in special cases.
 }
 \examples{
 caim <- read_caim()

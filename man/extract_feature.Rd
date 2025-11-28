@@ -4,19 +4,13 @@
 \alias{extract_feature}
 \title{Extract feature}
 \usage{
-extract_feature(
-  r,
-  segmentation,
-  fun = mean,
-  return = "raster",
-  ignore_label_0 = TRUE
-)
+extract_feature(r, seg, fun = mean, return = "raster", ignore_label_0 = TRUE)
 }
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer.}
 
-\item{segmentation}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
-of r, typically created with functions such as \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}},
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
+of r, typically created with functions such as \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
 \code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
 integer segment labels is accepted.}
 
@@ -49,7 +43,7 @@ vector (e.g., \code{mean}, \code{median}, or a custom reducer).
 r <- read_caim()
 z <- zenith_image(ncol(r),lens())
 a <- azimuth_image(z)
-g <- sky_grid_segmentation(z, a, 10)
+g <- skygrid_segmentation(z, a, 10)
 print(extract_feature(r$Blue, g, return = "vector"))
 # plot(extract_feature(r$Blue, g, return = "raster"))
 }
