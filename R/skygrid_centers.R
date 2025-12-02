@@ -1,22 +1,25 @@
 #' Map sky-grid centers to raster coordinates
 #'
 #' @description
-#' Return image row and column indices for the center point of each
-#' cell in a sky grid composed of circular trapezoids of equal angular
-#' resolution defined by `angle_width`.
+#' Return image row and column indices for the center point of each cell in a
+#' sky grid composed of circular trapezoids of equal angular resolution defined
+#' by `angle_width` such as in [skygrid_segmentation()].
 #'
 #' @inheritParams skygrid_segmentation
 #'
 #' @return `data.frame` with integer columns `row` and `col`, one per grid cell.
 #'
-#' @seealso [skygrid_segmentation()]
+#' @seealso [fibonacci_points()]
 #'
 #' @export
 #'
 #' @examples
 #' z <- zenith_image(100, lens())
 #' a <- azimuth_image(z)
-#' skygrid_centers(z, a, 45)
+#' sky_points <- skygrid_centers(z, a, 30)
+#' \dontrun{
+#' display_caim(is.na(z), sky_points = sky_points)
+#' }
 skygrid_centers <- function(z, a, angle_width) {
   .check_r_z_a_m(NULL, z, a)
   .check_vector(angle_width, "numeric", 1, sign = "positive")

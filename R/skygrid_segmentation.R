@@ -1,14 +1,13 @@
 #' Assign sky-grid labels
 #'
 #' @description
-#' Segment a hemispherical view into equal-angle bins in zenith and azimuth,
-#' assigning each pixel a grid-cell ID.
+#' Segment a hemispherical view into equal-angle bins in both zenith and azimuth
+#' angles, assigning each pixel a grid-cell ID.
 #'
 #' @details
 #' The intersection of zenith rings and azimuth sectors forms a grid whose cells
 #' are circular trapezoids. By default, IDs encode both components as
-#' `sectorID * 1000 + ringID`. If `first_ring_different = TRUE`, the zenith ring
-#' is not subdivided.
+#' `sectorID * 1000 + ringID`.
 #'
 #' The code below outputs a comprehensive list of valid values for `angle_width`.
 #' For convenience, the column `radians_denom` can be used to provide

@@ -27,6 +27,10 @@
 #'   `"assume_obscured"` (default) or `"assume_veiled"`.
 #' @param angular_radius_sun numeric vector of length one. Maximum angular
 #'   radius (in degrees) used to define the circumsolar region.
+#' @param seg Segmentation map of r, typically created with functions such as
+#'   [equalarea_segmentation()], [skygrid_segmentation()], [ring_segmentation()]
+#'   or [sector_segmentation()], but any raster with integer segment labels is
+#'   accepted.
 #'
 #' @inheritParams extract_sky_points
 #' @inheritParams skygrid_segmentation

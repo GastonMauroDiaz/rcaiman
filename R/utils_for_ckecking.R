@@ -264,45 +264,29 @@
   invisible(TRUE)
 }
 
-.is_sky_segmentation <- function(seg) {
-  # # if (!inherits(seg, "SpatRaster")) return(FALSE)
-  # .assert_single_layer(seg)
-  #
-  # ring_mode <- attr(seg, "ring_mode")
-  # angle_width <- attr(seg, "angle_width")
-  # ring_flag   <- attr(seg, "first_ring_different")
-  #
-  # if (!is.character(ring_mode) || length(ring_mode) != 1 ||
-  #     anyNA(ring_mode)) {
-  #   if (!is.numeric(angle_width) || length(angle_width) != 1 ||
-  #       !is.finite(angle_width)) return(FALSE)
-  #   if (!is.logical(ring_flag) || length(ring_flag) != 1 ||
-  #       anyNA(ring_flag)) return(FALSE)
-  #   nm <- names(seg)
-  #   if (is.null(nm)) return(FALSE)
-  #   return(all(nm == paste0("Sky grid, ", angle_width, " degrees")))
-  # } else {
-  #   nm <- names(seg)
-  #   if (is.null(nm)) return(FALSE)
-  #   return(nm == "Sky segments of quasi-equal area")
-  # }
-  T
-}
-
-.assert_sky_segmentation <- function(g, name = deparse(substitute(g))) {
-  if (!.is_sky_segmentation(g)) {
-    stop(sprintf("`%s` must be the output of `skygrid_segmentation()` or `equalarea_segmentation()`.", name),
+# .check_sky_points <- function(sky_points) {
+#   if (!is.data.frame(sky_points)) {
+#     stop("`sky_points` must be a data frame with columns 'row' and 'col'.")
+#   }
+#   if (ncol(sky_points) != 2 || !all(c("row", "col") %in% names(sky_points))) {
+#     stop("`sky_points` must have two columns named 'row' and 'col'.")
+#   }
+# }
+.check_sky_points <- function(sky_points, name = deparse(substitute(sky_points))) {
+  if (!is.data.frame(sky_points)) {
+    stop(sprintf("`%s` must be a data frame with columns 'row' and 'col'.", name),
          call. = FALSE)
   }
-  invisible(TRUE)
+  if (ncol(sky_points) != 2 || !all(c("row", "col") %in% names(sky_points))) {
+    stop(sprintf("`%s`  must have two columns named 'row' and 'col'.", name),
+         call. = FALSE)
+  }
 }
 
-.check_sky_points <- function(sky_points) {
-  if (!is.data.frame(sky_points)) {
-    stop("`sky_points` must be a data frame with columns 'row' and 'col'.")
-  }
-  if (ncol(sky_points) != 2 || !all(c("row", "col") %in% names(sky_points))) {
-    stop("`sky_points` must have two columns named 'row' and 'col'.")
+.check_sun_angles <- function(sun_angles) {
+  if (!is.numeric(sun_angles) || length(sun_angles) != 2 ||
+      !identical(names(sun_angles), c("z", "a"))) {
+    stop("`sun_angles` must be a named numeric vector of length two with names 'z' and 'a' in that order.")
   }
 }
 

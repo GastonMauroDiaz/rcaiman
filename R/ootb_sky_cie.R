@@ -141,7 +141,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
                                       method = "assume_obscured")
 
     # Obtain parameter
-    dist_to_black <- optim_dist_to_black(r, z, a, m, bin, g)
+    dist_to_black <- 1
 
     # Sky points
     sky_points <- extract_sky_points(r, bin, g, dist_to_black)

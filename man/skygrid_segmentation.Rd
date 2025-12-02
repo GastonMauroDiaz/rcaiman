@@ -24,14 +24,13 @@ Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer label
 object carries attributes \code{angle_width} and \code{first_ring_different}.
 }
 \description{
-Segment a hemispherical view into equal-angle bins in zenith and azimuth,
-assigning each pixel a grid-cell ID.
+Segment a hemispherical view into equal-angle bins in both zenith and azimuth
+angles, assigning each pixel a grid-cell ID.
 }
 \details{
 The intersection of zenith rings and azimuth sectors forms a grid whose cells
 are circular trapezoids. By default, IDs encode both components as
-\code{sectorID * 1000 + ringID}. If \code{first_ring_different = TRUE}, the zenith ring
-is not subdivided.
+\code{sectorID * 1000 + ringID}.
 
 The code below outputs a comprehensive list of valid values for \code{angle_width}.
 For convenience, the column \code{radians_denom} can be used to provide

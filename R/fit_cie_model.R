@@ -155,11 +155,7 @@ fit_cie_model <- function(rr, sun_angles,
     stop(sprintf("`rr$sky_points` must contain columns %s.",
                  paste(sprintf('"%s"', required_cols), collapse = ", ")))
   }
-  # sun_angles must be a named numeric vector of length 2 with names z and a
-  if (!is.numeric(sun_angles) || length(sun_angles) != 2 ||
-      !identical(names(sun_angles), c("z", "a"))) {
-    stop("`sun_angles` must be a named numeric vector of length two with names 'z' and 'a' in that order.")
-  }
+  .check_sun_angles(sun_angles)
   .assert_choice(general_sky_type, c("Overcast", "Partly cloudy", "Clear"),
                  allow_null = TRUE)
   if (!is.null(custom_sky_coef)) {

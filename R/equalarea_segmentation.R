@@ -1,7 +1,8 @@
-#' Segment a hemisphere into equal-area cells
+#' Segment a hemisphere into equal-area cells in spherical space
 #'
 #' @description
-#' Segment a hemispherical view into exactly \code{n_cells} equal-area cells.
+#' Segment a hemispherical view into \code{n_cells} equal-area cells in
+#' spherical space.
 #'
 #' @details
 #' Segmentation begins by creating `n_cells` initial rings through uniform
@@ -54,10 +55,8 @@ equalarea_segmentation <- function(z, a, n_cells) {
   .check_r_z_a_m(NULL, z, a)
   .check_vector(n_cells, "integerish", 1, sign = "positive")
 
-  if (n_cells > 10000) stop("`n_cells` must be lower than 10000.")
-
-  initial_ring_breaks <- seq(0,1, length.out = n_cells + 1) %>% acos() %>%
-    .radian2degree() %>% rev()
+  initial_ring_breaks <- acos(seq(0,1, length.out = n_cells + 1))
+  initial_ring_breaks <- initial_ring_breaks %>%  .radian2degree() %>% rev()
   initial_ring_breaks <- initial_ring_breaks[-1]
   n_rings <- round(sqrt(n_cells))
 

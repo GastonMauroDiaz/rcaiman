@@ -46,6 +46,10 @@
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
+#' n_cells <- extract_dn(bin, fibonacci_points(z, a, 1), use_window = FALSE)[,3] %>% sum()
+#' seg <- equalarea_segmentation(z, a, n_cells)
+#' kl <- assess_sampling_uniformity(sky_points, seg)
+#'
 #' seg <- equalarea_segmentation(z, a, 200)
 #' kl <- lapply(1:30, function(i) {
 #'   sky_points <-  rem_nearby_points(sky_points, NULL, z, a, i, space = "spherical")
@@ -55,8 +59,9 @@
 #' }
 assess_sampling_uniformity <- function(sky_points, equalarea_seg) {
 
-  if (!.is_sky_segmentation(equalarea_seg) | .is_sky_grid(equalarea_seg)) {
-    stop("`equalarea_seg` must be the output of `equalarea_segmentation()`.")
+  .assert_single_layer(equalarea_seg)
+  if (names(equalarea_seg) != "Sky segments of equal area") {
+    stop("`equalarea_seg` must be the output of `equalarea_segmentation()")
   }
 
   cell_ids <- extract_dn(equalarea_seg, sky_points, use_window = FALSE)[,3]
@@ -73,4 +78,6 @@ assess_sampling_uniformity <- function(sky_points, equalarea_seg) {
 
   # Since the uniforme distribution is u_i = 1 / N, KL is:
   sum(p[p > 0] * log(p[p > 0] * N))
+
+  # list(kl = kl, coverage = sum(p > 0) / N)
 }

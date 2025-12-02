@@ -70,7 +70,7 @@ ootb_cie_model <- function(r, z, a, m,
   .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
 
   if (parallel) {
-    cores <- .cores(cores, logical, leave_free, )
+    cores <- .cores(cores, logical, leave_free)
     if (cores < 2) parallel <- FALSE
   }
   #more basic checks are handled by the functions called below

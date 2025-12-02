@@ -20,15 +20,18 @@ set of valid values by running
 \code{data.frame} with integer columns \code{row} and \code{col}, one per grid cell.
 }
 \description{
-Return image row and column indices for the center point of each
-cell in a sky grid composed of circular trapezoids of equal angular
-resolution defined by \code{angle_width}.
+Return image row and column indices for the center point of each cell in a
+sky grid composed of circular trapezoids of equal angular resolution defined
+by \code{angle_width} such as in \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}.
 }
 \examples{
 z <- zenith_image(100, lens())
 a <- azimuth_image(z)
-skygrid_centers(z, a, 45)
+sky_points <- skygrid_centers(z, a, 30)
+\dontrun{
+display_caim(is.na(z), sky_points = sky_points)
+}
 }
 \seealso{
-\code{\link[=skygrid_segmentation]{skygrid_segmentation()}}
+\code{\link[=fibonacci_points]{fibonacci_points()}}
 }

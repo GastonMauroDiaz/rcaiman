@@ -4,7 +4,13 @@
 \alias{display_caim}
 \title{Display a canopy image}
 \usage{
-display_caim(caim = NULL, bin = NULL, g = NULL)
+display_caim(
+  caim = NULL,
+  bin = NULL,
+  seg = NULL,
+  sky_points = NULL,
+  sun_row_col = NULL
+)
 }
 \arguments{
 \item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Typically the output of \code{\link[=read_caim]{read_caim()}}.
@@ -12,6 +18,14 @@ Can be multi- or single-layer.}
 
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
+
+\item{seg}{Segmentation map typically created with functions such as
+\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
+or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
+accepted.}
+
+\item{`sun_row_col`}{numeric \code{data.frame} with the estimated sun‑disk
+position in image coordinates. See \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}}.}
 }
 \value{
 Invisible \code{NULL}. Called for side effects (image viewer popup).
@@ -25,10 +39,42 @@ a graphical viewer.
 \examples{
 \dontrun{
 caim <- read_caim()
+r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
-r <- normalize_minmax(caim$Blue)
-g <- ring_segmentation(z, 30)
-bin <- binarize_by_region(r, g, method = "thr_isodata")
-display_caim(caim$Blue, bin, g)
+a <- azimuth_image(z)
+
+# See fit_cie_model() for details on below file
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+plot(caim$Blue)
+points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+
+x11()
+# plot(caim$Blue)
+# sun_angles <- click(c(z, a), 1) \%>\% as.numeric()
+sun_angles <- c(z = 49.5, a = 27.4) #taken with above lines then hardcoded
+
+sun_row_col <- row_col_from_zenith_azimuth(z, a,
+                                           sun_angles["z"],
+                                           sun_angles["a"])
+
+bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
+seg <- equalarea_segmentation(z, a, 200)
+
+# color image
+display_caim(caim)
+# greyscale
+display_caim(caim$Blue)
+# to check binarization quality (press `h` with the pointer on the image to
+# learn useful hotkeys)
+display_caim(caim$Blue, bin)
+# to see the segments
+display_caim(seg = seg)
+# to see the marks
+display_caim(caim, sky_points = sky_points, sun_row_col = sun_row_col)
 }
 }

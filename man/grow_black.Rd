@@ -19,8 +19,8 @@ to the input \code{bin}, black regions (\code{FALSE}) have been expanded by the
 specified buffer distance.
 }
 \description{
-Grow black pixels in a binary mask using a kernel of user-defined size.
-Useful to reduce errors associated with inter-class borders.
+Grow black pixels in a binary mask using a kernel of \eqn{3 \times 3} pixels
+iteratively. Useful to reduce errors associated with inter-class borders.
 }
 \details{
 Expands the regions with value \code{FALSE} (typically rendered as black) in a

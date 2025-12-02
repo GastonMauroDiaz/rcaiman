@@ -24,7 +24,7 @@
 #'   `TRUE` marks candidate sky pixels. Typically the output of
 #'   [binarize_with_thr()].
 #' @param seg single-layer [terra::SpatRaster-class]. Segmentation map of r,
-#'   typically created with functions such as [skygrid_segmentation()],
+#'   typically created with functions such as [equalarea_segmentation()], [skygrid_segmentation()],
 #'   [ring_segmentation()] or [sector_segmentation()], but any raster with
 #'   integer segment labels is accepted. Ignored when `method = "local_max"`.
 #' @param dist_to_black numeric vector of length one or `NULL`. Minimum distance
@@ -69,7 +69,7 @@ extract_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cel
     } else {
       bin2 <- bin
     }
-    .assert_single_layer(g)
+    .assert_single_layer(seg)
     .assert_same_geom(seg, r)
 
     # per-cell approach

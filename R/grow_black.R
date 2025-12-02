@@ -1,8 +1,8 @@
 #' Grow black regions in a binary mask
 #'
 #' @description
-#' Grow black pixels in a binary mask using a kernel of user-defined size.
-#' Useful to reduce errors associated with inter-class borders.
+#' Grow black pixels in a binary mask using a kernel of \eqn{3 \times 3} pixels
+#' iteratively. Useful to reduce errors associated with inter-class borders.
 #'
 #' @details
 #' Expands the regions with value `FALSE` (typically rendered as black) in a
@@ -34,17 +34,19 @@ grow_black <- function(bin, dist_to_black) {
   .this_requires_EBImage()
   .assert_logical_mask(bin)
   .check_vector(dist_to_black, "integerish", 1, sign = "positive")
-
   if (max(values(bin), na.rm = TRUE) == 0) {
     warning("`bin` does not have white values to grow black to. The original input is returned unchanged.")
   } else {
-    kern <- EBImage::makeBrush(dist_to_black + 2, "box")
-    bin <- EBImage::erode(as.array(bin), kern) %>%
-      terra::setValues(bin, .)
-    if (max(values(bin), na.rm = TRUE) == 0) {
-      bin <- as.logical(bin)
-    } else {
-      bin <- binarize_with_thr(bin, 0)
+    for (i in 1:dist_to_black) {
+      kern <- EBImage::makeBrush(3, "box")
+      bin <- EBImage::erode(as.array(bin), kern) %>%
+        terra::setValues(bin, .)
+      if (max(values(bin), na.rm = TRUE) == 0) {
+        bin <- as.logical(bin)
+        return(bin)
+      } else {
+        bin <- binarize_with_thr(bin, 0)
+      }
     }
   }
   bin

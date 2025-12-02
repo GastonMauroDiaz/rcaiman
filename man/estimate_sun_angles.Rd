@@ -26,10 +26,10 @@ band of a canopy image.}
 \code{TRUE} marks candidate sky pixels. Typically the output of
 \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
-\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map of r,
-typically created with functions such as \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
-\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
-integer segment labels is accepted. Ignored when \code{method = "local_max"}.}
+\item{seg}{Segmentation map of r, typically created with functions such as
+\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
+or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
+accepted.}
 
 \item{angular_radius_sun}{numeric vector of length one. Maximum angular
 radius (in degrees) used to define the circumsolar region.}

@@ -217,9 +217,7 @@ apply_by_direction <- function(r, z, a, m,
   m_vals <- terra::values(m)
   names_of_r <- names(r)
 
-  sky_points <- skygrid_centers(z, a, spacing / 3)
-  sky_points <- rem_nearby_points(sky_points, NULL, z, a, spacing,
-                                  space = "spherical")
+  sky_points <- fibonacci_points(z, a, spacing)
 
   i <- extract_dn(m & select_sky_region(z, 0, 90 - spacing/2),
                   sky_points, use_window = FALSE)[,3]

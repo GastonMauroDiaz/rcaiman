@@ -7,9 +7,14 @@
 #'
 #' @param caim [terra::SpatRaster-class]. Typically the output of [read_caim()].
 #'   Can be multi- or single-layer.
+#' @param seg Segmentation map typically created with functions such as
+#'   [equalarea_segmentation()], [skygrid_segmentation()], [ring_segmentation()]
+#'   or [sector_segmentation()], but any raster with integer segment labels is
+#'   accepted.
+#' @param `sun_row_col` numeric `data.frame` with the estimated sun‑disk
+#'   position in image coordinates. See [row_col_from_zenith_azimuth()].
 #'
 #' @inheritParams compute_canopy_openness
-#' @inheritParams estimate_sun_angles
 #'
 #' @return Invisible `NULL`. Called for side effects (image viewer popup).
 #' @export
@@ -17,13 +22,49 @@
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()
+#' r <- caim$Blue
 #' z <- zenith_image(ncol(caim), lens())
-#' r <- normalize_minmax(caim$Blue)
-#' g <- ring_segmentation(z, 30)
-#' bin <- binarize_by_region(r, g, method = "thr_isodata")
-#' display_caim(caim$Blue, bin, g)
+#' a <- azimuth_image(z)
+#'
+#' # See fit_cie_model() for details on below file
+#' path <- system.file("external/sky_points.csv",
+#'                     package = "rcaiman")
+#' sky_points <- read.csv(path)
+#' sky_points <- sky_points[c("Y", "X")]
+#' colnames(sky_points) <- c("row", "col")
+#' head(sky_points)
+#' plot(caim$Blue)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+#'
+#' x11()
+#' # plot(caim$Blue)
+#' # sun_angles <- click(c(z, a), 1) %>% as.numeric()
+#' sun_angles <- c(z = 49.5, a = 27.4) #taken with above lines then hardcoded
+#'
+#' sun_row_col <- row_col_from_zenith_azimuth(z, a,
+#'                                            sun_angles["z"],
+#'                                            sun_angles["a"])
+#'
+#' bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
+#' seg <- equalarea_segmentation(z, a, 200)
+#'
+#' # color image
+#' display_caim(caim)
+#' # greyscale
+#' display_caim(caim$Blue)
+#' # to check binarization quality (press `h` with the pointer on the image to
+#' # learn useful hotkeys)
+#' display_caim(caim$Blue, bin)
+#' # to see the segments
+#' display_caim(seg = seg)
+#' # to see the marks
+#' display_caim(caim, sky_points = sky_points, sun_row_col = sun_row_col)
 #' }
-display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
+display_caim <- function(caim = NULL,
+                         bin = NULL,
+                         seg = NULL,
+                         sky_points = NULL,
+                         sun_row_col = NULL) {
   .this_requires_EBImage()
 
   if (!is.null(caim)) {
@@ -32,36 +73,70 @@ display_caim <- function(caim = NULL, bin = NULL, g = NULL) {
   if (!is.null(bin)) {
     .assert_logical_mask(bin)
   }
-  if (!is.null(g)) {
-    .assert_single_layer(g)
+  if (!is.null(seg)) {
+    .assert_single_layer(seg)
+    # Highlight region borders
+    if (!is.null(seg)) {
+      laplacian <- matrix(c(0, 1, 0, 1, -4, 1, 0, 1, 0), nrow = 3)
+      seg <- terra::focal(seg, laplacian)
+      seg <- seg != 0
+    }
+  }
+  if (!is.null(sky_points)) {
+    .check_sky_points(sky_points)
+    # create raster
+    sky_points <- extract_dn(caim[[1]], sky_points, use_window = FALSE)
+    sky_points <- interpolate_planar(sky_points, caim, k = 1, p = 1, rmax = 1.5, col_id = 3)
+    sky_points <- is.na(sky_points)
+  }
+  if (!is.null(sun_row_col)) {
+    .check_sky_points(sun_row_col)
+    # create raster
+    sun_row_col <- extract_dn(caim[[1]], sun_row_col, use_window = FALSE)
+    sun_row_col <- interpolate_planar(sun_row_col, caim, k = 1, p = 1, rmax = 9, col_id = 3)
+    sun_row_col <- is.na(sun_row_col)
   }
 
-
-  # Highlight region borders if `g` is given
-  if (!is.null(g)) {
-    laplacian <- matrix(c(0, 1, 0, 1, -4, 1, 0, 1, 0), nrow = 3)
-    g <- terra::focal(g, laplacian)
-    g <- g != 0
-  }
-
-  layers <- list()
-
-  if (!is.null(caim)) {
-    layers <- c(layers, normalize_minmax(caim))
-  }
-  if (!is.null(bin)) {
-    layers <- c(layers, bin)
-  }
-  if (!is.null(g)) {
-    layers <- c(layers, g)
-  }
-
-  if (length(layers) > 0) {
-    x <- do.call(c, layers)
-    x <- terra::t(x)  # needed for compatibility
-    as.array(x) %>% EBImage::display()
+  if (!is.null(caim) && terra::nlyr(caim) <= 3 && is.null(bin) &&
+      is.null(seg) && (!is.null(sky_points) | !is.null(sun_row_col))) {
+    caim <- normalize_minmax(caim)
+    if (!is.null(sky_points)) {
+      caim <- paint_with_mask(caim, sky_points, color = "red")
+    }
+    if (!is.null(sun_row_col)) {
+      caim <- paint_with_mask(caim, sun_row_col, color = "yellow")
+    }
+    x <- EBImage::Image(caim, dim(caim), colormode = "color")
   } else {
-    warning("Nothing to display")
+    layers <- list()
+
+    if (!is.null(caim)) {
+      layers <- c(layers, normalize_minmax(caim))
+    }
+    if (!is.null(bin)) {
+      layers <- c(layers, bin)
+    }
+    if (!is.null(seg)) {
+      layers <- c(layers, seg)
+    }
+
+    if (length(layers) > 0) {
+      if (is.null(bin) && is.null(seg)) {
+        if (length(layers) == 1)
+          if (terra::nlyr(caim) == 3) {
+            x <- EBImage::Image(rast(layers), dim(caim), colormode = "color")
+          } else {
+            x <- EBImage::Image(rast(layers), dim(caim))
+          }
+      } else {
+        x <- do.call(c, layers)
+        x <- EBImage::Image(x, dim(x))
+      }
+    } else {
+      warning("Nothing to display")
+      x <- NULL
+    }
   }
+  EBImage::display(x)
 }
 

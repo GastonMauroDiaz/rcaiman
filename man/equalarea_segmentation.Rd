@@ -2,7 +2,7 @@
 % Please edit documentation in R/equalarea_segmentation.R
 \name{equalarea_segmentation}
 \alias{equalarea_segmentation}
-\title{Segment a hemisphere into equal-area cells}
+\title{Segment a hemisphere into equal-area cells in spherical space}
 \usage{
 equalarea_segmentation(z, a, n_cells)
 }
@@ -11,13 +11,14 @@ equalarea_segmentation(z, a, n_cells)
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} single-layer raster with azimuth angle (degrees).}
 
-\item{n_cells}{numeric scalar. Target number of cells. Must satisfy \code{32 ≤ n_cells ≤ 10000}.}
+\item{n_cells}{numeric scalar. Target number of cells.}
 }
 \value{
 Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values from 1 to \code{n_cells}.
 }
 \description{
-Segment a hemispherical view into exactly \code{n_cells} equal-area cells.
+Segment a hemispherical view into \code{n_cells} equal-area cells in
+spherical space.
 }
 \details{
 Segmentation begins by creating \code{n_cells} initial rings through uniform
@@ -43,7 +44,7 @@ with \code{x} being a scalar (estimated with \code{optim()}) that adjusts the su
 \code{k} values to exactly match \code{n_cells}.
 
 Because the true central zenith angles of the final rings are not known in
-advance—precisely because they depend on \code{k}—the procedure is iterated.
+advance (because they depend on \code{k}) the procedure is iterated.
 It starts by assuming rings of equal angular width to obtain provisional
 central zenith angles, computes \code{k}, updates the ring boundaries from the
 resulting grouping, recomputes the central zenith angles, and repeats until
