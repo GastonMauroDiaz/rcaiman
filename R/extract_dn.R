@@ -59,7 +59,6 @@ extract_dn <- function(r, sky_points, use_window = TRUE) {
   cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
   xy <-  terra::xyFromCell(r, cells)
   if (use_window) {
-    .mean <- function(x) mean(x, na.rm = TRUE)
     dn <- Map(function(x, y) {
       ma <- expand.grid(c(-1,0,1) + x, c(-1,0,1) + y)
       if (terra::nlyr(r) > 1) {

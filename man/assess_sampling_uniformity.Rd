@@ -10,30 +10,41 @@ assess_sampling_uniformity(sky_points, equalarea_seg)
 \item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
-\item{equalarea_seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values. Sky
-segmentation map produced by \code{\link[=equalarea_segmentation]{equalarea_segmentation()}}.}
+\item{equalarea_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=equalarea_segmentation]{equalarea_segmentation()}}.}
 }
 \value{
-Numeric vector of length one. Kullback–Leibler divergence from uniformity.
+List with two components:
+\describe{
+\item{\code{kl}}{numeric value. Kullback–Leibler divergence from uniformity.}
+\item{\code{coverage}}{numeric value in \eqn{[0,1]}. Fraction of cells with at
+least one point.}
+}
 }
 \description{
-Quantify how uniformly a set of sky sampling points covers the hemispherical
-domain with the Kullback–Leibler divergence.
+Quantify how a set of sky sampling points covers an equal-area hemispherical
+segmentation using (i) Kullback–Leibler divergence from a uniform
+distribution and (ii) coverage, defined as the fraction of cells receiving at
+least one point.
 }
 \details{
-The method projects the input points onto an equal–area grid
-(\code{equalarea_seg}), computes empirical cell frequencies, and
-evaluates the resulting discrete distribution against a uniform target.
+Points are projected onto an equal-area segmentation (\code{equalarea_seg}), and
+cell-wise counts are computed.
 
-Let \code{N} be the number of valid cells and \code{c_i} the count in cell \code{i}.
-The empirical distribution is
-\deqn{p_i = \frac{c_i}{\sum_{j=1}^N c_j}.}
+Let be \eqn{N_{\text{points}}} the total number of points, \eqn{N_{\text{cells}}}
+the total number of cells, and \eqn{c_i} the point count in cell \eqn{i}
+(\eqn{i = 1,\dots,N_{\text{cells}}}). The empirical distribution for cell
+\eqn{i} is:
 
-The uniform reference is
-\deqn{u_i = \frac{1}{N}.}
+\deqn{p_i = \frac{c_i}{N_{\text{points}}}, \quad \text{with} \quad
+  \sum_{i=1}^{N_{\text{cells}}} p_i = 1.}
 
-Kullback–Leibler divergence from uniformity is
-\deqn{\mathrm{KL}(p\|u) = \sum_i p_i \log(p_i N).}
+The uniform reference is \deqn{u_i = 1 / N_{\text{cells}}.}
+
+Kullback–Leibler divergence is computed excluding zero-probability terms:
+\deqn{\mathrm{KL}(p\|u) = \sum_{i: p_i > 0}^{N_{\text{cells}}} p_i \cdot \log(p_i \cdot N_{\text{cells}}).}
+
+Coverage is defined as:
+\deqn{\text{coverage} = \frac{\text{Count}(\{i : c_i > 0\})}{N_{\text{cells}}}.}
 }
 \examples{
 \dontrun{
@@ -47,20 +58,16 @@ seg <- equalarea_segmentation(z, a, 20)
 bin <- binarize_by_region(r, seg, method = "thr_twocorner")
 bin <- bin & select_sky_region(z, 0, 80)
 
-g <- skygrid_segmentation(z, a, 5, first_ring_different = TRUE)
+g <- skygrid_segmentation(z, a, 5)
 sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-n_cells <- extract_dn(bin, fibonacci_points(z, a, 1), use_window = FALSE)[,3] \%>\% sum()
-seg <- equalarea_segmentation(z, a, n_cells)
-kl <- assess_sampling_uniformity(sky_points, seg)
-
 seg <- equalarea_segmentation(z, a, 200)
-kl <- lapply(1:30, function(i) {
+kl <- lapply(1:10, function(i) {
   sky_points <-  rem_nearby_points(sky_points, NULL, z, a, i, space = "spherical")
-  assess_sampling_uniformity(sky_points, seg)
+  assess_sampling_uniformity(sky_points, seg)$kl
 })
-plot(unlist(kl))
+plot(unlist(kl), type = "l")
 }
 }

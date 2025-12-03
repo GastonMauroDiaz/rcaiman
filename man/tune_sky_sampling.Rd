@@ -8,9 +8,11 @@ tune_sky_sampling(
   r,
   z,
   a,
-  bin,
+  equalarea_seg,
+  bin_list,
   n_cells_seq,
   dist_to_black_seq,
+  w = 0.5,
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
@@ -19,21 +21,26 @@ tune_sky_sampling(
 }
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
-band of a canopy photograph. Digital numbers must be linearly related to
-radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for details.}
+band of a canopy photograph. Digital numbers should be linearly related to
+radiance.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
-hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
+\item{equalarea_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=equalarea_segmentation]{equalarea_segmentation()}}.}
 
-\item{n_cells_seq}{numeric vector. Sequence of integer values to evaluate for
+\item{bin_list}{list of logical \link[terra:SpatRaster-class]{terra::SpatRaster} objects of one
+layer. Each element is a binarization of \code{r}.}
+
+\item{n_cells_seq}{numeric vector. Sequence of integers to evaluate for
 \code{n_cells}.}
 
-\item{dist_to_black_seq}{numeric vector. Sequence of integer values to
-evaluate for \code{dist_to_black}.}
+\item{dist_to_black_seq}{numeric vector. Sequence of integers to evaluate for
+\code{dist_to_black}.}
+
+\item{w}{numeric vector of length one. Weight controlling the balance between
+coverage and accuracy (see \emph{Details}).}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -54,40 +61,55 @@ greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
-List with three components:
+List with the following components:
 \describe{
 \item{\code{n_cells}}{Optimal value within \code{n_cells_seq}.}
 \item{\code{dist_to_black}}{Optimal value within \code{dist_to_black_seq}.}
-\item{\code{metric}}{Minimum composite metric.}
+\item{\code{bin_list_index}}{Index of the optimal binarization in \code{bin_list}.}
+\item{\code{accuracy}}{Numeric. Median of local CV values (MAD / median) at the
+sampled sky points. Lower is better.}
+\item{\code{coverage}}{Numeric in \eqn{[0,1]}. Fraction of reference cells with
+at least one sampled sky point. Higher is better.}
+\item{\code{cam}}{Numeric. Minimum Coverage–Accuracy Metric (CAM) for the
+selected combination.}
 }
 }
 \description{
-Evaluate combinations of two discrete parameters governing sky-point
-extraction: the number of equal-area sky segments (\code{n_cells}) and the minimum
-allowed distance to the binarized canopy (\code{dist_to_black}).
-For each parameter pair, the function computes a composite performance metric
-combining (i) angular uniformity relative to a reference segmentation and
-(ii) local sky variability (CV) derived from the original image.
-The pair with the lowest metric is selected.
+Tune the parameters of \code{\link[=extract_sky_pixels]{extract_sky_pixels()}}.
 }
 \details{
-Each combination (\code{n_cells}, \code{dist_to_black}) is evaluated by:
-\enumerate{
-\item generating an equal-area segmentation with \code{n_cells};
-\item extracting one representative sky point per cell, subject to the
-minimum distance to pixels classified as non-sky;
-\item computing two indicators:
-(a) median local sky CV,
-(b) angular uniformity (KL divergence) relative to a fixed reference
-equal-area segmentation.
+Evaluate combinations of three discrete parameters for sampling sky digital
+numbers (\eqn{\delta_\text{sky}}) using \code{\link[=extract_sky_points]{extract_sky_points()}}:
+\itemize{
+\item the binarized image selected from \code{bin_list}, provided to
+\code{\link[=extract_sky_points]{extract_sky_points()}} as argument \code{bin};
+\item the parameter \code{n_cells} used to generate a segmentation with
+\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, provided to \code{\link[=extract_sky_points]{extract_sky_points()}} via \code{seg};
+\item the minimum allowed distance to black pixels in the binarized image,
+provided as argument \code{dist_to_black} of \code{\link[=extract_sky_points]{extract_sky_points()}}.
 }
 
-The final metric is the mean of the two indicators, expressed on comparable
-relative scales.
+The optimal combination minimizes the Coverage–Accuracy Metric (CAM):
 
-When \code{parallel = TRUE}, the function reconstructs spatial objects inside each
-worker to reduce communication overhead and ensure independence across
-parallel tasks.
+\deqn{\mathrm{CAM} = (1 - \mathrm{coverage}) \cdot w \;+\; \mathrm{accuracy} \cdot (1 - w)}
+
+CAM balances hemispherical surface coverage and the local accuracy of sampled
+\eqn{\delta_\text{sky}}, with \eqn{w} acting as a weight that allows the user
+to prioritize one component over the other.
+
+True sky regions typically exhibit smooth radiance gradients, in contrast with
+bright canopy elements or mixed pixels, which introduce sharper local
+fluctuations. To capture this contrast, accuracy is estimated using a
+robust local coefficient of variation computed per sample window as
+\eqn{\mathrm{CV}_{\text{local}} = \mathrm{MAD}_{3\times3} / \mathrm{median}_{3\times3}},
+where MAD and median are calculated on a \eqn{3 \times 3} neighborhood.
+The accuracy reported by the function is the median of these local CV values
+across the sampled sky points.
+
+Coverage is computed with \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}, i.e., the fraction
+of cells in \code{equalarea_seg} containing at least one sky point.
+
+Lower CAM values indicate lower local variability and higher angular coverage.
 }
 \examples{
 \dontrun{
@@ -98,12 +120,24 @@ m <- !is.na(z)
 r <- caim$Blue
 
 seg <- equalarea_segmentation(z, a, 30)
-bin <- binarize_by_region(r, seg, "thr_twocorner") & select_sky_region(z, 0, 88)
+bin_list <- lapply(c("thr_twocorner", "thr_isodata"),
+                   function(x) {
+                     binarize_by_region(r, seg, x) & select_sky_region(z, 0, 88)
+                   })
 
-params <- tune_sky_sampling(r, z, a, bin, seq(100, 800, 50), 1:10)
+equalarea_seg <- equalarea_segmentation(z, a, 10)
+params <- tune_sky_sampling(r, z, a,
+                            equalarea_seg,
+                            bin_list,
+                            n_cells_seq = seq(100, 500, 100),
+                            dist_to_black_seq = 1:10,
+                            w = 0.5,
+                            parallel = TRUE)
 
-seg <- equalarea_segmentation(z, a, params$n_cells)
-sky_points <- extract_sky_points(r, bin, seg, params$dist_to_black)
+sky_points <- extract_sky_points(r,
+                                 bin_list[[params$bin_list_index]],
+                                 equalarea_segmentation(z, a, params$n_cells),
+                                 params$dist_to_black)
 display_caim(caim$Blue, sky_points = sky_points)
 }
 }
