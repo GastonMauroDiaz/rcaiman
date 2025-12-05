@@ -41,7 +41,7 @@
 #'   select_sky_region(z, 0, 88)
 #'
 #' g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
-#' sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
+#' sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' sky_points <- extract_dn(r, sky_points, use_window = TRUE)

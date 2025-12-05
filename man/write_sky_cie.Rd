@@ -78,7 +78,7 @@ prefix \code{name} (see below).}
 \item{\verb{start_a:}…\verb{start_e:}}{Initial CIE coefficients.}
 \item{\verb{fit_a:}…\verb{fit_e:}}{Fitted CIE coefficients.}
 \item{\verb{method:}}{Method used to fit CIE coefficients.}
-\item{\verb{dist_to_black:}}{Argument passed to \code{extract_sky_points()}.}
+\item{\verb{dist_to_black:}}{Argument passed to \code{sample_sky_points()}.}
 \item{\verb{grid:}}{Sky grid parameters (\code{angle_width}, \code{first_ring_different}).}
 \item{\verb{min_spherical_dist:}}{Sampling buffer distance (deg).}
 \item{\verb{sky_points_no:}}{Number of sky points.}

@@ -34,7 +34,7 @@
 #'   \item{`start_a:`…`start_e:`}{Initial CIE coefficients.}
 #'   \item{`fit_a:`…`fit_e:`}{Fitted CIE coefficients.}
 #'   \item{`method:`}{Method used to fit CIE coefficients.}
-#'   \item{`dist_to_black:`}{Argument passed to `extract_sky_points()`.}
+#'   \item{`dist_to_black:`}{Argument passed to `sample_sky_points()`.}
 #'   \item{`grid:`}{Sky grid parameters (`angle_width`, `first_ring_different`).}
 #'   \item{`min_spherical_dist:`}{Sampling buffer distance (deg).}
 #'   \item{`sky_points_no:`}{Number of sky points.}
@@ -71,7 +71,6 @@
 #' @rdname write_sky_cie
 #' @aliases read_sky_cie
 #'
-#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -205,7 +204,6 @@ write_sky_cie <- function(sky_cie, name) {
 }
 
 #' @rdname write_sky_cie
-#' @export
 read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   .check_vector(name, "character", 1)
   .assert_file_exists(paste0(name, ".txt"))

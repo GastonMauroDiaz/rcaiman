@@ -1,5 +1,6 @@
 #' Extract digital numbers from sky points
 #'
+#' @description
 #' Obtain digital numbers from a raster at positions defined by sky points, with
 #' optional local averaging.
 #'
@@ -24,7 +25,8 @@
 #' sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
 #' [fit_cie_model()].
 #'
-#' @seealso [extract_sky_points()]
+#' @seealso
+#' [sample_sky_points()] for automatically sampling sky points.
 #'
 #' @export
 #'

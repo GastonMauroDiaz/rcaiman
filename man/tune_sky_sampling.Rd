@@ -61,55 +61,81 @@ greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
-List with the following components:
+List with the following numeric vectors of length one:
 \describe{
 \item{\code{n_cells}}{Optimal value within \code{n_cells_seq}.}
 \item{\code{dist_to_black}}{Optimal value within \code{dist_to_black_seq}.}
 \item{\code{bin_list_index}}{Index of the optimal binarization in \code{bin_list}.}
-\item{\code{accuracy}}{Numeric. Median of local CV values (MAD / median) at the
+\item{\code{accuracy}}{Median of local CV values (MAD / median) at the
 sampled sky points. Lower is better.}
-\item{\code{coverage}}{Numeric in \eqn{[0,1]}. Fraction of reference cells with
+\item{\code{coverage}}{Fraction of reference cells with
 at least one sampled sky point. Higher is better.}
-\item{\code{cam}}{Numeric. Minimum Coverage–Accuracy Metric (CAM) for the
+\item{\code{cam}}{Minimum Coverage-Accuracy Metric (CAM) for the
 selected combination.}
 }
 }
 \description{
-Tune the parameters of \code{\link[=extract_sky_pixels]{extract_sky_pixels()}}.
+Tune the parameters of \code{\link[=sample_sky_points]{sample_sky_points()}}.
 }
 \details{
-Evaluate combinations of three discrete parameters for sampling sky digital
-numbers (\eqn{\delta_\text{sky}}) using \code{\link[=extract_sky_points]{extract_sky_points()}}:
+This function evaluates combinations of three discrete parameters for sampling
+sky digital numbers (\eqn{\delta_\text{sky}}) using
+\code{\link[=sample_sky_points]{sample_sky_points()}}:
 \itemize{
-\item the binarized image selected from \code{bin_list}, provided to
-\code{\link[=extract_sky_points]{extract_sky_points()}} as argument \code{bin};
+\item the binarized image selected from \code{bin_list}, provided as argument
+\code{bin};
 \item the parameter \code{n_cells} used to generate a segmentation with
-\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, provided to \code{\link[=extract_sky_points]{extract_sky_points()}} via \code{seg};
+\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, provided as argument \code{seg};
 \item the minimum allowed distance to black pixels in the binarized image,
-provided as argument \code{dist_to_black} of \code{\link[=extract_sky_points]{extract_sky_points()}}.
+provided as argument \code{dist_to_black}.
 }
 
-The optimal combination minimizes the Coverage–Accuracy Metric (CAM):
+Two criteria are computed for each parameter combination:
+\itemize{
+\item \emph{accuracy}, estimated from the local variability of
+\eqn{\delta_\text{sky}};
+\item \emph{coverage}, the fraction of equal-area cells containing at least one
+sampled sky point.
+}
 
-\deqn{\mathrm{CAM} = (1 - \mathrm{coverage}) \cdot w \;+\; \mathrm{accuracy} \cdot (1 - w)}
+The computation of these criteria is described below, together with their
+normalization and the construction of the final comparison metric.
 
-CAM balances hemispherical surface coverage and the local accuracy of sampled
-\eqn{\delta_\text{sky}}, with \eqn{w} acting as a weight that allows the user
-to prioritize one component over the other.
+\describe{
+\item{\emph{Accuracy estimation}}{
+True sky regions tend to show smooth radiance gradients, whereas bright
+canopy elements or mixed pixels introduce stronger local fluctuations.
+Accuracy is therefore quantified with a robust local coefficient of
+variation computed by \code{\link[=extract_cv]{extract_cv()}}. For each parameter combination, the
+final accuracy value is the median of these local CV estimates across all
+sampled sky points.
+}
+\item{\emph{Coverage estimation}}{
+Coverage is computed with \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}, i.e., the
+fraction of cells in \code{equalarea_seg} that contain at least one sky point.
+}
+\item{\emph{Scaling of components}}{
+Because the magnitudes of accuracy and coverage may differ substantially
+across the parameter grid, both components are rescaled to \eqn{[0,1]} using
+\code{\link[=normalize_minmax]{normalize_minmax()}}. This ensures that the relative contribution of each
+component to the optimization reflects the balance specified by \eqn{w}
+rather than artifacts of scale.
+}
+\item{\emph{Coverage-Accuracy Metric (CAM)}}{
+After normalization, the Coverage-Accuracy Metric is defined as:
 
-True sky regions typically exhibit smooth radiance gradients, in contrast with
-bright canopy elements or mixed pixels, which introduce sharper local
-fluctuations. To capture this contrast, accuracy is estimated using a
-robust local coefficient of variation computed per sample window as
-\eqn{\mathrm{CV}_{\text{local}} = \mathrm{MAD}_{3\times3} / \mathrm{median}_{3\times3}},
-where MAD and median are calculated on a \eqn{3 \times 3} neighborhood.
-The accuracy reported by the function is the median of these local CV values
-across the sampled sky points.
+\deqn{
+   \mathrm{CAM} =
+   (1 - \mathrm{coverage}_n)\, w
+   \;+\;
+   \mathrm{accuracy}_n\, (1 - w)
+   }
 
-Coverage is computed with \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}, i.e., the fraction
-of cells in \code{equalarea_seg} containing at least one sky point.
-
-Lower CAM values indicate lower local variability and higher angular coverage.
+Lower CAM values indicate parameter combinations that achieve both high
+hemispherical coverage and low local radiance variability at the sampled sky
+points. The function returns the combination that minimizes CAM.
+}
+}
 }
 \examples{
 \dontrun{
@@ -134,10 +160,10 @@ params <- tune_sky_sampling(r, z, a,
                             w = 0.5,
                             parallel = TRUE)
 
-sky_points <- extract_sky_points(r,
-                                 bin_list[[params$bin_list_index]],
-                                 equalarea_segmentation(z, a, params$n_cells),
-                                 params$dist_to_black)
+sky_points <- sample_sky_points(r,
+                                bin_list[[params$bin_list_index]],
+                                equalarea_segmentation(z, a, params$n_cells),
+                                params$dist_to_black)
 display_caim(caim$Blue, sky_points = sky_points)
 }
 }

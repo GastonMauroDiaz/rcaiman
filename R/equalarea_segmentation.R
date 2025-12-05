@@ -83,7 +83,7 @@ equalarea_segmentation <- function(z, a, n_cells) {
   delta <- 1
   repeat {
     # Define number of cells per ring
-    x <- tryCatch(optim(1, .fn, method = "SANN")$par, error = function(e) 1)
+    x <- tryCatch(stats::optim(1, .fn, method = "SANN")$par, error = function(e) 1)
     n_cells_per_ring <- .transform.c_theta(x)
     rest <- n_cells - sum(n_cells_per_ring)
     n_cells_per_ring[n_rings] <- n_cells_per_ring[n_rings] + rest

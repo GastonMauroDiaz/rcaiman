@@ -75,7 +75,7 @@ List with:
 \item{\code{rr_raster}}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. Predicted relative radiance.}
 \item{\code{model}}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}}. The optimal fit.}
 \item{\code{model_validation}}{list returned by \code{\link[=validate_cie_model]{validate_cie_model()}}.}
-\item{\code{dist_to_black}}{Value of \code{dist_to_black} used in \code{\link[=extract_sky_points]{extract_sky_points()}}
+\item{\code{dist_to_black}}{Value of \code{dist_to_black} used in \code{\link[=sample_sky_points]{sample_sky_points()}}
 for the optimal fit.}
 \item{\code{use_window}}{\code{logical}. Whether a window was used in \code{\link[=extract_rr]{extract_rr()}}
 for the optimal fit.}
@@ -100,7 +100,7 @@ gaps and return the predicted raster.
 \details{
 Runs a the following pipeline:
 \enumerate{
-\item sky point extraction is performed with \code{\link[=extract_sky_points]{extract_sky_points()}}, using
+\item sky point extraction is performed with \code{\link[=sample_sky_points]{sample_sky_points()}}, using
 information from a binary mask (\code{bin}) and post-filtering with
 \code{\link[=rem_nearby_points]{rem_nearby_points()}} and \code{\link[=rem_outliers]{rem_outliers()}}.
 \item relative radiance is computed with \code{\link[=extract_rr]{extract_rr()}} and fitted to CIE

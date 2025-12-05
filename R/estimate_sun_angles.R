@@ -32,7 +32,7 @@
 #'   or [sector_segmentation()], but any raster with integer segment labels is
 #'   accepted.
 #'
-#' @inheritParams extract_sky_points
+#' @inheritParams sample_sky_points
 #' @inheritParams skygrid_segmentation
 #' @inheritParams extract_feature
 #'

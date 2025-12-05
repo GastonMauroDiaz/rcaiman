@@ -24,7 +24,10 @@ hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} f
 or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
 accepted.}
 
-\item{`sun_row_col`}{numeric \code{data.frame} with the estimated sun‑disk
+\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
+coordinates).}
+
+\item{sun_row_col}{numeric \code{data.frame} with the estimated sun‑disk
 position in image coordinates. See \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}}.}
 }
 \value{

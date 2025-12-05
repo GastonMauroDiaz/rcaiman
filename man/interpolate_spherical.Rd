@@ -32,9 +32,9 @@ layer. Surface used to complement \code{rr} when neighbors are insufficient
 (e.g., output of \code{\link[=fit_cie_model]{fit_cie_model()}}). If \code{NULL} (default), no filling is
 applied.}
 
-\item{w}{numeric vector of length one. Weight assigned to \code{filling_source}
-in the blend with local estimates (see Eq. 6 in
-\insertCite{Lang2010;textual}{rcaiman}).}
+\item{w}{numeric vector of length one or single-layer
+\link[terra:SpatRaster-class]{terra::SpatRaster}. Weight assigned to \code{filling_source} in the blend
+with local estimates (see Eq. 6 in \insertCite{Lang2010;textual}{rcaiman}).}
 
 \item{k}{numeric vector of length one. Number of neighbors.}
 
@@ -62,10 +62,11 @@ Interpolate values from canopy photographs using inverse distance weighting
 that map the sky vault. Optionally blend with a model surface to fill voids.
 }
 \details{
-Distances are great-circle distances on the sky vault. When \code{filling_source} is
-provided, local IDW estimates are blended with that surface following Eq. 6
-in \insertCite{Lang2010;textual}{rcaiman}. For efficiency, interpolation runs
-on a temporary low-resolution grid of size \code{size}.
+Distances are great-circle distances on the sky vault (see
+\code{\link[=calc_spherical_distance]{calc_spherical_distance()}}). When \code{filling_source} is provided, local IDW
+estimates are blended with that surface following Eq. 6 in
+\insertCite{Lang2010;textual}{rcaiman}. For efficiency, interpolation runs on
+a temporary low-resolution grid of size \code{size}.
 }
 \note{
 This function assumes that \code{sky_points} and the

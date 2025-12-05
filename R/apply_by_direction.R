@@ -99,7 +99,7 @@ apply_by_direction <- function(r, z, a, m,
                                cores = NULL,
                                logical = TRUE,
                                leave_free = 1
-                               ) {
+) {
 
   .check_r_z_a_m(r, z, a, m, r_type = "any")
   .check_vector(spacing, "numeric", 1, sign = "positive")
@@ -201,13 +201,13 @@ apply_by_direction <- function(r, z, a, m,
     DN_lc <- min(r[m])
     mn <- DN_lc + (DN_uc - DN_lc) * 0.25
 
-    sky_points <- extract_sky_points(mem, bin, g, 3)
+    sky_points <- sample_sky_points(mem, bin, g, 3)
     rr <- extract_rr(r, z, a, sky_points)
     list(mn = mn, z = z, a = a, m = m, rr = rr)
   }
 
 
-# Extract vectors ---------------------------------------------------------
+  # Extract vectors ---------------------------------------------------------
 
   row_vals <- terra::rowFromCell(r, terra::cells(r))
   col_vals <- terra::colFromCell(r, terra::cells(r))
@@ -374,9 +374,9 @@ apply_by_direction <- function(r, z, a, m,
       foreach::foreach(j = 1:cores,
                        .combine = rbind,
                        .packages = c("terra")) %dopar% {
-                           do.call(rbind, lapply(i_chunks[[j]],
-                                                .extract_fov_n_compute_fun))
-                        }
+                         do.call(rbind, lapply(i_chunks[[j]],
+                                               .extract_fov_n_compute_fun))
+                       }
     })
   } else {
     acc <- do.call(rbind, lapply(seq_len(n_directions),
@@ -437,6 +437,7 @@ apply_by_direction <- function(r, z, a, m,
     sky_dn[acc_final$cell] <-  acc_final$value
     n[row.names(count) %>% as.integer] <- data.frame(count)
   }
+  n[is.na(n)] <- 0
   sky <- c(sky_dn, n)
   names(sky) <- c("dn", "n")
   return(sky)

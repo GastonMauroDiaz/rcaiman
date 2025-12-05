@@ -1,4 +1,4 @@
-#' Extract sky points
+#' Sample sky points
 #'
 #' @description
 #' Sample representative sky pixels for use in model fitting or interpolation.
@@ -49,12 +49,12 @@
 #'   select_sky_region(z, 0, 88)
 #'
 #' seg <- skygrid_segmentation(z, a, 10)
-#' sky_points <- extract_sky_points(r, bin, seg,
+#' sky_points <- sample_sky_points(r, bin, seg,
 #'                                  dist_to_black = 3)
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
-extract_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell") {
+sample_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell") {
   .this_requires_EBImage()
 
   .assert_single_layer(r)

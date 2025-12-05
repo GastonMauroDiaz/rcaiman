@@ -56,12 +56,14 @@ paint_with_mask <- function(r, m, color = "red", where = "outside") {
 
   if (terra::nlyr(r) == 1) {
     red <- green <- blue <- r
-  } else {
-    stopifnot(terra::nlyr(r) == 3)
+  } else if (terra::nlyr(r) == 3) {
     red   <- terra::subset(r, 1)
     green <- terra::subset(r, 2)
     blue  <- terra::subset(r, 3)
   }
+
+  if (terra::nlyr(r) == 2 | terra::nlyr(r) > 3)
+    stop("`r` must have one or three layers.")
 
   target <- if (where == "outside") !m else m
   red[target]   <- color[1]

@@ -39,7 +39,8 @@ normalize_minmax <- function(r, mn = NULL, mx = NULL, clip = FALSE) {
   if (is.null(mx)) mx <- .get_max(r)
 
   if (mx == mn) {
-    warning("The values 'mn' and 'mx' are equal. Output will be constant or undefined due to division by zero.")
+    warning("The values 'mn' and 'mx' are equal. Input is returned unchanged.")
+    return(r)
   }
 
   r <- (r - mn) / (mx - mn)

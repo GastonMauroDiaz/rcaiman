@@ -99,7 +99,7 @@
 #' ) %>% as.numeric()
 #' write_sun_coord(sun_row_col, ".", "IMG_1014")
 #'
-#' sky_points <- extract_sky_points(r, bin, g)
+#' sky_points <- sample_sky_points(r, bin, g)
 #' write_sky_points(sky_points, ".", "IMG_1014")
 #' }
 hsp_read_manual_input <- function(path_to_HSP_project, img_name) {

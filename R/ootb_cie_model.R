@@ -18,7 +18,6 @@
 #' @inheritParams fit_cie_model
 #' @inheritParams apply_by_direction
 #'
-#' @export
 #'
 #' @return List with the following components:
 #' \describe{
@@ -84,7 +83,7 @@ ootb_cie_model <- function(r, z, a, m,
 
   g <- skygrid_segmentation(z, a, 22.5, first_ring_different = FALSE)
 
-  sky_points <- extract_sky_points(sky$n, !is.na(sky$dn), g,
+  sky_points <- sample_sky_points(sky$n, !is.na(sky$dn), g,
                                    dist_to_black = 1)
 
   rr <- extract_rr(sky$dn, z, a, sky_points,

@@ -1,6 +1,7 @@
 #' Tune sky-sampling parameters
 #'
-#' Tune the parameters of [extract_sky_pixels()].
+#' @description
+#' Tune the parameters of [sample_sky_points()].
 #'
 #' @param r numeric [terra::SpatRaster-class] of one layer. Typically the blue
 #'   band of a canopy photograph. Digital numbers should be linearly related to
@@ -19,49 +20,75 @@
 #' @inheritParams apply_by_direction
 #'
 #' @details
-#' Evaluate combinations of three discrete parameters for sampling sky digital
-#' numbers (\eqn{\delta_\text{sky}}) using [extract_sky_points()]:
+#' This function evaluates combinations of three discrete parameters for sampling
+#' sky digital numbers (\eqn{\delta_\text{sky}}) using
+#' [sample_sky_points()]:
 #' \itemize{
-#'   \item the binarized image selected from `bin_list`, provided to
-#'     [extract_sky_points()] as argument `bin`;
+#'   \item the binarized image selected from `bin_list`, provided as argument
+#'     `bin`;
 #'   \item the parameter `n_cells` used to generate a segmentation with
-#'     [equalarea_segmentation()], provided to [extract_sky_points()] via `seg`;
+#'     [equalarea_segmentation()], provided as argument `seg`;
 #'   \item the minimum allowed distance to black pixels in the binarized image,
-#'     provided as argument `dist_to_black` of [extract_sky_points()].
+#'     provided as argument `dist_to_black`.
 #' }
 #'
-#' The optimal combination minimizes the Coverage–Accuracy Metric (CAM):
+#' Two criteria are computed for each parameter combination:
+#' \itemize{
+#'   \item *accuracy*, estimated from the local variability of
+#'     \eqn{\delta_\text{sky}};
+#'   \item *coverage*, the fraction of equal-area cells containing at least one
+#'     sampled sky point.
+#' }
 #'
-#' \deqn{\mathrm{CAM} = (1 - \mathrm{coverage}) \cdot w \;+\; \mathrm{accuracy} \cdot (1 - w)}
+#' The computation of these criteria is described below, together with their
+#' normalization and the construction of the final comparison metric.
 #'
-#' CAM balances hemispherical surface coverage and the local accuracy of sampled
-#' \eqn{\delta_\text{sky}}, with \eqn{w} acting as a weight that allows the user
-#' to prioritize one component over the other.
+#' \describe{
+#'  \item{*Accuracy estimation*}{
+#'    True sky regions tend to show smooth radiance gradients, whereas bright
+#'    canopy elements or mixed pixels introduce stronger local fluctuations.
+#'    Accuracy is therefore quantified with a robust local coefficient of
+#'    variation computed by [extract_cv()]. For each parameter combination, the
+#'    final accuracy value is the median of these local CV estimates across all
+#'    sampled sky points.
+#'  }
+#'  \item{*Coverage estimation*}{
+#'    Coverage is computed with [assess_sampling_uniformity()], i.e., the
+#'    fraction of cells in `equalarea_seg` that contain at least one sky point.
+#'  }
+#'  \item{*Scaling of components*}{
+#'    Because the magnitudes of accuracy and coverage may differ substantially
+#'    across the parameter grid, both components are rescaled to \eqn{[0,1]} using
+#'    [normalize_minmax()]. This ensures that the relative contribution of each
+#'    component to the optimization reflects the balance specified by \eqn{w}
+#'    rather than artifacts of scale.
+#'  }
+#'  \item{*Coverage-Accuracy Metric (CAM)*}{
+#'    After normalization, the Coverage-Accuracy Metric is defined as:
 #'
-#' True sky regions typically exhibit smooth radiance gradients, in contrast with
-#' bright canopy elements or mixed pixels, which introduce sharper local
-#' fluctuations. To capture this contrast, accuracy is estimated using a
-#' robust local coefficient of variation computed per sample window as
-#' \eqn{\mathrm{CV}_{\text{local}} = \mathrm{MAD}_{3\times3} / \mathrm{median}_{3\times3}},
-#' where MAD and median are calculated on a \eqn{3 \times 3} neighborhood.
-#' The accuracy reported by the function is the median of these local CV values
-#' across the sampled sky points.
+#'    \deqn{
+#'    \mathrm{CAM} =
+#'    (1 - \mathrm{coverage}_n)\, w
+#'    \;+\;
+#'    \mathrm{accuracy}_n\, (1 - w)
+#'    }
 #'
-#' Coverage is computed with [assess_sampling_uniformity()], i.e., the fraction
-#' of cells in `equalarea_seg` containing at least one sky point.
+#'    Lower CAM values indicate parameter combinations that achieve both high
+#'    hemispherical coverage and low local radiance variability at the sampled sky
+#'    points. The function returns the combination that minimizes CAM.
+#'  }
+#' }
 #'
-#' Lower CAM values indicate lower local variability and higher angular coverage.
-#'
-#' @return List with the following components:
+#' @return List with the following numeric vectors of length one:
 #' \describe{
 #'   \item{`n_cells`}{Optimal value within `n_cells_seq`.}
 #'   \item{`dist_to_black`}{Optimal value within `dist_to_black_seq`.}
 #'   \item{`bin_list_index`}{Index of the optimal binarization in `bin_list`.}
-#'   \item{`accuracy`}{Numeric. Median of local CV values (MAD / median) at the
+#'   \item{`accuracy`}{Median of local CV values (MAD / median) at the
 #'     sampled sky points. Lower is better.}
-#'   \item{`coverage`}{Numeric in \eqn{[0,1]}. Fraction of reference cells with
+#'   \item{`coverage`}{Fraction of reference cells with
 #'     at least one sampled sky point. Higher is better.}
-#'   \item{`cam`}{Numeric. Minimum Coverage–Accuracy Metric (CAM) for the
+#'   \item{`cam`}{Minimum Coverage-Accuracy Metric (CAM) for the
 #'     selected combination.}
 #' }
 #'
@@ -90,10 +117,10 @@
 #'                             w = 0.5,
 #'                             parallel = TRUE)
 #'
-#' sky_points <- extract_sky_points(r,
-#'                                  bin_list[[params$bin_list_index]],
-#'                                  equalarea_segmentation(z, a, params$n_cells),
-#'                                  params$dist_to_black)
+#' sky_points <- sample_sky_points(r,
+#'                                 bin_list[[params$bin_list_index]],
+#'                                 equalarea_segmentation(z, a, params$n_cells),
+#'                                 params$dist_to_black)
 #' display_caim(caim$Blue, sky_points = sky_points)
 #' }
 tune_sky_sampling <- function(r, z, a,
@@ -112,7 +139,7 @@ tune_sky_sampling <- function(r, z, a,
   .check_vector(n_cells_seq, "integerish", sign = "positive")
   .check_vector(dist_to_black_seq, "integerish", sign = "positive")
   .check_vector(w, "numeric", 1, sign = "nonnegative")
-  if (w > 1) (stop("´w´ cannot be greater than one."))
+  if (w > 1) (stop("`w` cannot be greater than one."))
   .check_vector(parallel, "logical", 1)
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
   .check_vector(logical, "logical", 1)
@@ -124,24 +151,10 @@ tune_sky_sampling <- function(r, z, a,
   }
 
   .single <- function(r, bin, seg, equalarea_seg, dist_to_black) {
-    .extract_cv <- function(r, sky_points) {
-      #based on extract_d
-      cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
-      xy <-  terra::xyFromCell(r, cells)
-
-      .fn <- function(x) mad(x) / median(x)
-      Map(
-        function(x, y) {
-          ma <- expand.grid(c(-1,0,1) + x, c(-1,0,1) + y)
-          .fn(terra::extract(r, ma, method = "simple", na.rm = TRUE)[,-1])
-        },
-        xy[,1],
-        xy[,2]) %>% as.data.frame() %>% t %>% unname()
-    }
-    sky_points <- extract_sky_points(r, bin, seg,
+    sky_points <- sample_sky_points(r, bin, seg,
                                      dist_to_black = dist_to_black,
                                      method = "per_cell")
-    acc <- median(.extract_cv(r, sky_points))
+    acc <- stats::median(extract_cv(r, sky_points))
     cov <- assess_sampling_uniformity(sky_points, equalarea_seg)$coverage
     c(acc, cov)
   }
@@ -183,6 +196,9 @@ tune_sky_sampling <- function(r, z, a,
         equalarea_segmentation(z, a, n_cells) %>% terra::values()
       }
       seg_vals_list <- .with_cluster(cores, {
+        # Only to avoid note from check, code is OK without this line.
+        x <- NA
+
         foreach(x = n_cells_seq) %dopar% {
           .multi_equalarea_segmentation(row_vals, col_vals, z_vals, a_vals, x)
         }
@@ -224,6 +240,9 @@ tune_sky_sampling <- function(r, z, a,
       .single(r, bin, seg, equalarea_seg, dist_to_black)
     }
     metrics <- .with_cluster(cores, {
+      # Only to avoid note from check, code is OK without this line.
+      i <- NA
+
       foreach(i = 1:nrow(params)) %dopar% {
         .multi(row_vals, col_vals, r_vals,
                bin_vals_list[[params[i, 1]]],

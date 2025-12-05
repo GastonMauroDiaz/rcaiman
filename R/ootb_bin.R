@@ -49,7 +49,6 @@
 #' @return Logical [terra::SpatRaster-class] (`TRUE` for sky, `FALSE` for non-sky)
 #'   with the same number of rows and columns as `caim`.
 #'
-#' @export
 #'
 #' @examples
 #' \dontrun{

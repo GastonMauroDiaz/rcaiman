@@ -26,8 +26,6 @@
 #' }
 #'
 #'
-#' @export
-#'
 #' @examples
 #' \dontrun{
 #' caim <- read_caim()

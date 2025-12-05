@@ -11,6 +11,8 @@ rem_small_gaps(bin, size = 9, method = "pixel-based")
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
 \item{size}{numeric vector of length one. See \emph{Details}.}
+
+\item{method}{character vector of length one. See \emph{Details}.}
 }
 \value{
 Logical \link[terra:SpatRaster-class]{terra::SpatRaster} with the same dimensions as \code{bin}.

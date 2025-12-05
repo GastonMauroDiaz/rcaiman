@@ -14,7 +14,11 @@ rem_outliers(
   laxity = 2,
   cutoff_side = "both",
   use_window = TRUE,
-  trend = NULL
+  trend = NULL,
+  parallel = FALSE,
+  cores = NULL,
+  logical = TRUE,
+  leave_free = 1
 )
 }
 \arguments{
@@ -33,11 +37,11 @@ sampled (or any raster with identical dimensions).}
 \item{angular_radius}{numeric vector of length one. The maximum radius for
 searching k-nearest neighbors (KNN) in degrees.}
 
-\item{laxity}{numeric vector of length one.}
+\item{laxity}{numeric vector of length one. Positive multiplier applied to
+MAD to set classification thresholds. Default is \code{2}.}
 
-\item{cutoff_side}{character vector of length one. Options are "both"
-(default), "upper" or "lower". Controls which side(s) of the inequality are
-evaluated to detect outliers. See \emph{Details}.}
+\item{cutoff_side}{character vector of length one. One of \code{"both"},
+\code{"left"}, or \code{"right"}. Default is \code{"both"}.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
 digital number at each sky point is the average of the values extracted
@@ -48,6 +52,24 @@ pixel is retrieved.}
 \item{trend}{numeric vector of length one or \code{NULL}. Zero to three. Specifies
 the order of the polynomial surface fitted to the neighbors to account for
 spatial trends. Use NULL (default) to skip detrending.}
+
+\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
+executed in parallel.}
+
+\item{cores}{numeric vector of length one. Number of CPU cores to use when
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available
+cores detected internally. Values greater than the number of available
+cores are silently reduced to the maximum allowed. If the resulting number
+of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+
+\item{logical}{logical vector of length one. Internally it is passed unchanged
+to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
+\code{parallel = FALSE}.}
+
+\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
+free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
+greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
+\code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
 The retained points represented as a \link{data.frame} with columns \code{row}
@@ -63,19 +85,7 @@ Based on the Statistical Outlier Removal (SOR) filter from the
 surface. The number of neighbors is controlled by \code{k}, and \code{angular_radius}
 sets the maximum search radius (deg). If fewer than \code{k} neighbors are found
 within that radius, the point is retained due to insufficient evidence for
-removal. The decision criterion follows
-\insertCite{Leys2013;textual}{rcaiman}:
-
-\eqn{M - laxity \times MAD < x_i < M + laxity \times MAD}
-
-where \eqn{x_i} is the value from \code{r} at sky point \code{i},  \eqn{M} and
-\eqn{MAD} are the median and median absolute deviation, respectively,
-computed from the the neighbors of \eqn{x_i}, and \eqn{laxity} is the
-user-defined threshold.
-
-\code{cutoff_side} controls which side(s) of the inequality are evaluated:
-\code{"both"} (default), \code{"left"} (left tail only), or \code{"right"} (right tail
-only).
+removal. The decision criterion is from \code{\link[=is_outlier]{is_outlier()}}.
 }
 \note{
 This function assumes that \code{sky_points} and the
@@ -105,7 +115,4 @@ sky_points <- rem_outliers(sky_points, r, z, a,
                                  cutoff_side = "left")
 points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
 }
-}
-\references{
-\insertAllCited{}
 }

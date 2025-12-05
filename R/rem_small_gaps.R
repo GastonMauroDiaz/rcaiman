@@ -24,6 +24,7 @@
 #' }
 #'
 #' @param size numeric vector of length one. See *Details*.
+#' @param method character vector of length one. See *Details*.
 #'
 #' @inheritParams compute_canopy_openness
 #'

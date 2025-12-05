@@ -62,5 +62,5 @@ apply(sky_points[, -(1:2)], 2, mean, na.rm = TRUE)
 }
 }
 \seealso{
-\code{\link[=extract_sky_points]{extract_sky_points()}}
+\code{\link[=sample_sky_points]{sample_sky_points()}} for automatically sampling sky points.
 }

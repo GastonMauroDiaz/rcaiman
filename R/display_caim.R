@@ -11,10 +11,11 @@
 #'   [equalarea_segmentation()], [skygrid_segmentation()], [ring_segmentation()]
 #'   or [sector_segmentation()], but any raster with integer segment labels is
 #'   accepted.
-#' @param `sun_row_col` numeric `data.frame` with the estimated sun‑disk
+#' @param sun_row_col numeric `data.frame` with the estimated sun‑disk
 #'   position in image coordinates. See [row_col_from_zenith_azimuth()].
 #'
 #' @inheritParams compute_canopy_openness
+#' @inheritParams extract_dn
 #'
 #' @return Invisible `NULL`. Called for side effects (image viewer popup).
 #' @export
@@ -86,14 +87,14 @@ display_caim <- function(caim = NULL,
     .check_sky_points(sky_points)
     # create raster
     sky_points <- extract_dn(caim[[1]], sky_points, use_window = FALSE)
-    sky_points <- interpolate_planar(sky_points, caim, k = 1, p = 1, rmax = 1.5, col_id = 3)
+    sky_points <- interpolate_planar(sky_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
     sky_points <- is.na(sky_points)
   }
   if (!is.null(sun_row_col)) {
     .check_sky_points(sun_row_col)
     # create raster
     sun_row_col <- extract_dn(caim[[1]], sun_row_col, use_window = FALSE)
-    sun_row_col <- interpolate_planar(sun_row_col, caim, k = 1, p = 1, rmax = 9, col_id = 3)
+    sun_row_col <- interpolate_planar(sun_row_col, caim[[1]], k = 1, p = 1, rmax = 9, col_id = 3)
     sun_row_col <- is.na(sun_row_col)
   }
 

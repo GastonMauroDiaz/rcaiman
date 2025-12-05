@@ -35,7 +35,8 @@ binary masks) in fisheye projection.}
 \item{spacing}{numeric vector of length one. Angular spacing (in degrees)
 between directions to process.}
 
-\item{laxity}{numeric vector of length one.}
+\item{laxity}{numeric vector of length one. Positive multiplier applied to
+MAD to set classification thresholds. Default is \code{2}.}
 
 \item{fov}{numeric vector. Field of view in degrees. If more than one value
 is provided, they are tried in order when a method fails.}

@@ -59,7 +59,7 @@ bin <- binarize_by_region(r, seg, method = "thr_twocorner")
 bin <- bin & select_sky_region(z, 0, 80)
 
 g <- skygrid_segmentation(z, a, 5)
-sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
+sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 

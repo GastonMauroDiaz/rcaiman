@@ -7,7 +7,7 @@
 #' @details
 #' Runs a the following pipeline:
 #' \enumerate{
-#'   \item sky point extraction is performed with [extract_sky_points()], using
+#'   \item sky point extraction is performed with [sample_sky_points()], using
 #'   information from a binary mask (`bin`) and post-filtering with
 #'   [rem_nearby_points()] and [rem_outliers()].
 #'   \item relative radiance is computed with [extract_rr()] and fitted to CIE
@@ -34,19 +34,18 @@
 #' @inheritParams ootb_cie_model
 #' @inheritParams compute_canopy_openness
 #' @inheritParams skygrid_segmentation
-#' @inheritParams extract_sky_points
+#' @inheritParams sample_sky_points
 #' @inheritParams fit_trend_surface
 #' @inheritParams fit_cie_model
 #' @inheritParams apply_by_direction
 #'
-#' @export
 #'
 #' @return List with:
 #' \describe{
 #'   \item{`rr_raster`}{numeric [terra::SpatRaster-class]. Predicted relative radiance.}
 #'   \item{`model`}{list returned by [fit_cie_model()]. The optimal fit.}
 #'   \item{`model_validation`}{list returned by [validate_cie_model()].}
-#'   \item{`dist_to_black`}{Value of `dist_to_black` used in [extract_sky_points()]
+#'   \item{`dist_to_black`}{Value of `dist_to_black` used in [sample_sky_points()]
 #'     for the optimal fit.}
 #'   \item{`use_window`}{`logical`. Whether a window was used in [extract_rr()]
 #'     for the optimal fit.}
@@ -144,7 +143,7 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
     dist_to_black <- 1
 
     # Sky points
-    sky_points <- extract_sky_points(r, bin, g, dist_to_black)
+    sky_points <- sample_sky_points(r, bin, g, dist_to_black)
 
     ## Apply filters
     sky_points <- rem_nearby_points(sky_points, r, min_dist = 3, space = "planar")

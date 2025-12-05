@@ -64,7 +64,7 @@ bin <- binarize_by_region(r, ring_segmentation(z, 30),
                           method = "thr_isodata")
 bin <- bin & select_sky_region(z, 0, 80)
 g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
-sky_points <- extract_sky_points(r, bin, g, dist_to_black = 3)
+sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
 
 # planar
 sky_points_p <- rem_nearby_points(sky_points, r, min_dist = 100,
