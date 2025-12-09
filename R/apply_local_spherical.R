@@ -60,7 +60,7 @@
 #'
 #' sky_points <- fibonacci_points(z, a, 3)
 #' display_caim(caim, sky_points = sky_points)
-#' sky_points <- extract_dn(r, sky_points, use_window = TRUE)
+#' sky_points <- extract_dn(r, sky_points, use_window = FALSE)
 #' head(sky_points)
 #' eval_points <- apply_local_spherical(
 #'   sky_points,

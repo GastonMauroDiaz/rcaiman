@@ -4,65 +4,35 @@
 #' Fit and validate a CIE general sky model to radiance sampled on canopy
 #' gaps and return the predicted raster.
 #'
-#' @details
-#' Runs a the following pipeline:
-#' \enumerate{
-#'   \item sky point extraction is performed with [sample_sky_points()], using
-#'   information from a binary mask (`bin`) and post-filtering with
-#'   [rem_nearby_points()] and [rem_outliers()].
-#'   \item relative radiance is computed with [extract_rr()] and fitted to CIE
-#'   sky models using [fit_cie_model()], selecting the best among different
-#'   initial conditions and optimization methods.
-#'   \item model validation is performed via [validate_cie_model()].
-#'   \item raster prediction with [cie_image()].
-#' }
-#'
 #' @note
 #' This function is part of a paper under preparation.
 #'
-#' @param gs `list` where each element is the output of
-#'   [skygrid_segmentation()]. See *Examples* for guidance.
-#' @param min_spherical_dist numeric vector. Values passed to
-#'   [rem_nearby_points()].
-#' @param custom_sky_coef optional numeric vector of length five. If `NULL`
-#'   (default), the 15 standard CIE skies are tested as starting
-#'   conditions. Specific standard CIE sky or skies can be provided with
-#'   `as.numeric(cie_table[i,  1:5])`, where `i` must be a numeric vector with
-#'   values between 1 and 15. Coefficients can also be obtained with
-#'   [ootb_cie_model()].
+#' @param twilight logical vector of length one. When `TRUE`, test sun zenith
+#'   angles from 90 to 96 deg (civil twilight), plus five additional zenith
+#'   angles equally spaced between the estimated sun zenith angle and the
+#'   horizon. This is required because [estimate_sun_angles()] with
+#'   `method = "assume_obscured"` may incorrectly identify the center of the
+#'   visible circumsolar region as the solar disk.
 #'
-#' @inheritParams ootb_cie_model
+#' @inheritParams tune_sky_sampling
 #' @inheritParams compute_canopy_openness
-#' @inheritParams skygrid_segmentation
-#' @inheritParams sample_sky_points
-#' @inheritParams fit_trend_surface
 #' @inheritParams fit_cie_model
 #' @inheritParams apply_by_direction
-#'
 #'
 #' @return List with:
 #' \describe{
 #'   \item{`rr_raster`}{numeric [terra::SpatRaster-class]. Predicted relative radiance.}
 #'   \item{`model`}{list returned by [fit_cie_model()]. The optimal fit.}
-#'   \item{`model_validation`}{list returned by [validate_cie_model()].}
-#'   \item{`dist_to_black`}{Value of `dist_to_black` used in [sample_sky_points()]
-#'     for the optimal fit.}
-#'   \item{`use_window`}{`logical`. Whether a window was used in [extract_rr()]
-#'     for the optimal fit.}
-#'   \item{`min_spherical_dist`}{Value of `min_dist` used in
-#'     `rem_nearby_points(space = "spherical")` for the optimal fit.}
+#'   \item{`params`}{list returned by [tune_sky_sampling()].}
 #'   \item{`sky_points`}{`data.frame` with columns `row` and `col`. Locations of
 #'     sky points.}
 #'   \item{`sun_row_col`}{`data.frame` with the estimated sun‑disk position in
 #'     image coordinates.}
-#'   \item{`g`}{Sky grid used for the optimal fit (as returned by [skygrid_segmentation()]).}
-#'   \item{`tested_grids`}{character vector describing the tested grid configurations.}
-#'   \item{`tested_distances`}{character vector of tested `min_dist` values in
-#'     `rem_nearby_points(space = "spherical")`.}
-#'   \item{`tested_methods`}{character vector of optimization methods tested in
-#'     [fit_cie_model()].}
+#'   \item{`optimal_start`}{`custom_sky_coef` with the estimated sun‑disk position in
+#'     image coordinates.}
 #' }
 #'
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -72,49 +42,48 @@
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
 #'
-#' model <- ootb_cie_model(r, z, a, m)
-#'
-#' bin <- ootb_bin(caim, z, a, m, TRUE)
+#' com <- complementary_gradients(caim)
+#' thr <- thr_twocorner(com$red_cyan[])
+#' bin <- binarize_with_thr(com$red_cyan, thr$uc)
+#' bin <- rem_isolated_black_pixels(bin)
+#' bin_list <- c(bin_list, bin)
+#' bin_list <- c(bin_list, rem_small_gaps(bin))
 #'
 #' set.seed(7)
-#' gs <- list(
-#'   #high res
-#'   skygrid_segmentation(z, a, 2.25, first_ring_different = TRUE),
-#'   skygrid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
-#'   #medium res
-#'   skygrid_segmentation(z, a, 9, first_ring_different = TRUE),
-#'   skygrid_segmentation(z, a, 10, first_ring_different = TRUE),
-#'   #low res
-#'   skygrid_segmentation(z, a, 15, first_ring_different = FALSE),
-#'   skygrid_segmentation(z, a, 18, first_ring_different = FALSE)
-#' )
-#'
-#' sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,
+#' sky_cie <- ootb_sky_cie(r, z, a, m,
+#'                         bin_list,
+#'                         n_cells_seq,
+#'                         dist_to_black_seq,
 #'                         method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
-#'                         min_spherical_dist = seq(0, 12, 3),
-#'                         custom_sky_coef = model$coef,
+#'                         twilight = FALSE,
+#'                         std_sky_no = 12,
+#'                         optim_zenith_dn = TRUE,
 #'                         parallel = TRUE)
 #'
 #' sky_cie$rr_raster
 #' plot(sky_cie$rr_raster)
-#' sky_cie$model_validation$rmse
-#' plot(sky_cie$model_validation$pred, sky_cie$model_validation$obs)
+#' plot(sky_cie$model$rr$sky_points$pred, sky_cie$model$rr$sky_points$rr,
+#'      xlab = "Predicted relative radiance", ylab = "Observed relative radiance")
 #' abline(0,1)
 #'
 #' ratio <- r/sky_cie$rr_raster/sky_cie$model$rr$zenith_dn
 #' plot(ratio)
 #' plot(select_sky_region(ratio, 0.95, 1.05))
-#' plot(select_sky_region(ratio, 1.15, max(ratio[], na.rm = TRUE)))
+#' plot(select_sky_region(ratio, 1.05, 100))
 #'
-#' plot(bin)
-#' points(sky_cie$sky_points$col,
-#'        nrow(caim) - sky_cie$sky_points$row, col = 2, pch = 10)
-#'
+#' display_caim(caim, sky_points = sky_cie$sky_points, sun_row_col = sun)
 #' }
-ootb_sky_cie <- function(r, z, a, m, bin, gs,
-                         min_spherical_dist = seq(0, 12, 3),
+ootb_sky_cie <- function(r, z, a, m,
+                         bin_list,
+                         n_cells_seq,
+                         dist_to_black_seq,
+                         w = 0.5,
                          method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+                         twilight = FALSE,
                          custom_sky_coef = NULL,
+                         std_sky_no = NULL,
+                         general_sky_type = NULL ,
+                         optim_zenith_dn = FALSE,
                          parallel = TRUE,
                          cores = NULL,
                          logical = TRUE,
@@ -132,327 +101,150 @@ ootb_sky_cie <- function(r, z, a, m, bin, gs,
   #more basic checks are handled by the functions called below
 
 
-# Functions ---------------------------------------------------------------
+# Tune --------------------------------------------------------------------
 
-  .get_marks_single <- function(r, z, a, m, bin, cv, g) {
-    # Sun coordinate
-    sun_angles <- estimate_sun_angles(r, z, a, bin, g, angular_radius_sun = 30,
-                                      method = "assume_obscured")
+  params <- tune_sky_sampling(
+    r,
+    z,
+    a,
+    equalarea_segmentation(z, a, 100),
+    bin_list = bin_list,
+    n_cells_seq = n_cells_seq,
+    dist_to_black_seq = dist_to_black_seq,
+    w = w,
+    parallel = parallel,
+    cores = cores,
+    logical = logical,
+    leave_free = leave_free
+  )
 
-    # Obtain parameter
-    dist_to_black <- 1
+  seg <- equalarea_segmentation(z, a, params$n_cells)
+  bin <- bin_list[[params$bin_list_index]]
+  dist_to_black <- params$dist_to_black
 
-    # Sky points
-    sky_points <- sample_sky_points(r, bin, g, dist_to_black)
+# Get marks ---------------------------------------------------------------
 
-    ## Apply filters
-    sky_points <- rem_nearby_points(sky_points, r, min_dist = 3, space = "planar")
-
-    sky_points <- rem_outliers(sky_points, cv, z, a,
-                             k = 10,
-                             angular_radius = 30,
-                             laxity = 2,
-                             cutoff_side = "right",
-                             use_window = !is.null(dist_to_black))
-
-    sky_points <- tryCatch(rem_outliers(sky_points, r, z, a,
-                                      k = 20,
-                                      angular_radius = 45,
-                                      laxity = 3,
-                                      cutoff_side = "both",
-                                      use_window = !is.null(dist_to_black),
-                                      trend = 3),
-           error = function(e) rem_outliers(sky_points, r, z, a,
-                                          k = 5,
-                                          angular_radius = 20,
-                                          laxity = 2,
-                                          cutoff_side = "left",
-                                          use_window = !is.null(dist_to_black))
-    )
-
-    rr <- extract_rr(r, z, a, sky_points,
-                               no_of_points = 3,
-                               use_window = !is.null(dist_to_black))
-    list(dist_to_black = dist_to_black,
-         rr = rr,
-         sun_angles = sun_angles)
-  }
-
-
-  .get_marks_multi <- function(row_vals, col_vals,
-                               r_vals, z_vals, a_vals,
-                               m_vals, bin_vals, cv_vals,
-                               angle_width, first_ring_different) {
-    # Rebuilt rasters
-    r <- terra::rast(nrows = max(row_vals, na.rm = TRUE),
-                     ncols = max(col_vals, na.rm = TRUE))
-    terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
-    # https://spatialreference.org/ref/sr-org/7589/
-    terra::crs(r) <- "epsg:7589"
-    terra::values(r) <- r_vals
-
-    cv <- bin <- m <- a <- z <- rast(r)
-    terra::values(z) <- z_vals
-    names(z) <- "Zenith image"
-    terra::values(a) <- a_vals
-    names(a) <- "Azimuth image"
-    terra::values(m) <- m_vals
-    m <- binarize_with_thr(m, 0.5)
-    terra::values(bin) <- bin_vals
-    bin <- binarize_with_thr(bin, 0.5)
-    terra::values(cv) <- cv_vals
-
-    g <- skygrid_segmentation(z, a, angle_width, first_ring_different)
-
-    .get_marks_single(r, z, a, m, bin, cv, g)
-  }
-
-
-  .fit <- function(dist_to_black.rr.sun_angles,
-                   g,
-                   custom_sky_coef,
-                   method,
-                   parallel,
-                   sun_angles2) {
-    sun_angles <- dist_to_black.rr.sun_angles$sun_angles
-    civic_twilight <- c(seq(sun_angles["z"], 90, length = 5), seq(91, 96, 1))
-
-
-    suns <- lapply(seq_along(civic_twilight),
-                   function(i) c(z = civic_twilight[i], sun_angles["a"]))
-    suns[[length(suns) + 1]] <- sun_angles2
-
-    models <- if (parallel) {
-      # Only to avoid note from check, code is OK without this line.
-      sun <- NA
-
-      .with_cluster(cores, {
-        foreach(sun = suns) %dopar% {
-          fit_cie_model(dist_to_black.rr.sun_angles$rr,
-                        sun,
-                        custom_sky_coef = custom_sky_coef,
-                        method = method)
-        }
-      })
-    } else {
-      lapply(suns, function(sun) {
-        fit_cie_model(dist_to_black.rr.sun_angles$rr,
-                      sun,
-                      custom_sky_coef = custom_sky_coef,
-                      method = method)})
-    }
-
-    metrics <- lapply(seq_along(models),
-                      function(i) models[[i]]$metric) %>% unlist
-    i <- which.min(metrics)
-
-    models[[i]]
-  }
-
-
-  .find_best_dist_single <- function(r, z, a, min_spherical_dist,
-                                     dist_to_black.rr.sun_angles,
-                                     model_osun) {
-    if (is.null(model_osun)) return(NULL)
-    sky_points <- model_osun$rr$sky_points[, c("row", "col")]
-    dist_to_black <- dist_to_black.rr.sun_angles$dist_to_black
-    .get_rrs <- function(min_spherical_dist) {
-      sky_points <- rem_nearby_points(sky_points, r, z, a, min_spherical_dist,
-                                      use_window = !is.null(dist_to_black))
-      extract_rr(r, z, a, sky_points, no_of_points = 3,
-                           use_window = !is.null(dist_to_black))
-    }
-    rrs <- lapply(min_spherical_dist, .get_rrs)
-    models <- lapply(rrs,
-                     function(rr) {
-                       fit_cie_model(rr, model_osun$sun_angles,
-                                     custom_sky_coef = model_osun$coef,
-                                     method = model_osun$method)
-                     })
-    metrics <- lapply(seq_along(models),
-                      function(i) models[[i]]$metric) %>% unlist
-    i <- which.min(metrics)
-    model <- models[[i]]
-    model$method_sun <-  model_osun$method_sun
-    list(min_spherical_dist = min_spherical_dist[i],
-         model = model)
-  }
-
-  .find_best_dist_multi <- function(row_vals, col_vals,
-                                    r_vals, z_vals, a_vals,
-                                    min_spherical_dist,
-                                    dist_to_black.rr.sun_angles,
-                                    model_osun) {
-    # Rebuilt rasters
-    r <- terra::rast(nrows = max(row_vals, na.rm = TRUE),
-                     ncols = max(col_vals, na.rm = TRUE))
-    terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
-    # https://spatialreference.org/ref/sr-org/7589/
-    terra::crs(r) <- "epsg:7589"
-    terra::values(r) <- r_vals
-
-    a <- z <- rast(r)
-    terra::values(z) <- z_vals
-    names(z) <- "Zenith image"
-    terra::values(a) <- a_vals
-    names(a) <- "Azimuth image"
-
-    .find_best_dist_single(r, z, a, min_spherical_dist,
-                           dist_to_black.rr.sun_angles,
-                           model_osun)
-  }
-
-
-  cv <- terra::focal(r, 3, sd) / terra::focal(r, 3, mean)
-
-# Extract vectors ---------------------------------------------------------
-
-  if (parallel) {
-    row_vals <- terra::rowFromCell(r, terra::cells(r))
-    col_vals <- terra::colFromCell(r, terra::cells(r))
-    r_vals <- terra::values(r)
-    z_vals <- terra::values(z)
-    a_vals <- terra::values(a)
-    m_vals <- terra::values(m)
-    bin_vals <- terra::values(bin)
-    cv_vals <- terra::values(cv)
-  }
+  sun_angles <- estimate_sun_angles(r, z, a, bin, seg, angular_radius_sun = 30,
+                                    method = "assume_obscured")
 
   sun_angles2 <- estimate_sun_angles(r, z, a, bin, NULL, NULL,
                                      method = "assume_veiled")
 
+  sky_points <- sample_sky_points(r, bin, seg, dist_to_black)
 
-# Get marks ---------------------------------------------------------------
 
-  l.dist_to_black.rr.sun_angles <- if (parallel && length(gs) > 1) {
-    .with_cluster(cores, {
-      foreach(i = seq_along(gs)) %dopar% {
-        .get_marks_multi(row_vals, col_vals,
-                         r_vals, z_vals, a_vals,
-                         m_vals, bin_vals, cv_vals,
-                         attr(gs[[i]], "angle_width"),
-                         attr(gs[[i]], "first_ring_different"))
-      }
-    })
-  } else {
-     Map(.get_marks_single, r, z, a, m, bin, cv,gs)
-  }
+# Apply filters to sky points ---------------------------------------------
+  sky_points <- rem_nearby_points(sky_points, r, min_dist = 3, space = "planar")
 
+  i <- apply_local_spherical(
+    cbind(sky_points, extract_cv(r, sky_points)),
+    NULL,
+    z,
+    a,
+    k = 20,
+    angular_radius = 45,
+    rule = "all",
+    fun = function(df) {
+      !is_outlier(df[1, 3], df[-1, 3])
+    },
+    parallel = FALSE
+  )
+  #query points with nn < k
+  i$output[is.na(i$output)] <- TRUE
+
+  sky_points <- rem_outliers(
+    sky_points[i$output, ],
+    r,
+    z,
+    a,
+    k = 20,
+    angular_radius = 45,
+    laxity = 2,
+    cutoff_side = "right",
+    use_window = TRUE,
+    detrend = FALSE
+  )
+
+  sky_points <- rem_outliers(
+    sky_points,
+    r,
+    z,
+    a,
+    k = 20,
+    angular_radius = 30,
+    laxity = 3,
+    cutoff_side = "left",
+    use_window = TRUE,
+    detrend = TRUE
+  )
+
+  equalarea_seg <- equalarea_segmentation(z, a, 200)
+  kl <- lapply(1:10, function(i) {
+    sky_points <-  rem_nearby_points(sky_points, NULL, z, a, i, space = "spherical")
+    assess_sampling_uniformity(sky_points, equalarea_seg)$kl
+  })
+  sky_points <- rem_nearby_points(sky_points, r, z, a, min_dist = which.min(kl), space = "spherical")
 
 # Fit ---------------------------------------------------------------------
 
-  models <- tryCatch(Map(.fit,
-                          l.dist_to_black.rr.sun_angles,
-                          gs,
-                          lapply(seq_along(gs), function(i) custom_sky_coef),
-                          lapply(seq_along(gs), function(i) method),
-                          lapply(seq_along(gs), function(i) parallel),
-                          lapply(seq_along(gs), function(i) sun_angles2)),
-                      error = function(e) NULL)
+  rr <- extract_rr(r, z, a, sky_points, no_of_points = 3, use_window = TRUE)
 
-  if (lapply(models, function(x) is.null(x)) %>% unlist() %>% all()) {
-    warning("Fit failed")
-    return(NULL)
+  if (twilight) {
+    civic_twilight <- c(seq(sun_angles["z"], 90, length = 5), seq(91, 96, 1))
+    suns <- lapply(seq_along(civic_twilight),
+                   function(i) c(z = civic_twilight[i], sun_angles["a"]))
+    suns[[length(suns) + 1]] <- sun_angles2
+  } else {
+    suns <- list(sun_angles, sun_angles2)
   }
 
+  models <- if (parallel && twilight) {
+    # Only to avoid note from check, code is OK without this line.
+    sun <- NA
+
+    .with_cluster(cores, {
+      foreach(sun = suns) %dopar% {
+        fit_cie_model(rr, sun, custom_sky_coef = custom_sky_coef,
+                      std_sky_no = NULL,
+                      general_sky_type = NULL ,
+                      optim_zenith_dn = optim_zenith_dn,
+                      method = method)
+      }
+    })
+  } else {
+    lapply(suns, function(sun) {
+      fit_cie_model(rr, sun, custom_sky_coef = custom_sky_coef,
+                    std_sky_no = std_sky_no,
+                    general_sky_type = general_sky_type,
+                    optim_zenith_dn = optim_zenith_dn,
+                    method = method)
+    })
+  }
+
+  metrics <- lapply(seq_along(models),
+                    function(i) models[[i]]$metric) %>% unlist
+  i <- which.min(metrics)
+
+  model <- models[[i]]
 
 # Optim sun ---------------------------------------------------------------
 
-  l.model_osun <- if (parallel && length(gs) > 1) {
-    .with_cluster(cores, {
-        foreach(i = seq_along(gs)) %dopar% {
-          optim_sun_angles(models[[i]], method)
-        }
-    })
-  } else {
-    Map(optim_sun_angles,
-        models,
-        lapply(seq_along(gs), function(i) method))
+  model <- optim_sun_angles(model, method = method)
+
+# output ------------------------------------------------------------------
+
+  .get_sky_cie <- function(z, a, model) {
+    cie_image(z, a, model$sun_angles,  model$coef)
   }
 
+  sun_row_col <- row_col_from_zenith_azimuth(z, a,
+                                             model$sun_angles["z"],
+                                             model$sun_angles["a"])
 
-# Try subsamples ----------------------------------------------------------
-
-  l.min_spherical_dist.model <- if (any(min_spherical_dist != 0)) {
-    if (parallel && length(gs) > 1) {
-      .with_cluster(cores, {
-        foreach(i = seq_along(gs)) %dopar% {
-          .find_best_dist_multi(row_vals, col_vals,
-                                r_vals, z_vals, a_vals,
-                                min_spherical_dist,
-                                l.dist_to_black.rr.sun_angles[[i]],
-                                l.model_osun[[i]])
-        }
-      })
-    } else {
-      Map(.find_best_dist_single,
-          r, z, a,
-          min_spherical_dist,
-          l.dist_to_black.rr.sun_angles,
-          l.model_osun)
-    }
-
-
-  } else {
-      Map(function(dist_to_black.rr.sun_angles, model_osun) {
-                     list(min_spherical_dist = 0,
-                          model = model_osun)
-                    },
-           l.dist_to_black.rr.sun_angles,
-           l.model_osun)
-  }
-
-
-# Validate ----------------------------------------------------------------
-
-  .validate <- function(i) {
-    if (is.null(l.min_spherical_dist.model[[i]])) return(NULL)
-    validate_cie_model(l.min_spherical_dist.model[[i]]$model, k = 10)
-
-  }
-  l.model_validation <- if (parallel && length(gs) > 1) {
-    .with_cluster(cores, {
-      foreach(i = seq_along(gs)) %dopar% .validate(i)
-    })
-  } else {
-    lapply(seq_along(gs), .validate)
-  }
-
-
-# Prepare output ----------------------------------------------------------
-
-  metrics <- lapply(seq_along(l.model_validation),
-                    function(i) l.model_validation[[i]]$metric) %>% unlist
-  i <- which.min(metrics)
-
-  if (metrics[i] == 1e10) {
-    warning("`ootb_sky_cie()` failed unexpectedly.")
-    return(NULL)
-  } else {
-    .get_sky_cie <- function(z, a, model) {
-      cie_image(z, a, model$sun_angles,  model$coef)
-    }
-
-    model <- l.min_spherical_dist.model[[i]]$model
-    sun_row_col <- row_col_from_zenith_azimuth(z, a,
-                                               model$sun_angles["z"],
-                                               model$sun_angles["a"])
-
-    list(rr_raster = .get_sky_cie(z, a, model),
-         model = model,
-         model_validation = l.model_validation[[i]],
-         dist_to_black = l.dist_to_black.rr.sun_angles[[i]]$dist_to_black,
-         use_window = !is.null(l.dist_to_black.rr.sun_angles[[i]]$dist_to_black),
-         min_spherical_dist = l.min_spherical_dist.model[[i]]$min_spherical_dist,
-         sky_points = model$rr$sky_points[, c("row", "col")],
-         sun_row_col = sun_row_col,
-         g = gs[[i]],
-         tested_grids = lapply(gs, function(g) {
-            paste(attr(g, "angle_width"), attr(g, "first_ring_different"))
-          }) %>% unlist %>% paste0(., collapse = "; "),
-         tested_distances = paste0(min_spherical_dist, collapse = "; "),
-         tested_methods = paste0(method, collapse = "; "),
-         optimal_start = custom_sky_coef
-         )
-  }
+  list(rr_raster = .get_sky_cie(z, a, model),
+       model = model,
+       params = params,
+       sky_points = model$rr$sky_points[, c("row", "col")],
+       sun_row_col = sun_row_col
+       )
 }

@@ -8,7 +8,7 @@
 #'
 #' @section Functions:
 #' \describe{
-#'   \item{`write_sky_cie`}{No return value. Writes six files to disk with the
+#'   \item{`write_sky_cie`}{No return value. Writes four files to disk with the
 #'   prefix `name` (see below).}
 #'   \item{`read_sky_cie`}{Returns a `list` similar to the output of
 #'   `ootb_sky_cie()` and suitable as input to `ootb_sky_above()`.}
@@ -20,7 +20,6 @@
 #'   \item CSV with sky radiance samples: `name_rr.csv`
 #'   \item GeoPackage with sky sample points: `name_sky_points.gpkg`
 #'   \item GeoPackage with the sun disk location: `name_sun_disk.gpkg`
-#'   \item CSV with validation pairs: `name_val.csv`
 #' }
 #'
 #' @section Text file keys:
@@ -34,15 +33,11 @@
 #'   \item{`start_a:`…`start_e:`}{Initial CIE coefficients.}
 #'   \item{`fit_a:`…`fit_e:`}{Fitted CIE coefficients.}
 #'   \item{`method:`}{Method used to fit CIE coefficients.}
-#'   \item{`dist_to_black:`}{Argument passed to `sample_sky_points()`.}
-#'   \item{`grid:`}{Sky grid parameters (`angle_width`, `first_ring_different`).}
-#'   \item{`min_spherical_dist:`}{Sampling buffer distance (deg).}
-#'   \item{`sky_points_no:`}{Number of sky points.}
-#'   \item{`outliers_no:`}{Number of sky points that were detected as outliers.}
-#'   \item{`rmse:`}{Validation metrics. Root mean squared error.}
-#'   \item{`r_squared:`}{Validation metric. Coefficient of determination.}
-#'   \item{`mae:`}{Validation metrics. Mean absolute error.}
-#'   \item{`[Tested: …]`}{Enumerates tested methods/grids/distances.}
+#'   \item{`n_cells:`}{Parameter obtained with `tune_sky_sapmpling()`.}
+#'   \item{`dist_to_black:`}{Parameter obtained with `tune_sky_sapmpling()`.}
+#'   \item{`bin_list_index:`}{Parameter obtained with `tune_sky_sapmpling()`.}
+#'   \item{`accuracy:`}{Parameter obtained with `tune_sky_sapmpling()`.}
+#'   \item{`coverage:`}{Parameter obtained with `tune_sky_sapmpling()`.}
 #' }
 #'
 #' @details
@@ -61,9 +56,10 @@
 #' @param r numeric [terra::SpatRaster-class] of one layer. The canopy image
 #'   used in the out-of-the-box workflow (used by `read_sky_cie()` when
 #'   refitting).
-#' @inheritParams skygrid_segmentation
 #' @param refit_allowed logical vector of length one. If `TRUE`, allow automatic
 #'   re-fit when manual edits are detected.
+#'
+#' @inheritParams skygrid_segmentation
 #'
 #' @return See *Functions*.
 #'
@@ -71,6 +67,7 @@
 #' @rdname write_sky_cie
 #' @aliases read_sky_cie
 #'
+#' @export
 #'
 #' @examples
 #' \dontrun{
@@ -90,17 +87,7 @@ write_sky_cie <- function(sky_cie, name) {
   required_names <- c(
                       "rr_raster",
                       "model",
-                      "model_validation",
-                      "dist_to_black",
-                      "use_window",
-                      "min_spherical_dist",
-                      "sky_points",
-                      "sun_row_col",
-                      "g",
-                      "tested_grids",
-                      "tested_distances",
-                      "tested_methods",
-                      "optimal_start"
+                      "params"
                       )
   if (!all(required_names %in% names(sky_cie))) {
     stop(sprintf("`sky_cie` must contain %s.",
@@ -117,7 +104,7 @@ write_sky_cie <- function(sky_cie, name) {
   on.exit(close(con), add = TRUE)
   sink(con)
   .print_line(.hr("-"))
-  .print_line("format_version:", " 1.1")
+  .print_line("format_version:", " 1.2")
   .print_line("generated_by:", " rcaiman::write_sky_cie()  # do not edit by hand")
   .print_line(.hr("-"))
 
@@ -132,12 +119,11 @@ write_sky_cie <- function(sky_cie, name) {
   .print_line(.hr("."))
   # starts
   .print_line("zenith_dn:", sky_cie$model$rr$zenith_dn)
-  starts <- unname(sky_cie$optimal_start)
+  starts <- unname(sky_cie$model$start)
   if (length(starts) != 5) starts <- rep(NULL, 5)
   .print_line("start_a:", starts[1]); .print_line("start_b:", starts[2])
   .print_line("start_c:", starts[3]); .print_line("start_d:", starts[4])
   .print_line("start_e:", starts[5])
-
   .print_line(.hr("."))
   # fit
   co <- unname(sky_cie$model$coef[1:5])
@@ -145,26 +131,15 @@ write_sky_cie <- function(sky_cie, name) {
   .print_line("fit_c:", co[3]); .print_line("fit_d:", co[4])
   .print_line("fit_e:", co[5])
   .print_line("method:", unname(sky_cie$model$method))
-  for (m in sky_cie$tested_methods) .print_line("[Tested:", m, "]")
-
 
   .print_line(.hr("."))
   # grid and sampling
-  .print_line("dist_to_black:", if (!is.null(sky_cie$dist_to_black)) sky_cie$dist_to_black else NA)
-  .print_line("grid:", paste(attr(sky_cie$g, "angle_width"),
-                             attr(sky_cie$g, "first_ring_different")))
-  for (m in sky_cie$tested_grids) .print_line("[Tested:", m, "]")
+  .print_line("n_cells:", sky_cie$params$n_cells)
+  .print_line("dist_to_black:", sky_cie$params$dist_to_black)
+  .print_line("bin_list_index:", sky_cie$params$bin_list_index)
+  .print_line("accuracy:", sky_cie$params$accuracy)
+  .print_line("coverage:", sky_cie$params$coverage)
 
-  .print_line("min_spherical_dist:", if (!is.null(sky_cie$min_spherical_dist)) sky_cie$min_spherical_dist else NA)
-  for (m in sky_cie$tested_distances) .print_line("[Tested:", m, "]")
-
-  .print_line(.hr("."))
-  # counts and validation
-  .print_line("sky_points_no:", nrow(sky_cie$sky_points))
-  .print_line("outliers_no:",   sum(sky_cie$sky_points$is_outlier, na.rm = TRUE))
-  .print_line("rmse:", sky_cie$model_validation$rmse)
-  .print_line("r_squared:", sky_cie$model_validation$r_squared)
-  .print_line("mae:", sky_cie$model_validation$mae)
   .print_line(.hr("-"))
   sink()
 
@@ -187,12 +162,6 @@ write_sky_cie <- function(sky_cie, name) {
   terra::crs(p) <- terra::crs(sky_cie$rr_raster)
   terra::writeVector(p, paste0(name, "_sun_disk.gpkg"), filetype = "GPKG")
 
-  # validation CSV
-  utils::write.csv2(data.frame(pred = sky_cie$model_validation$pred,
-                               obs  = sky_cie$model_validation$obs),
-                    paste0(name, "_val.csv"),
-                    row.names = FALSE)
-
   # rr CSV
   if (!is.null(sky_cie$model$rr$sky_points)) {
     utils::write.csv2(sky_cie$model$rr$sky_points,
@@ -204,6 +173,7 @@ write_sky_cie <- function(sky_cie, name) {
 }
 
 #' @rdname write_sky_cie
+#' @export
 read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   .check_vector(name, "character", 1)
   .assert_file_exists(paste0(name, ".txt"))
@@ -227,25 +197,13 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     if (cast == "log") return(tolower(trimws(val)) %in% c("true","t","1"))
     trimws(val)
   }
-  .get_two_tokens_after <- function(lines, key) {
-    pat <- paste0("^", key, "\\s*:\\s*(.*)$")
-    hit <- grep(pat, lines)
-    if (!length(hit)) stop("Missing key: ", key)
-    val <- strsplit(sub(pat, "\\1", lines[hit[1]]), "\\s+")[[1]]
-    list(tok1 = suppressWarnings(as.numeric(val[1])),
-         tok2 = tolower(val[2]) %in% c("true","t","1"))
-  }
-  .get_tested <- function(lines) {
-    x <- trimws(gsub("^\\[Tested:\\s*|\\]$", "", grep("^\\[Tested:", lines, value = TRUE)))
-    unique(x[nzchar(x)])
-  }
 
   # init structure --------------------------------------------------------
   sky_cie <- list()
   sky_cie$io <- list()
   sky_cie$model <- list()
   sky_cie$model$rr <- list()
-  sky_cie$model_validation <- list()
+  sky_cie$params <- list()
 
   # parse manifest --------------------------------------------------------
   lines <- .read_manifest(paste0(name, ".txt"))
@@ -261,8 +219,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   )
   msun <- .get_token_after(lines, "method_sun", "char", required = FALSE)
   if (!is.na(msun)) sky_cie$model$method_sun <- msun
-
-  sky_cie$tested_methods <- .get_tested(lines)
 
   sky_cie$model$rr$zenith_dn <- .get_token_after(lines, "zenith_dn", "num", TRUE)
 
@@ -286,29 +242,14 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   )
   sky_cie$model$method <- .get_token_after(lines, "method", "char", TRUE)
 
-  # grids and distances
-  sky_cie$dist_to_black <- suppressWarnings(.get_token_after(lines, "dist_to_black", "num", required = FALSE))
-  sky_cie$use_window <- length(sky_cie$dist_to_black) == 1 && !is.na(sky_cie$dist_to_black)
-
-  gd <- .get_two_tokens_after(lines, "grid")
-  sky_cie$g <- tryCatch(
-    skygrid_segmentation(z, a, gd$tok1, gd$tok2),
-    error = function(e) NA
-  )
-
-  msd <- suppressWarnings(.get_token_after(lines, "min_spherical_dist", "num", required = FALSE))
-  if (!is.na(msd)) sky_cie$min_spherical_dist <- msd
-
-  # validation metrics
-  sky_cie$model_validation$r_squared <- .get_token_after(lines, "r_squared", "num", TRUE)
-  sky_cie$model_validation$rmse      <- .get_token_after(lines, "rmse",      "num", TRUE)
-  sky_cie$model_validation$mae       <- .get_token_after(lines, "mae",       "num", TRUE)
+  # params
+  sky_cie$params$n_cells        <- suppressWarnings(.get_token_after(lines, "n_cells", "num", required = FALSE))
+  sky_cie$params$dist_to_black  <- suppressWarnings(.get_token_after(lines, "dist_to_black", "num", required = FALSE))
+  sky_cie$params$bin_list_index <- suppressWarnings(.get_token_after(lines, "bin_list_index", "num", required = FALSE))
+  sky_cie$params$coverage <- suppressWarnings(.get_token_after(lines, "coverage", "num", required = FALSE))
+  sky_cie$params$accuracy <- suppressWarnings(.get_token_after(lines, "accuracy", "num", required = FALSE))
 
   # sidecar files ---------------------------------------------------------
-  # validation pairs
-  df_val <- utils::read.csv2(paste0(name, "_val.csv"))
-  sky_cie$model_validation$pred <- df_val$pred
-  sky_cie$model_validation$obs  <- df_val$obs
 
   # rr
   sky_cie$model$rr$sky_points <- utils::read.csv2(paste0(name, "_rr.csv"))
@@ -342,11 +283,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     names(sza_saa) <- c("z","a")
   }
 
-  # sort_df <- function(df) df[order(df$row, df$col), c("row","col")]
-  # points_changed <- !identical(
-  #   sort_df(sky_cie$model$rr$sky_points),
-  #   sort_df(sky_cie$sky_points)
-  # )
   .norm_points <- function(x) {
     x <- x[, c("row","col"), drop = FALSE]
     x$row <- as.integer(x$row)
@@ -364,7 +300,7 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   if ( (delta > pi/180) || points_changed ) {
     msg <- "Detected manual changes. "
     if (isTRUE(refit_allowed)) {
-      rr <- extract_rr(r, z, a, sky_cie$sky_points, use_window = sky_cie$use_window)
+      rr <- extract_rr(r, z, a, sky_cie$sky_points, use_window = TRUE)
       sky_cie$model <- fit_cie_model(rr, sza_saa,
                                      custom_sky_coef = sky_cie$model$coef)
       sky_cie$model_validation <- validate_cie_model(sky_cie$model, k = 10)

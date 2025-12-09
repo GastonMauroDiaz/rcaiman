@@ -68,10 +68,12 @@
 #'
 #'    \deqn{
 #'    \mathrm{CAM} =
-#'    (1 - \mathrm{coverage}_n)\, w
+#'    (1 - \mathrm{coverage}_n) \cdot w
 #'    \;+\;
-#'    \mathrm{accuracy}_n\, (1 - w)
+#'    \mathrm{accuracy}_n \cdot (1 - w) \; ,
 #'    }
+#'
+#'    were \eqn{n} is the nth parameter combination being tested.
 #'
 #'    Lower CAM values indicate parameter combinations that achieve both high
 #'    hemispherical coverage and low local radiance variability at the sampled sky

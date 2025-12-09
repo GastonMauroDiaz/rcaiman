@@ -48,7 +48,7 @@ current \code{r}, \code{z}, and \code{a}, then revalidates.
 \section{Functions}{
 
 \describe{
-\item{\code{write_sky_cie}}{No return value. Writes six files to disk with the
+\item{\code{write_sky_cie}}{No return value. Writes four files to disk with the
 prefix \code{name} (see below).}
 \item{\code{read_sky_cie}}{Returns a \code{list} similar to the output of
 \code{ootb_sky_cie()} and suitable as input to \code{ootb_sky_above()}.}
@@ -62,7 +62,6 @@ prefix \code{name} (see below).}
 \item CSV with sky radiance samples: \code{name_rr.csv}
 \item GeoPackage with sky sample points: \code{name_sky_points.gpkg}
 \item GeoPackage with the sun disk location: \code{name_sun_disk.gpkg}
-\item CSV with validation pairs: \code{name_val.csv}
 }
 }
 
@@ -78,15 +77,11 @@ prefix \code{name} (see below).}
 \item{\verb{start_a:}…\verb{start_e:}}{Initial CIE coefficients.}
 \item{\verb{fit_a:}…\verb{fit_e:}}{Fitted CIE coefficients.}
 \item{\verb{method:}}{Method used to fit CIE coefficients.}
-\item{\verb{dist_to_black:}}{Argument passed to \code{sample_sky_points()}.}
-\item{\verb{grid:}}{Sky grid parameters (\code{angle_width}, \code{first_ring_different}).}
-\item{\verb{min_spherical_dist:}}{Sampling buffer distance (deg).}
-\item{\verb{sky_points_no:}}{Number of sky points.}
-\item{\verb{outliers_no:}}{Number of sky points that were detected as outliers.}
-\item{\verb{rmse:}}{Validation metrics. Root mean squared error.}
-\item{\verb{r_squared:}}{Validation metric. Coefficient of determination.}
-\item{\verb{mae:}}{Validation metrics. Mean absolute error.}
-\item{\verb{[Tested: …]}}{Enumerates tested methods/grids/distances.}
+\item{\verb{n_cells:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
+\item{\verb{dist_to_black:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
+\item{\verb{bin_list_index:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
+\item{\verb{accuracy:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
+\item{\verb{coverage:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
 }
 }
 

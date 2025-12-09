@@ -14,7 +14,7 @@ rem_outliers(
   laxity = 2,
   cutoff_side = "both",
   use_window = TRUE,
-  trend = NULL,
+  detrend = FALSE,
   parallel = FALSE,
   cores = NULL,
   logical = TRUE,
@@ -49,9 +49,11 @@ from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
 pixel that includes the point. If \code{FALSE}, only the value of the central
 pixel is retrieved.}
 
-\item{trend}{numeric vector of length one or \code{NULL}. Zero to three. Specifies
-the order of the polynomial surface fitted to the neighbors to account for
-spatial trends. Use NULL (default) to skip detrending.}
+\item{detrend}{logical vector of length one. When \code{TRUE}, a detrending is
+attempted with \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}} with \code{method = zenith_n_azimuth}. If
+this attempt fails, the function reverts to \code{detrend = FALSE} and searches
+for outliers in the untransformed values. Detrending fails systematically
+when \code{k < 20}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -102,17 +104,18 @@ m <- !is.na(z)
 bin <- binarize_by_region(r, ring_segmentation(z, 30),
                           method = "thr_isodata")
 bin <- bin & select_sky_region(z, 0, 80)
-g <- skygrid_segmentation(z, a, 5, first_ring_different = TRUE)
-sky_points <- extract_sky_points(r, bin, g,
-                                 dist_to_black = 3)
+seg <- equalarea_segmentation(z, a, 1000)
+sky_points <- sample_sky_points(r, bin, seg,
+                                dist_to_black = 3)
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-sky_points <- rem_outliers(sky_points, r, z, a,
-                                 k = 5,
-                                 angular_radius = 20,
-                                 laxity = 2,
-                                 cutoff_side = "left")
-points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
+sky_points2 <- rem_outliers(sky_points, r, z, a,
+                            k = 20,
+                            angular_radius = 30,
+                            laxity = 2,
+                            cutoff_side = "left",
+                            detrend = TRUE)
+points(sky_points2$col, nrow(caim) - sky_points2$row, col = 3, pch = 0)
 }
 }

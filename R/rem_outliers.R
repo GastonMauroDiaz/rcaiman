@@ -6,9 +6,11 @@
 #'
 #' @param angular_radius numeric vector of length one. The maximum radius for
 #'   searching k-nearest neighbors (KNN) in degrees.
-#' @param trend numeric vector of length one or `NULL`. Zero to three. Specifies
-#'   the order of the polynomial surface fitted to the neighbors to account for
-#'   spatial trends. Use NULL (default) to skip detrending.
+#' @param detrend logical vector of length one. When `TRUE`, a detrending is
+#'   attempted with [fit_coneshaped_model()] with `method = zenith_n_azimuth`. If
+#'   this attempt fails, the function reverts to `detrend = FALSE` and searches
+#'   for outliers in the untransformed values. Detrending fails systematically
+#'   when `k < 20`.
 #'
 #' @inheritParams extract_dn
 #' @inheritParams skygrid_segmentation
@@ -43,18 +45,19 @@
 #' bin <- binarize_by_region(r, ring_segmentation(z, 30),
 #'                           method = "thr_isodata")
 #' bin <- bin & select_sky_region(z, 0, 80)
-#' g <- skygrid_segmentation(z, a, 5, first_ring_different = TRUE)
-#' sky_points <- extract_sky_points(r, bin, g,
-#'                                  dist_to_black = 3)
+#' seg <- equalarea_segmentation(z, a, 1000)
+#' sky_points <- sample_sky_points(r, bin, seg,
+#'                                 dist_to_black = 3)
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' sky_points <- rem_outliers(sky_points, r, z, a,
-#'                                  k = 5,
-#'                                  angular_radius = 20,
-#'                                  laxity = 2,
-#'                                  cutoff_side = "left")
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 3, pch = 0)
+#' sky_points2 <- rem_outliers(sky_points, r, z, a,
+#'                             k = 20,
+#'                             angular_radius = 30,
+#'                             laxity = 2,
+#'                             cutoff_side = "left",
+#'                             detrend = TRUE)
+#' points(sky_points2$col, nrow(caim) - sky_points2$row, col = 3, pch = 0)
 #' }
 rem_outliers <- function(sky_points, r, z, a,
                          k = 20,
@@ -62,7 +65,7 @@ rem_outliers <- function(sky_points, r, z, a,
                          laxity = 2,
                          cutoff_side = "both",
                          use_window = TRUE,
-                         trend = NULL,
+                         detrend = FALSE,
                          parallel = FALSE,
                          cores = NULL,
                          logical = TRUE,
@@ -72,41 +75,28 @@ rem_outliers <- function(sky_points, r, z, a,
   .check_r_z_a_m(r, z, a, r_type = "single")
   if (k < 3) stop("`k` must be at least 3.")
   .check_vector(use_window, "logical", 1)
-  .check_vector(trend, "integerish", 1, allow_null = TRUE,  sign = "positive")
-  if (!is.null(trend) && trend > 3) stop("`trend` must be 1-3 or NULL.")
+  .check_vector(detrend, "logical")
 
   sky_points <- extract_dn(c(z, a, r), sky_points, use_window = use_window)
-  names(sky_points)[3:5] <- c("z", "a", "dn")
+  names(sky_points)[3:5] <- c("z", "a", "rr")
 
-  .fn <- function(sky_points) {
-    .regular <- function(sky_points) {
-      list(the_point_dn = sky_points[1, "dn"],
-           dns = sky_points[-1, "dn"])
+  .fn <- function(selected_points) {
+    .regular <- function(selected_points) {
+      list(the_point_dn = selected_points[1, "rr"],
+           dns = selected_points[-1, "rr"])
     }
-    .detrend <- function(sky_points) {
-      the_point <- sky_points[1, ]
-      sky_points <- sky_points[-1, ]
-      xy <- terra::cellFromRowCol(r, sky_points$row, sky_points$col) %>%
-        terra::xyFromCell(r, .)
-      fit <- tryCatch(spatial::surf.ls(x = xy[, 1],
-                              y = xy[, 2],
-                              z = sky_points[, "dn"],
-                              np = trend),
-                      error = function(e) {
-                        warning("Detrending failed")
-                        stop()
-                      })
-      pred <- predict(fit, xy[,1], xy[,2])
-      dns <- fit$z - pred
-      xy <- terra::cellFromRowCol(r, the_point$row, the_point$col) %>%
-        terra::xyFromCell(r, .)
-      the_point_dn <- the_point[, "dn"] - predict(fit, xy[,1], xy[,2])
+    .detrend <- function(selected_points) {
+      the_point <- selected_points[1, ]
+      selected_points <- selected_points[-1, ]
+      model <- fit_coneshaped_model(selected_points, method = "zenith_n_azimuth")
+      the_point_dn <- the_point[, "rr"] - model$fun(the_point$z, the_point$a)
+      dns <- stats::residuals(model$model)
       list(the_point_dn = the_point_dn, dns = dns)
     }
-    l <- if (!is.null(trend)) {
-      tryCatch(.detrend(sky_points), error = function(e) .regular(sky_points))
+    l <- if (detrend) {
+      tryCatch(.detrend(selected_points), error = function(e) .regular(selected_points))
     } else {
-      .regular(sky_points)
+      .regular(selected_points)
     }
     !is_outlier(l$the_point_dn, l$dns, laxity = laxity, cutoff_side = cutoff_side)
   }

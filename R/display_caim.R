@@ -13,6 +13,7 @@
 #'   accepted.
 #' @param sun_row_col numeric `data.frame` with the estimated sun‑disk
 #'   position in image coordinates. See [row_col_from_zenith_azimuth()].
+#' @param sun_disk_size numeric vector of length one. Sun disk size in pixels.
 #'
 #' @inheritParams compute_canopy_openness
 #' @inheritParams extract_dn
@@ -65,7 +66,11 @@ display_caim <- function(caim = NULL,
                          bin = NULL,
                          seg = NULL,
                          sky_points = NULL,
-                         sun_row_col = NULL) {
+                         sun_row_col = NULL,
+                         sun_disk_size = 9) {
+
+  .check_vector(sun_disk_size, "numeric", 1, sign = "positive")
+
   .this_requires_EBImage()
 
   if (!is.null(caim)) {
@@ -86,26 +91,31 @@ display_caim <- function(caim = NULL,
   if (!is.null(sky_points)) {
     .check_sky_points(sky_points)
     # create raster
-    sky_points <- extract_dn(caim[[1]], sky_points, use_window = FALSE)
+    # sky_points <- extract_dn(caim[[1]], sky_points, use_window = FALSE)
+    sky_points <- cbind(sky_points, dn = 1)
     sky_points <- interpolate_planar(sky_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
     sky_points <- is.na(sky_points)
   }
   if (!is.null(sun_row_col)) {
     .check_sky_points(sun_row_col)
     # create raster
-    sun_row_col <- extract_dn(caim[[1]], sun_row_col, use_window = FALSE)
-    sun_row_col <- interpolate_planar(sun_row_col, caim[[1]], k = 1, p = 1, rmax = 9, col_id = 3)
+    if (any(sun_row_col < 1)) {
+      warning(paste0("The ", names(sun_row_col)[which(sun_row_col < 1)]," number of `sun_row_col` was forced to 1."))
+      sun_row_col[sun_row_col < 1] <- 1
+    }
+    sun_row_col <- cbind(sun_row_col, dn = 1)
+    sun_row_col <- interpolate_planar(sun_row_col, caim[[1]], k = 1, p = 1, rmax = sun_disk_size, col_id = 3)
     sun_row_col <- is.na(sun_row_col)
   }
 
   if (!is.null(caim) && terra::nlyr(caim) <= 3 && is.null(bin) &&
       is.null(seg) && (!is.null(sky_points) | !is.null(sun_row_col))) {
     caim <- normalize_minmax(caim)
-    if (!is.null(sky_points)) {
-      caim <- paint_with_mask(caim, sky_points, color = "red")
-    }
     if (!is.null(sun_row_col)) {
       caim <- paint_with_mask(caim, sun_row_col, color = "yellow")
+    }
+    if (!is.null(sky_points)) {
+      caim <- paint_with_mask(caim, sky_points, color = "red")
     }
     x <- EBImage::Image(caim, dim(caim), colormode = "color")
   } else {

@@ -9,7 +9,8 @@ display_caim(
   bin = NULL,
   seg = NULL,
   sky_points = NULL,
-  sun_row_col = NULL
+  sun_row_col = NULL,
+  sun_disk_size = 9
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ coordinates).}
 
 \item{sun_row_col}{numeric \code{data.frame} with the estimated sun‑disk
 position in image coordinates. See \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}}.}
+
+\item{sun_disk_size}{numeric vector of length one. Sun disk size in pixels.}
 }
 \value{
 Invisible \code{NULL}. Called for side effects (image viewer popup).

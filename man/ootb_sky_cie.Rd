@@ -9,11 +9,16 @@ ootb_sky_cie(
   z,
   a,
   m,
-  bin,
-  gs,
-  min_spherical_dist = seq(0, 12, 3),
+  bin_list,
+  n_cells_seq,
+  dist_to_black_seq,
+  w = 0.5,
   method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+  twilight = FALSE,
   custom_sky_coef = NULL,
+  std_sky_no = NULL,
+  general_sky_type = NULL,
+  optim_zenith_dn = FALSE,
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
@@ -21,9 +26,9 @@ ootb_sky_cie(
 )
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically, the blue
-band of a a canopy photograph. Digital numbers should be linearly related
-to radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for details.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
+band of a canopy photograph. Digital numbers should be linearly related to
+radiance.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -32,24 +37,41 @@ to radiance. See \code{\link[=read_caim_raw]{read_caim_raw()}} for details.}
 \item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
 \code{TRUE} for selected pixels.}
 
-\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
-hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
+\item{bin_list}{list of logical \link[terra:SpatRaster-class]{terra::SpatRaster} objects of one
+layer. Each element is a binarization of \code{r}.}
 
-\item{gs}{\code{list} where each element is the output of
-\code{\link[=skygrid_segmentation]{skygrid_segmentation()}}. See \emph{Examples} for guidance.}
+\item{n_cells_seq}{numeric vector. Sequence of integers to evaluate for
+\code{n_cells}.}
 
-\item{min_spherical_dist}{numeric vector. Values passed to
-\code{\link[=rem_nearby_points]{rem_nearby_points()}}.}
+\item{dist_to_black_seq}{numeric vector. Sequence of integers to evaluate for
+\code{dist_to_black}.}
 
-\item{method}{character vector. Optimization methods for \code{\link[=fit_cie_model]{fit_cie_model()}}
-and \code{\link[=optim_sun_angles]{optim_sun_angles()}}.}
+\item{w}{numeric vector of length one. Weight controlling the balance between
+coverage and accuracy (see \emph{Details}).}
 
-\item{custom_sky_coef}{optional numeric vector of length five. If \code{NULL}
-(default), the 15 standard CIE skies are tested as starting
-conditions. Specific standard CIE sky or skies can be provided with
-\code{as.numeric(cie_table[i,  1:5])}, where \code{i} must be a numeric vector with
-values between 1 and 15. Coefficients can also be obtained with
-\code{\link[=ootb_cie_model]{ootb_cie_model()}}.}
+\item{method}{character vector. Optimization methods passed to
+\code{\link[stats:optim]{stats::optim()}}. See that function for supported names.}
+
+\item{twilight}{logical vector of length one. When \code{TRUE}, test sun zenith
+angles from 90 to 96 deg (civil twilight), plus five additional zenith
+angles equally spaced between the estimated sun zenith angle and the
+horizon. This is required because \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} with
+\code{method = "assume_obscured"} may incorrectly identify the center of the
+visible circumsolar region as the solar disk.}
+
+\item{custom_sky_coef}{numeric vector of length five, or numeric matrix
+with five columns. Custom starting coefficients for optimization.
+If not provided, coefficients are initialized from standard skies.}
+
+\item{std_sky_no}{numeric vector. Standard sky numbers as in \link{cie_table}.
+If not provided, all are used.}
+
+\item{general_sky_type}{character vector of length one. Must be \code{"Overcast"},
+\code{"Clear"}, or \code{"Partly cloudy"}. See column \code{general_sky_type} in
+\link{cie_table} for details. If not provided, all sky types are used.}
+
+\item{optim_zenith_dn}{logical vector of length one. Whether \code{zenith_dn} value
+provided via \code{rr} should be optimized.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -74,41 +96,18 @@ List with:
 \describe{
 \item{\code{rr_raster}}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. Predicted relative radiance.}
 \item{\code{model}}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}}. The optimal fit.}
-\item{\code{model_validation}}{list returned by \code{\link[=validate_cie_model]{validate_cie_model()}}.}
-\item{\code{dist_to_black}}{Value of \code{dist_to_black} used in \code{\link[=sample_sky_points]{sample_sky_points()}}
-for the optimal fit.}
-\item{\code{use_window}}{\code{logical}. Whether a window was used in \code{\link[=extract_rr]{extract_rr()}}
-for the optimal fit.}
-\item{\code{min_spherical_dist}}{Value of \code{min_dist} used in
-\code{rem_nearby_points(space = "spherical")} for the optimal fit.}
+\item{\code{params}}{list returned by \code{\link[=tune_sky_sampling]{tune_sky_sampling()}}.}
 \item{\code{sky_points}}{\code{data.frame} with columns \code{row} and \code{col}. Locations of
 sky points.}
 \item{\code{sun_row_col}}{\code{data.frame} with the estimated sun‑disk position in
 image coordinates.}
-\item{\code{g}}{Sky grid used for the optimal fit (as returned by \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}).}
-\item{\code{tested_grids}}{character vector describing the tested grid configurations.}
-\item{\code{tested_distances}}{character vector of tested \code{min_dist} values in
-\code{rem_nearby_points(space = "spherical")}.}
-\item{\code{tested_methods}}{character vector of optimization methods tested in
-\code{\link[=fit_cie_model]{fit_cie_model()}}.}
+\item{\code{optimal_start}}{\code{custom_sky_coef} with the estimated sun‑disk position in
+image coordinates.}
 }
 }
 \description{
 Fit and validate a CIE general sky model to radiance sampled on canopy
 gaps and return the predicted raster.
-}
-\details{
-Runs a the following pipeline:
-\enumerate{
-\item sky point extraction is performed with \code{\link[=sample_sky_points]{sample_sky_points()}}, using
-information from a binary mask (\code{bin}) and post-filtering with
-\code{\link[=rem_nearby_points]{rem_nearby_points()}} and \code{\link[=rem_outliers]{rem_outliers()}}.
-\item relative radiance is computed with \code{\link[=extract_rr]{extract_rr()}} and fitted to CIE
-sky models using \code{\link[=fit_cie_model]{fit_cie_model()}}, selecting the best among different
-initial conditions and optimization methods.
-\item model validation is performed via \code{\link[=validate_cie_model]{validate_cie_model()}}.
-\item raster prediction with \code{\link[=cie_image]{cie_image()}}.
-}
 }
 \note{
 This function is part of a paper under preparation.
@@ -121,43 +120,35 @@ z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
 m <- !is.na(z)
 
-model <- ootb_cie_model(r, z, a, m)
-
-bin <- ootb_bin(caim, z, a, m, TRUE)
+com <- complementary_gradients(caim)
+thr <- thr_twocorner(com$red_cyan[])
+bin <- binarize_with_thr(com$red_cyan, thr$uc)
+bin <- rem_isolated_black_pixels(bin)
+bin_list <- c(bin_list, bin)
+bin_list <- c(bin_list, rem_small_gaps(bin))
 
 set.seed(7)
-gs <- list(
-  #high res
-  skygrid_segmentation(z, a, 2.25, first_ring_different = TRUE),
-  skygrid_segmentation(z, a, 2.8125, first_ring_different = TRUE),
-  #medium res
-  skygrid_segmentation(z, a, 9, first_ring_different = TRUE),
-  skygrid_segmentation(z, a, 10, first_ring_different = TRUE),
-  #low res
-  skygrid_segmentation(z, a, 15, first_ring_different = FALSE),
-  skygrid_segmentation(z, a, 18, first_ring_different = FALSE)
-)
-
-sky_cie <- ootb_sky_cie(r, z, a, m, bin, gs,
+sky_cie <- ootb_sky_cie(r, z, a, m,
+                        bin_list,
+                        n_cells_seq,
+                        dist_to_black_seq,
                         method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
-                        min_spherical_dist = seq(0, 12, 3),
-                        custom_sky_coef = model$coef,
+                        twilight = FALSE,
+                        std_sky_no = 12,
+                        optim_zenith_dn = TRUE,
                         parallel = TRUE)
 
 sky_cie$rr_raster
 plot(sky_cie$rr_raster)
-sky_cie$model_validation$rmse
-plot(sky_cie$model_validation$pred, sky_cie$model_validation$obs)
+plot(sky_cie$model$rr$sky_points$pred, sky_cie$model$rr$sky_points$rr,
+     xlab = "Predicted relative radiance", ylab = "Observed relative radiance")
 abline(0,1)
 
 ratio <- r/sky_cie$rr_raster/sky_cie$model$rr$zenith_dn
 plot(ratio)
 plot(select_sky_region(ratio, 0.95, 1.05))
-plot(select_sky_region(ratio, 1.15, max(ratio[], na.rm = TRUE)))
+plot(select_sky_region(ratio, 1.05, 100))
 
-plot(bin)
-points(sky_cie$sky_points$col,
-       nrow(caim) - sky_cie$sky_points$row, col = 2, pch = 10)
-
+display_caim(caim, sky_points = sky_cie$sky_points, sun_row_col = sun)
 }
 }
