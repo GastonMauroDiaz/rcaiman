@@ -14,6 +14,8 @@
 #'   `dist_to_black`.
 #' @param w numeric vector of length one. Weight controlling the balance between
 #'   coverage and accuracy (see *Details*).
+#' @param write_log_in Character path (without extension) used to generate
+#'   two output files summarizing the tuning run. See *Details*.
 #'
 #' @inheritParams compute_canopy_openness
 #' @inheritParams assess_sampling_uniformity
@@ -81,6 +83,17 @@
 #'  }
 #' }
 #'
+#' If `write_log_in` is not `NULL`, the function
+#'   writes:
+#'   * `<write_log_in>.txt`: a human-readable log containing timestamps,
+#'     elapsed time (minutes), system information, the tested parameter
+#'     grids, the selected combination, and its performance metrics.
+#'   * `<write_log_in>_full_metrics.csv`: a tabular file listing all tested
+#'     parameter combinations (`params`) together with their associated
+#'     metrics.
+#'   If `NULL`, no files are written.
+#'
+#'
 #' @return List with the following numeric vectors of length one:
 #' \describe{
 #'   \item{`n_cells`}{Optimal value within `n_cells_seq`.}
@@ -131,10 +144,13 @@ tune_sky_sampling <- function(r, z, a,
                               n_cells_seq,
                               dist_to_black_seq,
                               w = 0.5,
+                              write_log_in = NULL,
                               parallel = TRUE,
                               cores = NULL,
                               logical = TRUE,
                               leave_free = 1) {
+
+  t0 <- Sys.time()
 
   .check_r_z_a_m(r, z, a, m = NULL)
   .assert_single_layer(equalarea_seg)
@@ -142,6 +158,7 @@ tune_sky_sampling <- function(r, z, a,
   .check_vector(dist_to_black_seq, "integerish", sign = "positive")
   .check_vector(w, "numeric", 1, sign = "nonnegative")
   if (w > 1) (stop("`w` cannot be greater than one."))
+  .check_vector(write_log_in, "character", allow_null = TRUE)
   .check_vector(parallel, "logical", 1)
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
   .check_vector(logical, "logical", 1)
@@ -275,6 +292,93 @@ tune_sky_sampling <- function(r, z, a,
   best <- which.min(cam)
 
   values <- params[best, ]
+
+  # -------------------------------------------------------------------------
+  # Write log and sidecar file if requested
+  # -------------------------------------------------------------------------
+  if (!is.null(write_log_in)) {
+
+    t1 <- Sys.time()
+    timestamp_start <- format(t0, "%Y-%m-%d %H:%M:%S")
+    timestamp_end   <- format(t1, "%Y-%m-%d %H:%M:%S")
+    elapsed_minutes <- as.numeric(difftime(t1, t0, units = "mins"))
+
+    # bin_list names (fallback si están vacíos)
+    bin_names <- names(bin_list)
+    if (is.null(bin_names) || all(bin_names == "")) {
+      bin_names <- paste0("bin_", seq_along(bin_list))
+    }
+
+    # número de celdas del equalarea_seg (indicado por vos)
+    equalarea_ncells <- length(unique(terra::values(equalarea_seg)))
+
+    # info del sistema
+    sys_i <- Sys.info()
+    r_v   <- R.version.string
+
+    # construcción del bloque bin_list_names multilinea y numerado
+    bin_names_block <- paste0(
+      "  ", seq_along(bin_names), ": ", bin_names,
+      collapse = "\n"
+    )
+
+    # Log principal ----------------------------------------------------------
+    log_lines <- c(
+      "Sky-sampling tuning log",
+      paste0("Timestamp (start): ", timestamp_start),
+      paste0("Timestamp (end):   ", timestamp_end),
+      paste0("Elapsed minutes: ", round(elapsed_minutes, 2)),
+      "",
+      "Test configuration:",
+      paste0("  n_cells (equalarea_seg): ", equalarea_ncells),
+      paste0("  w: ", w),
+      paste0("  logical parallel: ", logical),
+      paste0("  parallel: ", parallel),
+      paste0("  cores: ", cores),
+      "",
+      "System information:",
+      paste0("  R version: ", r_v),
+      paste0("  System: ", sys_i["sysname"], " / ", sys_i["release"]),
+      paste0("  Machine: ", sys_i["machine"]),
+      "",
+      "Parameter grids tested:",
+      paste0("  bin_list size: ", length(bin_list)),
+      "  bin_list names:",
+      bin_names_block,
+      paste0("  n_cells_seq: ", paste(n_cells_seq, collapse = ", ")),
+      paste0("  dist_to_black_seq: ", paste(dist_to_black_seq, collapse = ", ")),
+      "",
+      "Selected combination:",
+      paste0("  bin_list_index: ", values$bin_list_index),
+      paste0("  n_cells: ", values$n_cells),
+      paste0("  dist_to_black: ", values$dist_to_black),
+      "",
+      "Performance metrics:",
+      paste0("  accuracy: ", acc_vec[best]),
+      paste0("  coverage: ", cov_vec[best]),
+      paste0("  cam: ", cam[best]),
+      "",
+      "Sidecar file containing the full evaluation grid was generated.",
+      ""
+    )
+
+    writeLines(log_lines, con = paste0(write_log_in, ".txt"))
+
+    # -----------------------------------------------------------------------
+    # Sidecar file (CSV compatible con soft de ofimática)
+    # -----------------------------------------------------------------------
+    df_out <- data.frame(
+      params,
+      accuracy = acc_vec,
+      coverage = cov_vec,
+      cam = cam
+    )
+
+    sidecar_file <- paste0(write_log_in, "_full_metrics.csv")
+    utils::write_csv2(df_out, file = sidecar_file)
+  }
+
+
   list(n_cells = values$n_cells,
        dist_to_black = values$dist_to_black,
        bin_list_index = values$bin_list_index,

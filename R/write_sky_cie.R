@@ -33,11 +33,6 @@
 #'   \item{`start_a:`…`start_e:`}{Initial CIE coefficients.}
 #'   \item{`fit_a:`…`fit_e:`}{Fitted CIE coefficients.}
 #'   \item{`method:`}{Method used to fit CIE coefficients.}
-#'   \item{`n_cells:`}{Parameter obtained with `tune_sky_sapmpling()`.}
-#'   \item{`dist_to_black:`}{Parameter obtained with `tune_sky_sapmpling()`.}
-#'   \item{`bin_list_index:`}{Parameter obtained with `tune_sky_sapmpling()`.}
-#'   \item{`accuracy:`}{Parameter obtained with `tune_sky_sapmpling()`.}
-#'   \item{`coverage:`}{Parameter obtained with `tune_sky_sapmpling()`.}
 #' }
 #'
 #' @details
@@ -85,9 +80,8 @@ write_sky_cie <- function(sky_cie, name) {
     stop("`sky_cie` must be a list returned by `ootb_sky_cie()`. ")
   }
   required_names <- c(
-                      "rr_raster",
-                      "model",
-                      "params"
+                      "rr",
+                      "model"
                       )
   if (!all(required_names %in% names(sky_cie))) {
     stop(sprintf("`sky_cie` must contain %s.",
@@ -104,7 +98,7 @@ write_sky_cie <- function(sky_cie, name) {
   on.exit(close(con), add = TRUE)
   sink(con)
   .print_line(.hr("-"))
-  .print_line("format_version:", " 1.2")
+  .print_line("format_version:", " 1.3")
   .print_line("generated_by:", " rcaiman::write_sky_cie()  # do not edit by hand")
   .print_line(.hr("-"))
 
@@ -132,34 +126,26 @@ write_sky_cie <- function(sky_cie, name) {
   .print_line("fit_e:", co[5])
   .print_line("method:", unname(sky_cie$model$method))
 
-  .print_line(.hr("."))
-  # grid and sampling
-  .print_line("n_cells:", sky_cie$params$n_cells)
-  .print_line("dist_to_black:", sky_cie$params$dist_to_black)
-  .print_line("bin_list_index:", sky_cie$params$bin_list_index)
-  .print_line("accuracy:", sky_cie$params$accuracy)
-  .print_line("coverage:", sky_cie$params$coverage)
-
   .print_line(.hr("-"))
   sink()
 
   # sidecar files ---------------------------------------------------------
   # sky points to GPKG
-  cells <- terra::cellFromRowCol(sky_cie$rr_raster,
+  cells <- terra::cellFromRowCol(sky_cie$rr,
                                  sky_cie$sky_points$row,
                                  sky_cie$sky_points$col)
-  xy <- terra::xyFromCell(sky_cie$rr_raster, cells)
+  xy <- terra::xyFromCell(sky_cie$rr, cells)
   p <- terra::vect(xy, "points")
-  terra::crs(p) <- terra::crs(sky_cie$rr_raster)
+  terra::crs(p) <- terra::crs(sky_cie$rr)
   terra::writeVector(p, paste0(name, "_sky_points.gpkg"), filetype = "GPKG")
 
   # sun disk to GPKG
-  cells <- terra::cellFromRowCol(sky_cie$rr_raster,
+  cells <- terra::cellFromRowCol(sky_cie$rr,
                                  sky_cie$sun_row_col$row,
                                  sky_cie$sun_row_col$col)
-  xy <- terra::xyFromCell(sky_cie$rr_raster, cells)
+  xy <- terra::xyFromCell(sky_cie$rr, cells)
   p <- terra::vect(xy, "points")
-  terra::crs(p) <- terra::crs(sky_cie$rr_raster)
+  terra::crs(p) <- terra::crs(sky_cie$rr)
   terra::writeVector(p, paste0(name, "_sun_disk.gpkg"), filetype = "GPKG")
 
   # rr CSV
@@ -203,7 +189,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   sky_cie$io <- list()
   sky_cie$model <- list()
   sky_cie$model$rr <- list()
-  sky_cie$params <- list()
 
   # parse manifest --------------------------------------------------------
   lines <- .read_manifest(paste0(name, ".txt"))
@@ -241,13 +226,6 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     .get_token_after(lines, "fit_e", "num", TRUE)
   )
   sky_cie$model$method <- .get_token_after(lines, "method", "char", TRUE)
-
-  # params
-  sky_cie$params$n_cells        <- suppressWarnings(.get_token_after(lines, "n_cells", "num", required = FALSE))
-  sky_cie$params$dist_to_black  <- suppressWarnings(.get_token_after(lines, "dist_to_black", "num", required = FALSE))
-  sky_cie$params$bin_list_index <- suppressWarnings(.get_token_after(lines, "bin_list_index", "num", required = FALSE))
-  sky_cie$params$coverage <- suppressWarnings(.get_token_after(lines, "coverage", "num", required = FALSE))
-  sky_cie$params$accuracy <- suppressWarnings(.get_token_after(lines, "accuracy", "num", required = FALSE))
 
   # sidecar files ---------------------------------------------------------
 
@@ -310,8 +288,8 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     }
   }
 
-  # regenerate rr_raster for convenience
-  sky_cie$rr_raster <- cie_image(z, a, sky_cie$model$sun_angles, sky_cie$model$coef)
+  # regenerate rr for convenience
+  sky_cie$rr <- cie_image(z, a, sky_cie$model$sun_angles, sky_cie$model$coef)
 
   sky_cie$io$source <- name
   sky_cie

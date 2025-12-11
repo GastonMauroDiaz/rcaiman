@@ -51,6 +51,7 @@ extract_feature <- function(r, seg,
   if (ignore_label_0 == TRUE) seg[seg == 0] <- NA
 
   feature <- tapply(terra::values(r), terra::values(seg), fun)
+  feature <- feature[names(feature) != "NaN"] #patch do to a weird bug that takes NA values and label them as NaN
 
   if (return == "raster") {
     id <- as.numeric(names(feature))

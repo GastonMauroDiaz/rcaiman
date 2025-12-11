@@ -19,18 +19,13 @@ pixels (\code{TRUE}) with white. Uses 8-connectivity.
 \examples{
 \dontrun{
 caim <- read_caim()
-r <- caim$Blue
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
+r <- caim$Blue
 
-path <- system.file("external/example.txt", package = "rcaiman")
-sky <- read_sky_cie(gsub(".txt", "", path), caim$Blue, z, a)
-plot(sky$rr_raster)
-sky <- sky$rr_raster * sky$model$rr$zenith_dn
+bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata")
 
-bin <- binarize_with_thr(r / sky, 0.9)
 plot(bin)
-bin2 <- rem_isolated_black_pixels(bin)
-plot(bin2)
+plot(rem_isolated_black_pixels(bin))
 }
 }

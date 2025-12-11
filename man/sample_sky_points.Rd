@@ -52,7 +52,6 @@ for model fitting), and \code{"local_max"} to be exhaustive for interpolation.
 caim <- read_caim()
 z <- zenith_image(ncol(caim), lens())
 a <- azimuth_image(z)
-m <- !is.na(z)
 r <- caim$Blue
 
 bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &

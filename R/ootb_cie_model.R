@@ -92,7 +92,7 @@ ootb_cie_model <- function(r, z, a, m,
 
   # Sun coordinate
   sun_angles <- estimate_sun_angles(r, z, a, m, NULL, NULL,
-                                    method = "assume_veiled")
+                                    mode = "veiled")
 
   # Force the sun low and add that to the results
   civic_twilight <- c(seq(sun_angles["z"], 90, length = 5), seq(91, 96, 1))

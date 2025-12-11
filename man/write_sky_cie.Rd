@@ -77,11 +77,6 @@ prefix \code{name} (see below).}
 \item{\verb{start_a:}…\verb{start_e:}}{Initial CIE coefficients.}
 \item{\verb{fit_a:}…\verb{fit_e:}}{Fitted CIE coefficients.}
 \item{\verb{method:}}{Method used to fit CIE coefficients.}
-\item{\verb{n_cells:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
-\item{\verb{dist_to_black:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
-\item{\verb{bin_list_index:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
-\item{\verb{accuracy:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
-\item{\verb{coverage:}}{Parameter obtained with \code{tune_sky_sapmpling()}.}
 }
 }
 

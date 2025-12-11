@@ -9,16 +9,16 @@ ootb_sky_cie(
   z,
   a,
   m,
-  bin_list,
-  n_cells_seq,
-  dist_to_black_seq,
-  w = 0.5,
+  bin,
+  equalarea_seg,
+  seg,
+  dist_to_black,
   method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
-  twilight = FALSE,
+  sun_disk_mode = c("obscured", "veiled", "twilight"),
   custom_sky_coef = NULL,
   std_sky_no = NULL,
   general_sky_type = NULL,
-  optim_zenith_dn = FALSE,
+  optim_zenith_dn = TRUE,
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
@@ -37,27 +37,32 @@ radiance.}
 \item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
 \code{TRUE} for selected pixels.}
 
-\item{bin_list}{list of logical \link[terra:SpatRaster-class]{terra::SpatRaster} objects of one
-layer. Each element is a binarization of \code{r}.}
+\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
+hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
-\item{n_cells_seq}{numeric vector. Sequence of integers to evaluate for
-\code{n_cells}.}
+\item{equalarea_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with
+\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}. Internally used in \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} and
+\code{\link[=optimize_sampling_uniformity]{optimize_sampling_uniformity()}}.}
 
-\item{dist_to_black_seq}{numeric vector. Sequence of integers to evaluate for
-\code{dist_to_black}.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map of r,
+typically created with functions such as \code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, \code{\link[=skygrid_segmentation]{skygrid_segmentation()}},
+\code{\link[=ring_segmentation]{ring_segmentation()}} or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with
+integer segment labels is accepted. Ignored when \code{method = "local_max"}.}
 
-\item{w}{numeric vector of length one. Weight controlling the balance between
-coverage and accuracy (see \emph{Details}).}
+\item{dist_to_black}{numeric vector of length one or \code{NULL}. Minimum distance
+(pixels) to the nearest black pixel for a candidate sky pixel to be valid.
+If \code{NULL}, no distance constraint is applied. Ignored with \code{method = local_max}.}
 
 \item{method}{character vector. Optimization methods passed to
 \code{\link[stats:optim]{stats::optim()}}. See that function for supported names.}
 
-\item{twilight}{logical vector of length one. When \code{TRUE}, test sun zenith
-angles from 90 to 96 deg (civil twilight), plus five additional zenith
-angles equally spaced between the estimated sun zenith angle and the
-horizon. This is required because \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} with
-\code{method = "assume_obscured"} may incorrectly identify the center of the
-visible circumsolar region as the solar disk.}
+\item{sun_disk_mode}{character vector. Estimation modes for the solar disk.
+Supported values are \code{"obscured"}, \code{"veiled"}, and \code{"twilight"}. See
+\code{\link[=estimate_sun_angles]{estimate_sun_angles()}} for details on the first two. The \code{"twilight"}
+mode tests the \code{"obscured"} candidate plus variants where the sun zenith
+angle is forced to five values equally spaced between the estimated sun
+zenith angle and the horizon, and to values between 90 and 96 deg
+(civil twilight).}
 
 \item{custom_sky_coef}{numeric vector of length five, or numeric matrix
 with five columns. Custom starting coefficients for optimization.
@@ -70,8 +75,8 @@ If not provided, all are used.}
 \code{"Clear"}, or \code{"Partly cloudy"}. See column \code{general_sky_type} in
 \link{cie_table} for details. If not provided, all sky types are used.}
 
-\item{optim_zenith_dn}{logical vector of length one. Whether \code{zenith_dn} value
-provided via \code{rr} should be optimized.}
+\item{optim_zenith_dn}{logical vector of length one. See \code{\link[=fit_cie_model]{fit_cie_model()}}
+for details.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -94,7 +99,7 @@ greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \value{
 List with:
 \describe{
-\item{\code{rr_raster}}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. Predicted relative radiance.}
+\item{\code{rr}}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. Predicted relative radiance.}
 \item{\code{model}}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}}. The optimal fit.}
 \item{\code{params}}{list returned by \code{\link[=tune_sky_sampling]{tune_sky_sampling()}}.}
 \item{\code{sky_points}}{\code{data.frame} with columns \code{row} and \code{col}. Locations of
@@ -138,13 +143,13 @@ sky_cie <- ootb_sky_cie(r, z, a, m,
                         optim_zenith_dn = TRUE,
                         parallel = TRUE)
 
-sky_cie$rr_raster
-plot(sky_cie$rr_raster)
+sky_cie$rr
+plot(sky_cie$rr)
 plot(sky_cie$model$rr$sky_points$pred, sky_cie$model$rr$sky_points$rr,
      xlab = "Predicted relative radiance", ylab = "Observed relative radiance")
 abline(0,1)
 
-ratio <- r/sky_cie$rr_raster/sky_cie$model$rr$zenith_dn
+ratio <- r/sky_cie$rr/sky_cie$model$rr$zenith_dn
 plot(ratio)
 plot(select_sky_region(ratio, 0.95, 1.05))
 plot(select_sky_region(ratio, 1.05, 100))

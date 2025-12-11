@@ -15,7 +15,7 @@
 #'   from radiometric and spatial cues aggregated over the circumsolar region.}
 #' }
 #'
-#' When `method = "assume_veiled"`, `seg` and `angular_radius_sun` are ignored.
+#' When `mode = "veiled"`, `seg` and `angular_radius_sun` are ignored.
 #' Estimates refer to positions above the horizon; therefore, estimated angles
 #' may require further manipulation if the photograph was acquired under
 #' crepuscular light.
@@ -23,8 +23,8 @@
 #' @note A scientific article presenting and validating this method is currently
 #' under preparation.
 #'
-#' @param method character vector of length one. Estimation mode:
-#'   `"assume_obscured"` (default) or `"assume_veiled"`.
+#' @param mode character vector of length one. Estimation mode:
+#'   `"obscured"` (default) or `"veiled"`.
 #' @param angular_radius_sun numeric vector of length one. Maximum angular
 #'   radius (in degrees) used to define the circumsolar region.
 #' @param seg Segmentation map of r, typically created with functions such as
@@ -66,17 +66,17 @@
 #' }
 estimate_sun_angles <- function(r, z, a, bin, seg,
                                 angular_radius_sun = 30,
-                                method = "assume_obscured") {
+                                mode = "obscured") {
 
   .this_requires_EBImage()
 
   .check_r_z_a_m(r, z, a, r_type = "single")
   .assert_logical_mask(bin)
   .assert_same_geom(r, bin)
-  .assert_choice(method, c("assume_obscured", "assume_veiled"))
+  .assert_choice(mode, c("obscured", "veiled"))
 
 
-  if (method == "assume_obscured") {
+  if (mode == "obscured") {
     .assert_single_layer(seg)
     .assert_same_geom(r, seg)
     .check_vector(angular_radius_sun, "numeric", 1, sign = "positive")
@@ -150,6 +150,7 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
       round(za[1], 2) * 1e6 + round(za[2], 2)
     }
     za <-  extract_feature(rcells, labeled_m, .get_center, return = "vector")
+
 
     ## decodify
     zenith <- trunc(za/1e4)

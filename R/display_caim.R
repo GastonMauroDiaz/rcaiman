@@ -91,7 +91,6 @@ display_caim <- function(caim = NULL,
   if (!is.null(sky_points)) {
     .check_sky_points(sky_points)
     # create raster
-    # sky_points <- extract_dn(caim[[1]], sky_points, use_window = FALSE)
     sky_points <- cbind(sky_points, dn = 1)
     sky_points <- interpolate_planar(sky_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
     sky_points <- is.na(sky_points)

@@ -64,7 +64,7 @@ ootb_sky_above <- function(sky_points, z, a, sky_cie, size = 100) {
   sky <- interpolate_spherical(sky_points,
                                z,
                                a,
-                               filling_source = sky_cie$rr_raster,
+                               filling_source = sky_cie$rr,
                                w = w,
                                k = k,
                                p = p,

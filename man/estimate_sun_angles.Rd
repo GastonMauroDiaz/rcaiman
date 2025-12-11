@@ -11,7 +11,7 @@ estimate_sun_angles(
   bin,
   seg,
   angular_radius_sun = 30,
-  method = "assume_obscured"
+  mode = "obscured"
 )
 }
 \arguments{
@@ -34,8 +34,8 @@ accepted.}
 \item{angular_radius_sun}{numeric vector of length one. Maximum angular
 radius (in degrees) used to define the circumsolar region.}
 
-\item{method}{character vector of length one. Estimation mode:
-\code{"assume_obscured"} (default) or \code{"assume_veiled"}.}
+\item{mode}{character vector of length one. Estimation mode:
+\code{"obscured"} (default) or \code{"veiled"}.}
 }
 \value{
 Named numeric vector of length two, with names \code{z} and \code{a},
@@ -58,7 +58,7 @@ when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
 from radiometric and spatial cues aggregated over the circumsolar region.}
 }
 
-When \code{method = "assume_veiled"}, \code{seg} and \code{angular_radius_sun} are ignored.
+When \code{mode = "veiled"}, \code{seg} and \code{angular_radius_sun} are ignored.
 Estimates refer to positions above the horizon; therefore, estimated angles
 may require further manipulation if the photograph was acquired under
 crepuscular light.

@@ -67,7 +67,7 @@ rem_nearby_points <- function(sky_points,
   if (is.null(r) && !is.null(z) && !is.null(a)) {
     .check_r_z_a_m(NULL, z, a, r_type = "single")
   }
-  .check_vector(min_dist, "integerish", 1, sign = "nonnegative")
+  .check_vector(min_dist, "numeric", 1, sign = "nonnegative")
   .assert_choice(space, c("planar", "spherical"))
   .check_vector(use_window, "logical", 1)
 

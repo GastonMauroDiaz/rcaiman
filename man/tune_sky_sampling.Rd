@@ -13,6 +13,7 @@ tune_sky_sampling(
   n_cells_seq,
   dist_to_black_seq,
   w = 0.5,
+  write_log_in = NULL,
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
@@ -41,6 +42,9 @@ layer. Each element is a binarization of \code{r}.}
 
 \item{w}{numeric vector of length one. Weight controlling the balance between
 coverage and accuracy (see \emph{Details}).}
+
+\item{write_log_in}{Character path (without extension) used to generate
+two output files summarizing the tuning run. See \emph{Details}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -137,6 +141,18 @@ Lower CAM values indicate parameter combinations that achieve both high
 hemispherical coverage and low local radiance variability at the sampled sky
 points. The function returns the combination that minimizes CAM.
 }
+}
+
+If \code{write_log_in} is not \code{NULL}, the function
+writes:
+\itemize{
+\item \verb{<write_log_in>.txt}: a human-readable log containing timestamps,
+elapsed time (minutes), system information, the tested parameter
+grids, the selected combination, and its performance metrics.
+\item \verb{<write_log_in>_full_metrics.csv}: a tabular file listing all tested
+parameter combinations (\code{params}) together with their associated
+metrics.
+If \code{NULL}, no files are written.
 }
 }
 \examples{
