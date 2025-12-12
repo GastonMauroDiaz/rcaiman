@@ -293,9 +293,6 @@ tune_sky_sampling <- function(r, z, a,
 
   values <- params[best, ]
 
-  # -------------------------------------------------------------------------
-  # Write log and sidecar file if requested
-  # -------------------------------------------------------------------------
   if (!is.null(write_log_in)) {
 
     t1 <- Sys.time()
@@ -303,16 +300,13 @@ tune_sky_sampling <- function(r, z, a,
     timestamp_end   <- format(t1, "%Y-%m-%d %H:%M:%S")
     elapsed_minutes <- as.numeric(difftime(t1, t0, units = "mins"))
 
-    # bin_list names (fallback si están vacíos)
     bin_names <- names(bin_list)
-    if (is.null(bin_names) || all(bin_names == "")) {
+    if (is.null(bin_names) || all(bin_names == "")) { # fallback when none
       bin_names <- paste0("bin_", seq_along(bin_list))
     }
 
-    # número de celdas del equalarea_seg (indicado por vos)
-    equalarea_ncells <- length(unique(terra::values(equalarea_seg)))
+    equalarea_ncells <- terra::minmax(equalarea_seg)[2]
 
-    # info del sistema
     sys_i <- Sys.info()
     r_v   <- R.version.string
 
@@ -365,7 +359,7 @@ tune_sky_sampling <- function(r, z, a,
     writeLines(log_lines, con = paste0(write_log_in, ".txt"))
 
     # -----------------------------------------------------------------------
-    # Sidecar file (CSV compatible con soft de ofimática)
+    # Sidecar file
     # -----------------------------------------------------------------------
     df_out <- data.frame(
       params,
@@ -375,7 +369,7 @@ tune_sky_sampling <- function(r, z, a,
     )
 
     sidecar_file <- paste0(write_log_in, "_full_metrics.csv")
-    utils::write_csv2(df_out, file = sidecar_file)
+    utils::write.csv2(df_out, file = sidecar_file)
   }
 
 
