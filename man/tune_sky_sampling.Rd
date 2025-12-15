@@ -142,19 +142,24 @@ hemispherical coverage and low local radiance variability at the sampled sky
 points. The function returns the combination that minimizes CAM.
 }
 }
+}
+\section{Write one disk (optional)}{
 
-If \code{write_log_in} is not \code{NULL}, the function
-writes:
-\itemize{
-\item \verb{<write_log_in>.txt}: a human-readable log containing timestamps,
-elapsed time (minutes), system information, the tested parameter
-grids, the selected combination, and its performance metrics.
-\item \verb{<write_log_in>_full_metrics.csv}: a tabular file listing all tested
+
+If \code{write_log_in} is not \code{NULL}, the function writes:
+
+\describe{
+\item{\verb{<write_log_in>_tune_log.txt}}{A human-readable log containing timestamps,
+elapsed time (minutes), system information, the tested parameters,
+the selected combination, and its performance metrics.}
+\item{\verb{<write_log_in>_tune_metrics.csv}}{A tabular file listing all tested
 parameter combinations (\code{params}) together with their associated
-metrics.
+metrics. Load it with \code{\link[utils:read.table]{utils::read.csv2()}} and use \code{\link[=which.min]{which.min()}} to
+retrieve the best parameters}
+}
 If \code{NULL}, no files are written.
 }
-}
+
 \examples{
 \dontrun{
 caim <- read_caim()

@@ -32,18 +32,20 @@ See \emph{Functions}.
 }
 \description{
 Persist and restore the out-of-the-box CIE sky model, its diagnostics, and
-related rasters/points. The writer produces a human-readable \code{.txt} manifest
+related rasters/points. The writer produces a human-readable \code{.txt} model record
 plus CSV and GeoPackage sidecar files. The reader reconstructs a list object
 compatible with the out-of-the-box pipeline.
 }
 \details{
-Encoding is UTF-8. Decimal point is \code{.}. Unknown keys are
-ignored with a warning. Missing required keys trigger an error. The manifest
-begins with \verb{format_version:} which is checked for basic compatibility.
+Encoding is UTF-8. Decimal point is \code{.}. Unknown keys are ignored with a
+warning. Missing required keys trigger an error. The model record begins with
+\verb{format_version:} which is checked for basic compatibility. It
+reflects the on-disk model record format and differs from package
+versioning.
 
 When \code{read_sky_cie()} detects manual edits (moved sun disk or changed sky
 points) and \code{refit_allowed = TRUE}, it re-fits the CIE model using the
-current \code{r}, \code{z}, and \code{a}, then revalidates.
+current \code{r}, \code{z}, and \code{a}. The model record remains unchanged.
 }
 \section{Functions}{
 
@@ -58,10 +60,10 @@ prefix \code{name} (see below).}
 \section{Files written by \code{write_sky_cie}}{
 
 \itemize{
-\item Plain text manifest: \code{name.txt}
-\item CSV with sky radiance samples: \code{name_rr.csv}
-\item GeoPackage with sky sample points: \code{name_sky_points.gpkg}
-\item GeoPackage with the sun disk location: \code{name_sun_disk.gpkg}
+\item Plain text model record: \verb{<name>_model_record.txt}
+\item CSV with sky radiance samples: \verb{<name>_rr.csv}
+\item GeoPackage with sky sample points: \verb{<name>_sky_points.gpkg}
+\item GeoPackage with the sun disk location: \verb{<name>_sun_disk.gpkg}
 }
 }
 
@@ -69,7 +71,7 @@ prefix \code{name} (see below).}
 
 
 \describe{
-\item{\verb{format_version:}}{Semantic version of the manifest.}
+\item{\verb{format_version:}}{Semantic version of the model record.}
 \item{\verb{sun_theta:}}{Solar zenith (deg).}
 \item{\verb{sun_phi:}}{Solar azimuth (deg).}
 \item{\verb{method_sun:}}{Method used to optimize sun coordinates.}

@@ -83,14 +83,19 @@
 #'  }
 #' }
 #'
-#' If `write_log_in` is not `NULL`, the function
-#'   writes:
-#'   * `<write_log_in>.txt`: a human-readable log containing timestamps,
-#'     elapsed time (minutes), system information, the tested parameter
-#'     grids, the selected combination, and its performance metrics.
-#'   * `<write_log_in>_full_metrics.csv`: a tabular file listing all tested
+#' @section Write one disk (optional):
+#'
+#' If `write_log_in` is not `NULL`, the function writes:
+#'
+#' \describe{
+#'  \item{`<write_log_in>_tune_log.txt`}{A human-readable log containing timestamps,
+#'     elapsed time (minutes), system information, the tested parameters,
+#'     the selected combination, and its performance metrics.}
+#'  \item{`<write_log_in>_tune_metrics.csv`}{A tabular file listing all tested
 #'     parameter combinations (`params`) together with their associated
-#'     metrics.
+#'     metrics. Load it with [utils::read.csv2()] and use [which.min()] to
+#'     retrieve the best parameters}
+#' }
 #'   If `NULL`, no files are written.
 #'
 #'
@@ -310,13 +315,13 @@ tune_sky_sampling <- function(r, z, a,
     sys_i <- Sys.info()
     r_v   <- R.version.string
 
-    # construcción del bloque bin_list_names multilinea y numerado
+    # Build bin_list_names blow as a numbered list
     bin_names_block <- paste0(
       "  ", seq_along(bin_names), ": ", bin_names,
       collapse = "\n"
     )
 
-    # Log principal ----------------------------------------------------------
+    # Main Log ----------------------------------------------------------
     log_lines <- c(
       "Sky-sampling tuning log",
       paste0("Timestamp (start): ", timestamp_start),
@@ -356,7 +361,7 @@ tune_sky_sampling <- function(r, z, a,
       ""
     )
 
-    writeLines(log_lines, con = paste0(write_log_in, ".txt"))
+    writeLines(log_lines, con = paste0(write_log_in, "_tune_log.txt"))
 
     # -----------------------------------------------------------------------
     # Sidecar file
@@ -368,7 +373,7 @@ tune_sky_sampling <- function(r, z, a,
       cam = cam
     )
 
-    sidecar_file <- paste0(write_log_in, "_full_metrics.csv")
+    sidecar_file <- paste0(write_log_in, "_tune_metrics.csv")
     utils::write.csv2(df_out, file = sidecar_file)
   }
 

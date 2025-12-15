@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Persist and restore the out-of-the-box CIE sky model, its diagnostics, and
-#' related rasters/points. The writer produces a human-readable `.txt` manifest
+#' related rasters/points. The writer produces a human-readable `.txt` model record
 #' plus CSV and GeoPackage sidecar files. The reader reconstructs a list object
 #' compatible with the out-of-the-box pipeline.
 #'
@@ -16,16 +16,16 @@
 #'
 #' @section Files written by `write_sky_cie`:
 #' \itemize{
-#'   \item Plain text manifest: `name.txt`
-#'   \item CSV with sky radiance samples: `name_rr.csv`
-#'   \item GeoPackage with sky sample points: `name_sky_points.gpkg`
-#'   \item GeoPackage with the sun disk location: `name_sun_disk.gpkg`
+#'   \item Plain text model record: `<name>_model_record.txt`
+#'   \item CSV with sky radiance samples: `<name>_rr.csv`
+#'   \item GeoPackage with sky sample points: `<name>_sky_points.gpkg`
+#'   \item GeoPackage with the sun disk location: `<name>_sun_disk.gpkg`
 #' }
 #'
 #' @section Text file keys:
 #'
 #' \describe{
-#'   \item{`format_version:`}{Semantic version of the manifest.}
+#'   \item{`format_version:`}{Semantic version of the model record.}
 #'   \item{`sun_theta:`}{Solar zenith (deg).}
 #'   \item{`sun_phi:`}{Solar azimuth (deg).}
 #'   \item{`method_sun:`}{Method used to optimize sun coordinates.}
@@ -36,13 +36,15 @@
 #' }
 #'
 #' @details
-#' Encoding is UTF-8. Decimal point is `.`. Unknown keys are
-#' ignored with a warning. Missing required keys trigger an error. The manifest
-#' begins with `format_version:` which is checked for basic compatibility.
+#' Encoding is UTF-8. Decimal point is `.`. Unknown keys are ignored with a
+#' warning. Missing required keys trigger an error. The model record begins with
+#' `format_version:` which is checked for basic compatibility. It
+#' reflects the on-disk model record format and differs from package
+#' versioning.
 #'
 #' When `read_sky_cie()` detects manual edits (moved sun disk or changed sky
 #' points) and `refit_allowed = TRUE`, it re-fits the CIE model using the
-#' current `r`, `z`, and `a`, then revalidates.
+#' current `r`, `z`, and `a`. The model record remains unchanged.
 #'
 #' @param name character vector of length one. File base name without extension.
 #'   A path can be included, e.g., `"C:/Users/Doe/Documents/DSCN4500"`.
@@ -93,12 +95,12 @@ write_sky_cie <- function(sky_cie, name) {
   .print_line <- function(...) cat(paste0(...), "\n")
   .hr <- function(ch = "-", n = 80) paste0(rep(ch, n), collapse = "")
 
-  # manifest --------------------------------------------------------------
-  con <- file(paste0(name, ".txt"), open = "wt", encoding = "UTF-8")
+  # modelrecord -----------------------------------------------------------
+  con <- file(paste0(name, "_model_record.txt"), open = "wt", encoding = "UTF-8")
   on.exit(close(con), add = TRUE)
   sink(con)
   .print_line(.hr("-"))
-  .print_line("format_version:", " 1.3")
+  .print_line("format_version:", " 1.4")
   .print_line("generated_by:", " rcaiman::write_sky_cie()  # do not edit by hand")
   .print_line(.hr("-"))
 
@@ -162,13 +164,13 @@ write_sky_cie <- function(sky_cie, name) {
 #' @export
 read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   .check_vector(name, "character", 1)
-  .assert_file_exists(paste0(name, ".txt"))
+  .assert_file_exists(paste0(name, "_model_record.txt"))
   .check_r_z_a_m(r, z, a, r_type = "single")
   .check_vector(refit_allowed, "logical", 1)
 
   # helpers ---------------------------------------------------------------
-  .read_manifest <- function(path) {
-    if (!file.exists(path)) stop("Manifest not found: ", path)
+  .read_model_record <- function(path) {
+    if (!file.exists(path)) stop("Model record not found: ", path)
     readLines(path, encoding = "UTF-8", warn = FALSE)
   }
   .get_token_after <- function(lines, key, cast = c("char","num","log"), required = TRUE) {
@@ -190,12 +192,12 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
   sky_cie$model <- list()
   sky_cie$model$rr <- list()
 
-  # parse manifest --------------------------------------------------------
-  lines <- .read_manifest(paste0(name, ".txt"))
+  # parse model record ----------------------------------------------------
+  lines <- .read_model_record(paste0(name, "_model_record.txt"))
 
   sky_cie$io$format_version <- .get_token_after(lines, "format_version", "char", required = TRUE)
   if (!grepl("^1\\.", sky_cie$io$format_version)) {
-    warning("Unknown manifest format_version: ", sky_cie$io$format_version)
+    warning("Unknown format_version: ", sky_cie$io$format_version)
   }
 
   sky_cie$model$sun_angles <- c(
@@ -279,8 +281,7 @@ read_sky_cie <- function(name, r, z, a, refit_allowed = FALSE) {
     msg <- "Detected manual changes. "
     if (isTRUE(refit_allowed)) {
       rr <- extract_rr(r, z, a, sky_cie$sky_points, use_window = TRUE)
-      sky_cie$model <- fit_cie_model(rr, sza_saa,
-                                     custom_sky_coef = sky_cie$model$coef)
+      sky_cie$model <- fit_cie_model(rr, sza_saa, custom_sky_coef = sky_cie$start$coef)
       sky_cie$model_validation <- validate_cie_model(sky_cie$model, k = 10)
       message(msg, "Automatically re-fitting the CIE model.")
     } else {
