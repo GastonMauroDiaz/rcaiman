@@ -8,7 +8,7 @@ display_caim(
   caim = NULL,
   bin = NULL,
   seg = NULL,
-  sky_points = NULL,
+  sampling_points = NULL,
   sun_row_col = NULL,
   sun_disk_size = 9
 )
@@ -25,7 +25,7 @@ hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} f
 or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
 accepted.}
 
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
+\item{sampling_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
 \item{sun_row_col}{numeric \code{data.frame} with the estimated sun‑disk
@@ -81,6 +81,6 @@ display_caim(caim$Blue, bin)
 # to see the segments
 display_caim(seg = seg)
 # to see the marks
-display_caim(caim, sky_points = sky_points, sun_row_col = sun_row_col)
+display_caim(caim, sampling_points = sky_points, sun_row_col = sun_row_col)
 }
 }

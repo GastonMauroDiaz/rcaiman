@@ -7,7 +7,7 @@
 extract_cv(r, sky_points)
 }
 \arguments{
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which \code{sky_points} were
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
 sampled (or any raster with identical dimensions).}
 
 \item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster

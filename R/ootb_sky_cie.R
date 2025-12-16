@@ -79,7 +79,7 @@
 #' plot(select_sky_region(ratio, 0.95, 1.05))
 #' plot(select_sky_region(ratio, 1.05, 100))
 #'
-#' display_caim(caim, sky_points = sky_cie$sky_points, sun_row_col = sun)
+#' display_caim(caim, sampling_points = sky_cie$sky_points, sun_row_col = sun)
 #' }
 ootb_sky_cie <- function(r, z, a, m,
                          bin,
@@ -142,7 +142,7 @@ ootb_sky_cie <- function(r, z, a, m,
 
   sky_points <- rem_nearby_points(sky_points, r, min_dist = 3, space = "planar")
 
-  i <- apply_local_spherical(
+  i <- apply_locally(
     cbind(sky_points, extract_cv(r, sky_points)),
     NULL,
     z,

@@ -4,6 +4,9 @@
 #' Compute a robust coefficient of variation (CV) at each sky point using a
 #' \eqn{3 \times 3} neighbourhood in a raster image.
 #'
+#' @param sky_points `data.frame` with columns `row` and `col` (raster
+#'   coordinates).
+#'
 #' @inheritParams extract_dn
 #'
 #' @details

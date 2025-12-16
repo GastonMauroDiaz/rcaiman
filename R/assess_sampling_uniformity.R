@@ -28,7 +28,7 @@
 #'
 #' @param equalarea_seg [terra::SpatRaster-class] generated with [equalarea_segmentation()].
 #'
-#' @inheritParams extract_dn
+#' @inheritParams extract_cv
 #'
 #' @return List with two components:
 #' \describe{

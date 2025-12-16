@@ -59,7 +59,7 @@
 #' g <- skygrid_segmentation(z, a, 15)
 #' plot(g == 24005)
 #' \dontrun{
-#' display_caim(g = g)
+#' display_caim(seg = g)
 #' }
 skygrid_segmentation <- function(z, a, angle_width,
                                   first_ring_different = FALSE) {

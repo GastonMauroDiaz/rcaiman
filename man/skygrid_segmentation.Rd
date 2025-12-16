@@ -65,7 +65,7 @@ a <- azimuth_image(z)
 g <- skygrid_segmentation(z, a, 15)
 plot(g == 24005)
 \dontrun{
-display_caim(g = g)
+display_caim(seg = g)
 }
 }
 \seealso{

@@ -60,12 +60,12 @@
 #' # to see the segments
 #' display_caim(seg = seg)
 #' # to see the marks
-#' display_caim(caim, sky_points = sky_points, sun_row_col = sun_row_col)
+#' display_caim(caim, sampling_points = sky_points, sun_row_col = sun_row_col)
 #' }
 display_caim <- function(caim = NULL,
                          bin = NULL,
                          seg = NULL,
-                         sky_points = NULL,
+                         sampling_points = NULL,
                          sun_row_col = NULL,
                          sun_disk_size = 9) {
 
@@ -88,12 +88,12 @@ display_caim <- function(caim = NULL,
       seg <- seg != 0
     }
   }
-  if (!is.null(sky_points)) {
-    .check_sky_points(sky_points)
+  if (!is.null(sampling_points)) {
+    .check_sky_points(sampling_points)
     # create raster
-    sky_points <- cbind(sky_points, dn = 1)
-    sky_points <- interpolate_planar(sky_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
-    sky_points <- is.na(sky_points)
+    sampling_points <- cbind(sampling_points, dn = 1)
+    sampling_points <- interpolate_planar(sampling_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
+    sampling_points <- is.na(sampling_points)
   }
   if (!is.null(sun_row_col)) {
     .check_sky_points(sun_row_col)
@@ -108,13 +108,13 @@ display_caim <- function(caim = NULL,
   }
 
   if (!is.null(caim) && terra::nlyr(caim) <= 3 && is.null(bin) &&
-      is.null(seg) && (!is.null(sky_points) | !is.null(sun_row_col))) {
+      is.null(seg) && (!is.null(sampling_points) | !is.null(sun_row_col))) {
     caim <- normalize_minmax(caim)
     if (!is.null(sun_row_col)) {
       caim <- paint_with_mask(caim, sun_row_col, color = "yellow")
     }
-    if (!is.null(sky_points)) {
-      caim <- paint_with_mask(caim, sky_points, color = "red")
+    if (!is.null(sampling_points)) {
+      caim <- paint_with_mask(caim, sampling_points, color = "red")
     }
     x <- EBImage::Image(caim, dim(caim), colormode = "color")
   } else {

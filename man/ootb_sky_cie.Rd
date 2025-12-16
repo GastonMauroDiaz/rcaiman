@@ -154,6 +154,6 @@ plot(ratio)
 plot(select_sky_region(ratio, 0.95, 1.05))
 plot(select_sky_region(ratio, 1.05, 100))
 
-display_caim(caim, sky_points = sky_cie$sky_points, sun_row_col = sun)
+display_caim(caim, sampling_points = sky_cie$sky_points, sun_row_col = sun)
 }
 }

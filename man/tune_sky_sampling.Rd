@@ -44,7 +44,7 @@ layer. Each element is a binarization of \code{r}.}
 coverage and accuracy (see \emph{Details}).}
 
 \item{write_log_in}{Character path (without extension) used to generate
-two output files summarizing the tuning run. See \emph{Details}.}
+two output files summarizing the tuning run. See \emph{Write one disk (optional)}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -151,7 +151,8 @@ If \code{write_log_in} is not \code{NULL}, the function writes:
 \describe{
 \item{\verb{<write_log_in>_tune_log.txt}}{A human-readable log containing timestamps,
 elapsed time (minutes), system information, the tested parameters,
-the selected combination, and its performance metrics.}
+the selected combination, and its performance metrics. Use a named list as
+in the example to document how the binarized images were obtained.}
 \item{\verb{<write_log_in>_tune_metrics.csv}}{A tabular file listing all tested
 parameter combinations (\code{params}) together with their associated
 metrics. Load it with \code{\link[utils:read.table]{utils::read.csv2()}} and use \code{\link[=which.min]{which.min()}} to
@@ -171,8 +172,13 @@ r <- caim$Blue
 seg <- equalarea_segmentation(z, a, 30)
 bin_list <- lapply(c("thr_twocorner", "thr_isodata"),
                    function(x) {
-                     binarize_by_region(r, seg, x) & select_sky_region(z, 0, 88)
+                     binarize_by_region(r, seg, x) & select_sky_region(z, 0, 80)
                    })
+
+names(bin_list) <- paste(
+  c("thr_twocorner", "thr_isodata"),
+  "regional with 30 cells of equal area & select_sky_region(z, 0, 80)."
+)
 
 equalarea_seg <- equalarea_segmentation(z, a, 10)
 params <- tune_sky_sampling(r, z, a,
@@ -187,6 +193,6 @@ sky_points <- sample_sky_points(r,
                                 bin_list[[params$bin_list_index]],
                                 equalarea_segmentation(z, a, params$n_cells),
                                 params$dist_to_black)
-display_caim(caim$Blue, sky_points = sky_points)
+display_caim(caim$Blue, sampling_points = sky_points)
 }
 }

@@ -10,7 +10,7 @@ optimize_sampling_uniformity(sky_points, r, z, a, equalarea_seg, min_dist_seq)
 \item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which \code{sky_points} were
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
 sampled (or any raster with identical dimensions).}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}

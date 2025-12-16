@@ -15,7 +15,7 @@
 #'
 #' @param min_dist_seq numeric vector. Candidate minimum distances (deg).
 #'
-#' @inheritParams extract_dn
+#' @inheritParams extract_cv
 #' @inheritParams rem_nearby_points
 #' @inheritParams assess_sampling_uniformity
 #' @inheritParams skygrid_segmentation

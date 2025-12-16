@@ -27,9 +27,9 @@ by \code{angle_width} such as in \code{\link[=skygrid_segmentation]{skygrid_segm
 \examples{
 z <- zenith_image(100, lens())
 a <- azimuth_image(z)
-sky_points <- skygrid_centers(z, a, 30)
+sampling_points <- skygrid_centers(z, a, 30)
 \dontrun{
-display_caim(is.na(z), sky_points = sky_points)
+display_caim(is.na(z), sampling_points = sky_points)
 }
 }
 \seealso{

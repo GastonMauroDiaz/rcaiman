@@ -1,18 +1,18 @@
-#' Apply a function locally in the spherical domain
+#' Apply a function locally using sampled points on the hemispherical domain
 #'
 #' @description
-#' Evaluate a user-supplied function locally using neighboring sky points
+#' Evaluate a user-supplied function locally using neighboring points
 #' defined on the hemispherical domain.
 #'
 #' @details
 #' The `query_points` argument lets the user evaluate `fun` at a custom set of
 #' locations. For each point in `query_points`, neighbors are searched within
-#' `sky_points`. When `query_points` is `NULL` (default), the evaluation is
-#' performed for every point in `sky_points`. Neighbor selection is based on
+#' `sampling_points`. When `query_points` is `NULL` (default), the evaluation is
+#' performed for every point in `sampling_points`. Neighbor selection is based on
 #' spherical distance, see [calc_spherical_distance()]. The function `fun` is
-#' then applied to the corresponding subset of neighboring sky points.
+#' then applied to the corresponding subset of neighboring sampling points.
 #'
-#' The input passed to `fun` is a **subset of rows of `sky_points`**, therefore,
+#' The input passed to `fun` is a **subset of rows of `sampling_points`**, therefore,
 #' `fun` must extract and process the column(s) of interest, e.g.: `function(df)
 #' mean(df$dn)`.
 #'
@@ -30,11 +30,11 @@
 #'                 point is assigned `NA`.
 #' }
 #'
-#' @param sky_points data.frame with columns `row` and `col`. Source points used
-#'   as candidate neighbors. See [sample_sky_points()] and [extract_dn()].
+#' @param sampling_points data.frame with columns `row` and `col`. Source points used
+#'   as candidate neighbors.
 #' @param query_points optional data.frame with columns `row` and
 #'   `col` with the points at which `fun` should be evaluated.
-#' @param fun function. Must accept a data.frame (subset of `sky_points`) and
+#' @param fun function. Must accept a data.frame (subset of `sampling_points`) and
 #'   return a numeric scalar.
 #' @param rule character vector of length one. `"any"` or `"all"`. See *Details*.
 #'
@@ -58,12 +58,13 @@
 #' z <- zenith_image(ncol(caim), lens())
 #' a <- azimuth_image(z)
 #'
-#' sky_points <- fibonacci_points(z, a, 3)
-#' display_caim(caim, sky_points = sky_points)
-#' sky_points <- extract_dn(r, sky_points, use_window = FALSE)
-#' head(sky_points)
-#' eval_points <- apply_local_spherical(
-#'   sky_points,
+#' # local thresholding
+#' sampling_points <- fibonacci_points(z, a, 3)
+#' display_caim(caim, sampling_points = sampling_points)
+#' sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
+#' head(sampling_points)
+#' eval_points <- apply_locally(
+#'   sampling_points,
 #'   fibonacci_points(z, a, 10),
 #'   z,
 #'   a,
@@ -76,8 +77,32 @@
 #' thr <- triangulate(eval_points[!is.na(eval_points$out),], r, col_id = 3)
 #' plot(thr)
 #' plot(binarize_with_thr(r, thr))
+#'
+#' # Detect background DN
+#' sampling_points <- fibonacci_points(z, a, 2)
+#' sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
+#' query_points <- fibonacci_points(z, a, 10)
+#' eval_points <- apply_locally(
+#'   sampling_points,
+#'   query_points,
+#'   z,
+#'   a,
+#'   k = 1000,
+#'   angular_radius = 40,
+#'   rule = "any",
+#'   fun = function(df) {
+#'     tryCatch(thr_twocorner(df[,3])$up, error = function(e) NA)
+#'   },
+#'   parallel = TRUE
+#' )
+#' i <- !is.na(eval_points$out)
+#'
+#' sky <- triangulate(eval_points[i, ], r, col_id = 3)
+#' plot(sky)
+#' plot(r/sky)
+#'
 #' }
-apply_local_spherical <- function(sky_points,
+apply_locally <- function(sampling_points,
                                   query_points = NULL,
                                   z,
                                   a,
@@ -93,8 +118,8 @@ apply_local_spherical <- function(sky_points,
 
   if (!is.null(query_points)) .check_sky_points(query_points)
   required_cols <- c("row", "col")
-  if (!all(required_cols %in% names(sky_points))) {
-    stop(sprintf("`sky_points` must at least contain columns %s.",
+  if (!all(required_cols %in% names(sampling_points))) {
+    stop(sprintf("`sampling_points` must at least contain columns %s.",
                  paste(sprintf('"%s"', required_cols), collapse = ", ")))
   }
   .check_r_z_a_m(r = NULL, z, a)
@@ -123,7 +148,7 @@ apply_local_spherical <- function(sky_points,
     x
   }
 
-  s_angles <- .extract_angles_radians(sky_points)
+  s_angles <- .extract_angles_radians(sampling_points)
 
   if (!is.null(query_points)) {
     q_angles <- .extract_angles_radians(query_points)
@@ -141,10 +166,10 @@ apply_local_spherical <- function(sky_points,
       nn <- inside[order(d[inside])[1:k]]
       nn <- nn[!is.na(nn)]
 
-      fun(sky_points[nn,])
+      fun(sampling_points[nn,])
     }
   } else {
-    n <- nrow(sky_points)
+    n <- nrow(sampling_points)
     process_one <- function(i) {
       d <- calc_spherical_distance(s_angles$z, s_angles$a,
                                    s_angles[i, "z"],
@@ -163,7 +188,7 @@ apply_local_spherical <- function(sky_points,
       if (sum(nn) < 1) return(NA)
       nn <- nn[!is.na(nn)]
 
-      fun(sky_points[c(order_idx[1], neighbor_idx[nn]), ])
+      fun(sampling_points[c(order_idx[1], neighbor_idx[nn]), ])
     }
   }
 
@@ -183,6 +208,6 @@ apply_local_spherical <- function(sky_points,
   if (!is.null(query_points)) {
     return(cbind(query_points, output))
   } else {
-    return(cbind(sky_points, output))
+    return(cbind(sampling_points, output))
   }
 }

@@ -12,6 +12,7 @@
 #'   weighting (power = 2). If `NULL`, the zenith DN is forced to 1, so `rr =
 #'   dn`.
 #'
+#' @inheritParams extract_cv
 #' @inheritParams extract_dn
 #' @inheritParams skygrid_segmentation
 #'

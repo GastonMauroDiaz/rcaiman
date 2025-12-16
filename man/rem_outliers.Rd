@@ -25,7 +25,7 @@ rem_outliers(
 \item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which \code{sky_points} were
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
 sampled (or any raster with identical dimensions).}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
@@ -44,7 +44,7 @@ MAD to set classification thresholds. Default is \code{2}.}
 \code{"left"}, or \code{"right"}. Default is \code{"both"}.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
-digital number at each sky point is the average of the values extracted
+digital number at each point is the average of the values extracted
 from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
 pixel that includes the point. If \code{FALSE}, only the value of the central
 pixel is retrieved.}

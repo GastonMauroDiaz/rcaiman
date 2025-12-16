@@ -12,6 +12,7 @@
 #'   for outliers in the untransformed values. Detrending fails systematically
 #'   when `k < 20`.
 #'
+#' @inheritParams extract_cv
 #' @inheritParams extract_dn
 #' @inheritParams skygrid_segmentation
 #' @inheritParams interpolate_spherical
@@ -103,7 +104,7 @@ rem_outliers <- function(sky_points, r, z, a,
 
   .fn(sky_points)
 
-  i <- apply_local_spherical(sky_points, NULL, z, a, k, angular_radius,
+  i <- apply_locally(sky_points, NULL, z, a, k, angular_radius,
                              rule = "all", fun = .fn,
                              parallel = parallel,
                              cores = cores,

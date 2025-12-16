@@ -24,7 +24,7 @@ near-zenith points used to estimate the zenith DN using inverse distance
 weighting (power = 2). If \code{NULL}, the zenith DN is forced to 1, so \code{rr = dn}.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
-digital number at each sky point is the average of the values extracted
+digital number at each point is the average of the values extracted
 from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
 pixel that includes the point. If \code{FALSE}, only the value of the central
 pixel is retrieved.}

@@ -10,14 +10,16 @@
 #' in hemispherical coordinates. If `r` is provided, points are ranked by the
 #' extracted raster values and retained in descending order.
 #'
-#' @inheritParams extract_rr
-#' @inheritParams skygrid_segmentation
 #' @param min_dist numeric vector of length one. Minimum allowed distance
 #'   between retained points. Units: pixels for `"planar"`, deg for `"spherical"`.
 #' @param r single-layer [terra::SpatRaster-class] or `NULL`. Optional ranking
 #'   raster used to prioritize retention (higher values kept first).
 #' @param space character vector of length one. Coordinate system for distances:
 #'   `"planar"` (default) or `"spherical"`.
+#'
+#' @inheritParams extract_rr
+#' @inheritParams extract_dn
+#' @inheritParams skygrid_segmentation
 #'
 #' @note
 #' It is assumed that `sky_points` were extracted from an image with the same

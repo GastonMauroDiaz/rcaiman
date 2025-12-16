@@ -17,7 +17,7 @@
 #' @examples
 #' z <- zenith_image(100, lens())
 #' a <- azimuth_image(z)
-#' sky_points <- fibonacci_points(z, a, 30)
+#' sampling_points <- fibonacci_points(z, a, 30)
 #' \dontrun{
 #' display_caim(is.na(z), sky_points = sky_points)
 #' }

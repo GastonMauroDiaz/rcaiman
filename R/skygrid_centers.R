@@ -16,9 +16,9 @@
 #' @examples
 #' z <- zenith_image(100, lens())
 #' a <- azimuth_image(z)
-#' sky_points <- skygrid_centers(z, a, 30)
+#' sampling_points <- skygrid_centers(z, a, 30)
 #' \dontrun{
-#' display_caim(is.na(z), sky_points = sky_points)
+#' display_caim(is.na(z), sampling_points = sky_points)
 #' }
 skygrid_centers <- function(z, a, angle_width) {
   .check_r_z_a_m(NULL, z, a)

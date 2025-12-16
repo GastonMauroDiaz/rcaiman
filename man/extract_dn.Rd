@@ -2,29 +2,29 @@
 % Please edit documentation in R/extract_dn.R
 \name{extract_dn}
 \alias{extract_dn}
-\title{Extract digital numbers from sky points}
+\title{Extract digital numbers from image with sampling points}
 \usage{
-extract_dn(r, sky_points, use_window = TRUE)
+extract_dn(r, sampling_points, use_window = TRUE)
 }
 \arguments{
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which \code{sky_points} were
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
 sampled (or any raster with identical dimensions).}
 
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
+\item{sampling_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
 coordinates).}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
-digital number at each sky point is the average of the values extracted
+digital number at each point is the average of the values extracted
 from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
 pixel that includes the point. If \code{FALSE}, only the value of the central
 pixel is retrieved.}
 }
 \value{
-\code{data.frame} containing the original \code{sky_points} plus one column per
+\code{data.frame} containing the original \code{sampling_points} plus one column per
 layer in \code{r} (named after the layers).
 }
 \description{
-Obtain digital numbers from a raster at positions defined by sky points, with
+Obtain digital numbers from a raster at positions defined by points, with
 optional local averaging.
 }
 \details{
@@ -33,7 +33,7 @@ centered on each target pixel (local mean). When it is disabled, only the
 central pixel value is retrieved.
 }
 \note{
-For instructions on manually digitizing sky points, see the “Digitizing
+For instructions on manually digitizing points, see the “Digitizing
 sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
 \code{\link[=fit_cie_model]{fit_cie_model()}}.
 }
