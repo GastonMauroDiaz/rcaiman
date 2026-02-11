@@ -6,8 +6,9 @@
 #'
 #' @details
 #' Adds the `.tif` extension to `path` if missing. The CRS is set to EPSG:7589
-#' and the extent to `[0, ncol] × [0, nrow]` in pixel units. Data are written as
-#' `INT1U` when `bit_depth = 8` and `INT2U` when `bit_depth = 16`.
+#' and the extent to `[0, ncol] × [0, nrow]` in pixel units
+#' ([set_rcaiman_geometry()]). Data are written as `INT1U` when `bit_depth = 8`
+#' and `INT2U` when `bit_depth = 16`.
 #'
 #' @param caim [terra::SpatRaster-class].
 #' @param path character vector of length one. Destination file path (extension
@@ -33,8 +34,7 @@ write_caim <- function(caim, path, bit_depth) {
     stop("bit_depth should be 8 or 16.")
   }
 
-  terra::crs(caim) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
-  terra::ext(caim) <- terra::ext(0, ncol(caim), 0, nrow(caim))
+  caim <- set_rcaiman_geometry(caim)
 
   file_name <- basename(path)
   file_name <- .extension(file_name, "tif")

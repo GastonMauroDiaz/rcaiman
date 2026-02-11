@@ -23,8 +23,9 @@ with 8- or 16-bit unsigned integers, setting CRS and extent.
 }
 \details{
 Adds the \code{.tif} extension to \code{path} if missing. The CRS is set to EPSG:7589
-and the extent to \verb{[0, ncol] × [0, nrow]} in pixel units. Data are written as
-\code{INT1U} when \code{bit_depth = 8} and \code{INT2U} when \code{bit_depth = 16}.
+and the extent to \verb{[0, ncol] × [0, nrow]} in pixel units
+(\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}). Data are written as \code{INT1U} when \code{bit_depth = 8}
+and \code{INT2U} when \code{bit_depth = 16}.
 }
 \examples{
 \dontrun{

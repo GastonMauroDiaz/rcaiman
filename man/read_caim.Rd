@@ -4,39 +4,40 @@
 \alias{read_caim}
 \title{Read a canopy image from a file}
 \usage{
-read_caim(path = NULL, upper_left = NULL, width = NULL, height = NULL)
+read_caim(path = NULL, zenith_colrow = NULL, horizon_radius = NULL)
 }
 \arguments{
 \item{path}{character vector of length one.  Path to an image file, including
 extension. If \code{NULL}, an example image is returned.}
 
-\item{upper_left}{numeric vector of length two. Pixel coordinates of the
-upper-left corner of the ROI, in the format \code{c(column, row)}.}
+\item{zenith_colrow}{numeric vector of length 2. Column and row coordinates
+of the optical center (zenith) in pixel units.}
 
-\item{width, height}{numeric vector of length one. Size (in pixels) of the
-rectangular ROI to read.}
+\item{horizon_radius}{integer-like numeric vector of length one. Radius of the
+hemispherical image in pixel units, measured from the optical center
+(\code{zenith_colrow}) to the image location corresponding to a zenith angle of
+90 deg (i.e. the horizon). It must be an even integer (see
+\link{zenith_image}).}
 }
 \value{
-Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}, typically with layers named \code{"Red"},
-\code{"Green"}, and \code{"Blue"}. If the file format or metadata prevents automatic
-layer naming, names will be inferred and a warning may be issued.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}, typically with layers named
+\code{"Red"}, \code{"Green"}, and \code{"Blue"}. If the file extension does not correspond
+to typical JPEG or TIFF files, names will be inferred and a
+warning will be issued.
 }
 \description{
 Reads a born-digital image (typically RGB-JPEG or RGB-TIFF) using
-\code{\link[terra:rast]{terra::rast()}} and returns a \link[terra:SpatRaster-class]{terra::SpatRaster} object. Optionally, it can
-extract a rectangular region of interest (ROI) specified by the user.
+\code{\link[terra:rast]{terra::rast()}} and returns a \link[terra:SpatRaster-class]{terra::SpatRaster} object.
 }
 \details{
-This function is intended for importing color hemispherical photographs, such
-as those obtained with digital cameras equipped with fisheye lenses. For raw
-image files (e.g., NEF, CR2), see \code{\link[=read_caim_raw]{read_caim_raw()}}.
-
 Internally, this is a wrapper around \code{\link[terra:rast]{terra::rast()}}, so support for image
 formats depends on the capabilities of the \code{terra} package.
 
-If no arguments are provided, a sample image will be returned.
-}
-\note{
+This function is intended for importing color hemispherical photographs, such
+as those obtained with digital cameras equipped with fisheye lenses. For raw
+image files (e.g., NEF, CR2), see \code{\link[=read_caim_raw]{read_caim_raw()}}. A typical workflow makes
+use of \code{\link[=read_caim_raw]{read_caim_raw()}}, \code{\link[=write_caim]{write_caim()}}, and \code{\link[=read_caim]{read_caim()}}
+
 The example image was created from a raw photograph taken with a Nikon Coolpix
 5700 and a FC-E9 auxiliary lens, processed with the following code:
 
@@ -53,29 +54,16 @@ caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
 write_caim(caim, "example.tif", 16)
 }\if{html}{\out{</div>}}
 }
-\section{Selecting a Region of Interest}{
-
-To load a specific subregion from the image, use the arguments \code{upper_left},
-\code{width}, and \code{height}. These are expressed in raster coordinates, similar to
-a spreadsheet layout: \strong{columns first, then rows}. In other words, specify
-coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical
-in \code{data.frame} objects.
-
-While any image editor can be used to obtain these values, this function was
-tested with \href{https://imagej.net/ij/}{ImageJ}, particularly the Fiji
-distribution. A recommended workflow:
-\enumerate{
-\item Open the image in Fiji.
-\item Draw a rectangular selection.
-\item Go to \emph{Edit > Selection > Specify...} to read \code{upper_left}, \code{width}, and \code{height}.
+\note{
+\code{rcaiman} uses terra without geographic semantics: rasters are kept with
+unit resolution (cell size = 1) and a standardized extent
+\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 }
-}
-
 \examples{
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-zenith_colrow <- c(1276, 980)
-diameter <- 756*2
-caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
+zenith_colrow <- c(1286, 986)
+horizon_radius <- 742
+caim <- read_caim(path, zenith_colrow, horizon_radius)
 plot(caim$Blue)
 }
 \seealso{

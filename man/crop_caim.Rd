@@ -26,11 +26,38 @@ function complements \code{\link[=read_caim]{read_caim()}} and \code{\link[=read
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with
 unit resolution (cell size = 1) and a standardized extent
-\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589.
+\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 }
+\section{Selecting a Region of Interest}{
+
+To load a specific subregion from the image, use the arguments \code{upper_left},
+\code{width}, and \code{height}. These are expressed in raster coordinates, similar to
+a spreadsheet layout: \strong{columns first, then rows}. In other words, specify
+coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical
+in \code{data.frame} objects.
+
+While any image editor can be used to obtain these values, this function was
+tested with \href{https://imagej.net/ij/}{ImageJ}, particularly the Fiji
+distribution. A recommended workflow:
+\enumerate{
+\item Open the image in Fiji.
+\item Draw a rectangular selection.
+\item Go to \emph{Edit > Selection > Specify...} to read \code{upper_left}, \code{width}, and \code{height}.
+}
+}
+
 \examples{
 caim <- read_caim()
 ncell(caim)
 caim <- crop_caim(caim, c(231,334), 15, 10)
 ncell(caim)
+
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+caim <- read_caim(path)
+zenith_colrow <- c(1286, 986)
+horizon_radius <- 742
+upper_left <- zenith_colrow - horizon_radius
+height <- width <- horizon_radius * 2
+plot(crop_caim(caim, upper_left, width, height))
+display_caim(crop_caim(caim, upper_left, width, height))
 }

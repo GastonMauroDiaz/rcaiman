@@ -25,7 +25,7 @@ Wrapper functions around \code{\link[terra:rast]{terra::rast()}} to read and wri
 \code{write_bin()} multiplies the input logical raster by 255 and writes the
 result as a GeoTIFF (\code{GTiff}) with datatype \code{INT1U}. Both \code{write_bin()} and
 \code{read_bin()} set the raster extent to \code{terra::ext(0, ncol(r), 0, nrow(r))}
-and the CRS to EPSG:7589.
+and the CRS to EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 }
 \section{Functions}{
 

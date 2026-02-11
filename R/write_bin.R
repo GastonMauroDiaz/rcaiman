@@ -19,7 +19,7 @@
 #' `write_bin()` multiplies the input logical raster by 255 and writes the
 #' result as a GeoTIFF (`GTiff`) with datatype `INT1U`. Both `write_bin()` and
 #' `read_bin()` set the raster extent to `terra::ext(0, ncol(r), 0, nrow(r))`
-#' and the CRS to EPSG:7589.
+#' and the CRS to EPSG:7589 (see [set_rcaiman_geometry()]).
 #'
 #' @return See *Functions*
 #'
@@ -45,9 +45,7 @@ read_bin <- function(path) {
   .assert_file_exists(path)
 
   r <- rast(path)
-  terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
-  # https://spatialreference.org/ref/sr-org/7589/
-  terra::crs(r) <- "epsg:7589"
+  r <- set_rcaiman_geometry(r)
   r <- is.na(r)
   if (stats::sd(r[]) == 0) r <- rast(path)
   as.logical(r)
@@ -62,8 +60,7 @@ write_bin <- function(bin, path) {
   file_name <- basename(path)
   file_name <-  .extension(file_name, "tif")
 
-  terra::crs(bin) <- "epsg:7589" # https://spatialreference.org/ref/sr-org/7589/
-  terra::ext(bin) <- terra::ext(0, ncol(bin), 0, nrow(bin))
+  bin <- set_rcaiman_geometry(bin)
 
   suppressWarnings(
     terra::writeRaster(bin * 255, file.path(dirname(path), file_name),

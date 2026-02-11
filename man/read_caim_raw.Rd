@@ -4,7 +4,13 @@
 \alias{read_caim_raw}
 \title{Read a canopy image from a raw file}
 \usage{
-read_caim_raw(path, only_blue = FALSE, offset_value = NULL)
+read_caim_raw(
+  path,
+  only_blue = FALSE,
+  offset_value = NULL,
+  cfa_pattern = NULL,
+  spectral_mapping = NULL
+)
 }
 \arguments{
 \item{path}{character vector of length one. Path to a file with raw data
@@ -15,6 +21,20 @@ read_caim_raw(path, only_blue = FALSE, offset_value = NULL)
 \item{offset_value}{numeric vector of length one. Optional black level offsets to replace
 \href{https://www.libraw.org/docs/API-datastruct-eng.html#datastream_data:~:text=Per\%2Dchannel\%20black\%20level\%20correction}{\code{black_level_per_channel}}
 metadata obtained with \code{rawpy}.}
+
+\item{cfa_pattern}{character matrix of two rows by two columns. Declares the
+ordered set of color filter elements used by the sensor. Values should
+correspond to semantic color labels (e.g. \code{"Red"}, \code{"Green"}, \code{"Blue"},
+\code{"Yellow"}, \code{"Cyan"}, \code{"Magenta"}), and reflect the CFA pattern as produced
+by the sensor. These may intentionally override or contradict
+embedded metadata when such metadata is known to be incorrect.}
+
+\item{spectral_mapping}{optional named list. Declares how target spectral
+bands should be derived from sensor channels. This argument is intended for
+use with \code{type = "interpretive_constraint"}. Each element of the list must
+be named according to the target band (e.g. \code{"Red"}, \code{"Green"}, \code{"Blue"}),
+and its value must be a function describing how that band is obtained from
+one or more spectral bands as declared in \code{cfa_pattern}.}
 }
 \value{
 Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}:

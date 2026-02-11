@@ -16,10 +16,10 @@ becomes an ellipse under the equidistant projection. If \code{NULL} (default),
 two percent of image width is used (\code{round(terra::ncol(r) * 0.02)}).}
 }
 \value{
-\code{data.frame} con dos columnas:
+\code{data.frame} with two columns:
 \describe{
-\item{\code{theta}}{zenith angle en radianes.}
-\item{\code{radiometry}}{digital number normalizado.}
+\item{\code{theta}}{zenith angle in radians.}
+\item{\code{radiometry}}{normalized digital number.}
 }
 }
 \description{

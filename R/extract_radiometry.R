@@ -196,10 +196,10 @@
 #' dataset to be used in subsequent modeling steps. See above sections for
 #' guidance.
 #'
-#' @return `data.frame` con dos columnas:
+#' @return `data.frame` with two columns:
 #' \describe{
-#'   \item{`theta`}{zenith angle en radianes.}
-#'   \item{`radiometry`}{digital number normalizado.}
+#'   \item{`theta`}{zenith angle in radians.}
+#'   \item{`radiometry`}{normalized digital number.}
 #' }
 #'
 #' @export

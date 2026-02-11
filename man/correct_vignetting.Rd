@@ -4,7 +4,13 @@
 \alias{correct_vignetting}
 \title{Correct vignetting effect}
 \usage{
-correct_vignetting(r, z, lens_coef_v, method = "simple")
+correct_vignetting(
+  r,
+  z,
+  lens_coef_v,
+  method = "simple",
+  model_type = "polynomial"
+)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
@@ -12,9 +18,17 @@ binary masks) in fisheye projection.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function. See \emph{Details}.}
+\item{lens_coef_v}{numeric vector. Coefficients of the vignetting function.
+See \emph{Details}.}
 
-\item{method}{character vector of length one.}
+\item{model_type}{character vector of lenght one. Only \code{"polynomial"} is currently
+supported.}
+
+\item{scheme}{character vector of length one. Calibration scheme defining
+the modeling assumptions used by \code{rcaiman} for radiometric correction.
+The selected scheme determines the effective form of the model and the
+constraints applied to its parameters. Supported values are
+\code{"simple"} and \code{"free_form"}.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} with the same content as \code{r} but with
@@ -26,21 +40,36 @@ Apply a vignetting correction to an image using a polynomial model.
 }
 \details{
 Vignetting is the gradual reduction of image brightness toward the periphery.
-This function corrects it by applying a device-specific correction as a
-function of the zenith angle at each pixel.
+This function applies a parametric correction tailored to a specific
+hemispherical camera system that varies with zenith angle at the pixel level.
 
-The methodology used to acquire data allows different level of accuracy.
+The selected calibration scheme defines the modeling conventions used by
+\code{rcaiman} to represent and correct vignetting effects. Different schemes
+correspond to different assumptions and degrees of freedom in the underlying
+polynomial model.
 
 \describe{
-\item{simple}{method described in \insertCite{Diaz2024;textual}{rcaiman}.
+\item{simple}{
+A constrained polynomial scheme in which the vignetting function is
+normalized such that \eqn{f_v(0) = 1}. The effective model is
 \eqn{f_v(\theta) = 1 + a\theta + b\theta^2 + \dots + m\theta^n}, where
 \eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
-polynomial coefficients. Degrees up to 6 are supported. See
-\code{\link[=extract_radiometry]{extract_radiometry()}} for guidance on estimating these coefficients.}
-\item{photometric_sphere}{method described in \insertCite{Lang2010;textual}{rcaiman}.
+polynomial coefficients. Polynomial degrees up to 6 are supported.
+This scheme follows the approach described in
+\insertCite{Diaz2024;textual}{rcaiman}. See \code{\link[=extract_radiometry]{extract_radiometry()}} for guidance
+on estimating these coefficients.}
+
+\item{free_form}{
+A flexible polynomial scheme in which all model parameters, including the
+constant term, are estimated from data. The effective model is
 \eqn{f_v(\theta) = a + b\theta + c\theta^2 + \dots + m\theta^n}, where
-\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are the
-parameters. Up to 7 parameters are supported.}
+\eqn{\theta} is the zenith angle (in radians) and \eqn{a,b,\dots,m} are free
+parameters. Up to 7 parameters are supported.
+This scheme assumes that the input data reliably capture the true shape of
+the vignetting function, and therefore applies no structural constraints on
+the model parameters. It is typically used with data acquired using a
+photometric sphere, following the methodology described in
+\insertCite{Lang2010;textual}{rcaiman}.}
 }
 }
 \examples{
