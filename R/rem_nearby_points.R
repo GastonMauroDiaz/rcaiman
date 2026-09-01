@@ -1,132 +1,104 @@
-#' Remove nearby sky points
+#' Remove nearby sampling points
 #'
 #' @description
 #' Select a subset of points so that no retained pair is closer than `min_dist`
 #' in planar or spherical space.
 #'
 #' @details
-#' When `space = "planar"`, distances are computed in image coordinates and `z`
-#' and `a` are ignored. When `space = "spherical"`, distances are angular (deg)
-#' in hemispherical coordinates. If `r` is provided, points are ranked by the
-#' extracted raster values and retained in descending order.
+#' When `space = "planar"`, distances are computed in image coordinates and
+#' directions (see [add_directions()]) are not required. When `space =
+#' "spherical"`, distances are computed as in [nn_spherical()]. If `col_id` is
+#' provided, points are ranked by it and retained in descending order.
 #'
+#' @param sampling_points `data.frame` with  least columns `"row"` and `"col"`. If
+#'   `space = "spherical"`, it must also contain `"zen"` and `"azi"` (see
+#'   [add_directions()]).
 #' @param min_dist numeric vector of length one. Minimum allowed distance
 #'   between retained points. Units: pixels for `"planar"`, deg for `"spherical"`.
-#' @param r single-layer [terra::SpatRaster-class] or `NULL`. Optional ranking
-#'   raster used to prioritize retention (higher values kept first).
+#' @param col_id numeric or character vector of length one or `NULL`. The name
+#'   or position of the column in `sampling_points` containing the optional
+#'   ranking value used to prioritize retention (higher values kept first).
+#' @param prioritize character vector of length one. Either `"higher"` or `"lower"`.
+#'   criteria used to prioritize retention. Ignored when `col_id = NULL`.
 #' @param space character vector of length one. Coordinate system for distances:
 #'   `"planar"` (default) or `"spherical"`.
 #'
-#' @inheritParams extract_rr
-#' @inheritParams extract_dn
-#' @inheritParams skygrid_segmentation
-#'
 #' @note
-#' It is assumed that `sky_points` were extracted from an image with the same
-#' dimensions as the `r`, `z`, and `a` rasters. No checks are performed.
+#' It is assumed that `sampling_points` were extracted from an image with the same
+#' dimensions as the `z` and `a` rasters. No checks are performed.
 #'
-#' @return A `data.frame` with columns `row` and `col` for retained points.
+#' @return The retained points represented as a [data.frame], same as
+#'   `sampling_points`.
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim()
-#' r <- caim$Blue
-#' z <- zenith_image(ncol(caim), lens())
+#' z <- zenith_image(1000, orthographic_coef)
 #' a <- azimuth_image(z)
-#' bin <- binarize_by_region(r, ring_segmentation(z, 30),
-#'                           method = "thr_isodata")
-#' bin <- bin & select_sky_region(z, 0, 80)
-#' g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
-#' sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
+#' sampling_points <- raster_grid_in_circle(z, a, 10)
+#' foo <- rem_nearby_points(sampling_points, min_dist = 20, space = "spherical")
 #'
-#' # planar
-#' sky_points_p <- rem_nearby_points(sky_points, r, min_dist = 100,
-#'                                         space = "planar")
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#' points(sky_points_p$col, nrow(caim) - sky_points_p$row, col = 3, pch = 0)
+#' plot(!is.na(z))
+#' points(sampling_points$col, nrow(z) - sampling_points$row, col = 2, pch = 20, cex = 0.1)
+#' points(foo$col, nrow(z) - foo$row, col = 1, pch = 0)
 #'
-#' # spherical
-#' sky_points_s <- rem_nearby_points(sky_points, r, z, a, min_dist = 30,
-#'                                         space = "spherical")
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#' points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
+#' foo <- rem_nearby_points(sampling_points, min_dist = 100, space = "planar")
+#'
+#' plot(!is.na(z))
+#' points(sampling_points$col, nrow(z) - sampling_points$row, col = 2, pch = 20, cex = 0.1)
+#' points(foo$col, nrow(z) - foo$row, col = 1, pch = 0)
+#'
+#' r <- cie_image(z, a, c(zen_deg = 45, azi_deg = 45), as.numeric(cie_table[12, 1:5]))
+#' sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
+#' head(sampling_points)
+#'
+#' foo <- rem_nearby_points(sampling_points, min_dist = 100, space = "planar",
+#'                          col_id = 5, prioritize = "higher")
+#'
+#' points(foo$col, nrow(z) - foo$row, col = 1, pch = 5)
 #' }
-rem_nearby_points <- function(sky_points,
-                              r = NULL,
-                              z = NULL,
-                              a = NULL,
+rem_nearby_points <- function(sampling_points,
                               min_dist = 3,
-                              space = "planar",
-                              use_window = TRUE) {
-  if (!is.null(z)) .assert_single_layer(a)
-  if (!is.null(r) && !is.null(z) && !is.null(a)) {
-    .check_r_z_a_m(r, z, a, r_type = "single")
-  }
-  if (is.null(r) && !is.null(z) && !is.null(a)) {
-    .check_r_z_a_m(NULL, z, a, r_type = "single")
-  }
+                              col_id = NULL,
+                              prioritize = NULL,
+                              space = "planar") {
   .check_vector(min_dist, "numeric", 1, sign = "nonnegative")
   .assert_choice(space, c("planar", "spherical"))
-  .check_vector(use_window, "logical", 1)
-
-  .dist_spherical <- function(zenith_azimuth) {
-    theta <- zenith_azimuth[, 1]  # zenith (rad)
-    phi   <- zenith_azimuth[, 2]  # azimuth (rad)
-
-    # Convert to unit vectors in Cartesian coordinates
-    x <- sin(theta) * cos(phi)
-    y <- sin(theta) * sin(phi)
-    z <- cos(theta)
-
-    # Matrix of 3D unit vectors
-    V <- cbind(x, y, z)
-
-    # Compute pairwise dot products
-    dot <- tcrossprod(V)  # n x n matrix of dot products
-
-    # Clamp to avoid acos() domain errors due to numerical issues
-    dot <- pmin(pmax(dot, -1), 1)
-
-    # Angular distances (radians)
-    d <- acos(dot)
-
-    rownames(d) <- rownames(zenith_azimuth)
-    colnames(d) <- rownames(zenith_azimuth)
-
-    d
+  required_columns <- c("row", "col")
+  if (space == "spherical") {
+    required_columns <- c(required_columns, "zen", "azi")
   }
-
-  if (!is.null(r)) {
-    ord <- extract_dn(r, sky_points, use_window = use_window)[,3]
-    ord <- order(ord, decreasing = TRUE)
-    sky_points <- sky_points[ord, ]
+  if (!is.null(col_id)) {
+    .assert_choice(prioritize, c("higher", "lower"))
+    col_id <- .resolve_required_column(col_id, sampling_points)
+    required_columns <- c(required_columns, col_id)
   }
+  .check_columns(sampling_points,
+                 required_columns = required_columns,
+                 reserved_columns = NULL
+  )
 
   if (space == "planar") {
-    coords <- sky_points[, c("col", "row")]
-    dists <- as.matrix(stats::dist(coords))
+
+    keep <- cpp_rem_nearby_planar(
+      sampling_points$col,
+      sampling_points$row,
+      min_dist
+    )
+
   } else {
-    sky_points <- extract_dn(c(z, a), sky_points, use_window = FALSE)
-    coords <- sky_points[, c(3, 4)] %>% .degree2radian()
-    dists <- .dist_spherical(coords)
-    min_dist <- .degree2radian(min_dist)
+
+    xyz <- .directions_to_cartesian(sampling_points)
+
+    keep <- cpp_rem_nearby_spherical(
+      xyz$x,
+      xyz$y,
+      xyz$z,
+      .degree2radian(min_dist)
+    )
+
   }
 
-  n <- nrow(coords)
-  selected <- logical(n)
-  considered <- logical(n)
-  to_consider <- seq_len(n)
-  while (length(to_consider) > 0) {
-    i <- to_consider[1]
-    selected[i] <- TRUE
-    considered[i] <- TRUE
-    too_close <- which(dists[i, ] <= min_dist)
-    considered[too_close] <- TRUE
-    to_consider <- which(!considered)
-  }
-  sky_points[selected, c("row", "col"), drop = FALSE]
+  sampling_points[keep, ]
 }

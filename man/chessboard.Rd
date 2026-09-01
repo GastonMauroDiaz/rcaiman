@@ -4,31 +4,32 @@
 \alias{chessboard}
 \title{Perform chessboard segmentation}
 \usage{
-chessboard(r, size)
+chessboard(r, side)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}}
 
-\item{size}{Numeric vector of length one. Size (in pixels) of each square
-segment. Must be a positive integer.}
+\item{side}{Numeric vector of length one. Side (in pixels) of the square
+segments. Must be positive and interpreted as
+integer.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and integer values, where
 each unique value corresponds to a square-segment ID.
 }
 \description{
-Segment a raster into square regions of equal size arranged in a
+Segment a raster into square regions of equal side arranged in a
 chessboard-like pattern.
 }
 \details{
 This function divides the extent of \code{r} into
-non-overlapping square segments of the given size, producing a segmentation
+non-overlapping square segments of the given side, producing a segmentation
 map where each segment has a unique integer label. It can be an alternative
-to \code{\link[=skygrid_segmentation]{skygrid_segmentation()}} in special cases.
+to \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} in special cases.
 }
 \examples{
 caim <- read_caim()
 seg <- chessboard(caim, 20)
-plot(caim$Blue)
-plot(extract_feature(caim$Blue, seg))
+plot(caim$Cyan)
+plot(compute_mean(caim$Cyan, seg))
 }

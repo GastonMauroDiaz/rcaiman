@@ -8,7 +8,7 @@ paint_with_mask(r, m, color = "red", where = "outside")
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. The image. Values should be normalized,
-see \code{\link[=normalize_minmax]{normalize_minmax()}}. Only images with one or three layers are
+see \code{\link[=normalize_min_max]{normalize_min_max()}}. Only images with one or three layers are
 supported.}
 
 \item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
@@ -31,20 +31,29 @@ Paint image pixels inside or outside a logical mask with a solid color.
 }
 \examples{
 \dontrun{
-r <- read_caim()
-z <- zenith_image(ncol(r), lens())
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
+caim <- read_caim()
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
-m <- select_sky_region(z, 20, 70) & select_sky_region(a, 90, 180)
 
-masked_caim <-  paint_with_mask(normalize_minmax(r), m)
+rspec <- get_radiometry_spec(spec, "spectral_bands")
+caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
+
+caim <- normalize_min_max(caim)
+
+m <- select_sky_region(z, 20, 70) & select_sky_region(a, 90, 180)
+masked_caim <-  paint_with_mask(caim, m)
 plotRGB(masked_caim * 255)
 
-masked_bin <- paint_with_mask(binarize_with_thr(r$Blue, 125), m)
+bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[]))
+masked_bin <- paint_with_mask(bin, m)
 plotRGB(masked_bin * 255)
 
-r <- normalize_minmax(r)
-paint_with_mask(r, m, color = c(0.2, 0.2, 0.2))  # vector
-paint_with_mask(r, m, color = "blue")     # name
-paint_with_mask(r, m, color = "#00FF00")  # hexadecimal
+paint_with_mask(caim, m, color = c(0.2, 0.2, 0.2))  # vector
+paint_with_mask(caim, m, color = "blue")     # name
+paint_with_mask(caim, m, color = "#00FF00")  # hexadecimal
 }
 }

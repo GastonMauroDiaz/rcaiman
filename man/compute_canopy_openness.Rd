@@ -16,11 +16,6 @@ hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} f
 
 \item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
 \code{TRUE} for selected pixels.}
-
-\item{angle_width}{numeric vector of length one. Angle in deg that must
-divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
-set of valid values by running
-\code{lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))}.}
 }
 \value{
 Numeric vector of length one, constrained to the range \eqn{[0, 1]}.
@@ -58,13 +53,23 @@ scale-independent. Without this normalization, masking would lead to
 underestimation, as the numerator alone assumes full hemispherical coverage.
 }
 \examples{
+\dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
+
+z <- zenith_image(ncol(caim), spec$parameters)
 a <- azimuth_image(z)
-m <- select_sky_region(z, 0, 70)
-bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+m <- !is.na(z)
+
+bin <- binarize_with_thr(caim$Cyan, thr_isodata(caim$Cyan[]))
 plot(bin)
+
+m <- select_sky_region(z, 0, 70)
 compute_canopy_openness(bin, z, a, m, 10)
+}
 }
 \references{
 \insertAllCited{}

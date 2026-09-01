@@ -1,7 +1,7 @@
 #' Validate CIE sky models
 #'
 #' @description
-#' Validate CIE sky models fitted with [fit_cie_model()] (or [ootb_sky_cie()])
+#' Validate CIE sky models fitted with [fit_cie_model()]
 #' using k-fold cross-validation on relative radiance.
 #'
 #' @details

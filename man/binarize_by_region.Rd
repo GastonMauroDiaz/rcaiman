@@ -38,31 +38,56 @@ For example, \code{"IsoData"} applies the classic iterative intermeans algorithm
 for canopy photography \insertCite{Jonckheere2005}{rcaiman}.}
 \item{In-package implementation of IsoData:}{Use \code{"thr_isodata"} to apply
 \code{\link[=thr_isodata]{thr_isodata()}}, a native implementation of the same algorithm}
-\item{Two-corner method:}{Use \code{"thr_twocorner"} to apply
-\code{\link[=thr_twocorner]{thr_twocorner()}}, which implements a geometric thresholding strategy based
-on identifying inflection points in the histogram, first introduced to
-canopy photography by \insertCite{Macfarlane2011;textual}{rcaiman}. Since
-this method might fail, the fallback is \code{thr_isodata}}
+\item{Two-corner method:}{Use \code{"thr_two_corner"} to apply
+\code{\link[=thr_two_corner]{thr_two_corner()}} with \code{sigma = NULL}, \code{slope_reduction = TRUE},
+and \code{method = macfarlane}, which implements a geometric thresholding
+strategy based on identifying inflection points in the histogram, first
+introduced to canopy photography by
+\insertCite{Macfarlane2011;textual}{rcaiman}. Since this method might fail,
+the fallback is \code{thr_isodata}}
+\item{Nobis-Hunziker:}{Use \code{"thr_nbhu"} to apply
+\code{\link[=thr_nbhu]{thr_nbhu()}} with \code{support_weight = 0}, which implements the edge-based criterion proposed by
+\insertCite{Nobis2005;textual}{rcaiman}.}
 }
 }
 \note{
 When methods from the \code{autothresholdr} package are used, \code{r} values
-should be constrained to the range \eqn{[0, 1]}. See \code{\link[=normalize_minmax]{normalize_minmax()}}.
+should be constrained to the range \eqn{[0, 1]}. See \code{\link[=normalize_min_max]{normalize_min_max()}}.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-zenith_colrow <- c(1276, 980)
-diameter <- 756*2
-caim <- read_caim(path, zenith_colrow - diameter/2, diameter, diameter)
-z <- zenith_image(ncol(caim), lens("Nikon_FCE9"))
-r <- invert_gamma_correction(caim$Blue)
-r <- correct_vignetting(r, z, c(0.0638, -0.101)) \%>\% normalize_minmax()
+caim <- read_caim(path, zenith_col_row = spec$zenith_col_row ,
+                  horizon_radius = spec$horizon_radius)
+z <- zenith_image(ncol(caim), spec$parameters)
+rspec <- get_radiometry_spec(spec, "wagner2001_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`0`)
+r <- apply_flat_field(caim$Blue, ff)
+
 rings <- ring_segmentation(z, 15)
-bin <- binarize_by_region(r, rings, "thr_twocorner")
-plot(bin)
+bin <- binarize_by_region(r, rings, "thr_two_corner")
+plot(bin, main = "Twocorner")
+
+a <- azimuth_image(z)
+seg <- equal_area_segmentation(z, a, 20)
+bin <- binarize_by_region(r, seg, "thr_isodata")
+plot(bin, main = "Isodata")
+
+bin <- binarize_by_region(r, seg, "thr_nbhu")
+plot(bin, main = "Nobis and Hunziker")
+
+# Method from 'autothresholdr' package:
+bin <- binarize_by_region(r, seg, "Huang2")
+plot(bin, main = "Huang2")
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=apply_by_direction]{apply_by_direction()}} to binarize by direction
 }

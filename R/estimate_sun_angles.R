@@ -15,7 +15,8 @@
 #'   from radiometric and spatial cues aggregated over the circumsolar region.}
 #' }
 #'
-#' When `mode = "veiled"`, `seg` and `angular_radius_sun` are ignored.
+#' When `mode = "veiled"`, `seg` and `circumsolar_angle` are ignored.
+#'
 #' Estimates refer to positions above the horizon; therefore, estimated angles
 #' may require further manipulation if the photograph was acquired under
 #' crepuscular light.
@@ -24,17 +25,19 @@
 #' under preparation.
 #'
 #' @param mode character vector of length one. Estimation mode:
-#'   `"obscured"` (default) or `"veiled"`.
-#' @param angular_radius_sun numeric vector of length one. Maximum angular
+#'   `"obscured"` (default) or `"veiled"`. See *Details*.
+#' @param circumsolar_angle numeric vector of length one. Maximum angular
 #'   radius (in degrees) used to define the circumsolar region.
 #' @param seg Segmentation map of r, typically created with functions such as
-#'   [equalarea_segmentation()], [skygrid_segmentation()], [ring_segmentation()]
+#'   [equal_area_segmentation()], [sky_grid_segmentation()], [ring_segmentation()]
 #'   or [sector_segmentation()], but any raster with integer segment labels is
 #'   accepted.
 #'
 #' @inheritParams sample_sky_points
-#' @inheritParams skygrid_segmentation
-#' @inheritParams extract_feature
+#' @inheritParams add_directions
+#' @inheritParams compute_mean
+#'
+#' @seealso [optimize_sun_angles()]
 #'
 #' @returns Named numeric vector of length two, with names `z` and `a`,
 #'   representing the sun’s zenith and azimuth angles (in degrees).
@@ -45,50 +48,71 @@
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
+#' r <- caim$Cyan
+#' z <- zenith_image(ncol(r), spec$parameters)
 #' a <- azimuth_image(z)
+#' rspec <- get_radiometry_spec(spec, "simple_method")
+#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+#' r <- apply_flat_field(r, ff)
 #' m <- !is.na(z)
-#' r <- caim$Blue
 #'
-#' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
-#'   select_sky_region(z, 0, 88)
+#' thr <- apply_by_direction(r, z, a, m)
+#' bin <- binarize_with_thr(r, thr$v1)
+#' plot(bin)
 #'
-#' seg <- skygrid_segmentation(z, a, 10)
+#' seg <- sky_grid_segmentation(z, a, 10)
 #' sun_angles <- estimate_sun_angles(r, z, a, bin, seg,
-#'                                   angular_radius_sun = 30)
-#' row_col <- row_col_from_zenith_azimuth(z, a,
-#'                                        sun_angles["z"],
-#'                                        sun_angles["a"])
-#' plot(caim$Blue)
+#'                                   circumsolar_angle = 30,
+#'                                   mode = "obscured")
+#' row_col <- row_col_from_zen_azi(z, a,
+#'                                 sun_angles["zen_deg"] * pi/180,
+#'                                 sun_angles["azi_deg"] * pi/180)
+#' plot(caim$Cyan)
+#' points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
+#'        pch = 8, cex = 3)
+#'
+#'
+#' sun_angles <- estimate_sun_angles(r, z, a, bin,
+#'                                   mode = "veiled")
+#' row_col <- row_col_from_zen_azi(z, a,
+#'                                 sun_angles["zen_deg"] * pi/180,
+#'                                 sun_angles["azi_deg"] * pi/180)
+#' plot(caim$Cyan)
 #' points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
 #'        pch = 8, cex = 3)
 #' }
 estimate_sun_angles <- function(r, z, a, bin, seg,
-                                angular_radius_sun = 30,
+                                circumsolar_angle = 30,
                                 mode = "obscured") {
 
   .this_requires_EBImage()
 
-  .check_r_z_a_m(r, z, a, r_type = "single")
+  .assert_zenith_image(z)
+  .assert_azimuth_image(a)
+  .assert_same_geom(z, a)
+  .assert_single_layer(r, allow_na = FALSE)
+  .assert_same_geom(r, z)
   .assert_logical_mask(bin)
   .assert_same_geom(r, bin)
   .assert_choice(mode, c("obscured", "veiled"))
 
-
   if (mode == "obscured") {
     .assert_single_layer(seg)
     .assert_same_geom(r, seg)
-    .check_vector(angular_radius_sun, "numeric", 1, sign = "positive")
+    .check_vector(circumsolar_angle, "numeric", 1, sign = "positive")
 
-    if (!is.numeric(angular_radius_sun) || length(angular_radius_sun) != 1) {
-      stop("`angular_radius_sun` must be a numeric vector of length one.")
+    if (!is.numeric(circumsolar_angle) || length(circumsolar_angle) != 1) {
+      stop("`circumsolar_angle` must be a numeric vector of length one.")
     }
-
 
     # Select cells with at least one extremely bright sky pixel
     seg[!bin] <- NA
-    r <- extract_feature(r, seg, function(x) quantile(x, 0.99, na.rm = TRUE))
+    r <- compute_mean(r, seg, function(x) quantile(x, 0.99, na.rm = TRUE))
     m <- r >= quantile(unique(terra::values(r)), 0.9, na.rm = TRUE)
     m[is.na(m)] <- 0
 
@@ -102,10 +126,10 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
       x <- unique(x) # to count the cells instead of the pixels
       length(x)
     }
-    size <- extract_feature(seg, labeled_m, .fun, return = "vector") %>%
-      normalize_minmax()
-    dn <- extract_feature(r, labeled_m, median, return = "vector") %>%
-      normalize_minmax()
+    size <- compute_mean(seg, labeled_m, .fun, return = "vector") %>%
+      normalize_min_max()
+    dn <- compute_mean(r, labeled_m, median, return = "vector") %>%
+      normalize_min_max()
     if (any(is.nan(dn))) dn[] <- 1 #preventative programming
     if (any(is.nan(size))) size[] <- 1 #preventative programming
     membership_posibility <- size*0.25 + dn*0.75
@@ -149,7 +173,7 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
       }
       round(za[1], 2) * 1e6 + round(za[2], 2)
     }
-    za <-  extract_feature(rcells, labeled_m, .get_center, return = "vector")
+    za <-  compute_mean(rcells, labeled_m, .get_center, return = "vector")
 
 
     ## decodify
@@ -160,10 +184,10 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
 
     ## calc distance to sun seed
     d <- calc_spherical_distance(za[, 1], za[, 2], za[sun, 1], za[sun, 2])
-    seg_labels <- extract_feature(labeled_m, labeled_m, return = "vector")
+    seg_labels <- compute_mean(labeled_m, labeled_m, return = "vector")
 
     ## classify circumsolar region based on distance
-    i <- d > .degree2radian(angular_radius_sun)
+    i <- d > .degree2radian(circumsolar_angle)
     if (any(i)) {
       rcl <- data.frame(seg_labels[i], 0)
       m <- terra::classify(labeled_m, rcl)
@@ -173,7 +197,7 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
     m <- m != 0
 
     # Calc coordinates of the circumsolar region
-    za <-  extract_feature(rcells, m, .get_center, return = "vector")
+    za <-  compute_mean(rcells, m, .get_center, return = "vector")
     zenith <- trunc(za/1e4)
     azimuth <- (za/1e4 - zenith) * 1e4
     zenith <- zenith/100
@@ -187,6 +211,6 @@ estimate_sun_angles <- function(r, z, a, bin, seg,
       as.numeric()
   }
   sun_angles <- c(zenith_azimuth[1], zenith_azimuth[2])
-  names(sun_angles) <- c("z", "a")
+  names(sun_angles) <- c("zen_deg", "azi_deg")
   sun_angles
 }

@@ -1,6 +1,6 @@
 #' Write and read binarized images
 #'
-#' Wrapper functions around [terra::rast()] to read and write binary masks.
+#' Wrapper functions around [write_caim()] and [read_caim()] to read and write binary masks.
 #'
 #' @section Functions:
 #' \describe{
@@ -15,12 +15,6 @@
 #'   examples.
 #' @param bin logical [terra::SpatRaster-class] with a single layer.
 #'
-#' @details
-#' `write_bin()` multiplies the input logical raster by 255 and writes the
-#' result as a GeoTIFF (`GTiff`) with datatype `INT1U`. Both `write_bin()` and
-#' `read_bin()` set the raster extent to `terra::ext(0, ncol(r), 0, nrow(r))`
-#' and the CRS to EPSG:7589 (see [set_rcaiman_geometry()]).
-#'
 #' @return See *Functions*
 #'
 #' @name read_bin
@@ -33,7 +27,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' z <- zenith_image(1000, lens())
+#' z <- zenith_image(1000, equidistant_coef)
 #' m <- !is.na(z)
 #' my_file <- file.path(tempdir(), "mask.tif")
 #' write_bin(m, my_file)
@@ -44,11 +38,8 @@ read_bin <- function(path) {
   .check_vector(path, "character", 1)
   .assert_file_exists(path)
 
-  r <- rast(path)
-  r <- set_rcaiman_geometry(r)
-  r <- is.na(r)
-  if (stats::sd(r[]) == 0) r <- rast(path)
-  as.logical(r)
+  r <- read_caim(path, fill_na = "value", fill_value = 255)
+  as.logical(r/255)
 }
 
 #' @rdname read_bin
@@ -57,14 +48,6 @@ write_bin <- function(bin, path) {
   .assert_logical_mask(bin)
   .check_vector(path, "character", 1)
 
-  file_name <- basename(path)
-  file_name <-  .extension(file_name, "tif")
-
-  bin <- set_rcaiman_geometry(bin)
-
-  suppressWarnings(
-    terra::writeRaster(bin * 255, file.path(dirname(path), file_name),
-                       filetype = "GTiff", datatype = "INT1U", overwrite = TRUE)
-  )
+  write_caim(bin * 255, path, 8)
 }
 

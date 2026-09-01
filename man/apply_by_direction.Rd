@@ -2,28 +2,22 @@
 % Please edit documentation in R/apply_by_direction.R
 \name{apply_by_direction}
 \alias{apply_by_direction}
-\title{Apply a method by direction using a constant field of view}
+\title{Apply methods by direction using a constant field of view}
 \usage{
 apply_by_direction(
   r,
   z,
   a,
   m,
-  spacing = 10,
+  spacing = 20,
   laxity = 2.5,
-  fov = c(30, 40, 50),
-  method = c("thr_isodata", "thr_twocorner", "detect_bg_dn", "fit_coneshaped_model",
-    "fit_trend_surface_np1", "fit_trend_surface_np6"),
-  fun = NULL,
-  parallel = TRUE,
-  cores = NULL,
-  logical = TRUE,
-  leave_free = 1
+  fov = 40,
+  method = "vector",
+  fun = thr_isodata
 )
 }
 \arguments{
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
-binary masks) in fisheye projection.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
@@ -38,87 +32,166 @@ between directions to process.}
 \item{laxity}{numeric vector of length one. Positive multiplier applied to
 MAD to set classification thresholds. Default is \code{2}.}
 
-\item{fov}{numeric vector. Field of view in degrees. If more than one value
-is provided, they are tried in order when a method fails.}
+\item{fov}{numeric vector of length one. Field of view in degrees.}
 
-\item{method}{character vector of length one. Built-in method to apply.
-Available options are \code{"thr_isodata"}, \code{"thr_twocorner"}, \code{"detect_bg_dn"},
-\code{"fit_coneshaped_model"}, \code{"fit_trend_surface_np1"}, and
-\code{"fit_trend_surface_np6"}. Ignored if \code{fun} is provided.}
+\item{method}{character vector of length one. Evaluation framework used to
+apply \code{fun}. Must be \code{"vector"} or \code{"single_layer_image"}.}
 
-\item{fun}{\code{NULL} (default) or a function accepting \code{r}, \code{z}, \code{a}, and \code{m} as
-input and returning a single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} object  with
-the same number of rows and columns as its first input, \code{r}.}
-
-\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
-executed in parallel.}
-
-\item{cores}{numeric vector of length one. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available
-cores detected internally. Values greater than the number of available
-cores are silently reduced to the maximum allowed. If the resulting number
-of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
-
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
-
-\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
-free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
-greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
-\code{parallel} is silently set to \code{FALSE}.}
+\item{fun}{function used to compute one or more directional estimators.
+For \code{method = "vector"}, the expected signature is \verb{function(x)}; for
+\code{method = "single_layer_image"}, \verb{function(r, m)}.}
 }
 \value{
-\link[terra:SpatRaster-class]{terra::SpatRaster} object with two layers: \code{"dn"} for digital
-number values and \code{"n"} for the number of valid pixels used in each
-directional estimate.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}.
+
+Output layers correspond to the directional estimators returned by \code{fun}.
+An additional layer named \code{"n"} contains the number of valid directional
+estimates contributing to each pixel.
 }
 \description{
-Applies a method to each set of pixels defined by a direction and a constant
-field of view (FOV). By default, several built-in methods are available
-(see \code{method}), but a custom function can also be provided via the \code{fun}
-argument.
+Apply methods to each set of pixels defined by a direction and a constant
+field of view (FOV).
+}
+\details{
+Neighboring pixels are selected around a set of query directions distributed
+over the hemispherical domain. For each directional neighborhood, \code{fun} is
+evaluated using either:
+
+\describe{
+\item{\code{method = "vector"}}{
+argument \code{fun} receives a numeric vector extracted from neighboring pixels.
+}
+
+\item{\code{method = "single_layer_image"}}{
+\code{fun} receives a temporary single-layer raster and its corresponding
+logical mask identifying valid pixels.
+}
+}
+
+The function supplied to \code{fun} must return either a single numeric value or
+a named numeric vector. When multiple values are returned, each element is
+processed independently and stored as a separate raster layer in the output.
+
+Multiple directional estimates may contribute to the same raster cell.
+Contributions are grouped by cell, filtered using a robust MAD-based outlier
+criterion, and averaged to obtain the final pixel value. An additional layer
+named \code{"n"} stores the number of directional estimates associated with each
+cell prior to outlier removal.
+
+To calculates sphercial distances, directions are first mapped to unit
+Cartesian vectors and distances are computed as the arc-cosine of the
+dot-product. For details, see \code{\link[=calc_spherical_distance]{calc_spherical_distance()}}.
 }
 \note{
 This function is part of a manuscript currently under preparation.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
 m <- !is.na(z)
 
-# Automatic sky brightness estimation
-sky <- apply_by_direction(r, z, a, m, spacing = 10, fov = c(30, 60),
-                          method = "detect_bg_dn", parallel = TRUE)
-plot(sky$dn)
-plot(r / sky$dn)
+thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40)
+plot(thr$v1)
+plot(thr$n)
+bin <- binarize_with_thr(r, thr$v1)
+plot(bin)
 
-# Using cone-shaped model
-sky_cs <- apply_by_direction(caim, z, a, m, spacing = 15, fov = 60,
-                             method = "fit_coneshaped_model", parallel = TRUE)
-plot(sky_cs$dn)
+thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40,
+                          method = "vector",
+                          fun = function(x) {
+                            thr_two_corner(x)$tm
+                          })
+plot(thr$v1)
+bin <- binarize_with_thr(r, thr$v1)
+plot(bin)
 
-# Using trend surface model
-sky_s <- apply_by_direction(caim, z, a, m, spacing = 15, fov = 60,
-                            method = "fit_trend_surface_np1", parallel = TRUE)
-plot(sky_s$dn)
-
-# Using a custom thresholding function
-thr <- apply_by_direction(r, z, a, m, 15, fov = c(30, 40, 50),
-  fun = function(r, z, a, m) {
-    thr <- tryCatch(thr_twocorner(r[m])$tm, error = function(e) NA)
-    r[] <- thr
-    r
-  },
-  parallel = TRUE
-)
-plot(thr$dn)
-plot(binarize_with_thr(r, thr$dn))
+my_fun <- function(x) {
+  m <- !is.na(x)
+  autothresholdr::auto_thresh(x[m], "Otsu")[1]
 }
+nr <- normalize_min_max(r) \%>\% multiply_by(255) \%>\% round()
+my_fun(nr)
+thr <- apply_by_direction(nr, z, a, m, spacing = 10, fov = 40,
+                          method = "vector",
+                          fun = my_fun)
+plot(thr$v1)
+bin <- binarize_with_thr(r, thr$v1)
+plot(bin)
+
+# Severals at once
+my_fun <- function(x) {
+  m <- !is.na(x)
+  c(Huang = autothresholdr::auto_thresh(x[m], "Huang")[1],
+    Moments = autothresholdr::auto_thresh(x[m], "Moments")[1],
+    Otsu = autothresholdr::auto_thresh(x[m], "Otsu")[1])
 }
-\references{
-\insertAllCited{}
+nr <- normalize_min_max(r) \%>\% multiply_by(255) \%>\% round()
+thr <- apply_by_direction(nr, z, a, m, spacing = 10, fov = 40,
+                          method = "vector",
+                          fun = my_fun)
+plot(thr)
+bin <- lapply(seq(1, nlyr(thr) - 1), function(i) {
+  bin <- binarize_with_thr(r, thr[[i]])
+  names(bin) <- names(thr)[i]
+  bin
+})
+plot(rast(bin))
+
+
+# A method that requires images
+my_fun <- function(r, m, ...) {
+  r[!m] <- 0
+  c(
+    sw0.1 = thr_nbhu(
+      r,
+      max(round(min(r[m])), 10),
+      round(max(r[m])),
+      support_weight = 0.1,
+      smooth_curve = TRUE
+    ),
+    sw0.2 = thr_nbhu(
+      r,
+      max(round(min(r[m])), 10),
+      round(max(r[m])),
+      support_weight = 0.2,
+      smooth_curve = TRUE
+    ),
+    sw0.3 = thr_nbhu(
+      r,
+      max(round(min(r[m])), 10),
+      round(max(r[m])),
+      support_weight = 0.3,
+      smooth_curve = TRUE
+    ),
+    sw0.4 = thr_nbhu(
+      r,
+      max(round(min(r[m])), 10),
+      round(max(r[m])),
+      support_weight = 0.4,
+      smooth_curve = TRUE
+    )
+  )
+}
+thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40,
+                          method = "single_layer_image",
+                          fun = my_fun)
+plot(thr)
+bin <- lapply(seq(1, nlyr(thr) - 1), function(i) {
+  bin <- binarize_with_thr(r, thr[[i]])
+  names(bin) <- names(thr)[i]
+  bin
+})
+plot(rast(bin))
+
+}
 }

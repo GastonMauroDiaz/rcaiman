@@ -14,9 +14,11 @@
 #' assume a defined CRS and may otherwise fail, emit warnings, or apply implicit
 #' defaults.
 #'
-#' @param r numeric [terra::SpatRaster-class].
+#' @param r numeric [terra::SpatRaster-class]
 #'
 #' @return The same [terra::SpatRaster-class] with standardized extent and CRS.
+#'
+#' @seealso [xy_from_col_row()]
 #'
 #' @export
 set_rcaiman_geometry <- function(r) {

@@ -21,7 +21,7 @@ Segment a hemispherical view into equal azimuth sectors by slicing the
 azimuth angle from \code{0} to \code{360} deg at fixed steps.
 }
 \examples{
-z <- zenith_image(600, lens())
+z <- zenith_image(600, equidistant_coef)
 a <- azimuth_image(z)
 sectors <- sector_segmentation(a, 15)
 plot(sectors == 1)

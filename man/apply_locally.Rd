@@ -6,44 +6,48 @@
 \usage{
 apply_locally(
   sampling_points,
-  query_points = NULL,
-  z,
-  a,
-  k = 20,
-  angular_radius = 20,
-  rule = "any",
+  query_points,
+  neighbors,
   fun,
-  parallel = TRUE,
+  parallel = FALSE,
   cores = NULL,
   logical = TRUE,
   leave_free = 1
 )
 }
 \arguments{
-\item{sampling_points}{data.frame with columns \code{row} and \code{col}. Source points used
-as candidate neighbors.}
+\item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in
+the output of \code{\link[=add_directions]{add_directions()}}. Candidate neighbors of \code{query_points}.
+Additional columns are ignored.}
 
-\item{query_points}{optional data.frame with columns \code{row} and
-\code{col} with the points at which \code{fun} should be evaluated.}
+\item{query_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in the
+output of \link{add_directions}. Points at which \code{fun} should be evaluated.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{neighbors}{a list where each element corresponds to one query point and contains :
+\describe{
+\item{index}{
+indices of neighboring sampling points
+}
+\item{distance}{
+angular distances in radians
+}
+}
+Tipically the output of \code{\link[=nn_spherical]{nn_spherical()}}.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{k}{numeric vector of length one. Number of neighbors.}
-
-\item{angular_radius}{numeric vector of length one. The maximum radius for
-searching k-nearest neighbors (KNN) in degrees.}
-
-\item{rule}{character vector of length one. \code{"any"} or \code{"all"}. See \emph{Details}.}
-
-\item{fun}{function. Must accept a data.frame (subset of \code{sampling_points}) and
-return a numeric scalar.}
+\item{fun}{function. It receives a data frame, an integer vector of length
+equal to the number of rows in the data frame, and an integer vector of
+length one. The first object is a subset of sampling_points, the second is the
+angular distance of each point to the query point, and the third is the
+query-point row index. When the search retrieves no points, the data frame
+is empty. Users should include the ellipsis (...) in their function
+signature to gracefully handle any of these arguments that are not required
+for their specific calculation. See \emph{Examples}.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
 
-\item{cores}{numeric vector of length one. Number of CPU cores to use when
+\item{cores}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to use when
 \code{parallel = TRUE}. If \code{NULL}, the function uses all available
 cores detected internally. Values greater than the number of available
 cores are silently reduced to the maximum allowed. If the resulting number
@@ -53,14 +57,19 @@ of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
 to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
 \code{parallel = FALSE}.}
 
-\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
+\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to leave
 free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
 greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
-A data.frame equal to \code{query_points} with one additional column, named
-\code{"out"}, containing the result of applying \code{fun} at each query point.
+If \code{fun} returns a vector of length one, a \code{data.frame} equal to
+\code{query_points} with one additional column, named \code{"output"}, containing the
+result of applying \code{fun} at each query point.
+
+If \code{fun} returns any other object, it returns a list with as many components
+as rows in \code{query_points}.
 }
 \description{
 Evaluate a user-supplied function locally using neighboring points
@@ -69,80 +78,103 @@ defined on the hemispherical domain.
 \details{
 The \code{query_points} argument lets the user evaluate \code{fun} at a custom set of
 locations. For each point in \code{query_points}, neighbors are searched within
-\code{sampling_points}. When \code{query_points} is \code{NULL} (default), the evaluation is
-performed for every point in \code{sampling_points}. Neighbor selection is based on
-spherical distance, see \code{\link[=calc_spherical_distance]{calc_spherical_distance()}}. The function \code{fun} is
+\code{sampling_points}. Neighbor selection is based on
+spherical distance, see \code{\link[=nn_spherical]{nn_spherical()}}. The function \code{fun} is
 then applied to the corresponding subset of neighboring sampling points.
 
-The input passed to \code{fun} is a \strong{subset of rows of \code{sampling_points}}, therefore,
-\code{fun} must extract and process the column(s) of interest, e.g.: \code{function(df) mean(df$dn)}.
+The input passed to \code{fun} is a \strong{subset of rows of \code{sampling_points}},
+therefore, \code{fun} must extract and process the column(s) of interest, e.g.:
+\code{function(df) mean(df$dn)}.
 
 The angular neighborhood is defined by two parameters:
 \itemize{
 \item \code{k}: number of nearest neighbors used by \code{fun}.
-\item \code{angular_radius}: maximum allowed spherical distance (deg).
+\item \code{search_radius}: maximum allowed spherical distance (deg).
 }
 
 Argument \code{rule} controls how neighbor availability is interpreted:
 \itemize{
-\item \code{"any"}: all neighbors found within \code{angular_radius} are passed to \code{fun}
+\item \code{"any"}: all neighbors found within \code{search_radius} are passed to \code{fun}
 (even if fewer than \code{k}).
 \item \code{"all"}: if fewer than \code{k} neighbors lie within the radius, the query
 point is assigned \code{NA}.
 }
 }
+\note{
+This function assumes that \code{sky_points}, \code{query_points}, and \code{neighbors}
+share the same geometry. No checks are performed to enforce this.
+}
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
+m <- !is.na(z)
 
-# local thresholding
-sampling_points <- fibonacci_points(z, a, 3)
-display_caim(caim, sampling_points = sampling_points)
-sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
-head(sampling_points)
-eval_points <- apply_locally(
-  sampling_points,
-  fibonacci_points(z, a, 10),
-  z,
-  a,
-  k = 500,
-  angular_radius = 30,
-  rule = "any",
-  fun = function(df) thr_isodata(df$Blue)
-)
-
-thr <- triangulate(eval_points[!is.na(eval_points$out),], r, col_id = 3)
-plot(thr)
-plot(binarize_with_thr(r, thr))
-
-# Detect background DN
-sampling_points <- fibonacci_points(z, a, 2)
-sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
+# neighbors
+sampling_points <- fibonacci_points(z, a, 1)
 query_points <- fibonacci_points(z, a, 10)
-eval_points <- apply_locally(
-  sampling_points,
-  query_points,
-  z,
-  a,
-  k = 1000,
-  angular_radius = 40,
-  rule = "any",
-  fun = function(df) {
-    tryCatch(thr_twocorner(df[,3])$up, error = function(e) NA)
-  },
-  parallel = TRUE
-)
-i <- !is.na(eval_points$out)
+neighbors <- nn_spherical(sampling_points, query_points,
+                          k = nrow(sampling_points),
+                          search_radius = 30)
 
-sky <- triangulate(eval_points[i, ], r, col_id = 3)
+thr <- apply_by_direction(r, z, a, m)
+bin <- binarize_with_thr(r, thr$v1)
+plot(bin)
+
+# Inverse distance weighted interpolation ------------------------------
+
+## See fit_cie_model() for details on the CSV file
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+
+sky_points <- extract_dn(r, sky_points)
+sky_points <- add_directions(sky_points, z, a)
+
+query_points <- raster_grid_in_circle(z, a, 10)
+
+neighbors <- nn_spherical(sky_points, query_points,
+                          k = 10,
+                          search_radius = 20,
+                          rule = "any")
+
+eval_points <- apply_locally(
+  sky_points,
+  query_points,
+  neighbors,
+  fun = function(df, chi, ...) {
+    b_k <- df$Cyan
+    w_k <- 1 / chi^2
+    sum(w_k * b_k) / sum(w_k)
+  },
+  parallel = FALSE
+)
+
+head(eval_points)
+summary(eval_points)
+i <- !is.na(eval_points$output)
+sky <- interpolate_planar(eval_points[i,],  "output", r,
+                          k = 3,
+                          p = 2,
+                          search_radius = 20,
+                          rigorous = TRUE)
 plot(sky)
 plot(r/sky)
-
 }
 }
 \seealso{
-\code{\link[=skygrid_centers]{skygrid_centers()}} and \code{\link[=fibonacci_points]{fibonacci_points()}} for producing \code{query_points}.
+\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=fibonacci_points]{fibonacci_points()}}, and \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}} for
+producing \code{query_points}.
 }

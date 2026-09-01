@@ -25,7 +25,7 @@ A list with:
 }
 }
 \description{
-Validate CIE sky models fitted with \code{\link[=fit_cie_model]{fit_cie_model()}} (or \code{\link[=ootb_sky_cie]{ootb_sky_cie()}})
+Validate CIE sky models fitted with \code{\link[=fit_cie_model]{fit_cie_model()}}
 using k-fold cross-validation on relative radiance.
 }
 \details{

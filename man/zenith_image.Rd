@@ -2,30 +2,41 @@
 % Please edit documentation in R/zenith_image.R
 \name{zenith_image}
 \alias{zenith_image}
-\title{Build Zenith image}
+\title{Build zenith image}
 \usage{
-zenith_image(diameter, lens_coef)
+zenith_image(diameter, projection_coef)
 }
 \arguments{
-\item{diameter}{numeric vector of length one. Diameter in pixels expressed as
-an even integer. This places the zenith point between pixels. Snapping the
-zenith point between pixels does not affect accuracy because half-pixel
-is less than the uncertainty in localizing the circle within the
-picture.}
+\item{diameter}{numeric vector of length one. Diameter in pixels
+expressed as an even integer.}
 
-\item{lens_coef}{numeric vector. Polynomial coefficients of the lens
-projection function. See \code{\link[=lens]{lens()}}.}
+\item{projection_coef}{numeric vector. Polynomial coefficients defining
+the radial projection model evaluated in radians.}
 }
 \value{
-\link[terra:SpatRaster-class]{terra::SpatRaster} with zenith angles in
-degrees, showing a complete hemispherical view with the zenith at the
-center. The object carries attributes \code{lens_coef}.
+\link[terra:SpatRaster-class]{terra::SpatRaster} with zenith angles in degrees,
+representing a complete hemispherical view with the zenith at the
+center. The object carries attribute \code{projection_coef}.
 }
 \description{
-Build a single-layer image with zenith angle values, assuming upwards-looking
-hemispherical photography with the optical axis vertically aligned.
+Build a single-layer image with zenith angle values.
+}
+\details{
+This implementation assumes a radially symmetric projection model
+where the zenith corresponds to the center of a circular image
+and the horizon is represented by a circle at 90° zenith angle.
+
+The relative radius is the radial distance expressed as a fraction of the
+maximum radius (i.e., the horizon). The mapping between zenith angle and
+relative radius is defined by a polynomial model evaluated in radians (see
+\code{\link[=calc_relative_radius]{calc_relative_radius()}}).
+
+The equidistant projection model is the standard reference (see
+\link{equidistant_coef}). Real lenses deviate from ideal projections. Following
+\href{https://www.schleppi.ch/patrick/hemisfer/}{Hemisfer software}, deviations
+are modeled using polynomial functions fitted to angular values in radians.
 }
 \examples{
-z <- zenith_image(600, lens("Nikon_FCE9"))
+z <- zenith_image(600,equidistant_coef)
 plot(z)
 }

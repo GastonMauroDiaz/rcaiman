@@ -4,93 +4,104 @@
 #' Remove sky points considered outliers relative to their local
 #' neighbors in a user-specified variable.
 #'
-#' @param angular_radius numeric vector of length one. The maximum radius for
+#' @param sampling_points `data.frame` with columns `"row"`, `"col"`, `"zen"`,
+#'   `"azi"` (as in the output of [add_directions()]), and one additional
+#'   numeric column with values to evaluate, identified by `col_id`.
+#' @param col_id numeric or character vector of length one. The name or position
+#'   of the column in `sampling_points` containing the values to evaluate.
+#' @param search_radius numeric vector of length one. The maximum radius for
 #'   searching k-nearest neighbors (KNN) in degrees.
 #' @param detrend logical vector of length one. When `TRUE`, a detrending is
-#'   attempted with [fit_coneshaped_model()] with `method = zenith_n_azimuth`. If
+#'   attempted with [fit_cone_shaped_model()] with `method = zenith_n_azimuth`. If
 #'   this attempt fails, the function reverts to `detrend = FALSE` and searches
 #'   for outliers in the untransformed values. Detrending fails systematically
 #'   when `k < 20`.
 #'
-#' @inheritParams extract_cv
+#' @inheritParams calc_cv
 #' @inheritParams extract_dn
-#' @inheritParams skygrid_segmentation
+#' @inheritParams add_directions
 #' @inheritParams interpolate_spherical
 #' @inheritParams is_outlier
-#' @inheritParams apply_by_direction
+#' @inheritParams apply_locally
 #'
 #' @details
 #' Based on the Statistical Outlier Removal (SOR) filter from the
 #' [PCL library](https://pointclouds.org/). Distances are computed on a spherical
-#' surface. The number of neighbors is controlled by `k`, and `angular_radius`
+#' surface. The number of neighbors is controlled by `k`, and `search_radius`
 #' sets the maximum search radius (deg). If fewer than `k` neighbors are found
 #' within that radius, the point is retained due to insufficient evidence for
 #' removal. The decision criterion is from [is_outlier()].
 #'
-#' @note This function assumes that `sky_points` and the
-#' [terra::SpatRaster-class] objects refer to the same image geometry. No checks
-#' are performed.
-#'
-#' @return The retained points represented as a [data.frame] with columns `row`
-#'   and `col`, same as `sky_points`.
+#' @return The retained points represented as a [data.frame], same as
+#'   `sampling_points`.
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' gspec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' r <- caim$Blue
-#' z <- zenith_image(ncol(caim), lens())
+#' r <- caim$Cyan
+#' z <- zenith_image(ncol(r), gspec$parameters)
 #' a <- azimuth_image(z)
+#' rspec <- get_radiometry_spec(gspec, "simple_method")
+#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+#' r <- apply_flat_field(r, ff)
 #' m <- !is.na(z)
-#' bin <- binarize_by_region(r, ring_segmentation(z, 30),
-#'                           method = "thr_isodata")
-#' bin <- bin & select_sky_region(z, 0, 80)
-#' seg <- equalarea_segmentation(z, a, 1000)
-#' sky_points <- sample_sky_points(r, bin, seg,
-#'                                 dist_to_black = 3)
+#'
+#' # See fit_cie_model() for details on the CSV file
+#' path <- system.file("external/sky_points.csv",
+#'                     package = "rcaiman")
+#' sky_points <- read.csv(path)
+#' sky_points <- sky_points[c("Y", "X")]
+#' colnames(sky_points) <- c("row", "col")
+#' head(sky_points)
+#'
 #' plot(r)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' sky_points2 <- rem_outliers(sky_points, r, z, a,
-#'                             k = 20,
-#'                             angular_radius = 30,
-#'                             laxity = 2,
-#'                             cutoff_side = "left",
-#'                             detrend = TRUE)
-#' points(sky_points2$col, nrow(caim) - sky_points2$row, col = 3, pch = 0)
+#' sky_points <- extract_dn(r, sky_points)
+#' sky_points <- add_directions(sky_points, z, a)
+#'
+#' foo <- rem_outliers(sky_points, col_id = 5, k = 5, laxity = 2)
+#'
+#' plot(r)
+#' points(sky_points$col, nrow(z) - sky_points$row, col = 2, pch = 20, cex = 1)
+#' points(foo$col, nrow(z) - foo$row, col = 5, pch = 0)
 #' }
-rem_outliers <- function(sky_points, r, z, a,
+rem_outliers <- function(sampling_points,
+                         col_id,
                          k = 20,
-                         angular_radius = 20,
+                         search_radius = 20,
                          laxity = 2,
                          cutoff_side = "both",
-                         use_window = TRUE,
                          detrend = FALSE,
                          parallel = FALSE,
                          cores = NULL,
                          logical = TRUE,
                          leave_free = 1) {
 
-  .check_sky_points(sky_points)
-  .check_r_z_a_m(r, z, a, r_type = "single")
+  col_id <- .resolve_required_column(col_id, sampling_points)
+  .check_columns(sampling_points,
+                 required_columns = c("col", "row", "zen", "azi", col_id),
+                 reserved_columns = NULL)
+  .check_vector(k, "integerish", 1)
   if (k < 3) stop("`k` must be at least 3.")
-  .check_vector(use_window, "logical", 1)
   .check_vector(detrend, "logical")
 
-  sky_points <- extract_dn(c(z, a, r), sky_points, use_window = use_window)
-  names(sky_points)[3:5] <- c("z", "a", "rr")
-
-  .fn <- function(selected_points) {
+  .fn <- function(selected_points, ...) {
     .regular <- function(selected_points) {
-      list(the_point_dn = selected_points[1, "rr"],
-           dns = selected_points[-1, "rr"])
+      list(the_point_dn = selected_points[1, col_id],
+           dns = selected_points[-1, col_id])
     }
     .detrend <- function(selected_points) {
       the_point <- selected_points[1, ]
       selected_points <- selected_points[-1, ]
-      model <- fit_coneshaped_model(selected_points, method = "zenith_n_azimuth")
-      the_point_dn <- the_point[, "rr"] - model$fun(the_point$z, the_point$a)
+      model <- fit_cone_shaped_model(selected_points, method = "zenith_n_azimuth")
+      the_point_dn <- the_point[, col_id] - model$fun(the_point$zen, the_point$azi)
       dns <- stats::residuals(model$model)
       list(the_point_dn = the_point_dn, dns = dns)
     }
@@ -102,15 +113,19 @@ rem_outliers <- function(sky_points, r, z, a,
     !is_outlier(l$the_point_dn, l$dns, laxity = laxity, cutoff_side = cutoff_side)
   }
 
-  .fn(sky_points)
-
-  i <- apply_locally(sky_points, NULL, z, a, k, angular_radius,
-                             rule = "all", fun = .fn,
-                             parallel = parallel,
-                             cores = cores,
-                             logical = logical,
-                             leave_free = leave_free)
+  neighbors <- nn_spherical(sampling_points, sampling_points,
+                            k = k,
+                            search_radius = search_radius,
+                            rule = "all")
+  i <- apply_locally(sampling_points,
+                     sampling_points,
+                     neighbors,
+                     fun = .fn,
+                     parallel = parallel,
+                     cores = cores,
+                     logical = logical,
+                     leave_free = leave_free)
   i <- i$output
   i[is.na(i)] <- TRUE
-  sky_points[i, c("row", "col") ]
+  sampling_points[i, ]
 }

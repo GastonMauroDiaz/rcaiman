@@ -5,44 +5,73 @@
 \title{Interpolate in planar space}
 \usage{
 interpolate_planar(
-  sky_points,
+  sampling_points,
+  col_id = "dn",
   r,
   k = 3,
   p = 2,
-  rmax = 200,
-  col_id = "dn",
+  search_radius = 200,
   rigorous = FALSE,
-  engine = "lidR"
+  engine = "cpp",
+  parallel = TRUE,
+  cores = NULL,
+  logical = TRUE,
+  leave_free = 0
 )
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{row}, \code{col}, and one additional
+\item{sampling_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, and one additional
 numeric column with values to interpolate. Typically returned by
-\code{\link[=extract_rr]{extract_rr()}} or \code{\link[=extract_dn]{extract_dn()}}.}
-
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
-\code{sky_points} were derived, or another raster with the same number of rows
-and columns. Used only as geometric template; cell values are ignored.}
-
-\item{k, p, rmax}{numeric vector of length one. Parameters passed to
-\code{\link[lidR:dtm_idw]{lidR::knnidw()}}: number of neighbors (\code{k}), inverse distance weighting
-exponent (\code{p}), and maximum search radius (\code{rmax}) in units of the output
-resolution.}
+\code{\link[=extract_dn]{extract_dn()}}.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sky_points} containing the values to interpolate.}
+of the column in \code{sampling_points} containing the values to interpolate.}
+
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
+\code{sampling_points} were derived, or another raster with the same number of rows
+and columns. Used only as geometric template; cell values are ignored.}
+
+\item{k}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of nearest neighbors to retrieve.}
+
+\item{p}{numeric vector of length one. Inverse distance weighting exponent.}
+
+\item{search_radius}{numeric vector of length one. Maximum distance (pixels) to
+include neighbors.}
 
 \item{rigorous}{logical vector of length one. By default (\code{FALSE}), the
 method interpolates as long as there is at least one point not farther than
-\code{rmax}. If it is \code{TRUE}, it requires \code{k} points at range. Ignored when
-\code{engine = "lidR"}.}
+\code{search_radius}. If it is \code{TRUE}, it requires \code{k} points at range.}
 
-\item{engine}{character vector of length one. Interpolation engine to be used.
-Allowed choises are "lidR", in which case delegates to \code{\link[lidR:dtm_idw]{lidR::knnidw()}},
-passing \code{k}, \code{p}, and \code{rmax} unchanged, or "terra", which delegates to
-\code{\link[terra:interpIDW]{terra::interpIDW()}}, passing \code{k}, \code{p}, and \code{rmax} to \code{maxPoints}, \code{power},
-and \code{radius}, respectively, and when \code{rigorous = TRUE}, changes from
-\code{minPoints = 1} (default) to \code{minPoints = k}.}
+\item{engine}{character vector of length one. Interpolation engine to be
+used. Allowed choises are \code{"cpp"} (default), an in-package C++ implementation,
+or \code{"terra"}, which delegates to \code{\link[terra:interpIDW]{terra::interpIDW()}}, passing \code{k}, \code{p},
+and \code{search_radius} to \code{maxPoints}, \code{power}, and \code{radius}, respectively,
+and when \code{rigorous = TRUE}, changes from \code{minPoints = 1} (default) to
+\code{minPoints = k}. When \code{"terra"} is used, arguments \code{parallel}, \code{cores},
+\code{logical} and \code{leave_free} are ignored. The effective search neighborhood
+differs slightly from engines, likely due to continuous vs rasterized
+distance evaluation.}
+
+\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
+executed in parallel.}
+
+\item{cores}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to use when
+\code{parallel = TRUE}. If \code{NULL}, the function uses all available
+cores detected internally. Values greater than the number of available
+cores are silently reduced to the maximum allowed. If the resulting number
+of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+
+\item{logical}{logical vector of length one. Internally it is passed unchanged
+to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
+\code{parallel = FALSE}.}
+
+\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to leave
+free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
+greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
+\code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
 Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same geometry
@@ -54,34 +83,57 @@ Interpolate values from canopy photographs using inverse distance weighting
 A radius limits neighbor search.
 }
 \details{
-Defaults follow \insertCite{Lang2013;textual}{rcaiman}. Note that \code{rmax} is
-given in pixels but intended to approximate 15–20 deg in angular terms.
-Therefore, this value needs fine-tuning based on image resolution and lens
-projection. For best results, the interpolated quantity should be linearly
-related to scene radiance; see \code{\link[=extract_radiometry]{extract_radiometry()}} and \code{\link[=read_caim_raw]{read_caim_raw()}}.
-For JPEG images, consider \code{\link[=invert_gamma_correction]{invert_gamma_correction()}} to reverse gamma
-encoding.
+Defaults follow \insertCite{Lang2013;textual}{rcaiman}. Note that
+\code{search_radius} is given in pixels but intended to approximate 15–20 deg in
+angular terms. Therefore, this value needs fine-tuning based on image
+resolution and radial projection. The proper workflow requires geometric
+standarization with \code{\link[=reproject_image]{reproject_image()}} and \link{equidistant_coef}. For best
+results, the interpolated quantity should be linearly related to scene
+radiance--; for JPEG images, consider
+\code{\link[=invert_gamma_correction]{invert_gamma_correction()}}.
 }
 \note{
-No consistency checks are performed to ensure that \code{sky_points} and \code{r}
+Interpolation is performed in the image plane assuming Euclidean
+geometry. When input points represent directions on the hemisphere,results
+depend on the projection used to map angles to the plane. Thus, for
+hemispherical data, the use of an equisolid-angle projection (see
+\link{equal_area_coef}) is recommended.
+
+When interpolation is carried out using a dense set of points, errors
+introduced by planar interpolation are expected to be negligible, i.e.,
+increasing point density should not change the interpolated surface in a
+meaninful way.
+
+No consistency checks are performed to ensure that \code{sampling_points} and \code{r}
 are geometrically compatible. Incorrect combinations may lead to invalid
 outputs.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
 m <- !is.na(z)
-r <- caim$Blue
 
-bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
-  select_sky_region(z, 0, 88)
+# See fit_cie_model() for details on the CSV file
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
 
-g <- skygrid_segmentation(z, a, 10)
-sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
-plot(bin)
+plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+
 sky_points <- extract_dn(r, sky_points)
 
 sky <- interpolate_planar(sky_points, r, col_id = 3)
@@ -91,4 +143,7 @@ plot(r/sky)
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=panoramic]{panoramic()}} for an alternative pipeline involving a temporary shift of image plane
 }

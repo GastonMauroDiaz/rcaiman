@@ -7,11 +7,10 @@
 extract_dn(r, sampling_points, use_window = TRUE)
 }
 \arguments{
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
-sampled (or any raster with identical dimensions).}
+\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
 
-\item{sampling_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates).}
+\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
+\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
 digital number at each point is the average of the values extracted
@@ -28,9 +27,7 @@ Obtain digital numbers from a raster at positions defined by points, with
 optional local averaging.
 }
 \details{
-Wraps \code{\link[terra:extract]{terra::extract()}} to support a \eqn{3 \times 3} window
-centered on each target pixel (local mean). When it is disabled, only the
-central pixel value is retrieved.
+Wraps \code{\link[terra:extract]{terra::extract()}}.
 }
 \note{
 For instructions on manually digitizing points, see the “Digitizing
@@ -39,26 +36,12 @@ sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+z <- zenith_image(100, equidistant_coef)
 a <- azimuth_image(z)
-
-# See fit_cie_model() for details on below file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-plot(caim$Blue)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky_points <- extract_dn(caim, sky_points)
-head(sky_points)
-
-# To aggregate DNs across points (excluding 'row' and 'col'):
-apply(sky_points[, -(1:2)], 2, mean, na.rm = TRUE)
+pts <- fibonacci_points(z, a, 30)
+display_caim(is.na(z), sampling_points = pts)
+plot(is.na(z))
+points(pts$col, nrow(z) - pts$row, col = 3, pch = 4)
 }
 }
 \seealso{

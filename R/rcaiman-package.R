@@ -2,16 +2,16 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @importFrom Rcpp sourceCpp
+#' @useDynLib rcaiman, .registration = TRUE
 ## usethis namespace: end
 NULL
 
 #' @import methods
 #' @import terra
-#' @import filenamer
 #' @importFrom magrittr %>%
 #' @importFrom magrittr subtract
 #' @importFrom stats lm poly coefficients IQR sd splinefun
-#' @importClassesFrom lidR LAS
 #' @importFrom foreach %dopar%
 #' @importFrom foreach foreach
 #' @importFrom graphics abline par segments

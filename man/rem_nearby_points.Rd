@@ -2,82 +2,75 @@
 % Please edit documentation in R/rem_nearby_points.R
 \name{rem_nearby_points}
 \alias{rem_nearby_points}
-\title{Remove nearby sky points}
+\title{Remove nearby sampling points}
 \usage{
 rem_nearby_points(
-  sky_points,
-  r = NULL,
-  z = NULL,
-  a = NULL,
+  sampling_points,
   min_dist = 3,
-  space = "planar",
-  use_window = TRUE
+  col_id = NULL,
+  prioritize = NULL,
+  space = "planar"
 )
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates).}
-
-\item{r}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} or \code{NULL}. Optional ranking
-raster used to prioritize retention (higher values kept first).}
-
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{sampling_points}{\code{data.frame} with  least columns \code{"row"} and \code{"col"}. If
+\code{space = "spherical"}, it must also contain \code{"zen"} and \code{"azi"} (see
+\code{\link[=add_directions]{add_directions()}}).}
 
 \item{min_dist}{numeric vector of length one. Minimum allowed distance
 between retained points. Units: pixels for \code{"planar"}, deg for \code{"spherical"}.}
 
+\item{col_id}{numeric or character vector of length one or \code{NULL}. The name
+or position of the column in \code{sampling_points} containing the optional
+ranking value used to prioritize retention (higher values kept first).}
+
+\item{prioritize}{character vector of length one. Either \code{"higher"} or \code{"lower"}.
+criteria used to prioritize retention. Ignored when \code{col_id = NULL}.}
+
 \item{space}{character vector of length one. Coordinate system for distances:
 \code{"planar"} (default) or \code{"spherical"}.}
-
-\item{use_window}{logical vector of length one. If \code{TRUE} (default), the
-digital number at each point is the average of the values extracted
-from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
-pixel that includes the point. If \code{FALSE}, only the value of the central
-pixel is retrieved.}
 }
 \value{
-A \code{data.frame} with columns \code{row} and \code{col} for retained points.
+The retained points represented as a \link{data.frame}, same as
+\code{sampling_points}.
 }
 \description{
 Select a subset of points so that no retained pair is closer than \code{min_dist}
 in planar or spherical space.
 }
 \details{
-When \code{space = "planar"}, distances are computed in image coordinates and \code{z}
-and \code{a} are ignored. When \code{space = "spherical"}, distances are angular (deg)
-in hemispherical coordinates. If \code{r} is provided, points are ranked by the
-extracted raster values and retained in descending order.
+When \code{space = "planar"}, distances are computed in image coordinates and
+directions (see \code{\link[=add_directions]{add_directions()}}) are not required. When \code{space = "spherical"}, distances are computed as in \code{\link[=nn_spherical]{nn_spherical()}}. If \code{col_id} is
+provided, points are ranked by it and retained in descending order.
 }
 \note{
-It is assumed that \code{sky_points} were extracted from an image with the same
-dimensions as the \code{r}, \code{z}, and \code{a} rasters. No checks are performed.
+It is assumed that \code{sampling_points} were extracted from an image with the same
+dimensions as the \code{z} and \code{a} rasters. No checks are performed.
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+z <- zenith_image(1000, orthographic_coef)
 a <- azimuth_image(z)
-bin <- binarize_by_region(r, ring_segmentation(z, 30),
-                          method = "thr_isodata")
-bin <- bin & select_sky_region(z, 0, 80)
-g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
-sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
+sampling_points <- raster_grid_in_circle(z, a, 10)
+foo <- rem_nearby_points(sampling_points, min_dist = 20, space = "spherical")
 
-# planar
-sky_points_p <- rem_nearby_points(sky_points, r, min_dist = 100,
-                                        space = "planar")
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-points(sky_points_p$col, nrow(caim) - sky_points_p$row, col = 3, pch = 0)
+plot(!is.na(z))
+points(sampling_points$col, nrow(z) - sampling_points$row, col = 2, pch = 20, cex = 0.1)
+points(foo$col, nrow(z) - foo$row, col = 1, pch = 0)
 
-# spherical
-sky_points_s <- rem_nearby_points(sky_points, r, z, a, min_dist = 30,
-                                        space = "spherical")
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-points(sky_points_s$col, nrow(caim) - sky_points_s$row, col = 3, pch = 0)
+foo <- rem_nearby_points(sampling_points, min_dist = 100, space = "planar")
+
+plot(!is.na(z))
+points(sampling_points$col, nrow(z) - sampling_points$row, col = 2, pch = 20, cex = 0.1)
+points(foo$col, nrow(z) - foo$row, col = 1, pch = 0)
+
+r <- cie_image(z, a, c(zen_deg = 45, azi_deg = 45), as.numeric(cie_table[12, 1:5]))
+sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
+head(sampling_points)
+
+foo <- rem_nearby_points(sampling_points, min_dist = 100, space = "planar",
+                         col_id = 5, prioritize = "higher")
+
+points(foo$col, nrow(z) - foo$row, col = 1, pch = 5)
 }
 }

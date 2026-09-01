@@ -23,10 +23,10 @@ project folder (e.g., \code{"C:/Users/johndoe/Documents/HSP/projects/my_prj/"}).
 \item{img_name}{character vector of length one (e.g., \code{"DSCN6342.pgm"} or
 \code{"DSCN6342"}). See \emph{About HSP software}.}
 
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col}.}
+\item{sky_points}{\code{data.frame} with columns \code{"row"} and \code{"col"}.}
 
-\item{sun_row_col}{numeric vector of length two. Raster coordinates (row,
-column) of the solar disk.}
+\item{sun_row_col}{numeric vector of length two. Continuous image coordinates
+(see \code{\link[=xy_from_col_row]{xy_from_col_row()}}) of the solar disk.}
 }
 \value{
 See \emph{Functions}
@@ -72,47 +72,53 @@ coordinates compatible with HSP; creates a file on disk.}
 
 # From HSP to R in order to compare ---------------------------------------
 r <- read_caim("manipulate/IMG_1013.pgm")
-z <- zenith_image(ncol(r), lens())
+z <- zenith_image(ncol(r), equidistant_coef)
 a <- azimuth_image(z)
 manual_input <- read_manual_input(".", "IMG_1013")
 sun_row_col <- manual_input$sun_row_col
-sun_angles <- zenith_azimuth_from_row_col(
+sun_angles <- zen_azi_from_row_col(
   z, a,
   sun_row_col[1],
   sun_row_col[2]
 )
-sun_angles <- as.vector(sun_angles)
+sun_angles <- as.vector(sun_angles) * 180/pi
+names(sun_angles) <- c("zen_deg", "azi_deg")
 
 sky_points <- manual_input$sky_points
-rr <- extract_rr(r, z, a, sky_points)
+sky_points <- extract_dn(r, sky_points)
+sky_poinst <- add_directions(sky_points, z, a)
+
+rr <- calc_relative_radiance(sky_points, cold_id = 3, zenith_dn = manual_input$zenith_dn)
 model <- fit_cie_model(rr, sun_angles)
 sky <- cie_image(
   z, a,
   model$sun_angles,
   model$coef
 ) * model$rr$zenith_dn
+names(sky) <- "DN"
 plot(r / sky)
 
 r <- read_caim("manipulate/IMG_1013.pgm")
 sky_coef <- read_opt_sky_coef(".", "IMG_1013")
 sky_m <- cie_image(z, a, sun_angles, sky_coef)
 sky_m <- cie_sky_manual * manual_input$zenith_dn
+names(sky_m) <- "DN"
 plot(r / sky_m)
 
 # From R to HSP  ----------------------------------------------------------
 r <- read_caim("manipulate/IMG_1014.pgm")
-z <- zenith_image(ncol(r), lens())
+z <- zenith_image(ncol(r), equidistant_coef)
 a <- azimuth_image(z)
 m <- !is.na(z)
-g <- skygrid_segmentation(z, a, 10)
-bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+g <- sky_grid_segmentation(z, a, 10)
+bin <- binarize_with_thr(r, thr_isodata(r[m]))
 bin <- select_sky_region(z, 0, 85) & bin
 
 sun_angles <- estimate_sun_angles(r, z, a, bin, g)
-sun_row_col <- row_col_from_zenith_azimuth(
+sun_row_col <- row_col_from_zen_azi(
   z, a,
-  sun_angles["z"],
-  sun_angles["a"]
+  sun_angles["zen_deg"] * pi/180,
+  sun_angles["azi_deg"] * pi/180
 ) \%>\% as.numeric()
 write_sun_coord(sun_row_col, ".", "IMG_1014")
 

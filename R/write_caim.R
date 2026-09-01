@@ -7,8 +7,16 @@
 #' @details
 #' Adds the `.tif` extension to `path` if missing. The CRS is set to EPSG:7589
 #' and the extent to `[0, ncol] × [0, nrow]` in pixel units
-#' ([set_rcaiman_geometry()]). Data are written as `INT1U` when `bit_depth = 8`
+#' (see [set_rcaiman_geometry()]). Data are written as `INT1U` when `bit_depth = 8`
 #' and `INT2U` when `bit_depth = 16`.
+#'
+#' Files produced by this function follow the standard rcaiman file conventions.
+#' These conventions enable seamless integration with
+#' [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects).
+#'
+#' @note
+#' File extensions are interpreted using [tools::file_ext()]. If `path` has no
+#' extension, the default extension `"tif"` is appended automatically.
 #'
 #' @param caim [terra::SpatRaster-class].
 #' @param path character vector of length one. Destination file path (extension
@@ -21,11 +29,12 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim() %>% normalize_minmax(0, 255)
-#' write_caim(caim * (2^8 - 1),  file.path(tempdir(), "test_8bit"),  8)
-#' write_caim(caim * (2^16 - 1), file.path(tempdir(), "test_16bit"), 16)
-#' # Note: values are scaled by (2^bit_depth - 1) to avoid the maximum bin,
-#' # which read_caim() might turn NA.
+#' caim <- read_caim()
+#' # The last bin must be keep unuse otherwise it is turned black
+#' caim <- normalize_min_max(caim) * (2^8 - 1)
+#' caim <- round(caim)
+#' caim
+#' write_caim(caim * 2^8,  file.path(tempdir(), "test_8bit"),  8)
 #' }
 write_caim <- function(caim, path, bit_depth) {
   .check_vector(path, "character", 1)
@@ -37,19 +46,19 @@ write_caim <- function(caim, path, bit_depth) {
   caim <- set_rcaiman_geometry(caim)
 
   file_name <- basename(path)
-  file_name <- .extension(file_name, "tif")
+  file_name <-  .assert_file_extension(file_name, "tif")
 
   if (bit_depth == 8) {
     suppressWarnings(
       terra::writeRaster(caim, file.path(dirname(path), file_name),
                          filetype = "GTiff", datatype = "INT1U",
-                         overwrite = TRUE)
+                         overwrite = TRUE, NAflag = 2^8)
     )
   } else {
     suppressWarnings(
       terra::writeRaster(caim, file.path(dirname(path), file_name),
                          filetype = "GTiff", datatype = "INT2U",
-                         overwrite = TRUE)
+                         overwrite = TRUE, NAflag = 2^16)
     )
   }
 }

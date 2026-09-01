@@ -24,13 +24,16 @@
 #'
 #' @examples
 #' \dontrun{
-#' r <- read_caim()
-#' bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
+#' require(rcaiman.registry)
+#' caim <- read_caim()
+#' r <- caim$Cyan
+#'
+#' bin <- binarize_with_thr(r, thr_isodata(r[]))
 #' plot(bin)
-#' bin <- grow_black(bin, 11)
-#' plot(bin)
+#' plot(grow_black(bin, 3))
 #' }
 grow_black <- function(bin, dist_to_black) {
+  stop("deberia eliminarla")
   .this_requires_EBImage()
   .assert_logical_mask(bin)
   .check_vector(dist_to_black, "integerish", 1, sign = "positive")

@@ -4,41 +4,48 @@
 \alias{calc_spherical_distance}
 \title{Calculate spherical distance}
 \usage{
-calc_spherical_distance(z1, a1, z2, a2)
+calc_spherical_distance(zen_1, azi_1, zen_2, azi_2)
 }
 \arguments{
-\item{z1}{numeric vector. Zenithal angle in radians.}
+\item{zen_1}{numeric vector. Zenithal angle in radians.}
 
-\item{a1}{numeric vector. Azimuthal angle in radians.}
+\item{azi_1}{numeric vector. Azimuthal angle in radians.}
 
-\item{z2}{numeric vector of length one. Zenithal angle in radians.}
+\item{zen_2}{numeric vector of length one. Zenithal angle in radians.}
 
-\item{a2}{numeric vector of length one. Azimuthal angle in radians.}
+\item{azi_2}{numeric vector of length one. Azimuthal angle in radians.}
 }
 \value{
-Numeric vector of the same length as \code{z1} and \code{a1}, containing the
-spherical distance (in radians) from each (\code{z1}, \code{a1}) point to the
-reference direction (\code{z2}, \code{a2}).
+Numeric vector of the same length as \code{zen_1} and \code{azi_1}, containing the
+spherical distance (radians) to (\code{zen_2}, \code{azi_2}).
 }
 \description{
-Computes the angular distance, in radians, between directions defined by
-zenith and azimuth angles on the unit sphere.
+Compute the angular distance between directions on the unit sphere from
+zenith and azimuth angles.
 }
 \details{
-This function calculates the angle between two directions
-originating from the center of a unit sphere, using spherical trigonometry.
-The result is commonly referred to as \emph{spherical distance} or \emph{angular
-distance}. These terms are interchangeable when the sphere has radius one, as
-is standard in many applications, including celestial coordinate systems and,
-by extension, canopy hemispherical photography.
+Use the spherical law of cosines to compute the angle \eqn{\gamma} between two
+directions \eqn{(z_1, a_1)} and \eqn{(z_2, a_2)}:
 
-Spherical distance corresponds to the arc length of the shortest path between
-two points on the surface of a sphere. When the radius is one, this arc
-length equals the angle itself, expressed in radians.
+\deqn{
+\gamma = \arccos\left(
+\cos z_1 \cos z_2 +
+\sin z_1 \sin z_2 \cos(a_2 - a_1)
+\right)
+}
+
+This formulation is mathematically equivalent to the dot-product-based
+approach used internally in other functions (see \code{\link[=nn_spherical]{nn_spherical()}}), where
+directions are first mapped to unit Cartesian vectors and distances are
+computed as the arc-cosine of the dot-product.
+
+This function is kept for clarity and transparency, as it directly expresses
+the spherical geometry. Internally, more efficient implementations may be
+used without changing the underlying distance definition.
 }
 \examples{
 set.seed(1)
-z1 <- rnorm(10, 45, 20) * pi/180
-a1 <- rnorm(10, 180, 90) * pi/180
-calc_spherical_distance(z1, a1, 0, 0)
+zen_1 <- rnorm(10, 45, 20) * pi/180
+azi_1 <- rnorm(10, 180, 90) * pi/180
+calc_spherical_distance(zen_1, azi_1, 0, 0)
 }

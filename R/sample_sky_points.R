@@ -10,9 +10,8 @@
 #'     as the brightest pixel marked `TRUE` in `bin`, provided the cell’s white
 #'     pixel count exceeds one fourth of the mean across valid cells.}
 #'   \item{`"local_max"`}{detect local maxima within a fixed \eqn{9 \times 9}
-#'     window, restricted to pixels marked `TRUE` in `bin`, after removing
-#'     patches of connected `TRUE` pixels that are implausible based on fixed
-#'     area/size thresholds. Each detected maximum is taken as a sky point.
+#'     window, restricted to pixels marked `TRUE` in `bin`. Each detected
+#'     maximum is taken as a sky point.
 #'     }
 #' }
 #' Use `"per_cell"` to promote an even, representative spatial distribution (good
@@ -24,7 +23,7 @@
 #'   `TRUE` marks candidate sky pixels. Typically the output of
 #'   [binarize_with_thr()].
 #' @param seg single-layer [terra::SpatRaster-class]. Segmentation map of r,
-#'   typically created with functions such as [equalarea_segmentation()], [skygrid_segmentation()],
+#'   typically created with functions such as [equal_area_segmentation()], [sky_grid_segmentation()],
 #'   [ring_segmentation()] or [sector_segmentation()], but any raster with
 #'   integer segment labels is accepted. Ignored when `method = "local_max"`.
 #' @param dist_to_black numeric vector of length one or `NULL`. Minimum distance
@@ -39,24 +38,36 @@
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
+#' r <- caim$Cyan
+#' z <- zenith_image(ncol(r), spec$parameters)
 #' a <- azimuth_image(z)
-#' r <- caim$Blue
+#' rspec <- get_radiometry_spec(spec, "simple_method")
+#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+#' r <- apply_flat_field(r, ff)
+#' m <- !is.na(z)
 #'
-#' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
-#'   select_sky_region(z, 0, 88)
+#' thr <- apply_by_direction(r, z, a, m)
+#' bin <- binarize_with_thr(r, thr$v1)
+#' plot(bin)
 #'
-#' seg <- skygrid_segmentation(z, a, 10)
-#' sky_points <- sample_sky_points(r, bin, seg,
-#'                                  dist_to_black = 3)
+#' seg <- equal_area_segmentation(z, a, 1000)
+#' sky_points <- sample_sky_points(r, bin, seg, dist_to_black = 3)
+#' plot(bin)
+#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+#'
+#' sky_points <- sample_sky_points(r, bin, seg, method = "local_max")
 #' plot(bin)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #' }
 sample_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell") {
   .this_requires_EBImage()
 
-  .assert_single_layer(r)
+  .assert_single_layer(r, allow_na = FALSE)
   .assert_logical_mask(bin)
   .assert_same_geom(r, bin)
   .check_vector(dist_to_black, "integerish", 1, allow_null = TRUE, sign = "positive")
@@ -73,9 +84,9 @@ sample_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell
 
     # per-cell approach
     ## remove cells with not enough white pixels
-    nwp <- extract_feature(bin, seg, sum, return = "vector")
+    nwp <- compute_mean(bin, seg, sum, return = "vector")
     mean_nwp <- mean(nwp[nwp != 0])
-    nwp <- extract_feature(bin, seg, sum, return = "raster")
+    nwp <- compute_mean(bin, seg, sum, return = "raster")
     nwp <- nwp > mean_nwp/4
     seg[!nwp] <- 0
 
@@ -100,18 +111,6 @@ sample_sky_points <- function(r, bin, seg, dist_to_black = 3, method = "per_cell
 
   } else {
     # local-maximum approach
-
-    bwlabels <- EBImage::bwlabel(as.array(bin))
-    shape <- EBImage::computeFeatures.shape(bwlabels)
-    bwlabels <- terra::setValues(bin, bwlabels)
-    shape <- terra::subst(bwlabels, 1:nrow(shape), shape)
-
-    ## Remove large gaps and artifacts
-    shape[shape$s.area > 200 | shape$s.area == 0] <- NA
-
-    ## Use effective circular area (ECA)
-    eca <- shape$s.area / (shape$s.radius.sd + 1)
-    bin[eca < 9] <- 0
 
     ## find local maximum
     lmax <- terra::focal(r*bin, 9, "max")

@@ -1,8 +1,8 @@
 #' Binarize with known thresholds
 #'
 #' @description
-#' Apply a threshold or a raster of thresholds to a grayscale image, producing a
-#' binary image.
+#' Apply a threshold values or a raster with threshold values to a grayscale
+#' image, producing a binary image.
 #'
 #' @details
 #' This function supports both global and pixel-wise thresholding. It is a
@@ -12,11 +12,11 @@
 #' is performed, where each pixel is compared to its corresponding threshold
 #' value.
 #'
-#' This is useful after estimating thresholds using [thr_twocorner()],
+#' This is useful after estimating thresholds using [thr_two_corner()],
 #' [thr_isodata()], or
 #' `apply_by_direction(method = "thr_isodata")`, among other posibilities.
 #'
-#' @param r numeric [terra::SpatRaster-class] with one layer.
+#' @param r numeric [terra::SpatRaster-class] of one layer.
 #' @param thr either a numeric vector of length one (for global thresholding) or
 #'   a numeric [terra::SpatRaster-class] with one layer (for local thresholding).
 #'
@@ -31,15 +31,15 @@
 #'
 #' @examples
 #' r <- read_caim()
-#' bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
+#' r <- r$Cyan
+#' bin <- binarize_with_thr(r, thr_isodata(r[]))
 #' plot(bin)
 #'
 #' \dontrun{
 #' # This function is also compatible with thresholds estimated using
 #' # the 'autothresholdr' package:
 #' require(autothresholdr)
-#' r <- r$Blue
-#' r <- normalize_minmax(r) %>% multiply_by(255) %>% round()
+#' r <- normalize_min_max(r) %>% multiply_by(255) %>% round()
 #' thr <- auto_thresh(r[], "IsoData")[1]
 #' bin <- binarize_with_thr(r, thr)
 #' plot(bin)

@@ -5,15 +5,12 @@
 \title{Remove statistical outliers in sky points}
 \usage{
 rem_outliers(
-  sky_points,
-  r,
-  z,
-  a,
+  sampling_points,
+  col_id,
   k = 20,
-  angular_radius = 20,
+  search_radius = 20,
   laxity = 2,
   cutoff_side = "both",
-  use_window = TRUE,
   detrend = FALSE,
   parallel = FALSE,
   cores = NULL,
@@ -22,19 +19,17 @@ rem_outliers(
 )
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates).}
+\item{sampling_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, \code{"zen"},
+\code{"azi"} (as in the output of \code{\link[=add_directions]{add_directions()}}), and one additional
+numeric column with values to evaluate, identified by \code{col_id}.}
 
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Image from which the points were
-sampled (or any raster with identical dimensions).}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sampling_points} containing the values to evaluate.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{k}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of nearest neighbors to retrieve.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{k}{numeric vector of length one. Number of neighbors.}
-
-\item{angular_radius}{numeric vector of length one. The maximum radius for
+\item{search_radius}{numeric vector of length one. The maximum radius for
 searching k-nearest neighbors (KNN) in degrees.}
 
 \item{laxity}{numeric vector of length one. Positive multiplier applied to
@@ -43,14 +38,8 @@ MAD to set classification thresholds. Default is \code{2}.}
 \item{cutoff_side}{character vector of length one. One of \code{"both"},
 \code{"left"}, or \code{"right"}. Default is \code{"both"}.}
 
-\item{use_window}{logical vector of length one. If \code{TRUE} (default), the
-digital number at each point is the average of the values extracted
-from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
-pixel that includes the point. If \code{FALSE}, only the value of the central
-pixel is retrieved.}
-
 \item{detrend}{logical vector of length one. When \code{TRUE}, a detrending is
-attempted with \code{\link[=fit_coneshaped_model]{fit_coneshaped_model()}} with \code{method = zenith_n_azimuth}. If
+attempted with \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}} with \code{method = zenith_n_azimuth}. If
 this attempt fails, the function reverts to \code{detrend = FALSE} and searches
 for outliers in the untransformed values. Detrending fails systematically
 when \code{k < 20}.}
@@ -58,7 +47,8 @@ when \code{k < 20}.}
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
 
-\item{cores}{numeric vector of length one. Number of CPU cores to use when
+\item{cores}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to use when
 \code{parallel = TRUE}. If \code{NULL}, the function uses all available
 cores detected internally. Values greater than the number of available
 cores are silently reduced to the maximum allowed. If the resulting number
@@ -68,14 +58,15 @@ of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
 to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
 \code{parallel = FALSE}.}
 
-\item{leave_free}{numeric vector of length one. Number of CPU cores to leave
+\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
+integer. Number of CPU cores to leave
 free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
 greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
 \code{parallel} is silently set to \code{FALSE}.}
 }
 \value{
-The retained points represented as a \link{data.frame} with columns \code{row}
-and \code{col}, same as \code{sky_points}.
+The retained points represented as a \link{data.frame}, same as
+\code{sampling_points}.
 }
 \description{
 Remove sky points considered outliers relative to their local
@@ -84,38 +75,44 @@ neighbors in a user-specified variable.
 \details{
 Based on the Statistical Outlier Removal (SOR) filter from the
 \href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
-surface. The number of neighbors is controlled by \code{k}, and \code{angular_radius}
+surface. The number of neighbors is controlled by \code{k}, and \code{search_radius}
 sets the maximum search radius (deg). If fewer than \code{k} neighbors are found
 within that radius, the point is retained due to insufficient evidence for
 removal. The decision criterion is from \code{\link[=is_outlier]{is_outlier()}}.
 }
-\note{
-This function assumes that \code{sky_points} and the
-\link[terra:SpatRaster-class]{terra::SpatRaster} objects refer to the same image geometry. No checks
-are performed.
-}
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+gspec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), gspec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(gspec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
 m <- !is.na(z)
-bin <- binarize_by_region(r, ring_segmentation(z, 30),
-                          method = "thr_isodata")
-bin <- bin & select_sky_region(z, 0, 80)
-seg <- equalarea_segmentation(z, a, 1000)
-sky_points <- sample_sky_points(r, bin, seg,
-                                dist_to_black = 3)
+
+# See fit_cie_model() for details on the CSV file
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
+
 plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-sky_points2 <- rem_outliers(sky_points, r, z, a,
-                            k = 20,
-                            angular_radius = 30,
-                            laxity = 2,
-                            cutoff_side = "left",
-                            detrend = TRUE)
-points(sky_points2$col, nrow(caim) - sky_points2$row, col = 3, pch = 0)
+sky_points <- extract_dn(r, sky_points)
+sky_points <- add_directions(sky_points, z, a)
+
+foo <- rem_outliers(sky_points, col_id = 5, k = 5, laxity = 2)
+
+plot(r)
+points(sky_points$col, nrow(z) - sky_points$row, col = 2, pch = 20, cex = 1)
+points(foo$col, nrow(z) - foo$row, col = 5, pch = 0)
 }
 }

@@ -10,7 +10,7 @@ estimate_sun_angles(
   a,
   bin,
   seg,
-  angular_radius_sun = 30,
+  circumsolar_angle = 30,
   mode = "obscured"
 )
 }
@@ -27,15 +27,15 @@ band of a canopy image.}
 \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
 \item{seg}{Segmentation map of r, typically created with functions such as
-\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
+\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}, \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
 or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
 accepted.}
 
-\item{angular_radius_sun}{numeric vector of length one. Maximum angular
+\item{circumsolar_angle}{numeric vector of length one. Maximum angular
 radius (in degrees) used to define the circumsolar region.}
 
 \item{mode}{character vector of length one. Estimation mode:
-\code{"obscured"} (default) or \code{"veiled"}.}
+\code{"obscured"} (default) or \code{"veiled"}. See \emph{Details}.}
 }
 \value{
 Named numeric vector of length two, with names \code{z} and \code{a},
@@ -58,7 +58,8 @@ when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
 from radiometric and spatial cues aggregated over the circumsolar region.}
 }
 
-When \code{mode = "veiled"}, \code{seg} and \code{angular_radius_sun} are ignored.
+When \code{mode = "veiled"}, \code{seg} and \code{circumsolar_angle} are ignored.
+
 Estimates refer to positions above the horizon; therefore, estimated angles
 may require further manipulation if the photograph was acquired under
 crepuscular light.
@@ -69,26 +70,48 @@ under preparation.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
 m <- !is.na(z)
-r <- caim$Blue
 
-bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
-  select_sky_region(z, 0, 88)
+thr <- apply_by_direction(r, z, a, m)
+bin <- binarize_with_thr(r, thr$v1)
+plot(bin)
 
-seg <- skygrid_segmentation(z, a, 10)
+seg <- sky_grid_segmentation(z, a, 10)
 sun_angles <- estimate_sun_angles(r, z, a, bin, seg,
-                                  angular_radius_sun = 30)
-row_col <- row_col_from_zenith_azimuth(z, a,
-                                       sun_angles["z"],
-                                       sun_angles["a"])
-plot(caim$Blue)
+                                  circumsolar_angle = 30,
+                                  mode = "obscured")
+row_col <- row_col_from_zen_azi(z, a,
+                                sun_angles["zen_deg"] * pi/180,
+                                sun_angles["azi_deg"] * pi/180)
+plot(caim$Cyan)
+points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
+       pch = 8, cex = 3)
+
+
+sun_angles <- estimate_sun_angles(r, z, a, bin,
+                                  mode = "veiled")
+row_col <- row_col_from_zen_azi(z, a,
+                                sun_angles["zen_deg"] * pi/180,
+                                sun_angles["azi_deg"] * pi/180)
+plot(caim$Cyan)
 points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
        pch = 8, cex = 3)
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=optimize_sun_angles]{optimize_sun_angles()}}
 }

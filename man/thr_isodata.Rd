@@ -4,11 +4,14 @@
 \alias{thr_isodata}
 \title{Compute IsoData threshold}
 \usage{
-thr_isodata(x)
+thr_isodata(x, sample_size = 500)
 }
 \arguments{
 \item{x}{numeric vector or a single-column \code{matrix} or \code{data.frame} able to
-be coerced to numeric.}
+be coerced to numeric. It can contain \code{NA} values.}
+
+\item{sample_size}{optional numeric vector of length one. Must be positive and
+interpreted as integer.}
 }
 \value{
 Numeric vector of length one.
@@ -25,7 +28,7 @@ accepts numeric data over an arbitrary range. \code{NA} values are ignored.
 }
 \examples{
 caim <- read_caim()
-thr_isodata(caim$Blue[])
+thr_isodata(caim$Cyan[])
 }
 \references{
 \insertAllCited{}

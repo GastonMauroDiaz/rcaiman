@@ -4,67 +4,121 @@
 \alias{read_caim}
 \title{Read a canopy image from a file}
 \usage{
-read_caim(path = NULL, zenith_colrow = NULL, horizon_radius = NULL)
+read_caim(
+  path = NULL,
+  zenith_col_row = NULL,
+  horizon_radius = NULL,
+  fill_na = "max",
+  fill_value = NULL
+)
 }
 \arguments{
 \item{path}{character vector of length one.  Path to an image file, including
 extension. If \code{NULL}, an example image is returned.}
 
-\item{zenith_colrow}{numeric vector of length 2. Column and row coordinates
+\item{zenith_col_row}{numeric vector of length 2. Column and row coordinates
 of the optical center (zenith) in pixel units.}
 
 \item{horizon_radius}{integer-like numeric vector of length one. Radius of the
 hemispherical image in pixel units, measured from the optical center
-(\code{zenith_colrow}) to the image location corresponding to a zenith angle of
+(\code{zenith_col_row}) to the image location corresponding to a zenith angle of
 90 deg (i.e. the horizon). It must be an even integer (see
 \link{zenith_image}).}
+
+\item{fill_na}{character vector of length one. Method used to fill \code{NA}
+cells. Must be \code{"max"}, \code{"min"}, \code{"value"}, or \code{"none"}. Use \code{"max"} to
+fill with the image maximum, \code{"min"} to fill with the image minimum,
+\code{"value"} to fill with \code{fill_value}, and \code{"none"} to preserve \code{NA} values.}
+
+\item{fill_value}{numeric vector of length one. Value used to fill \code{NA}
+cells when \code{fill_na = "value"}.}
 }
 \value{
-Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}, typically with layers named
-\code{"Red"}, \code{"Green"}, and \code{"Blue"}. If the file extension does not correspond
-to typical JPEG or TIFF files, names will be inferred and a
-warning will be issued.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with layers named
+\code{"Red"}, \code{"Green"}, and \code{"Blue"} if an image of three layers is read.
 }
 \description{
-Reads a born-digital image (typically RGB-JPEG or RGB-TIFF) using
+Reads a digital image (typically RGB-JPEG or RGB-TIFF) using
 \code{\link[terra:rast]{terra::rast()}} and returns a \link[terra:SpatRaster-class]{terra::SpatRaster} object.
 }
 \details{
 Internally, this is a wrapper around \code{\link[terra:rast]{terra::rast()}}, so support for image
 formats depends on the capabilities of the \code{terra} package.
-
-This function is intended for importing color hemispherical photographs, such
-as those obtained with digital cameras equipped with fisheye lenses. For raw
-image files (e.g., NEF, CR2), see \code{\link[=read_caim_raw]{read_caim_raw()}}. A typical workflow makes
-use of \code{\link[=read_caim_raw]{read_caim_raw()}}, \code{\link[=write_caim]{write_caim()}}, and \code{\link[=read_caim]{read_caim()}}
-
-The example image was created from a raw photograph taken with a Nikon Coolpix
-5700 and a FC-E9 auxiliary lens, processed with the following code:
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{zenith_colrow <- c(1290, 988)/2
-diameter <- 756
-z <- zenith_image(diameter, lens("Nikon_FCE9"))
-a <- azimuth_image(z)
-m <- !is.na(z)
-caim <- read_caim_raw("DSCN4606.NEF")
-caim <- crop_caim(caim, zenith_colrow - diameter/2, diameter, diameter)
-caim <- correct_vignetting(caim, z, c(0.0638, -0.101))
-caim <- c(mean(caim$Y, caim$M), caim$G, caim$C)
-caim <- fisheye_to_equidistant(caim, z, a, m, radius = 300, k = 1)
-write_caim(caim, "example.tif", 16)
-}\if{html}{\out{</div>}}
 }
 \note{
-\code{rcaiman} uses terra without geographic semantics: rasters are kept with
-unit resolution (cell size = 1) and a standardized extent
-\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
+\code{rcaiman} uses terra without geographic semantics: rasters are kept with unit
+resolution (cell size = 1) and a standardized extent \code{ext(0, ncol, 0, nrow)}
+with CRS EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 }
+\section{Example data}{
+
+The package includes example files available through
+\code{system.file("external", package = "rcaiman")}.
+
+\code{sensor_data.tif} represents unprocessed sensor data extracted from a RAW
+file, analogous to the \code{dcraw -D} output found in the early
+digital hemispherical photography literature, such as
+\insertCite{Lang2010;textual}{rcaiman}. Those files can be produced outside
+\code{rcaiman}, for example with \href{https://www.libraw.org/homepage}{LibRaw}-based
+tools such as
+\href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
+
+Preprocessing of the example images requires explicit geometry and
+radiometry specifications. These are alse included with the package as a registry
+snapshot (see \href{https://github.com/GastonMauroDiaz/rcaiman.registry}{rcaiman.registry}).
+
+\describe{
+\item{DSCN4248.tif and DSCN4248.tsv}{Sensor data and metadata extracted from
+a raw file ("DSCN4606.NEF") with rcaiman-projects. Original 16-bit TIFF file
+was degraded to 8-bit to save space.}
+\item{Nikon_Coolpix5700.FCE9_raw_poly.yaml}{Registry snapshot valid for
+processing "DSCN4248.tif" and with parameters for a polynomial-based
+radiometric correction.}
+\item{Nikon_Coolpix5700.FCE9_raw_tsurf.yaml}{Registry snapshot valid for
+processing "DSCN4248.tif" and with data for supporting a trend-surface-based
+radiometric correction.}
+\item{DSCN4500.JPG}{JPEG file obtained as described in \insertCite{Diaz2018}{rcaiman}.}
+\item{Nikon_Coolpix5700.FCE9_jpeg.yaml}{Registry snapshot valid for
+processing "DSCN4500.JPG".}
+\item{APC_0836.jpg}{JPEG file obtained as described in \insertCite{Diaz2023}{rcaiman}.}
+\item{iPhone6plus.Olloclip_jpeg.yaml}{Registry snapshot valid for
+processing "APC_0836.jpg".}
+\item{sky_points.csv and sun_disk_mark.csv}{points manually digitized over the
+DSCN4248.tif cropped with the geometry spec "simple_method" attached to the
+"exif_raw" embedded metadata signature.}
+}
+}
+
 \examples{
+\dontrun{
+dir(system.file("external", package = "rcaiman"))
+
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+sensor_data <- read_caim(path)
+
+cfa_labels <- label_cfa(sensor_data)
+cfa_pattern <- matrix(c("Green","Magenta",
+                        "Yellow" ,"Cyan"), byrow = TRUE, ncol = 2)
+caim <- split_cfa(sensor_data, cfa_labels, cfa_pattern)
+caim <- map_spectral_bands(caim, list(Red = "(Magenta + Yellow)/2",
+                                      Green = "Green",
+                                      Blue = "Cyan"))
+
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
+
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-zenith_colrow <- c(1286, 986)
-horizon_radius <- 742
-caim <- read_caim(path, zenith_colrow, horizon_radius)
-plot(caim$Blue)
+caim <- read_caim(path)
+zenith_col_row <- spec$zenith_col_row
+horizon_radius <- spec$horizon_radius
+caim <- read_caim(path, zenith_col_row, horizon_radius)
+plot(caim)
+}
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
 \code{\link[=write_caim]{write_caim()}}

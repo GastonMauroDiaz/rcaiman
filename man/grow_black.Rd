@@ -30,10 +30,12 @@ pixel will be turned black.
 }
 \examples{
 \dontrun{
-r <- read_caim()
-bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
+require(rcaiman.registry)
+caim <- read_caim()
+r <- caim$Cyan
+
+bin <- binarize_with_thr(r, thr_isodata(r[]))
 plot(bin)
-bin <- grow_black(bin, 11)
-plot(bin)
+plot(grow_black(bin, 3))
 }
 }

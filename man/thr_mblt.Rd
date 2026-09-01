@@ -41,7 +41,7 @@ though the \code{dn} argument must be normalized. This design choice harmonizes
 behavior across the package.
 }
 \note{
-Users are encouraged to acquire raw files (see \code{\link[=read_caim_raw]{read_caim_raw()}}).
+Users are encouraged to acquire raw files instead of JPEG.
 }
 \examples{
 thr_mblt(invert_gamma_correction(125), -7.8, 0.95 * 0.5)
@@ -50,5 +50,5 @@ thr_mblt(invert_gamma_correction(125), -7.8, 0.95 * 0.5)
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=normalize_minmax]{normalize_minmax()}}, \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}
+\code{\link[=normalize_min_max]{normalize_min_max()}}, \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}
 }

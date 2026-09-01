@@ -18,7 +18,7 @@ of recording the angle at which the top of the camera points.}
 \link[terra:SpatRaster-class]{terra::SpatRaster} with the same dimensions as the input
 zenith image. Each pixel contains the azimuth angle in degrees, with zero
 representing North and angles increasing counter-clockwise. The
-object carries attributes \code{orientation} and \code{lens_coef}.
+object carries attributes \code{orientation} and \code{projection_coef}.
 }
 \description{
 Creates a single-layer raster in which pixel values represent azimuth
@@ -37,7 +37,7 @@ smartphone while viewing the screen, and it will result in a mirrored
 arrangement. Compare both drawings to see the inversion.
 }
 \examples{
-z <- zenith_image(600, lens("Nikon_FCE9"))
+z <- zenith_image(600, equidistant_coef)
 a <- azimuth_image(z)
 plot(a)
 \dontrun{

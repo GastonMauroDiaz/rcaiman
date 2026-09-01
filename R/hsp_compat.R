@@ -31,13 +31,13 @@
 #'   coordinates compatible with HSP; creates a file on disk.}
 #' }
 #'
-#' @param sky_points `data.frame` with columns `row` and `col`.
+#' @param sky_points `data.frame` with columns `"row"` and `"col"`.
 #' @param path_to_HSP_project character vector of length one. Path to the HSP
 #'   project folder (e.g., `"C:/Users/johndoe/Documents/HSP/projects/my_prj/"`).
 #' @param img_name character vector of length one (e.g., `"DSCN6342.pgm"` or
 #'   `"DSCN6342"`). See *About HSP software*.
-#' @param sun_row_col numeric vector of length two. Raster coordinates (row,
-#'   column) of the solar disk.
+#' @param sun_row_col numeric vector of length two. Continuous image coordinates
+#'   (see [xy_from_col_row()]) of the solar disk.
 #'
 #' @return See *Functions*
 #'
@@ -55,47 +55,53 @@
 #'
 #' # From HSP to R in order to compare ---------------------------------------
 #' r <- read_caim("manipulate/IMG_1013.pgm")
-#' z <- zenith_image(ncol(r), lens())
+#' z <- zenith_image(ncol(r), equidistant_coef)
 #' a <- azimuth_image(z)
 #' manual_input <- read_manual_input(".", "IMG_1013")
 #' sun_row_col <- manual_input$sun_row_col
-#' sun_angles <- zenith_azimuth_from_row_col(
+#' sun_angles <- zen_azi_from_row_col(
 #'   z, a,
 #'   sun_row_col[1],
 #'   sun_row_col[2]
 #' )
-#' sun_angles <- as.vector(sun_angles)
+#' sun_angles <- as.vector(sun_angles) * 180/pi
+#' names(sun_angles) <- c("zen_deg", "azi_deg")
 #'
 #' sky_points <- manual_input$sky_points
-#' rr <- extract_rr(r, z, a, sky_points)
+#' sky_points <- extract_dn(r, sky_points)
+#' sky_poinst <- add_directions(sky_points, z, a)
+#'
+#' rr <- calc_relative_radiance(sky_points, cold_id = 3, zenith_dn = manual_input$zenith_dn)
 #' model <- fit_cie_model(rr, sun_angles)
 #' sky <- cie_image(
 #'   z, a,
 #'   model$sun_angles,
 #'   model$coef
 #' ) * model$rr$zenith_dn
+#' names(sky) <- "DN"
 #' plot(r / sky)
 #'
 #' r <- read_caim("manipulate/IMG_1013.pgm")
 #' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
 #' sky_m <- cie_image(z, a, sun_angles, sky_coef)
 #' sky_m <- cie_sky_manual * manual_input$zenith_dn
+#' names(sky_m) <- "DN"
 #' plot(r / sky_m)
 #'
 #' # From R to HSP  ----------------------------------------------------------
 #' r <- read_caim("manipulate/IMG_1014.pgm")
-#' z <- zenith_image(ncol(r), lens())
+#' z <- zenith_image(ncol(r), equidistant_coef)
 #' a <- azimuth_image(z)
 #' m <- !is.na(z)
-#' g <- skygrid_segmentation(z, a, 10)
-#' bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+#' g <- sky_grid_segmentation(z, a, 10)
+#' bin <- binarize_with_thr(r, thr_isodata(r[m]))
 #' bin <- select_sky_region(z, 0, 85) & bin
 #'
 #' sun_angles <- estimate_sun_angles(r, z, a, bin, g)
-#' sun_row_col <- row_col_from_zenith_azimuth(
+#' sun_row_col <- row_col_from_zen_azi(
 #'   z, a,
-#'   sun_angles["z"],
-#'   sun_angles["a"]
+#'   sun_angles["zen_deg"] * pi/180,
+#'   sun_angles["azi_deg"] * pi/180
 #' ) %>% as.numeric()
 #' write_sun_coord(sun_row_col, ".", "IMG_1014")
 #'
@@ -222,7 +228,7 @@ hsp_read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
 #' @rdname hsp_compat
 #' @export
 hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
-  .check_sky_points(sky_points)
+  .check_columns(sky_points, c("row", "col"))
   .check_vector(path_to_HSP_project, "character", 1)
   .check_vector(path_to_HSP_project, "character", 1)
 
@@ -234,8 +240,7 @@ hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
   sky_points <- c(no, col.row_coordinates)
   sky_points <- data.frame(sky_points)
 
-  img_name <- filenamer::as.filename(img_name)
-  img_name <- filenamer::trim_ext(img_name) %>% as.character()
+  img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 
   utils::write.table(sky_points, file.path(path_to_HSP_project,
                                            "manipulate",
@@ -253,8 +258,7 @@ hsp_write_sun_coord <- function(sun_row_col, path_to_HSP_project, img_name) {
 
   sun_col_row <- paste(sun_row_col[c(2,1)], collapse = ".")
 
-  img_name <- filenamer::as.filename(img_name)
-  img_name <- filenamer::trim_ext(img_name) %>% as.character()
+  img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 
   utils::write.table(sun_col_row, file.path(path_to_HSP_project,
                                             "manipulate",

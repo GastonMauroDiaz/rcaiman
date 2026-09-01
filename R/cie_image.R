@@ -36,10 +36,14 @@
 
 #' CIE sky image
 #'
+#' @description
 #' Generate an image of relative radiance or luminance based on the CIE
 #' General Sky model.
 #'
-#' @inheritParams skygrid_segmentation
+#' @details
+#' Coefficient sets and formulation are available in [cie_table].
+#'
+#' @inheritParams add_directions
 #' @inheritParams fit_cie_model
 #'
 #' @param sky_coef numeric vector of length five. Parameters of the CIE sky model.
@@ -49,30 +53,31 @@
 #'   depending on whether the data used to obtain `sky_coef` was luminance
 #'   or radiance.
 #'
+#'
 #' @note
-#' Coefficient sets and formulation are available in [cie_table].
+#' Model output below zero or `Inf` is turned to `NA`.
 #'
 #' @export
 #'
 #' @examples
-#' z <- zenith_image(50, lens())
+#' z <- zenith_image(50, equidistant_coef)
 #' a <- azimuth_image(z)
 #' sky_coef <- cie_table[4,1:5] %>% as.numeric()
-#' sun_angles <- c(z = 45, a = 0)
+#' sun_angles <- c(zen_deg = 45, azi_deg = 0)
 #' plot(cie_image(z, a, sun_angles, sky_coef))
 cie_image <- function(z, a, sun_angles, sky_coef) {
-  .check_r_z_a_m(NULL, z, a)
+  .assert_zenith_image(z)
+  .assert_azimuth_image(a)
+  .assert_same_geom(z, a)
   .check_vector(sun_angles, "numeric", 2, sign = "nonnegative")
-  if (!identical(names(sun_angles), c("z", "a"))) {
-    stop("`sun_angles` must be a named numeric vector of length two with names 'z' and 'a' in that order.")
-  }
+  .check_sun_angles(sun_angles)
   .check_vector(sky_coef, "numeric", 5, sign = "any")
 
-  Zp <- .degree2radian(z[])
-  AzP <- .degree2radian(a[])
+  Zp <- as.vector(.degree2radian(z[]))
+  AzP <- as.vector(.degree2radian(a[]))
 
-  Zs <- .degree2radian(sun_angles["z"])
-  AzS <- .degree2radian(sun_angles["a"])
+  Zs <- .degree2radian(sun_angles["zen_deg"])
+  AzS <- .degree2radian(sun_angles["azi_deg"])
 
   relative_luminance <- .cie_sky_model(AzP, Zp, AzS, Zs,
                                        as.numeric(sky_coef[1]),
@@ -80,8 +85,11 @@ cie_image <- function(z, a, sun_angles, sky_coef) {
                                        as.numeric(sky_coef[3]),
                                        as.numeric(sky_coef[4]),
                                        as.numeric(sky_coef[5]))
-  terra::values(z) <- relative_luminance
-  z[is.infinite(z)] <- 0
-  names(z) <- "Relative radiance or luminance"
-  z
+  sky_cie <- terra::rast(z)
+  terra::values(sky_cie) <- relative_luminance
+  sky_cie[is.infinite(sky_cie)] <- NA
+  sky_cie[sky_cie < 0] <- NA
+  names(sky_cie) <- "Relative radiance or luminance"
+  attr(sky_cie, "projection_coef") <- NULL
+  sky_cie
 }

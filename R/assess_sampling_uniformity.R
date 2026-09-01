@@ -3,11 +3,11 @@
 #' @description
 #' Quantify how a set of sky sampling points covers an equal-area hemispherical
 #' segmentation using (i) Kullback–Leibler divergence from a uniform
-#' distribution and (ii) coverage, defined as the fraction of cells receiving at
-#' least one point.
+#' distribution and (ii) the fraction of cells receiving at
+#' least one point, hereafter referred to as coverage.
 #'
 #' @details
-#' Points are projected onto an equal-area segmentation (`equalarea_seg`), and
+#' Points are projected onto an equal-area segmentation (`equal_area_seg`), and
 #' cell-wise counts are computed.
 #'
 #' Let be \eqn{N_{\text{points}}} the total number of points, \eqn{N_{\text{cells}}}
@@ -26,9 +26,10 @@
 #' Coverage is defined as:
 #'   \deqn{\text{coverage} = \frac{\text{Count}(\{i : c_i > 0\})}{N_{\text{cells}}}.}
 #'
-#' @param equalarea_seg [terra::SpatRaster-class] generated with [equalarea_segmentation()].
+#' @param equal_area_seg [terra::SpatRaster-class] generated with
+#'   [equal_area_segmentation()].
 #'
-#' @inheritParams extract_cv
+#' @inheritParams extract_dn
 #'
 #' @return List with two components:
 #' \describe{
@@ -41,40 +42,28 @@
 #'
 #' @examples
 #' \dontrun{
-#' caim <- read_caim()
-#' r <- caim$Blue
-#' z <- zenith_image(ncol(caim), lens())
+#' z <- zenith_image(1000, equidistant_coef)
 #' a <- azimuth_image(z)
-#' m <- !is.na(z)
 #'
-#' seg <- equalarea_segmentation(z, a, 20)
-#' bin <- binarize_by_region(r, seg, method = "thr_twocorner")
-#' bin <- bin & select_sky_region(z, 0, 80)
+#' row <- col <- sample(1:1000, 100)
+#' pts <- data.frame(row, col)
+#' i <- !is.na(extract_dn(z, pts)[,3])
+#' pts <- add_directions(pts[i,], z, a)
 #'
-#' g <- skygrid_segmentation(z, a, 5)
-#' sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+#' seg <- equal_area_segmentation(z, a, 200)
 #'
-#' seg <- equalarea_segmentation(z, a, 200)
-#' kl <- lapply(1:10, function(i) {
-#'   sky_points <-  rem_nearby_points(sky_points, NULL, z, a, i, space = "spherical")
-#'   assess_sampling_uniformity(sky_points, seg)$kl
-#' })
-#' plot(unlist(kl), type = "l")
+#' assess_sampling_uniformity(pts, seg)
 #' }
-assess_sampling_uniformity <- function(sky_points, equalarea_seg) {
+assess_sampling_uniformity <- function(sampling_points, equal_area_seg) {
 
-  .assert_single_layer(equalarea_seg)
-  if (names(equalarea_seg) != "Sky segments of equal area") {
-    stop("`equalarea_seg` must be the output of `equalarea_segmentation()")
-  }
+  .check_columns(sampling_points, required_columns = c("row", "col"))
+  .assert_equal_area_seg(equal_area_seg)
 
-  cell_ids <- extract_dn(equalarea_seg, sky_points, use_window = FALSE)[,3]
+  cell_ids <- extract_dn(equal_area_seg, sampling_points, use_window = FALSE)[,3]
   if (any(is.na(cell_ids))) stop("Sky point outside the segmentation.")
 
   counts <- table(cell_ids)
-  N <- terra::minmax(equalarea_seg)[2]
+  N <- .get_max(equal_area_seg)
 
   # empirical distribution, p_i
   p <- numeric(length = N)

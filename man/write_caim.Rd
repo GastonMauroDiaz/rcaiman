@@ -24,15 +24,24 @@ with 8- or 16-bit unsigned integers, setting CRS and extent.
 \details{
 Adds the \code{.tif} extension to \code{path} if missing. The CRS is set to EPSG:7589
 and the extent to \verb{[0, ncol] × [0, nrow]} in pixel units
-(\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}). Data are written as \code{INT1U} when \code{bit_depth = 8}
+(see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}). Data are written as \code{INT1U} when \code{bit_depth = 8}
 and \code{INT2U} when \code{bit_depth = 16}.
+
+Files produced by this function follow the standard rcaiman file conventions.
+These conventions enable seamless integration with
+\href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
+}
+\note{
+File extensions are interpreted using \code{\link[tools:fileutils]{tools::file_ext()}}. If \code{path} has no
+extension, the default extension \code{"tif"} is appended automatically.
 }
 \examples{
 \dontrun{
-caim <- read_caim() \%>\% normalize_minmax(0, 255)
-write_caim(caim * (2^8 - 1),  file.path(tempdir(), "test_8bit"),  8)
-write_caim(caim * (2^16 - 1), file.path(tempdir(), "test_16bit"), 16)
-# Note: values are scaled by (2^bit_depth - 1) to avoid the maximum bin,
-# which read_caim() might turn NA.
+caim <- read_caim()
+# The last bin must be keep unuse otherwise it is turned black
+caim <- normalize_min_max(caim) * (2^8 - 1)
+caim <- round(caim)
+caim
+write_caim(caim * 2^8,  file.path(tempdir(), "test_8bit"),  8)
 }
 }

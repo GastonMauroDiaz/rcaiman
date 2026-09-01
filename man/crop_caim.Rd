@@ -21,20 +21,18 @@ as \code{r} but restricted to the selected ROI, preserving all other properties.
 }
 \description{
 Extracts a rectangular region of interest (ROI) from a canopy image. This
-function complements \code{\link[=read_caim]{read_caim()}} and \code{\link[=read_caim_raw]{read_caim_raw()}}.
+function complements \code{\link[=read_caim]{read_caim()}}.
 }
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with
 unit resolution (cell size = 1) and a standardized extent
-\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
+\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 }
 \section{Selecting a Region of Interest}{
 
-To load a specific subregion from the image, use the arguments \code{upper_left},
-\code{width}, and \code{height}. These are expressed in raster coordinates, similar to
-a spreadsheet layout: \strong{columns first, then rows}. In other words, specify
-coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical
-in \code{data.frame} objects.
+Arguments \code{upper_left}, \code{width}, and \code{height} are expressed in raster
+coordinates, similar to a spreadsheet layout: \strong{columns first, then rows}.
+In other words, specify coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical in \code{data.frame} objects.
 
 While any image editor can be used to obtain these values, this function was
 tested with \href{https://imagej.net/ij/}{ImageJ}, particularly the Fiji
@@ -52,12 +50,18 @@ ncell(caim)
 caim <- crop_caim(caim, c(231,334), 15, 10)
 ncell(caim)
 
+\dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
+
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path)
-zenith_colrow <- c(1286, 986)
-horizon_radius <- 742
-upper_left <- zenith_colrow - horizon_radius
-height <- width <- horizon_radius * 2
-plot(crop_caim(caim, upper_left, width, height))
-display_caim(crop_caim(caim, upper_left, width, height))
+zenith_col_row <- spec$zenith_col_row
+horizon_radius <- spec$horizon_radius
+upper_left <- zenith_col_row - horizon_radius
+side <- horizon_radius * 2
+plot(crop_caim(caim, upper_left, side, side))
+}
 }

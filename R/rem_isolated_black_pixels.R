@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Replace single black pixels (`FALSE`) that are fully surrounded by white
-#' pixels (`TRUE`) with white. Uses 8-connectivity.
+#' pixels (`TRUE`). Uses 8-connectivity.
 #'
 #' @inheritParams write_bin
 #'
@@ -11,10 +11,18 @@
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
+#' r <- caim$Cyan
+#' z <- zenith_image(ncol(r), spec$parameters)
 #' a <- azimuth_image(z)
-#' r <- caim$Blue
+#' rspec <- get_radiometry_spec(spec, "simple_method")
+#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+#' r <- apply_flat_field(r, ff)
+#' m <- !is.na(z)
 #'
 #' bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata")
 #'

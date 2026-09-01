@@ -4,23 +4,14 @@
 \alias{fisheye_to_pano}
 \title{Fisheye to panoramic}
 \usage{
-fisheye_to_pano(r, z, a, fun = mean, angle_width = 1)
+fisheye_to_pano(r, z, a, angle_width = 1)
 }
 \arguments{
-\item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster} of one or more layers (e.g., RGB channels or
-binary masks) in fisheye projection.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{fun}{function taking a numeric/logical vector and returning a single
-numeric or logical value (default \code{mean}).}
-
-\item{angle_width}{numeric vector of length one. Angle in deg that must
-divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
-set of valid values by running
-\code{lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))}.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} with rows representing zenith angle bands and
@@ -28,16 +19,14 @@ columns representing azimuthal sectors. The number of layers and names
 matches that of the input \code{r}.
 }
 \description{
-Reprojects a fisheye (hemispherical) image into a panoramic view using a
+Reprojects a fisheye view into a panoramic view using a
 cylindrical projection. The output is standardized so that rows correspond
 to zenith angle bands and columns to azimuthal sectors.
 }
 \details{
 This function computes a cylindrical projection by aggregating pixel values
 according to their zenith and azimuth angles. Internally, it creates a
-segmentation grid with \code{\link[=skygrid_segmentation]{skygrid_segmentation()}} and applies
-\code{\link[=extract_feature]{extract_feature()}} to compute a summary statistic (e.g., mean) of pixel
-values within each cell.
+segmentation grid with \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} and applies \code{\link[=compute_mean]{compute_mean()}}.
 }
 \note{
 An early version of this function was used in
@@ -45,13 +34,26 @@ An early version of this function was used in
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
+m <- !is.na(z)
+
 pano <- fisheye_to_pano(caim, z, a)
-plotRGB(pano \%>\% normalize_minmax() \%>\% multiply_by(255))
+plot(pano$Cyan \%>\% normalize_min_max() \%>\% multiply_by(255))
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=panoramic]{panoramic()}}
 }

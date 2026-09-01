@@ -2,27 +2,54 @@
 % Please edit documentation in R/calc_relative_radius.R
 \name{calc_relative_radius}
 \alias{calc_relative_radius}
-\title{Calculate relative radius}
+\title{Calculate relative radius (radial projection model)}
 \usage{
-calc_relative_radius(angle, lens_coef)
+calc_relative_radius(angle, projection_coef, units = "degree")
 }
 \arguments{
-\item{angle}{numeric vector. Zenith angles in degrees.}
+\item{angle}{numeric vector. Zenith angles expressed as declared in \code{units}.}
 
-\item{lens_coef}{numeric vector. Polynomial coefficients of the lens
-projection function. See \code{\link[=lens]{lens()}}.}
+\item{projection_coef}{numeric vector. Polynomial coefficients defining
+the radial projection model evaluated in radians.}
+
+\item{units}{character vector of length one. Either \code{"radian"} or \code{"degree"},
+for declaring the units in which \code{angle} is provided.}
 }
 \value{
-Numeric vector of the same length as \code{angle}, constrained to [0, 1].
+Numeric vector of the same length as \code{angle}.
 }
 \description{
-Convert zenith angles (degrees) to normalized radial distance using the lens
-projection model.
+Convert zenith angles to normalized radial distance under a
+radial projection model with circular symmetry.
 }
 \details{
-This helper maps zenith angle(s) to a relative radius in [0, 1] given the
-lens projection coefficients.
+This function applies to hemispherical imaging systems where the mapping
+between zenith angle and image position is radially symmetric, such as in
+fisheye lenses.
+
+The projection function is defined as:
+\deqn{
+r_{rel}(\theta) = \sum_{p=1}^{n} a_p \theta^p
+}
+where \eqn{r_{rel}} is the relative radius (radius expresed as a fraction of
+the radius at 90 deg), \eqn{\theta} is the zenith angle in radians and
+\code{projection_coef = c(a_1, a_2, ..., a_n)}. The element at position \code{p}
+multiplies \eqn{\theta^p}.
+
+This function can manage \code{angle} units to reflects common practice in
+hemispherical photography software, where fitting is performed in radians but
+operational workflows use degrees.
+
+Under a valid calibration (see \code{\link[=validate_projection_function]{validate_projection_function()}}), values are
+expected to lie in [0, 1], with 0 at the zenith (0 deg) and 1 at the
+horizon (90 deg).
+}
+\note{
+If it is forced to extrapolate by inputing values above 90 deg, the
+\link{equidistant_coef} is applied to guarantee monotonicity.
 }
 \examples{
-calc_relative_radius(45, lens())
+calc_relative_radius(45, equidistant_coef)
+calc_relative_radius(45, equal_area_coef)
+calc_relative_radius(45, orthographic_coef)
 }

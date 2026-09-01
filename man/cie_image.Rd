@@ -12,8 +12,7 @@ cie_image(z, a, sun_angles, sky_coef)
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{sun_angles}{named numeric vector of length two, with components
-\code{z} and \code{a} in degrees, e.g., \code{c(z = 49.3, a = 123.1)}.
-See \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} for details.}
+\code{"zen_deg"} and \code{"azi_deg"} in degrees, e.g., \code{c(zen_deg = 49.3, azi_deg = 123.1)}. See \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} for details.}
 
 \item{sky_coef}{numeric vector of length five. Parameters of the CIE sky model.}
 }
@@ -27,13 +26,16 @@ or radiance.
 Generate an image of relative radiance or luminance based on the CIE
 General Sky model.
 }
-\note{
+\details{
 Coefficient sets and formulation are available in \link{cie_table}.
 }
+\note{
+Model output below zero or \code{Inf} is turned to \code{NA}.
+}
 \examples{
-z <- zenith_image(50, lens())
+z <- zenith_image(50, equidistant_coef)
 a <- azimuth_image(z)
 sky_coef <- cie_table[4,1:5] \%>\% as.numeric()
-sun_angles <- c(z = 45, a = 0)
+sun_angles <- c(zen_deg = 45, azi_deg = 0)
 plot(cie_image(z, a, sun_angles, sky_coef))
 }

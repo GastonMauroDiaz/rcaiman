@@ -25,7 +25,7 @@
 #' behavior across the package.
 #'
 #' @note
-#' Users are encouraged to acquire raw files (see [read_caim_raw()]).
+#' Users are encouraged to acquire raw files instead of JPEG.
 #'
 #' @param dn numeric vector or [terra::SpatRaster-class]. Background digital
 #'   number. Values must be normalized; if taken from JPEG, apply gamma back
@@ -34,7 +34,7 @@
 #'
 #' @return An object of the same class and dimensions as `dn`.
 #'
-#' @seealso [normalize_minmax()], [invert_gamma_correction()]
+#' @seealso [normalize_min_max()], [invert_gamma_correction()]
 #'
 #' @references \insertAllCited{}
 #'

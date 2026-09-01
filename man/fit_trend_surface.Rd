@@ -4,30 +4,40 @@
 \alias{fit_trend_surface}
 \title{Fit a trend surface to sky digital numbers}
 \usage{
-fit_trend_surface(sky_points, r, np = 6, col_id = "dn", extrapolate = FALSE)
+fit_trend_surface(
+  sky_points,
+  col_id = "dn",
+  r,
+  np = 6,
+  extrapolate = FALSE,
+  return = "raster"
+)
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{row}, \code{col}, and one additional
-numeric column with values to interpolate. Typically returned by
-\code{\link[=extract_rr]{extract_rr()}} or \code{\link[=extract_dn]{extract_dn()}}.}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sampling_points} containing the values to interpolate.}
 
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
-\code{sky_points} were derived, or another raster with the same number of rows
+\code{sampling_points} were derived, or another raster with the same number of rows
 and columns. Used only as geometric template; cell values are ignored.}
 
 \item{np}{
 degree of polynomial surface
 }
 
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sky_points} containing the values to interpolate.}
+\item{extrapolate}{logical vector of length one. If \code{TRUE}, predictions are
+extrapolated to the entire extent of \code{r}; otherwise, predictions are
+limited to the convex hull of the input sky points.}
 
-\item{extrapolate}{logical vector of length one. If \code{TRUE}, predictions
-are extrapolated to the entire extent of \code{r}; otherwise, predictions
-are limited to the convex hull of the input sky points.}
+\item{return}{character vector of length one. Either "raster" (default) to
+return the fitted surface as a raster, or "all" to also return the model
+and coefficient of determination.}
 }
 \value{
-List with named elements:
+If \code{return = "raster"}, a numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer
+and the same geometry as \code{r}.
+
+If \code{return = "all"}, a list with named elements:
 \describe{
 \item{\code{raster}}{\link[terra:SpatRaster-class]{terra::SpatRaster} containing the fitted surface.}
 \item{\code{model}}{object of class \code{trls} returned by \code{\link[spatial:surf.ls]{spatial::surf.ls()}}.}
@@ -35,43 +45,55 @@ List with named elements:
 }
 }
 \description{
-Fits a trend surface to sky digital numbers using \code{\link[spatial:surf.ls]{spatial::surf.ls()}} as
-the computational workhorse.
+Fits a trend surface to sky digital numbers using
+\code{\link[spatial:surf.ls]{spatial::surf.ls()}} as the computational workhorse.
 }
 \details{
-This function models the variation in digital numbers across the sky dome
-by fitting a polynomial surface in Cartesian space. It is intended to
-capture smooth large-scale gradients and is more effective when called
-via \code{\link[=apply_by_direction]{apply_by_direction()}}.
+This function models the variation in digital numbers across the sky
+dome by fitting a polynomial surface in Cartesian space. It is intended to
+capture smooth large-scale gradients and is more effective when called via
+\code{\link[=apply_by_direction]{apply_by_direction()}} or the \code{\link[=panoramic]{panoramic()}} pipeline.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+rspec <- get_radiometry_spec(spec, "simple_method")
+ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+r <- apply_flat_field(r, ff)
 m <- !is.na(z)
-r <- caim$Blue
 
-bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata") &
-  select_sky_region(z, 0, 88)
+# See fit_cie_model() for details on the CSV file
+path <- system.file("external/sky_points.csv",
+                    package = "rcaiman")
+sky_points <- read.csv(path)
+sky_points <- sky_points[c("Y", "X")]
+colnames(sky_points) <- c("row", "col")
+head(sky_points)
 
-g <- skygrid_segmentation(z, a, 10, first_ring_different = TRUE)
-sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
-plot(bin)
+plot(r)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-sky_points <- extract_dn(r, sky_points, use_window = TRUE)
 
-sky_s <- fit_trend_surface(sky_points, r, np = 4, col_id = 3,
+sky_points <- extract_dn(r, sky_points)
+
+sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 4,
                            extrapolate = TRUE)
-plot(sky_s$raster)
-binarize_with_thr(r/sky_s$raster, 0.5) \%>\% plot()
+plot(sky_s)
+binarize_with_thr(r/sky_s, 0.5) \%>\% plot()
 
-sky_s <- fit_trend_surface(sky_points, r, np = 6, col_id = 3,
+sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 6,
                            extrapolate = FALSE)
-plot(sky_s$raster)
-binarize_with_thr(r/sky_s$raster, 0.5) \%>\% plot()
+plot(sky_s)
+binarize_with_thr(r/sky_s, 0.9) \%>\% plot()
 }
 }
-\references{
-\insertAllCited{}
+\seealso{
+\code{\link[=panoramic]{panoramic()}} for an alternative pipeline involving a temporary
+shift of image plane
 }

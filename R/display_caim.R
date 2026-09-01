@@ -1,18 +1,18 @@
-#' Display a canopy image
+#' Display a hemispherical image
 #'
 #' Wrapper for [EBImage::display()] that streamlines the visualization of
-#' canopy images, optionally overlaying binary masks and segmentation borders.
+#' hemispherical images, optionally binary masks, segmentation borders and sky marks.
 #' It is intended for quick inspection of processed or intermediate results in
 #' a graphical viewer.
 #'
 #' @param caim [terra::SpatRaster-class]. Typically the output of [read_caim()].
-#'   Can be multi- or single-layer.
+#'   Can be multi- or single-layer. It must have square proportions.
 #' @param seg Segmentation map typically created with functions such as
-#'   [equalarea_segmentation()], [skygrid_segmentation()], [ring_segmentation()]
+#'   [equal_area_segmentation()], [sky_grid_segmentation()], [ring_segmentation()]
 #'   or [sector_segmentation()], but any raster with integer segment labels is
 #'   accepted.
 #' @param sun_row_col numeric `data.frame` with the estimated sun‑disk
-#'   position in image coordinates. See [row_col_from_zenith_azimuth()].
+#'   position in image coordinates. See [row_col_from_zen_azi()].
 #' @param sun_disk_size numeric vector of length one. Sun disk size in pixels.
 #'
 #' @inheritParams compute_canopy_openness
@@ -23,10 +23,17 @@
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' r <- caim$Blue
-#' z <- zenith_image(ncol(caim), lens())
+#' r <- caim$Cyan
+#' z <- zenith_image(ncol(r), spec$parameters)
 #' a <- azimuth_image(z)
+#'
+#' rspec <- get_radiometry_spec(spec, "spectral_bands")
+#' caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
 #'
 #' # See fit_cie_model() for details on below file
 #' path <- system.file("external/sky_points.csv",
@@ -38,17 +45,17 @@
 #' plot(caim$Blue)
 #' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 #'
-#' x11()
+#' # x11()
 #' # plot(caim$Blue)
 #' # sun_angles <- click(c(z, a), 1) %>% as.numeric()
-#' sun_angles <- c(z = 49.5, a = 27.4) #taken with above lines then hardcoded
+#' sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
 #'
-#' sun_row_col <- row_col_from_zenith_azimuth(z, a,
-#'                                            sun_angles["z"],
-#'                                            sun_angles["a"])
+#' sun_row_col <- row_col_from_zen_azi(z, a,
+#'                                     sun_angles["zen_deg"] * pi/180,
+#'                                     sun_angles["azi_deg"] * pi/180)
 #'
-#' bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
-#' seg <- equalarea_segmentation(z, a, 200)
+#' bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[]))
+#' seg <- equal_area_segmentation(z, a, 200)
 #'
 #' # color image
 #' display_caim(caim)
@@ -74,13 +81,13 @@ display_caim <- function(caim = NULL,
   .this_requires_EBImage()
 
   if (!is.null(caim)) {
-    .assert_spatraster(caim)
+    .assert_spatraster(caim, squared = TRUE)
   }
   if (!is.null(bin)) {
-    .assert_logical_mask(bin)
+    .assert_logical_mask(bin, squared = TRUE)
   }
   if (!is.null(seg)) {
-    .assert_single_layer(seg)
+    .assert_single_layer(seg, squared = TRUE)
     # Highlight region borders
     if (!is.null(seg)) {
       laplacian <- matrix(c(0, 1, 0, 1, -4, 1, 0, 1, 0), nrow = 3)
@@ -89,27 +96,33 @@ display_caim <- function(caim = NULL,
     }
   }
   if (!is.null(sampling_points)) {
-    .check_sky_points(sampling_points)
+    .check_columns(sampling_points, required_columns = c("row", "col"))
     # create raster
     sampling_points <- cbind(sampling_points, dn = 1)
-    sampling_points <- interpolate_planar(sampling_points, caim[[1]], k = 1, p = 1, rmax = 1.5, col_id = 3)
+    sampling_points <- interpolate_planar(sampling_points,
+                                          caim[[1]],
+                                          k = 1,
+                                          p = 1,
+                                          search_radius = 1.5,
+                                          col_id = 3,
+                                          parallel = FALSE)
     sampling_points <- is.na(sampling_points)
   }
   if (!is.null(sun_row_col)) {
-    .check_sky_points(sun_row_col)
+    .check_columns(sun_row_col, required_columns = c("row", "col"))
     # create raster
     if (any(sun_row_col < 1)) {
       warning(paste0("The ", names(sun_row_col)[which(sun_row_col < 1)]," number of `sun_row_col` was forced to 1."))
       sun_row_col[sun_row_col < 1] <- 1
     }
     sun_row_col <- cbind(sun_row_col, dn = 1)
-    sun_row_col <- interpolate_planar(sun_row_col, caim[[1]], k = 1, p = 1, rmax = sun_disk_size, col_id = 3)
+    sun_row_col <- interpolate_planar(sun_row_col, caim[[1]], k = 1, p = 1, search_radius = sun_disk_size, col_id = 3)
     sun_row_col <- is.na(sun_row_col)
   }
 
   if (!is.null(caim) && terra::nlyr(caim) <= 3 && is.null(bin) &&
       is.null(seg) && (!is.null(sampling_points) | !is.null(sun_row_col))) {
-    caim <- normalize_minmax(caim)
+    caim <- normalize_min_max(caim)
     if (!is.null(sun_row_col)) {
       caim <- paint_with_mask(caim, sun_row_col, color = "yellow")
     }
@@ -121,7 +134,7 @@ display_caim <- function(caim = NULL,
     layers <- list()
 
     if (!is.null(caim)) {
-      layers <- c(layers, normalize_minmax(caim))
+      layers <- c(layers, normalize_min_max(caim))
     }
     if (!is.null(bin)) {
       layers <- c(layers, bin)

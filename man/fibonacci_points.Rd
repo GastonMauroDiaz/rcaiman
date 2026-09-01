@@ -2,33 +2,39 @@
 % Please edit documentation in R/fibonacci_points.R
 \name{fibonacci_points}
 \alias{fibonacci_points}
-\title{Map Fibonacci points to raster coordinates}
+\title{Map Fibonacci points to continuous image coordinates}
 \usage{
-fibonacci_points(z, a, spacing)
+fibonacci_points(z, a, spacing, m = NULL)
 }
 \arguments{
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{spacing}{numeric vector of length one. Angular separation (deg) between}
+\item{spacing}{numeric vector of length one. Angular separation (deg) between
+points.}
+
+\item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary
+mask with \code{TRUE} for selected pixels. Only points over a selected pixel are
+returned.}
 }
 \value{
-\code{data.frame} with integer columns \code{row} and \code{col}.
+\code{data.frame} with columns \code{"row"}, \code{"col"} and directions in
+radians as in \code{\link[=add_directions]{add_directions()}}.
 }
 \description{
-Return image row and column indices for points distributed on the upper
-hemisphere using a spherical Fibonacci lattice with approximately constant
-angular spacing.
+Return continuous image coordinates (see \code{\link[=xy_from_col_row]{xy_from_col_row()}}) and directions (see
+\link{add_directions}) for points distributed on the upper hemisphere using a
+spherical Fibonacci lattice with approximately constant angular spacing.
 }
 \examples{
-z <- zenith_image(100, lens())
+z <- zenith_image(100, equidistant_coef)
 a <- azimuth_image(z)
-sampling_points <- fibonacci_points(z, a, 30)
+pts <- fibonacci_points(z, a, 30)
 \dontrun{
-display_caim(is.na(z), sky_points = sky_points)
+display_caim(is.na(z), sampling_points = pts)
 }
 }
 \seealso{
-\code{\link[=skygrid_centers]{skygrid_centers()}}
+\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}}
 }

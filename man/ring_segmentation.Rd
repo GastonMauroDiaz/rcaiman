@@ -12,19 +12,19 @@ ring_segmentation(z, angle_width, return = "id")
 \item{angle_width}{numeric vector of length one. Ring width in degrees.
 Must divide the 0-90 deg range into an integer number of segments.}
 
-\item{return}{character vector of length one. Output mode: "id" (default)
-or "angle".}
+\item{return}{character vector of length one. Output mode: \code{"id"} (default)
+or \code{"angle"}.}
 }
 \value{
 Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}: ring IDs if \code{return = "id"},
-or mean zenith angle (deg) if \code{return = "angle"}.
+or mean zenith angle (deg) if \code{return = "angle"}. The object carries attribute \code{return}.
 }
 \description{
 Segment a hemispherical view into concentric rings by slicing the zenith
 angle from \code{0} to \code{90} deg at equal steps.
 }
 \examples{
-z <- zenith_image(600, lens())
+z <- zenith_image(600, equidistant_coef)
 rings <- ring_segmentation(z, 15)
 plot(rings == 1)
 }

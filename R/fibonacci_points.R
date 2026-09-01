@@ -1,93 +1,86 @@
-#' Map Fibonacci points to raster coordinates
+.fibonacci <- function(spacing, max_zenith_angle = 90) {
+  theta_max <- max_zenith_angle * pi / 180
+
+  # Convert target cap area
+  cap_area <- 2 * pi * (1 - cos(theta_max))
+
+  theta <- spacing * pi / 180
+  d <- 2 * sin(theta / 2)
+
+  # Estimate number of points based on area
+  N <- round(cap_area / (d^2))
+
+  phi <- (1 + sqrt(5)) / 2
+
+  pts <- matrix(NA_real_, nrow = N, ncol = 3)
+
+  for (k in seq_len(N)) {
+    # Uniform sampling over spherical cap
+    zc <- 1 - (k - 0.5) / N * (1 - cos(theta_max))
+
+    r <- sqrt(1 - zc * zc)
+    az <- 2 * pi * ((k - 1) / phi %% 1)
+
+    x <- r * cos(az)
+    y <- r * sin(az)
+
+    pts[k, ] <- c(x, y, zc)
+  }
+
+  pts
+}
+
+
+#' Map Fibonacci points to continuous image coordinates
 #'
-#' Return image row and column indices for points distributed on the upper
-#' hemisphere using a spherical Fibonacci lattice with approximately constant
-#' angular spacing.
+#' Return continuous image coordinates (see [xy_from_col_row()]) and directions (see
+#' [add_directions]) for points distributed on the upper hemisphere using a
+#' spherical Fibonacci lattice with approximately constant angular spacing.
 #'
 #' @param spacing numeric vector of length one. Angular separation (deg) between
+#'   points.
+#' @param m optional logical [terra::SpatRaster-class] with one layer. A binary
+#'   mask with `TRUE` for selected pixels. Only points over a selected pixel are
+#'   returned.
 #'
-#' @inheritParams skygrid_segmentation
+#' @inheritParams add_directions
 #'
-#' @return `data.frame` with integer columns `row` and `col`.
+#' @return `data.frame` with columns `"row"`, `"col"` and directions in
+#'   radians as in [add_directions()].
 #'
-#' @seealso [skygrid_centers()]
+#' @seealso [sky_grid_centers()], [raster_grid_in_circle()]
 #'
 #' @export
 #'
 #' @examples
-#' z <- zenith_image(100, lens())
+#' z <- zenith_image(100, equidistant_coef)
 #' a <- azimuth_image(z)
-#' sampling_points <- fibonacci_points(z, a, 30)
+#' pts <- fibonacci_points(z, a, 30)
 #' \dontrun{
-#' display_caim(is.na(z), sky_points = sky_points)
+#' display_caim(is.na(z), sampling_points = pts)
 #' }
-fibonacci_points <- function(z, a, spacing) {
-  .check_r_z_a_m(NULL, z, a)
+fibonacci_points <- function(z, a, spacing, m = NULL) {
+  .assert_zenith_image(z)
+  .assert_azimuth_image(a)
+  .assert_same_geom(z, a)
   .check_vector(spacing, "numeric", 1, sign = "positive")
-
-  # --- internal helper: fibonacci hemisphere generation ---
-  fibonacci_hemisphere <- function(spacing) {
-    theta <- spacing * pi / 180
-    d <- 2 * sin(theta / 2)
-    N_full <- round(4 * pi / (d^2))
-    N <- round(N_full / 2)
-    phi <- (1 + sqrt(5)) / 2
-
-    pts <- matrix(NA_real_, nrow = N, ncol = 3)
-
-    for (k in seq_len(N)) {
-      zc <- 1 - (k - 0.5) / N
-      r <- sqrt(1 - zc * zc)
-      az <- 2 * pi * ((k - 1) / phi %% 1)
-      x <- r * cos(az)
-      y <- r * sin(az)
-      pts[k, ] <- c(x, y, zc)
-    }
-    pts
-  }
-
-  # --- convert Cartesian to spherical angles ---
-  cartesian_to_angles <- function(xyz) {
-    x <- xyz[,1]; y <- xyz[,2]; zc <- xyz[,3]
-    zenith <- acos(zc)
-    azimuth <- atan2(y, x)
-    azimuth[azimuth < 0] <- azimuth[azimuth < 0] + 2*pi
-    cbind(zenith = zenith, azimuth = azimuth)
+  if (!is.null(m)) {
+    .assert_logical_mask(m)
+    .assert_same_geom(m, z)
   }
 
   # generate Fibonacci points on hemisphere
-  pts_xyz <- fibonacci_hemisphere(spacing)
-  pts_ang <- cartesian_to_angles(pts_xyz)
+  pts <- .fibonacci(spacing)
+  # translate to directions
+  ang <- .cartesian_to_directions(pts)
 
-  # convert to degrees
-  zen <- pts_ang[, "zenith"] * 180/pi
-  i <- zen < 89
-  zen <- zen[i]
-  azi <- pts_ang[i, "azimuth"] * 180/pi
-
-
-  # project to relative radius using lens model
-  rr <- calc_relative_radius(zen, attr(z, "lens_coef"))
-
-  # convert to projected Cartesian coordinates used by the image
-  pol <- data.frame(
-    theta = azi * pi/180 + pi/2,
-    z = rr * 90 * pi/180
-  )
-  cart <- pracma::pol2cart(as.matrix(pol))
-  p <- terra::vect(matrix(cart, ncol = 2))
-  terra::crs(p) <- terra::crs(z)
-
-  # rasterize to locate each point in pixel space
-  ztmp <- terra::deepcopy(z)
-  terra::ext(ztmp) <- terra::ext(-pi/2, pi/2, -pi/2, pi/2)
-
-  r <- terra::rasterize(p, ztmp)
-  r <- !is.na(r)
-  idx <- cells(r)[r[]]
-  ij <- terra::rowColFromCell(ztmp, idx)
-  ij <- as.data.frame(ij)
-  names(ij) <- c("row", "col")
-
-  ij
+  row_col <- row_col_from_zen_azi(z, a, zen = ang[, "zen"], azi = ang[, "azi"])
+  # data.frame(row_col, zen = ang[i, "zen"], azi = ang[i, "azi"]) # this does not work
+  foo <- .add_directions(row_col, z, a, in_radians = TRUE) # this works
+  foo <- foo[!is.na(foo$zen),]
+  if (!is.null(m)) {
+    i <- extract_dn(m, foo, use_window = FALSE)[, ncol(foo) + 1]
+    foo <- foo[i,]
+  }
+  foo
 }

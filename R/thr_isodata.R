@@ -11,7 +11,9 @@
 #' accepts numeric data over an arbitrary range. `NA` values are ignored.
 #'
 #' @param x numeric vector or a single-column `matrix` or `data.frame` able to
-#'   be coerced to numeric.
+#'   be coerced to numeric. It can contain `NA` values.
+#' @param sample_size optional numeric vector of length one. Must be positive and
+#'   interpreted as integer.
 #'
 #' @return Numeric vector of length one.
 #' @export
@@ -20,8 +22,9 @@
 #'
 #' @examples
 #' caim <- read_caim()
-#' thr_isodata(caim$Blue[])
-thr_isodata <- function(x) {
+#' thr_isodata(caim$Cyan[])
+thr_isodata <- function(x, sample_size = 500) {
+  .check_vector(sample_size, "integerish", 1, sign = "positive", allow_null = TRUE)
   # Coerce matrix or data.frame to numeric
   if (is.matrix(x) | is.data.frame(x)) {
     x <- as.numeric(x)
@@ -30,15 +33,13 @@ thr_isodata <- function(x) {
   if (!is.numeric(x)) {
     stop("`x` must be a numeric vector or coercible to numeric.")
   }
+
   # Remove NA values
   x <- x[!is.na(x)]
   size <- length(x)
 
   if (size <= 1) stop("`length(x)` must be greater than one.")
-  if (size > 500) {
-    message("The threshold value was computed with a subsample of size 500.")
-    size <- 500
-  }
+  if (!is.null(sample_size) && size > sample_size) size <- sample_size
 
   if (stats::sd(sample(x, size)) == 0) {
     thr <- x[1]

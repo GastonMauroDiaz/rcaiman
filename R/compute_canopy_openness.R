@@ -35,7 +35,7 @@
 #' @param m logical [terra::SpatRaster-class] with one layer. A binary mask with
 #'   `TRUE` for selected pixels.
 #'
-#' @inheritParams skygrid_segmentation
+#' @inheritParams add_directions
 #'
 #' @return Numeric vector of length one, constrained to the range \eqn{[0, 1]}.
 #'
@@ -44,21 +44,35 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
+#' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
+#'
+#' z <- zenith_image(ncol(caim), spec$parameters)
 #' a <- azimuth_image(z)
-#' m <- select_sky_region(z, 0, 70)
-#' bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[m]))
+#' m <- !is.na(z)
+#'
+#' bin <- binarize_with_thr(caim$Cyan, thr_isodata(caim$Cyan[]))
 #' plot(bin)
+#'
+#' m <- select_sky_region(z, 0, 70)
 #' compute_canopy_openness(bin, z, a, m, 10)
+#' }
 compute_canopy_openness <- function(bin, z, a, m = NULL, angle_width = 10) {
+  .assert_zenith_image(z)
+  .assert_azimuth_image(a)
+  .assert_same_geom(z, a)
   .assert_logical_mask(bin)
-  .check_r_z_a_m(NULL, z, a, m)
-  # angle_width is check by skygrid_segmentation
+  .assert_same_geom(bin, z)
 
-  g <- skygrid_segmentation(z, a, angle_width)
+  # angle_width is check by sky_grid_segmentation
+
+  g <- sky_grid_segmentation(z, a, angle_width)
   g[!m] <- 0
-  ds <- extract_feature(bin, g, return = "vector")
+  ds <- compute_mean(bin, g, return = "vector")
   ids <- .decode_label(as.numeric(names(ds)))
   mx_angles <- ids$ring_ID * angle_width * pi / 180
   mn_angles <- mx_angles - angle_width * pi / 180

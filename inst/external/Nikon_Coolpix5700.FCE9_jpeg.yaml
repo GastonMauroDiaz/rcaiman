@@ -1,0 +1,215 @@
+schema_version: 1
+created_with:
+  package: rcaiman.registry
+  version: 0.1.3.9000
+  date: '2026-07-06'
+configuration:
+  embedded_metadata_sig: exif_jpeg
+  geometry_spec: delta_t
+  interpretive_constraint: ~
+  flat_field_correction: wagner2001_method
+registry_entry:
+  instrument_metadata:
+    id: Nikon_Coolpix5700.FCE9.CIEFAP
+    body:
+      model: E5700
+      manufacturer: NIKON CORP
+      serial: '7053067'
+    device: ~
+    lens:
+      model: Zoom Nikkor ED 8.9-71.2mm 1:2.8-4.2
+      manufacturer: NIKON CORP
+      serial: ~
+    auxiliary_lens:
+      model: Fisheye Converter FC-E9 0.2x
+      manufacturer: NIKON CORP
+      serial: ~
+    institution: CIEFAP
+  embedded_metadata_sig:
+    id: exif_jpeg
+    dim:
+      - 2560
+      - 1920
+    validated_with_libraw: .na
+    validated_with_exiftool: '13.59'
+    metadata_profile: exiftool_g1_short_v1
+    rules:
+      color_space:
+        group: ExifIFD
+        tag: ColorSpace
+        label: ColorSpace
+        expected: sRGB
+      contrast:
+        group: ExifIFD
+        tag: Contrast
+        label: Contrast
+        expected: Normal
+      custom_rendered:
+        group: ExifIFD
+        tag: CustomRendered
+        label: CustomRendered
+        expected: Normal
+      digital_zoom_ratio:
+        group: ExifIFD
+        tag: DigitalZoomRatio
+        label: DigitalZoomRatio
+        expected: '0'
+      exif_image_height:
+        group: ExifIFD
+        tag: ExifImageHeight
+        label: ExifImageHeight
+        expected: '1920'
+      exif_image_width:
+        group: ExifIFD
+        tag: ExifImageWidth
+        label: ExifImageWidth
+        expected: '2560'
+      file_source:
+        group: ExifIFD
+        tag: FileSource
+        label: FileSource
+        expected: Digital Camera
+      gain_control:
+        group: ExifIFD
+        tag: GainControl
+        label: GainControl
+        expected: None
+      iso:
+        group: ExifIFD
+        tag: ISO
+        label: ISO
+        expected: '100'
+      light_source:
+        group: ExifIFD
+        tag: LightSource
+        label: LightSource
+        expected: Unknown
+      metering_mode:
+        group: ExifIFD
+        tag: MeteringMode
+        label: MeteringMode
+        expected: Multi-segment
+      saturation:
+        group: ExifIFD
+        tag: Saturation
+        label: Saturation
+        expected: Normal
+      scene_capture_type:
+        group: ExifIFD
+        tag: SceneCaptureType
+        label: SceneCaptureType
+        expected: Standard
+      scene_type:
+        group: ExifIFD
+        tag: SceneType
+        label: SceneType
+        expected: Directly photographed
+      sharpness:
+        group: ExifIFD
+        tag: Sharpness
+        label: Sharpness
+        expected: Normal
+      subject_distance_range:
+        group: ExifIFD
+        tag: SubjectDistanceRange
+        label: SubjectDistanceRange
+        expected: Unknown
+      white_balance:
+        group: ExifIFD
+        tag: WhiteBalance
+        label: WhiteBalance
+        expected: Auto
+      bits_per_sample:
+        group: File
+        tag: BitsPerSample
+        label: BitsPerSample
+        expected: '8'
+      file_type_extension:
+        group: File
+        tag: FileTypeExtension
+        label: FileTypeExtension
+        expected: jpg
+      image_height:
+        group: File
+        tag: ImageHeight
+        label: ImageHeight
+        expected: '1920'
+      image_width:
+        group: File
+        tag: ImageWidth
+        label: ImageWidth
+        expected: '2560'
+      make:
+        group: IFD0
+        tag: Make
+        label: Make
+        expected: NIKON
+      model:
+        group: IFD0
+        tag: Model
+        label: Model
+        expected: E5700
+      orientation:
+        group: IFD0
+        tag: Orientation
+        label: Orientation
+        expected: Horizontal (normal)
+      software:
+        group: IFD0
+        tag: Software
+        label: Software
+        expected: E5700v1.1
+      compression:
+        group: IFD1
+        tag: Compression
+        label: Compression
+        expected: JPEG (old-style)
+      auxiliary_lens:
+        group: Nikon
+        tag: AuxiliaryLens
+        label: AuxiliaryLens
+        expected: 'Off'
+      digital_zoom:
+        group: Nikon
+        tag: DigitalZoom
+        label: DigitalZoom
+        expected: '1'
+      quality:
+        group: Nikon
+        tag: Quality
+        label: Quality
+        expected: Fine
+    date: '2026-07-06'
+  geometry_spec:
+    id: delta_t
+    parameters:
+      - 0.6427
+      - 0.0346
+      - -0.024491
+    zenith_col_row:
+      - 1286
+      - 986
+    horizon_radius: 742
+    is_horizon_circle_clipped: no
+    max_zenith_angle: 95
+    date: '2026-07-06'
+    notes: Validation of lens coefficients by Delta-T in doi:10.1139/cjfr-2018-0006
+      (supplementary material)
+    contact_information: gastonmaurodiaz@gmail.com
+  interpretive_constraint: ~
+  flat_field_correction:
+    id: wagner2001_method
+    type: flat_field_correction
+    model: ff_simple_polynomial
+    rcaiman_version: 2.6.3.9000
+    parameters:
+      '0':
+        - 0.0147
+        - 0.0254
+        - -0.0425
+    data: ~
+    cfa_pattern: ~
+    spectral_mapping: ~
+    date: '2026-07-06'
+    notes: Details in doi:10.1139/cjfr-2018-0006 (supplementary material)
+    contact_information: gastonmaurodiaz@gmail.com

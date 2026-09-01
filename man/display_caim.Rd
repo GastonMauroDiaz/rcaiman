@@ -2,7 +2,7 @@
 % Please edit documentation in R/display_caim.R
 \name{display_caim}
 \alias{display_caim}
-\title{Display a canopy image}
+\title{Display a hemispherical image}
 \usage{
 display_caim(
   caim = NULL,
@@ -15,21 +15,21 @@ display_caim(
 }
 \arguments{
 \item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Typically the output of \code{\link[=read_caim]{read_caim()}}.
-Can be multi- or single-layer.}
+Can be multi- or single-layer. It must have square proportions.}
 
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
 hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
 
 \item{seg}{Segmentation map typically created with functions such as
-\code{\link[=equalarea_segmentation]{equalarea_segmentation()}}, \code{\link[=skygrid_segmentation]{skygrid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
+\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}, \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
 or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
 accepted.}
 
-\item{sampling_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates).}
+\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
+\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
 
 \item{sun_row_col}{numeric \code{data.frame} with the estimated sun‑disk
-position in image coordinates. See \code{\link[=row_col_from_zenith_azimuth]{row_col_from_zenith_azimuth()}}.}
+position in image coordinates. See \code{\link[=row_col_from_zen_azi]{row_col_from_zen_azi()}}.}
 
 \item{sun_disk_size}{numeric vector of length one. Sun disk size in pixels.}
 }
@@ -38,16 +38,23 @@ Invisible \code{NULL}. Called for side effects (image viewer popup).
 }
 \description{
 Wrapper for \code{\link[EBImage:display]{EBImage::display()}} that streamlines the visualization of
-canopy images, optionally overlaying binary masks and segmentation borders.
+hemispherical images, optionally binary masks, segmentation borders and sky marks.
 It is intended for quick inspection of processed or intermediate results in
 a graphical viewer.
 }
 \examples{
 \dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+r <- caim$Cyan
+z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
+
+rspec <- get_radiometry_spec(spec, "spectral_bands")
+caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
 
 # See fit_cie_model() for details on below file
 path <- system.file("external/sky_points.csv",
@@ -59,17 +66,17 @@ head(sky_points)
 plot(caim$Blue)
 points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
 
-x11()
+# x11()
 # plot(caim$Blue)
 # sun_angles <- click(c(z, a), 1) \%>\% as.numeric()
-sun_angles <- c(z = 49.5, a = 27.4) #taken with above lines then hardcoded
+sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
 
-sun_row_col <- row_col_from_zenith_azimuth(z, a,
-                                           sun_angles["z"],
-                                           sun_angles["a"])
+sun_row_col <- row_col_from_zen_azi(z, a,
+                                    sun_angles["zen_deg"] * pi/180,
+                                    sun_angles["azi_deg"] * pi/180)
 
-bin <- binarize_with_thr(r$Blue, thr_isodata(r$Blue[]))
-seg <- equalarea_segmentation(z, a, 200)
+bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[]))
+seg <- equal_area_segmentation(z, a, 200)
 
 # color image
 display_caim(caim)

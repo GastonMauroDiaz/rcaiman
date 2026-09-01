@@ -4,13 +4,14 @@
 \alias{assess_sampling_uniformity}
 \title{Assess sampling uniformity}
 \usage{
-assess_sampling_uniformity(sky_points, equalarea_seg)
+assess_sampling_uniformity(sampling_points, equal_area_seg)
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates).}
+\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
+\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
 
-\item{equalarea_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=equalarea_segmentation]{equalarea_segmentation()}}.}
+\item{equal_area_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with
+\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}.}
 }
 \value{
 List with two components:
@@ -23,11 +24,11 @@ least one point.}
 \description{
 Quantify how a set of sky sampling points covers an equal-area hemispherical
 segmentation using (i) Kullback–Leibler divergence from a uniform
-distribution and (ii) coverage, defined as the fraction of cells receiving at
-least one point.
+distribution and (ii) the fraction of cells receiving at
+least one point, hereafter referred to as coverage.
 }
 \details{
-Points are projected onto an equal-area segmentation (\code{equalarea_seg}), and
+Points are projected onto an equal-area segmentation (\code{equal_area_seg}), and
 cell-wise counts are computed.
 
 Let be \eqn{N_{\text{points}}} the total number of points, \eqn{N_{\text{cells}}}
@@ -48,26 +49,16 @@ Coverage is defined as:
 }
 \examples{
 \dontrun{
-caim <- read_caim()
-r <- caim$Blue
-z <- zenith_image(ncol(caim), lens())
+z <- zenith_image(1000, equidistant_coef)
 a <- azimuth_image(z)
-m <- !is.na(z)
 
-seg <- equalarea_segmentation(z, a, 20)
-bin <- binarize_by_region(r, seg, method = "thr_twocorner")
-bin <- bin & select_sky_region(z, 0, 80)
+row <- col <- sample(1:1000, 100)
+pts <- data.frame(row, col)
+i <- !is.na(extract_dn(z, pts)[,3])
+pts <- add_directions(pts[i,], z, a)
 
-g <- skygrid_segmentation(z, a, 5)
-sky_points <- sample_sky_points(r, bin, g, dist_to_black = 3)
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
+seg <- equal_area_segmentation(z, a, 200)
 
-seg <- equalarea_segmentation(z, a, 200)
-kl <- lapply(1:10, function(i) {
-  sky_points <-  rem_nearby_points(sky_points, NULL, z, a, i, space = "spherical")
-  assess_sampling_uniformity(sky_points, seg)$kl
-})
-plot(unlist(kl), type = "l")
+assess_sampling_uniformity(pts, seg)
 }
 }

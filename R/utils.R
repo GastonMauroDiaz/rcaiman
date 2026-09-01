@@ -1,8 +1,59 @@
 .radian2degree <- function(x) x * 180 / pi
 .degree2radian <- function(x) x * pi / 180
 
-.get_max <- function(r) max(r[], na.rm = TRUE)
-.get_min <- function(r) min(r[], na.rm = TRUE)
+.nn_spherical_fast <- function(xyz, xyz0, k = 1, search_radius = NULL) {
+  dot <- xyz$x * xyz0["x"] + xyz$y * xyz0["y"] + xyz$z * xyz0["z"]
+  dot <- pmin(pmax(dot, -1), 1)
+
+  d <- acos(dot)
+
+  k <- min(k, length(d))
+  idx <- order(d)[seq_len(k)]
+
+  if (!is.null(search_radius)) {
+    keep <- d[idx] <= search_radius
+    idx <- idx[keep]
+  }
+
+  list(
+    index = idx,
+    distance = d[idx]
+  )
+}
+
+.cartesian_to_directions <- function(xyz) {
+  x <- xyz[,1]; y <- xyz[,2]; zc <- xyz[,3]
+  zen <- acos(zc)
+  azi <- atan2(y, x)
+  azi[azi < 0] <- azi[azi < 0] + 2*pi
+  cbind(zen = zen, azi = azi)
+}
+
+.directions_to_cartesian <- function(sampling_points) {
+  zen <- sampling_points[, "zen"]
+  azi <- sampling_points[, "azi"]
+  data.frame(
+    x = sin(zen) * cos(azi),
+    y = sin(zen) * sin(azi),
+    z = cos(zen)
+  )
+}
+
+.get_max <- function(r){
+  if (inherits(r, "SpatRaster")) {
+    terra::minmax(r)[2]
+  } else {
+    max(r[], na.rm = TRUE)
+  }
+}
+
+.get_min <- function(r) {
+  if (inherits(r, "SpatRaster")){
+    terra::minmax(r)[1]
+  } else {
+    min(r[], na.rm = TRUE)
+  }
+}
 
 .decode_label <- function(label) {
   sector_ID <- trunc(label / 1000)
@@ -14,52 +65,20 @@
 
 .calc_rmse <- function(x) sqrt(mean(x^2))
 
-.extension <- function(file_name, new_extension = "tif") {
-  file_name <- filenamer::as.filename(file_name)
-  file_name <- filenamer::insert(file_name, ext = new_extension, replace = TRUE)
-  as.character(file_name)
-}
+.assert_file_extension <- function(file_name, required_extension = "tif") {
+  ext <- tolower(tools::file_ext(file_name))
 
-.make_fake_las <- function(X, Y, Z){
-  data_template_names <- c("X", "Y", "Z", "gpstime","Intensity", "ReturnNumber",
-                           "NumberOfReturns", "ScanDirectionFlag",
-                           "EdgeOfFlightline",  "Classification",
-                           "Synthetic_flag", "Keypoint_flag", "Withheld_flag",
-                           "ScanAngleRank", "UserData", "PointSourceID",
-                           "R",  "G",  "B")
-  data_template <- matrix(ncol = length(data_template_names), nrow = length(X))
-  data_template <- data.frame(data_template)
-  names(data_template) <- data_template_names
-  data_template[] <- 0
-
-  fake_las <- new("LAS")
-  fake_las@data <- as(data_template, "data.table")
-  fake_las@data$X <- X
-  fake_las@data$Y <- Y
-  fake_las@data$Z <- Z
-  fake_las
-}
-
-.show_popup <- function(message) {
-  # Create the main window
-  win <- tcltk::tktoplevel()
-  tcltk::tkwm.title(win, "Popup")
-
-  # Create a label with the message
-  label <- tcltk::tklabel(win, text = message, padx = 10,
-                          pady = 10, justify = "left")
-  tcltk::tkpack(label)
-
-  # Create a button to close the window
-  button <- tcltk::tkbutton(win, text = "OK",
-                            command = function() tcltk::tkdestroy(win))
-  tcltk::tkpack(button, padx = 10, pady = 10)
-
-  # Set the focus on the window
-  tcltk::tkfocus(win)
-
-  # Run the event loop
-  tcltk::tkwait.window(win)
+  if (ext == "") {
+    file_name <- paste0(file_name, ".", required_extension)
+  } else if (ext != required_extension) {
+    stop(
+      paste0(
+       "Expected a ",required_extension ," extension (or no extension)."
+      ),
+      call. = FALSE
+    )
+  }
+  file_name
 }
 
 .cores <- function(cores = NULL, logical = FALSE, leave_free = 0) {
@@ -79,6 +98,7 @@
 
   cores
 }
+
 .with_cluster <- function(cores, expr) {
   if (!requireNamespace("doParallel", quietly = TRUE)) {
     stop("The 'doParallel' package is required but not available.", call. = FALSE)
@@ -91,4 +111,34 @@
   force(expr)
 }
 
+.resolve_required_column <- function(col_id,
+                                     data,
+                                     name_col_id = deparse(substitute(col_id)),
+                                     name_data = deparse(substitute(data))) {
 
+  if (is.numeric(col_id)) {
+    .check_vector(col_id, "numeric", 1, sign = "positive")
+    if (col_id > ncol(data)) {
+      stop(
+        sprintf(
+          "`%s` (%s) exceeds the number of columns in `%s` (%s).",
+          name_col_id,
+          col_id,
+          name_data,
+          ncol(data)
+        )
+      )
+    }
+    return(names(data)[col_id])
+  } else if (is.character(col_id)) {
+    .check_vector(col_id, "character", 1)
+    .check_columns(data, required_columns = col_id, arg_name = name_data)
+    return(col_id)
+  }
+  stop(sprintf("`%s` is not character or numeric.", name_col_id))
+}
+
+.noise <- function(w = 1) {
+  coef_sd <- apply((rcaiman::cie_table[, 1:5]), 2, sd) * w
+  Map(function(i) stats::rnorm(1, 0, coef_sd[i]), 1:5) %>% unlist()
+}

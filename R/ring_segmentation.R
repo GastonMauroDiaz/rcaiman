@@ -6,21 +6,21 @@
 #'
 #' @param angle_width numeric vector of length one. Ring width in degrees.
 #'   Must divide the 0-90 deg range into an integer number of segments.
-#' @param return character vector of length one. Output mode: "id" (default)
-#'   or "angle".
+#' @param return character vector of length one. Output mode: `"id"` (default)
+#'   or `"angle"`.
 #'
-#' @inheritParams skygrid_segmentation
+#' @inheritParams add_directions
 #'
 #' @return Single-layer [terra::SpatRaster-class]: ring IDs if `return = "id"`,
-#'   or mean zenith angle (deg) if `return = "angle"`.
+#'   or mean zenith angle (deg) if `return = "angle"`. The object carries attribute `return`.
 #' @export
 #'
 #' @examples
-#' z <- zenith_image(600, lens())
+#' z <- zenith_image(600, equidistant_coef)
 #' rings <- ring_segmentation(z, 15)
 #' plot(rings == 1)
 ring_segmentation <- function(z, angle_width, return = "id") {
-  .check_r_z_a_m(NULL, z)
+  .assert_zenith_image(z)
   .check_vector(angle_width, "numeric", 1, sign = "positive")
   if (tryCatch(!.check_vector(90 / angle_width, "integerish", 1,
                              sign = "positive"), error = function(e) TRUE )) {
@@ -43,5 +43,6 @@ ring_segmentation <- function(z, angle_width, return = "id") {
   rings <- terra::classify(z, rcl)
   rings[is.na(rings)] <- 0
   names(rings) <- "Rings"
+  attr(rings, "return") <- return
   rings
 }

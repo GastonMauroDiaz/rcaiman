@@ -4,7 +4,7 @@
 #' Segment a hemispherical view into equal azimuth sectors by slicing the
 #' azimuth angle from `0` to `360` deg at fixed steps.
 #'
-#' @inheritParams skygrid_segmentation
+#' @inheritParams add_directions
 #' @param angle_width numeric vector of lenght one. Sector width in degrees.
 #'   Must divide the 0–360 deg range into an integer number of sectors.
 #'
@@ -14,12 +14,12 @@
 #' @export
 #'
 #' @examples
-#' z <- zenith_image(600, lens())
+#' z <- zenith_image(600, equidistant_coef)
 #' a <- azimuth_image(z)
 #' sectors <- sector_segmentation(a, 15)
 #' plot(sectors == 1)
 sector_segmentation <- function(a, angle_width) {
-  .check_r_z_a_m(NULL, NULL, a)
+  .assert_azimuth_image(a)
   .check_vector(angle_width, "numeric", 1, sign = "positive")
   if (tryCatch(!.check_vector(90 / angle_width, "integerish", 1,
                              sign = "positive"), error = function(e) TRUE )) {

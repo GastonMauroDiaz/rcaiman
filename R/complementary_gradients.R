@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Compute three color-opponent gradients to enhance the visual separation
-#' between sky and canopy in hemispherical photographs, particularly under
+#' between sky and canopy in photographs, particularly under
 #' diffuse light or complex cloud patterns.
 #'
 #' @details
@@ -30,7 +30,7 @@
 #'
 #' @param caim numeric [terra::SpatRaster-class] with three layers named
 #'   `"Red"`, `"Green"`, and `"Blue"`. Digital numbers should be linearly
-#'   related to radiance. See [read_caim_raw()] for details.
+#'   related to radiance \insertCite{Lang2010;textual}{rcaiman}.
 #'
 #' @return Numeric [terra::SpatRaster-class] with three layers and the same
 #'   geometry as `caim`. The layers (`"green_magenta"`, `"yellow_blue"`,
@@ -42,9 +42,28 @@
 #'
 #' @examples
 #' \dontrun{
+#' require(rcaiman.registry)
+#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw2.yaml", package = "rcaiman")
+#' my_entry <- read_registry_snapshot(path)
+#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
 #' caim <- read_caim()
+#'
+#' z <- zenith_image(ncol(caim), spec$parameters)
+#' a <- azimuth_image(z)
+#' m <- !is.na(z)
+#'
+#' rspec <- get_radiometry_spec(spec, "flat_field_reconstruction")
+#' ff <- ff_trend_surface(z, a, rspec$data, "5", names(caim))
+#' caim <- apply_flat_field(caim, ff)
+#'
+#' rspec <- get_radiometry_spec(spec, "spectral_bands")
+#' caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
+#'
 #' com <- complementary_gradients(caim)
 #' plot(com)
+#'
+#' bin <- binarize_with_thr(com$red_cyan, 0.37)
+#' plot(bin)
 #' }
 complementary_gradients <- function(caim) {
   .assert_rgb3(caim)
@@ -69,6 +88,8 @@ complementary_gradients <- function(caim) {
   names(green_magenta) <- "green_magenta"
   names(yellow_blue) <- "yellow_blue"
   names(red_cyan) <- "red_cyan"
-  c(green_magenta, yellow_blue, red_cyan)
+  com <- c(green_magenta, yellow_blue, red_cyan)
+  com[is.na(com)] <- 0
+  com
 }
 
