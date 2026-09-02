@@ -8,6 +8,12 @@
 #' Internally, this is a wrapper around [terra::rast()], so support for image
 #' formats depends on the capabilities of the `terra` package.
 #'
+#' When `snapped_zenith_coord` and `horizon_radius` are supplied, the function
+#' returns a square crop with side `2 * horizon_radius`. The snapped zenith is
+#' placed at the intersection of the four central cells. The first retained
+#' cell is therefore identified by
+#' `snapped_zenith_coord - horizon_radius + 1`.
+#'
 #' @section Example data:
 #' The package includes example files available through
 #' `system.file("external", package = "rcaiman")`.
@@ -48,13 +54,7 @@
 #'
 #' @param path character vector of length one.  Path to an image file, including
 #'   extension. If `NULL`, an example image is returned.
-#' @param zenith_col_row numeric vector of length 2. Column and row coordinates
-#'   of the optical center (zenith) in pixel units.
-#' @param horizon_radius integer-like numeric vector of length one. Radius of the
-#'   hemispherical image in pixel units, measured from the optical center
-#'   (`zenith_col_row`) to the image location corresponding to a zenith angle of
-#'   90 deg (i.e. the horizon). It must be an even integer (see
-#'   [rcaiman::zenith_image]).
+#' @inheritParams crop_caim
 #' @param fill_na character vector of length one. Method used to fill `NA`
 #'   cells. Must be `"max"`, `"min"`, `"value"`, or `"none"`. Use `"max"` to
 #'   fill with the image maximum, `"min"` to fill with the image minimum,
@@ -98,13 +98,17 @@
 #'
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' caim <- read_caim(path)
-#' zenith_col_row <- spec$zenith_col_row
+#' snapped_zenith_coord <- spec$snapped_zenith_coord
 #' horizon_radius <- spec$horizon_radius
-#' caim <- read_caim(path, zenith_col_row, horizon_radius)
+#' caim <- read_caim(
+#'   path,
+#'   snapped_zenith_coord = snapped_zenith_coord,
+#'   horizon_radius = horizon_radius
+#' )
 #' plot(caim)
 #' }
 read_caim <- function(path = NULL,
-                      zenith_col_row = NULL,
+                      snapped_zenith_coord = NULL,
                       horizon_radius = NULL,
                       fill_na = "max",
                       fill_value = NULL) {
@@ -114,8 +118,6 @@ read_caim <- function(path = NULL,
     path <- system.file("external/example.tif", package = "rcaiman")
   }
   .assert_file_exists(path)
-  .check_vector(zenith_col_row, "numeric", length = 2, sign = "positive", allow_null = TRUE)
-  .check_vector(horizon_radius, "even_integerish", length = 1, allow_null = TRUE)
   .assert_choice(fill_na, c("max", "min", "value", "none"))
   .check_vector(fill_value, "numeric", 1, allow_null = TRUE)
 
@@ -129,32 +131,11 @@ read_caim <- function(path = NULL,
                 }) %>%
     suppressWarnings()
 
-  r <- set_rcaiman_geometry(r)
-
-  if (all(!is.null(zenith_col_row), !is.null(horizon_radius))) {
-
-    # TODO (2026-09-02): Temporary transition. The legacy
-    # `zenith_col_row` contract must be migrated before this derivation of
-    # `upper_left_indices` can be considered canonical.
-    upper_left_indices <- zenith_col_row - horizon_radius
-    height <- width <- horizon_radius * 2
-
-    r <- tryCatch(
-      crop_caim(
-        r,
-        upper_left_indices = upper_left_indices,
-        width = width,
-        height = height
-      ),
-      error = function(e) NULL
-    )
-    if (is.null(r)) {
-      stop(
-        "The selection is outside the picture border, review `zenith_col_row`",
-        "and `horizon_radius`."
-      )
-    }
-  }
+  r <- crop_caim(
+    r,
+    snapped_zenith_coord = snapped_zenith_coord,
+    horizon_radius = horizon_radius
+  )
 
   if (fill_na != "none") {
     value <- switch(

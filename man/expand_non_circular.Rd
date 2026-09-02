@@ -2,27 +2,28 @@
 % Please edit documentation in R/expand_non_circular.R
 \name{expand_non_circular}
 \alias{expand_non_circular}
-\title{Expand non-circular}
+\title{Expand a non-circular image}
 \usage{
-expand_non_circular(caim, z, zenith_col_row)
+expand_non_circular(caim, z, snapped_zenith_coord)
 }
 \arguments{
 \item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster}. Typically the output of \code{\link[=read_caim]{read_caim()}}.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
-\item{zenith_col_row}{numeric vector of length 2. Column and row coordinates
-of the optical center (zenith) in pixel units.}
+\item{snapped_zenith_coord}{integer-like numeric vector of length two.
+Continuous image coordinates of the optical center in the original image
+frame, in the order \code{c(x, y_down)}. The coordinates identify the center of
+the nearest 2 x 2 cell window.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} with the same layers and pixel values as \code{caim},
 but with \code{NA} margins added to center the zenith.
 }
 \description{
-Add \code{NA} margins to a hemispherical photograph to align the zenith direction
-with the image center. In this context, “zenith” denotes the location in the image
-that corresponds to the projection of the vertical direction when the optical
-axis is aligned vertically. Intended for non-circular images.
+Add \code{NA} margins to a hemispherical photograph and align its snapped zenith
+with the center of a zenith image. This operation is intended for
+non-circular images.
 }
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with
@@ -42,7 +43,7 @@ path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 caim <- read_caim(path)
 z <- zenith_image(spec$horizon_radius * 2,  spec$parameters)
 a <- azimuth_image(z)
-caim <- expand_non_circular(caim, z, spec$zenith_col_row)
+caim <- expand_non_circular(caim, z, spec$snapped_zenith_coord)
 plot(caim$Blue, col = seq(0, 1, 1/255) \%>\% grey())
 m <- !is.na(caim$Red) & !is.na(z)
 plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

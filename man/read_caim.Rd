@@ -6,7 +6,7 @@
 \usage{
 read_caim(
   path = NULL,
-  zenith_col_row = NULL,
+  snapped_zenith_coord = NULL,
   horizon_radius = NULL,
   fill_na = "max",
   fill_value = NULL
@@ -16,14 +16,15 @@ read_caim(
 \item{path}{character vector of length one.  Path to an image file, including
 extension. If \code{NULL}, an example image is returned.}
 
-\item{zenith_col_row}{numeric vector of length 2. Column and row coordinates
-of the optical center (zenith) in pixel units.}
+\item{snapped_zenith_coord}{integer-like numeric vector of length two.
+Continuous image coordinates of the optical center in the input image
+frame, in the order \code{c(x, y_down)}. The coordinates identify the center of
+the nearest 2 x 2 cell window. If \code{NULL}, \code{horizon_radius} must also be
+\code{NULL}.}
 
-\item{horizon_radius}{integer-like numeric vector of length one. Radius of the
-hemispherical image in pixel units, measured from the optical center
-(\code{zenith_col_row}) to the image location corresponding to a zenith angle of
-90 deg (i.e. the horizon). It must be an even integer (see
-\link{zenith_image}).}
+\item{horizon_radius}{positive integer-like numeric vector of length one.
+Radius of the declared processing geometry in cell units. If \code{NULL},
+\code{snapped_zenith_coord} must also be \code{NULL}.}
 
 \item{fill_na}{character vector of length one. Method used to fill \code{NA}
 cells. Must be \code{"max"}, \code{"min"}, \code{"value"}, or \code{"none"}. Use \code{"max"} to
@@ -44,6 +45,12 @@ Reads a digital image (typically RGB-JPEG or RGB-TIFF) using
 \details{
 Internally, this is a wrapper around \code{\link[terra:rast]{terra::rast()}}, so support for image
 formats depends on the capabilities of the \code{terra} package.
+
+When \code{snapped_zenith_coord} and \code{horizon_radius} are supplied, the function
+returns a square crop with side \code{2 * horizon_radius}. The snapped zenith is
+placed at the intersection of the four central cells. The first retained
+cell is therefore identified by
+\code{snapped_zenith_coord - horizon_radius + 1}.
 }
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with unit
@@ -111,9 +118,13 @@ spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
 
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path)
-zenith_col_row <- spec$zenith_col_row
+snapped_zenith_coord <- spec$snapped_zenith_coord
 horizon_radius <- spec$horizon_radius
-caim <- read_caim(path, zenith_col_row, horizon_radius)
+caim <- read_caim(
+  path,
+  snapped_zenith_coord = snapped_zenith_coord,
+  horizon_radius = horizon_radius
+)
 plot(caim)
 }
 }

@@ -1,14 +1,17 @@
-#' Expand non-circular
+#' Expand a non-circular image
 #'
-#' Add `NA` margins to a hemispherical photograph to align the zenith direction
-#' with the image center. In this context, “zenith” denotes the location in the image
-#' that corresponds to the projection of the vertical direction when the optical
-#' axis is aligned vertically. Intended for non-circular images.
+#' @description
+#' Add `NA` margins to a hemispherical photograph and align its snapped zenith
+#' with the center of a zenith image. This operation is intended for
+#' non-circular images.
 #'
 #' @param caim [terra::SpatRaster-class]. Typically the output of [read_caim()].
+#' @param snapped_zenith_coord integer-like numeric vector of length two.
+#'   Continuous image coordinates of the optical center in the original image
+#'   frame, in the order `c(x, y_down)`. The coordinates identify the center of
+#'   the nearest 2 x 2 cell window.
 #'
 #' @inheritParams add_directions
-#' @inheritParams read_caim
 #'
 #' @return [terra::SpatRaster-class] with the same layers and pixel values as `caim`,
 #'   but with `NA` margins added to center the zenith.
@@ -32,17 +35,25 @@
 #' caim <- read_caim(path)
 #' z <- zenith_image(spec$horizon_radius * 2,  spec$parameters)
 #' a <- azimuth_image(z)
-#' caim <- expand_non_circular(caim, z, spec$zenith_col_row)
+#' caim <- expand_non_circular(caim, z, spec$snapped_zenith_coord)
 #' plot(caim$Blue, col = seq(0, 1, 1/255) %>% grey())
 #' m <- !is.na(caim$Red) & !is.na(z)
 #' plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 #' }
-expand_non_circular <-  function (caim, z, zenith_col_row) {
+expand_non_circular <- function(caim, z, snapped_zenith_coord) {
   .assert_spatraster(caim)
   .assert_zenith_image(z)
-  .check_vector(zenith_col_row, "numeric", 2, sign = "positive")
+  .check_vector(
+    snapped_zenith_coord,
+    "integerish",
+    2,
+    sign = "positive"
+  )
 
-  zenith_xy <- c(zenith_col_row[1], nrow(caim) - zenith_col_row[2])
+  zenith_xy <- c(
+    snapped_zenith_coord[1],
+    y_from_y_down(snapped_zenith_coord[2], nrow(caim))
+  )
   delta_x <-  zenith_xy[1] - (ncol(caim) / 2)
   delta_y <-  zenith_xy[2] - (nrow(caim) / 2)
   #In which quadrant is the zenith?

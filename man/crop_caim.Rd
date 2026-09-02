@@ -2,9 +2,16 @@
 % Please edit documentation in R/crop_caim.R
 \name{crop_caim}
 \alias{crop_caim}
-\title{Crop a canopy image by cell indices}
+\title{Crop a canopy image}
 \usage{
-crop_caim(r, upper_left_indices = NULL, width = NULL, height = NULL)
+crop_caim(
+  r,
+  upper_left_indices = NULL,
+  width = NULL,
+  height = NULL,
+  snapped_zenith_coord = NULL,
+  horizon_radius = NULL
+)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
@@ -12,26 +19,41 @@ crop_caim(r, upper_left_indices = NULL, width = NULL, height = NULL)
 \item{upper_left_indices}{integer-like numeric vector of length two. Cell
 indices of the upper-left cell included in the crop, in the order
 \code{c(col, row)}. Cell indices are numbered from 1. If \code{NULL}, \code{width} and
-\code{height} must also be \code{NULL}, and no crop is applied.}
+\code{height} must also be \code{NULL}.}
 
 \item{width, height}{positive integer-like numeric vectors of length one.
 Number of columns and rows included in the crop. If \code{NULL},
-\code{upper_left_indices} must also be \code{NULL}, and no crop is applied.}
+\code{upper_left_indices} must also be \code{NULL}.}
+
+\item{snapped_zenith_coord}{integer-like numeric vector of length two.
+Continuous image coordinates of the optical center in the input image
+frame, in the order \code{c(x, y_down)}. The coordinates identify the center of
+the nearest 2 x 2 cell window. If \code{NULL}, \code{horizon_radius} must also be
+\code{NULL}.}
+
+\item{horizon_radius}{positive integer-like numeric vector of length one.
+Radius of the declared processing geometry in cell units. If \code{NULL},
+\code{snapped_zenith_coord} must also be \code{NULL}.}
 }
 \value{
 \link[terra:SpatRaster-class]{terra::SpatRaster} containing the selected cells, with the
 same layers and values as \code{r}.
 }
 \description{
-Extract an exact rectangular region of cells from a canopy image. The
-\code{upper_left_indices} argument identifies the first cell included in the
-result, and \code{width} and \code{height} give the number of included columns and
-rows.
+Extract an exact region of cells from a canopy image. Define either a free
+rectangular crop or a square crop centered on a snapped zenith.
 }
 \details{
-Cropping is aligned with cell boundaries and never divides or resamples a
-cell. For example, \code{upper_left_indices = c(4, 3)}, \code{width = 2}, and
-\code{height = 3} retain columns 4--5 and rows 3--5.
+Crops are aligned with cell boundaries and never divide or resample a cell.
+Supply either \code{upper_left_indices}, \code{width}, and \code{height}, or
+\code{snapped_zenith_coord} and \code{horizon_radius}. The two specifications are
+mutually exclusive. If all five arguments are \code{NULL}, no crop is applied.
+
+For a free crop, \code{upper_left_indices = c(4, 3)}, \code{width = 2}, and
+\code{height = 3} retain columns 4--5 and rows 3--5. For a centered crop, the
+first retained cell is identified by
+\code{snapped_zenith_coord - horizon_radius + 1}, and both sides have length
+\code{2 * horizon_radius}.
 
 The result is assigned the standardized raster geometry described in
 \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
@@ -45,4 +67,10 @@ cropped_caim <- crop_caim(
   height = 4
 )
 dim(cropped_caim)
+
+centered_caim <- crop_caim(
+  caim,
+  snapped_zenith_coord = c(5, 6),
+  horizon_radius = 2
+)
 }

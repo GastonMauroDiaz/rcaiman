@@ -51,6 +51,26 @@ test_that("crop_caim() handles the full image and lower-right border", {
 })
 
 
+test_that("crop_caim() accepts an equivalent centered specification", {
+  r <- crop_test_raster()
+
+  centered <- crop_caim(
+    r,
+    snapped_zenith_coord = c(2, 2),
+    horizon_radius = 1
+  )
+  explicit <- crop_caim(
+    r,
+    upper_left_indices = c(2, 2),
+    width = 2,
+    height = 2
+  )
+
+  expect_equal(dim(centered), c(2, 2, 2))
+  expect_equal(terra::values(centered), terra::values(explicit))
+})
+
+
 test_that("crop_caim() validates a complete cell-aligned selection", {
   r <- crop_test_raster()
 
@@ -63,6 +83,40 @@ test_that("crop_caim() validates a complete cell-aligned selection", {
   )
   expect_error(
     crop_caim(r, c(4, 3), width = 3, height = 2),
+    "extends outside",
+    fixed = TRUE
+  )
+  expect_error(
+    crop_caim(r, snapped_zenith_coord = c(2, 2)),
+    "must be supplied together",
+    fixed = TRUE
+  )
+  expect_error(
+    crop_caim(
+      r,
+      upper_left_indices = c(1, 1),
+      width = 2,
+      height = 2,
+      snapped_zenith_coord = c(2, 2),
+      horizon_radius = 1
+    ),
+    "not both",
+    fixed = TRUE
+  )
+  expect_error(
+    crop_caim(
+      r,
+      snapped_zenith_coord = c(2.5, 2),
+      horizon_radius = 1
+    ),
+    "integer-like"
+  )
+  expect_error(
+    crop_caim(
+      r,
+      snapped_zenith_coord = c(1, 1),
+      horizon_radius = 2
+    ),
     "extends outside",
     fixed = TRUE
   )
