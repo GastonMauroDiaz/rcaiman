@@ -7,7 +7,7 @@
 set_rcaiman_geometry(r)
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}.}
 }
 \value{
 The same \link[terra:SpatRaster-class]{terra::SpatRaster} with standardized extent and CRS.
@@ -21,10 +21,10 @@ This function enforces a unit-resolution pixel grid with a
 standardized extent \code{ext(0, ncol, 0, nrow)} and assigns a non-geographic CRS
 as an explicit marker that no spatial semantics are intended. The \code{EPSG:7589}
 was selected because it does not have datum, projection, or physical units.
-This ensure consistent behavior across \code{terra}-based workflows. Using \code{crs = NA} is intentionally avoided since many \code{terra} methods and external tools
+This ensures consistent behavior across \code{terra}-based workflows. Using \code{crs = NA} is intentionally avoided since many \code{terra} methods and external tools
 assume a defined CRS and may otherwise fail, emit warnings, or apply implicit
 defaults.
 }
 \seealso{
-\code{\link[=xy_from_col_row]{xy_from_col_row()}}
+\code{\link[=y_down_from_y]{y_down_from_y()}} for image coordinate conventions.
 }

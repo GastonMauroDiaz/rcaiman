@@ -6,7 +6,7 @@
 #'
 #' @details
 #' For each value in `distances`, nearby sky points are removed using
-#' [rem_nearby_points()], and sampling uniformity is assessed with
+#' [rem_nearby_indices()], and sampling uniformity is assessed with
 #' [assess_sampling_uniformity()].
 #'
 #' The resulting Kullback–Leibler divergence (`kl`) and coverage sequences are
@@ -117,7 +117,7 @@ optimize_sampling_distance <- function(sky_points, equal_area_seg, distances,
   }
 
   metrics <- lapply(distances, function(d) {
-    sp <- rem_nearby_points(sky_points, d, space = "spherical")
+    sp <- rem_nearby_indices(sky_points, d, space = "spherical")
     assess_sampling_uniformity(sp, equal_area_seg)
   })
 

@@ -56,8 +56,6 @@
 #' sky_points <- sky_points[c("Y", "X")]
 #' colnames(sky_points) <- c("row", "col")
 #' head(sky_points)
-#'
-#' display_caim(r, sampling_points = sky_points)
 #' sky_points <- extract_dn(r, sky_points, use_window = TRUE)
 #' sky_points <- add_directions(sky_points, z, a)
 #' calc_relative_radiance(sky_points, "Cyan")

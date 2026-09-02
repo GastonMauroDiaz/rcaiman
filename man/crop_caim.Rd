@@ -2,66 +2,47 @@
 % Please edit documentation in R/crop_caim.R
 \name{crop_caim}
 \alias{crop_caim}
-\title{Crop a canopy image}
+\title{Crop a canopy image by cell indices}
 \usage{
-crop_caim(r, upper_left = NULL, width = NULL, height = NULL)
+crop_caim(r, upper_left_indices = NULL, width = NULL, height = NULL)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
 
-\item{upper_left}{numeric vector of length two. Pixel coordinates of the
-upper-left corner of the ROI, in the format \code{c(column, row)}.}
+\item{upper_left_indices}{integer-like numeric vector of length two. Cell
+indices of the upper-left cell included in the crop, in the order
+\code{c(col, row)}. Cell indices are numbered from 1. If \code{NULL}, \code{width} and
+\code{height} must also be \code{NULL}, and no crop is applied.}
 
-\item{width, height}{numeric vector of length one. Size (in pixels) of the
-rectangular ROI to read.}
+\item{width, height}{positive integer-like numeric vectors of length one.
+Number of columns and rows included in the crop. If \code{NULL},
+\code{upper_left_indices} must also be \code{NULL}, and no crop is applied.}
 }
 \value{
-\link[terra:SpatRaster-class]{terra::SpatRaster} object containing the same layers and values
-as \code{r} but restricted to the selected ROI, preserving all other properties.
+\link[terra:SpatRaster-class]{terra::SpatRaster} containing the selected cells, with the
+same layers and values as \code{r}.
 }
 \description{
-Extracts a rectangular region of interest (ROI) from a canopy image. This
-function complements \code{\link[=read_caim]{read_caim()}}.
+Extract an exact rectangular region of cells from a canopy image. The
+\code{upper_left_indices} argument identifies the first cell included in the
+result, and \code{width} and \code{height} give the number of included columns and
+rows.
 }
-\note{
-\code{rcaiman} uses terra without geographic semantics: rasters are kept with
-unit resolution (cell size = 1) and a standardized extent
-\code{ext(0, ncol, 0, nrow)} with CRS EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
-}
-\section{Selecting a Region of Interest}{
+\details{
+Cropping is aligned with cell boundaries and never divides or resamples a
+cell. For example, \code{upper_left_indices = c(4, 3)}, \code{width = 2}, and
+\code{height = 3} retain columns 4--5 and rows 3--5.
 
-Arguments \code{upper_left}, \code{width}, and \code{height} are expressed in raster
-coordinates, similar to a spreadsheet layout: \strong{columns first, then rows}.
-In other words, specify coordinates as \code{c(column, row)}, \strong{not} \code{c(row, column)}, which is typical in \code{data.frame} objects.
-
-While any image editor can be used to obtain these values, this function was
-tested with \href{https://imagej.net/ij/}{ImageJ}, particularly the Fiji
-distribution. A recommended workflow:
-\enumerate{
-\item Open the image in Fiji.
-\item Draw a rectangular selection.
-\item Go to \emph{Edit > Selection > Specify...} to read \code{upper_left}, \code{width}, and \code{height}.
+The result is assigned the standardized raster geometry described in
+\code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
 }
-}
-
 \examples{
 caim <- read_caim()
-ncell(caim)
-caim <- crop_caim(caim, c(231,334), 15, 10)
-ncell(caim)
-
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
-
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path)
-zenith_col_row <- spec$zenith_col_row
-horizon_radius <- spec$horizon_radius
-upper_left <- zenith_col_row - horizon_radius
-side <- horizon_radius * 2
-plot(crop_caim(caim, upper_left, side, side))
-}
+cropped_caim <- crop_caim(
+  caim,
+  upper_left_indices = c(2, 3),
+  width = 5,
+  height = 4
+)
+dim(cropped_caim)
 }

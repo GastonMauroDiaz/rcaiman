@@ -4,54 +4,45 @@
 \alias{add_directions}
 \title{Add angular directions to the data frame}
 \usage{
-add_directions(sampling_points, z, a)
+add_directions(sampling_indices, z, a)
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{row} and \code{col} (raster
-coordinates). It may contain additional columns.}
+\item{sampling_indices}{\code{data.frame} with columns \code{"col"} and \code{"row"},
+representing cell indices numbered from 1. It may contain additional
+columns.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 }
 \value{
-\code{data.frame} equal to \code{sampling_points} with added columns \code{"zen"}
+\code{data.frame} equal to \code{sampling_indices} with added columns \code{"zen"}
 (zenith angle, radians) and \code{"azi"} (azimuth angle, radians).
 }
 \description{
-Enrich a data frame containing continuous image coordinates (see
-\code{\link[=xy_from_row_col]{xy_from_row_col()}}) with zenith and azimuth angles (\code{"zen"}, \code{"azi"})
-corresponding to those locations, preserving any additional columns.
+Enrich a data frame containing cell indices (\code{"col"}, \code{"row"}) with zenith
+and azimuth angles (\code{"zen"}, \code{"azi"}) corresponding to those cells,
+preserving any additional columns.
 }
 \details{
 In \pkg{rcaiman}, a direction refers to a viewing direction defined
 by zenith and azimuth angles in radians. These angles describe the
 orientation of a unit vector ray originating at the camera.
+
+Cell indices are passed to \code{\link[=extract_dn]{extract_dn()}} for direct lookup in \code{z} and \code{a}.
 }
 \note{
-This function assumes that \code{z}, \code{a}, and \code{sampling_points} are tied to
-the same underlying raster geometry.
+This function assumes that \code{z}, \code{a}, and \code{sampling_indices} are tied
+to the same underlying raster geometry.
 
 If any extracted zenith value is \code{NA}, the function stops with an error.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-
-z <- zenith_image(spec$horizon_radius * 2, spec$parameters)
+z <- zenith_image(10, equidistant_coef)
 a <- azimuth_image(z)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-head(add_directions(sky_points, z, a))
-}
+sampling_indices <- data.frame(
+  col = c(5, 6, 8),
+  row = c(5, 5, 6)
+)
+add_directions(sampling_indices, z, a)
 }

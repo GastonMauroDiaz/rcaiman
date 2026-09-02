@@ -23,10 +23,12 @@ project folder (e.g., \code{"C:/Users/johndoe/Documents/HSP/projects/my_prj/"}).
 \item{img_name}{character vector of length one (e.g., \code{"DSCN6342.pgm"} or
 \code{"DSCN6342"}). See \emph{About HSP software}.}
 
-\item{sky_points}{\code{data.frame} with columns \code{"row"} and \code{"col"}.}
+\item{sky_points}{\code{data.frame} with columns \code{"col"} and \code{"row"}, representing
+cell indices numbered from 1.}
 
-\item{sun_row_col}{numeric vector of length two. Continuous image coordinates
-(see \code{\link[=xy_from_col_row]{xy_from_col_row()}}) of the solar disk.}
+\item{sun_row_col}{numeric vector of length two. Cell indices of the solar
+disk in \code{row}, \code{col} order. The argument name and order follow the legacy
+HSP format. See \code{\link[=y_down_from_y]{y_down_from_y()}} for spatial conventions.}
 }
 \value{
 See \emph{Functions}

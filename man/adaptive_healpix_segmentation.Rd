@@ -112,7 +112,6 @@ seg_tree <- adaptive_healpix_segmentation(
   min_size_px = 5
 )
 plot(seg_tree)
-display_caim(r, seg = seg_tree)
 }
 }
 \references{

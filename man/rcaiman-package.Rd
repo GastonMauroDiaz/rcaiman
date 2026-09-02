@@ -16,7 +16,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Gastón Mauro Díaz \email{gastonmaurodiaz@gmail.com} (\href{https://orcid.org/0000-0002-0362-8616}{ORCID})
+\strong{Maintainer}: GastC3n Mauro DC-az \email{gastonmaurodiaz@gmail.com} (\href{https://orcid.org/0000-0002-0362-8616}{ORCID})
 
 }
 \keyword{internal}

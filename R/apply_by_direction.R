@@ -278,7 +278,7 @@ apply_by_direction <- function(r, z, a, m,
 
   xyz <- .directions_to_cartesian(sampling_points)
 
-  qp <- .directions_to_cartesian(fibonacci_points(z, a, spacing))
+  qp <- .directions_to_cartesian(fibonacci_indices(z, a, spacing))
 
   output <- lapply(seq_len(nrow(qp)), function(i) {
     xyz0 <- c(x = qp$x[i], y = qp$y[i], z = qp$z[i])

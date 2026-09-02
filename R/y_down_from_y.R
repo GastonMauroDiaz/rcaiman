@@ -1,8 +1,8 @@
 #' Convert image coordinate representations
 #'
 #' @description
-#' Convert between continuous image coordinates, ordinary x-y coordinates, and cell
-#' indices.
+#' Convert between continuous image coordinates, ordinary x-y coordinates, and
+#' cell indices.
 #'
 #' @details
 #' `rcaiman` uses three representations of image locations:
@@ -21,6 +21,9 @@
 #' Throughout `rcaiman`, names ending in `_coord`, `_xy`, and `_indices` refer
 #' to these representations, respectively.
 #'
+#' The term `point` is reserved for continuous locations (`coord` and `xy`),
+#' because a cell index identifies an area rather than a point.
+#'
 #' The `coord` and `xy` representations share the same horizontal coordinate.
 #' For an image of height \eqn{h}, their vertical coordinates are related by:
 #'
@@ -34,6 +37,9 @@
 #' [coord_from_indices()] returns the continuous image coordinates of cell
 #' centers. Thus, cell `col = 1`, `row = 1` has coordinates
 #' `x = 0.5`, `y_down = 0.5`.
+#' [xy_from_indices()] returns the same cell centers in ordinary x-y
+#' coordinates, making its output suitable for functions such as
+#' [graphics::points()].
 #'
 #' Conversely, [indices_from_coord()] assigns each continuous image location to
 #' the cell containing it. This operation discards the subcell position and is
@@ -55,6 +61,9 @@
 #'     `y_down`.}
 #'   \item{`indices_from_coord()`}{Assign continuous image coordinates to cells.
 #'     Return a `data.frame` with columns `col` and `row`.}
+#'   \item{`xy_from_indices()`}{Convert cell indices to continuous ordinary x-y
+#'     coordinates at cell centers. Return a `data.frame` with columns `x` and
+#'     `y`.}
 #' }
 #'
 #' @param y numeric vector. Vertical component of continuous x-y coordinates,
@@ -71,7 +80,7 @@
 #'
 #' @name y_down_from_y
 #' @rdname y_down_from_y
-#' @aliases y_from_y_down coord_from_indices indices_from_coord
+#' @aliases y_from_y_down coord_from_indices indices_from_coord xy_from_indices
 #'
 #' @export
 #'
@@ -89,6 +98,8 @@
 #' indices
 #'
 #' coord_from_indices(indices$col, indices$row)
+#'
+#' xy_from_indices(indices$col, indices$row, image_height)
 y_down_from_y <- function(y, image_height) {
   image_height - y
 }
@@ -117,5 +128,15 @@ indices_from_coord <- function(x, y_down) {
   data.frame(
     col = as.integer(floor(x)) + 1L,
     row = as.integer(floor(y_down)) + 1L
+  )
+}
+
+
+#' @rdname y_down_from_y
+#' @export
+xy_from_indices <- function(col, row, image_height) {
+  data.frame(
+    x = col - 0.5,
+    y = y_from_y_down(row - 0.5, image_height)
   )
 }

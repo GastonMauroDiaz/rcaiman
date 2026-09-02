@@ -67,9 +67,16 @@ calc_relative_radius <- function(angle, projection_coef, units = "degree") {
 
   i <- angle > pi/2
   relative_radiance <- if (any(i)) {
-    powers <- equidistant_coef #to extrapolate
-    c(.calc_relative_radius(angle[!i], projection_coef),
-      .calc_relative_radius(angle[i], equidistant_coef))
+    relative_radius <- numeric(length(angle))
+    relative_radius[!i] <- .calc_relative_radius(
+      angle[!i],
+      projection_coef
+    )
+    relative_radius[i] <- .calc_relative_radius(
+      angle[i],
+      equidistant_coef
+    )
+    relative_radius
   } else {
     .calc_relative_radius(angle, projection_coef)
   }

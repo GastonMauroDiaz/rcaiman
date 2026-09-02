@@ -2,47 +2,50 @@
 % Please edit documentation in R/extract_dn.R
 \name{extract_dn}
 \alias{extract_dn}
-\title{Extract digital numbers from image with sampling points}
+\title{Extract digital numbers from cell indices}
 \usage{
-extract_dn(r, sampling_points, use_window = TRUE)
+extract_dn(r, sampling_indices, use_window = TRUE)
 }
 \arguments{
 \item{r}{\link[terra:SpatRaster-class]{terra::SpatRaster}.}
 
-\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
-\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
+\item{sampling_indices}{\code{data.frame} with positive integer-like columns
+\code{"col"} and \code{"row"}, representing cell indices numbered from 1.
+Additional columns are preserved.}
 
 \item{use_window}{logical vector of length one. If \code{TRUE} (default), the
 digital number at each point is the average of the values extracted
 from input \code{r} with a window of \eqn{3 \times 3} pixels centered on the
 pixel that includes the point. If \code{FALSE}, only the value of the central
-pixel is retrieved.}
+pixel is retrieved. Return \code{NA} if the window includes cells outside \code{r}
+or cells with missing values.}
 }
 \value{
-\code{data.frame} containing the original \code{sampling_points} plus one column per
-layer in \code{r} (named after the layers).
+\code{data.frame} containing the original \code{sampling_indices} plus one
+column per layer in \code{r}, named after the layers.
 }
 \description{
 Obtain digital numbers from a raster at positions defined by points, with
 optional local averaging.
 }
 \details{
-Wraps \code{\link[terra:extract]{terra::extract()}}.
+Extract raster values using \code{\link[terra:extract]{terra::extract()}}. When \code{use_window = TRUE},
+use each indexed cell as the center of the extraction window.
 }
 \note{
-For instructions on manually digitizing points, see the “Digitizing
-sky points with ImageJ” and “Digitizing sky points with QGIS” sections in
-\code{\link[=fit_cie_model]{fit_cie_model()}}.
+Rasters without values return \code{NA} for every sampling index and layer.
+An input with zero rows returns a zero-row \code{data.frame} with the expected
+output columns.
 }
 \examples{
-\dontrun{
-z <- zenith_image(100, equidistant_coef)
-a <- azimuth_image(z)
-pts <- fibonacci_points(z, a, 30)
-display_caim(is.na(z), sampling_points = pts)
-plot(is.na(z))
-points(pts$col, nrow(z) - pts$row, col = 3, pch = 4)
-}
+r <- terra::rast(nrows = 3, ncols = 3)
+r <- set_rcaiman_geometry(r)
+r[] <- 1:9
+sampling_indices <- data.frame(
+  col = c(1, 2),
+  row = c(1, 2)
+)
+extract_dn(r, sampling_indices, use_window = FALSE)
 }
 \seealso{
 \code{\link[=sample_sky_points]{sample_sky_points()}} for automatically sampling sky points.

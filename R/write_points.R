@@ -1,29 +1,30 @@
-#' Write and read image points
+#' Read and write image points
 #'
 #' @description
-#' Read and write image point coordinates stored as CSV files.
+#' Read and write continuous image coordinates stored as CSV files.
 #'
 #' @section Functions:
 #' \describe{
-#'   \item{`write_points`}{Write a `data.frame` with image point coordinates to
-#'     disk as a CSV file. No return value.}
-#'   \item{`read_points`}{Read a CSV file and return a `data.frame` with, but not exclusively,
-#'     columns `"row"`, `"col"`.}
+#'   \item{`read_points`}{Read a CSV file and return a `data.frame` with columns
+#'     `"x"` and `"y_down"`. Additional columns are preserved.}
+#'   \item{`write_points`}{Write continuous image coordinates to disk as a CSV
+#'     file. No return value.}
 #' }
 #'
 #' @param path character vector of length one. File path to read or write.
-#' @param pts `data.frame` with at least columns `"row"` and `"col"`.
+#' @param sampling_coord `data.frame` with columns `"x"` and `"y_down"`,
+#'   representing continuous image coordinates. Additional columns are
+#'   preserved.
 #'
 #' @details
-#' Point coordinates are stored in raster coordinates, with `"row"` and `"col"`
-#' referring to image row and column positions. Additional columns are preserved.
+#' Coordinates use an image reference system with its origin at the upper-left
+#' corner. The `"x"` coordinate increases to the right and `"y_down"` increases
+#' downward. The center of the upper-left cell is `(0.5, 0.5)`.
 #'
 #' `write_points()` writes CSV files. If `path` has no extension, `".csv"` is
-#' added. Files written by this function follow the standard rcaiman conventions
-#' and can be open by [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects).
-#' These conventions include reordering columns when needed, so `"row"` and `"col"`
-#' are the first and second columns, respectively.
-#'
+#' added. It places `"x"` and `"y_down"` first, in that order. This CSV schema
+#' defines the point-data interoperability contract between \pkg{rcaiman} and
+#' [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects).
 #'
 #' @note
 #' File extensions are recognized using [tools::file_ext()].
@@ -36,45 +37,52 @@
 #'
 #' @export
 #'
-#' @seealso [fibonacci_points()]
+#' @seealso [indices_from_coord()] to assign coordinates to raster cells and
+#'   [coord_from_indices()] to obtain cell-center coordinates.
 #'
 #' @examples
 #' \dontrun{
-#' z <- zenith_image(1000, equidistant_coef)
-#' a <- azimuth_image(z)
-#' pts <- fibonacci_points(z, a, 10)
-#' head(pts)
+#' sampling_coord <- data.frame(
+#'   x = c(10.2, 20.8),
+#'   y_down = c(15.7, 25.3),
+#'   point_id = c("p1", "p2")
+#' )
 #' my_file <- file.path(tempdir(), "pts.csv")
-#' write_points(pts, my_file)
-#' pts_from_disk <- read_points(my_file)
-#' head(pts_from_disk)
+#' write_points(sampling_coord, my_file)
+#' sampling_coord_from_disk <- read_points(my_file)
+#' sampling_coord_from_disk
 #' }
 read_points <- function(path) {
   .check_vector(path, "character", 1)
   .assert_file_exists(path)
-  pts <- read.csv(path)
-  .check_columns(pts, required_columns = c("row", "col"))
-  pts
+  sampling_coord <- read.csv(path)
+  .check_columns(
+    sampling_coord,
+    required_columns = c("x", "y_down")
+  )
+  sampling_coord
 }
 
 #' @rdname read_points
 #' @export
-write_points <- function(pts, path) {
-  .check_columns(pts, required_columns = c("row", "col"))
+write_points <- function(sampling_coord, path) {
+  .check_columns(
+    sampling_coord,
+    required_columns = c("x", "y_down")
+  )
   .check_vector(path, "character", 1)
 
   file_name <- basename(path)
   file_name <-  .assert_file_extension(file_name, "csv")
 
-  nms <- names(pts)
-  if (length(nms) == 2) {
-    pts <- pts[, c("row", "col")]
-  } else {
-    i_row <- grep("row",nms)
-    i_col <- grep("col", nms)
-    pts <- pts[, c("row", "col", nms[-c(i_row, i_col)])]
-  }
+  nms <- names(sampling_coord)
+  other_columns <- setdiff(nms, c("x", "y_down"))
+  sampling_coord <- sampling_coord[, c("x", "y_down", other_columns)]
 
-  write.csv(pts, file.path(dirname(path), file_name), row.names = FALSE)
+  write.csv(
+    sampling_coord,
+    file.path(dirname(path), file_name),
+    row.names = FALSE
+  )
 }
 

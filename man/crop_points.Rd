@@ -2,18 +2,38 @@
 % Please edit documentation in R/crop_points.R
 \name{crop_points}
 \alias{crop_points}
-\title{Title}
+\title{Transform points to a cropped image frame}
 \usage{
-crop_points(
-  pts,
-  upper_left = NULL,
-  horizon_radius = NULL,
-  zenith_col_row = NULL
-)
+crop_points(sampling_coord, upper_left_indices)
 }
 \arguments{
-\item{zenith_col_row}{}
+\item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"},
+representing continuous image coordinates in the original image frame.
+Additional columns are preserved.}
+
+\item{upper_left_indices}{integer-like numeric vector of length two. Cell
+indices of the upper-left cell included in the crop, in the order
+\code{c(col, row)}. Cell indices are numbered from 1.}
+}
+\value{
+\code{data.frame} equal to \code{sampling_coord}, with \code{"x"} and \code{"y_down"}
+expressed in the cropped image frame.
 }
 \description{
-Title
+Translate continuous image coordinates from an original image frame to the
+frame produced by a cell-aligned crop.
+}
+\details{
+The upper-left boundary of the first retained cell has original image
+coordinates \code{c(col - 1, row - 1)}. This value is subtracted from every input
+point. The function translates all rows and does not discard points outside
+the cropped image bounds.
+}
+\examples{
+sampling_coord <- data.frame(
+  x = c(3.5, 5.2),
+  y_down = c(2.5, 4.8),
+  id = c("a", "b")
+)
+crop_points(sampling_coord, upper_left_indices = c(4, 3))
 }

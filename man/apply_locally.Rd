@@ -120,10 +120,10 @@ r <- apply_flat_field(r, ff)
 m <- !is.na(z)
 
 # neighbors
-sampling_points <- fibonacci_points(z, a, 1)
-query_points <- fibonacci_points(z, a, 10)
-neighbors <- nn_spherical(sampling_points, query_points,
-                          k = nrow(sampling_points),
+sampling_indices <- fibonacci_indices(z, a, 1)
+query_indices <- fibonacci_indices(z, a, 10)
+neighbors <- nn_spherical(sampling_indices, query_indices,
+                          k = nrow(sampling_indices),
                           search_radius = 30)
 
 thr <- apply_by_direction(r, z, a, m)
@@ -175,6 +175,6 @@ plot(r/sky)
 }
 }
 \seealso{
-\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=fibonacci_points]{fibonacci_points()}}, and \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}} for
+\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=fibonacci_indices]{fibonacci_indices()}}, and \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}} for
 producing \code{query_points}.
 }

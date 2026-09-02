@@ -1,82 +1,105 @@
-#' Crop a canopy image
+#' Crop a canopy image by cell indices
 #'
-#' Extracts a rectangular region of interest (ROI) from a canopy image. This
-#' function complements [read_caim()].
+#' @description
+#' Extract an exact rectangular region of cells from a canopy image. The
+#' `upper_left_indices` argument identifies the first cell included in the
+#' result, and `width` and `height` give the number of included columns and
+#' rows.
 #'
 #' @param r [terra::SpatRaster-class].
-#' @param upper_left numeric vector of length two. Pixel coordinates of the
-#'   upper-left corner of the ROI, in the format `c(column, row)`.
-#' @param width,height numeric vector of length one. Size (in pixels) of the
-#'   rectangular ROI to read.
+#' @param upper_left_indices integer-like numeric vector of length two. Cell
+#'   indices of the upper-left cell included in the crop, in the order
+#'   `c(col, row)`. Cell indices are numbered from 1. If `NULL`, `width` and
+#'   `height` must also be `NULL`, and no crop is applied.
+#' @param width,height positive integer-like numeric vectors of length one.
+#'   Number of columns and rows included in the crop. If `NULL`,
+#'   `upper_left_indices` must also be `NULL`, and no crop is applied.
 #'
+#' @details
+#' Cropping is aligned with cell boundaries and never divides or resamples a
+#' cell. For example, `upper_left_indices = c(4, 3)`, `width = 2`, and
+#' `height = 3` retain columns 4--5 and rows 3--5.
 #'
-#' @section Selecting a Region of Interest:
-#' Arguments `upper_left`, `width`, and `height` are expressed in raster
-#' coordinates, similar to a spreadsheet layout: **columns first, then rows**.
-#' In other words, specify coordinates as `c(column, row)`, **not** `c(row,
-#' column)`, which is typical in `data.frame` objects.
+#' The result is assigned the standardized raster geometry described in
+#' [set_rcaiman_geometry()].
 #'
-#' While any image editor can be used to obtain these values, this function was
-#' tested with [ImageJ](https://imagej.net/ij/), particularly the Fiji
-#' distribution. A recommended workflow:
-#' 1. Open the image in Fiji.
-#' 2. Draw a rectangular selection.
-#' 3. Go to *Edit > Selection > Specify...* to read `upper_left`, `width`, and `height`.
-#'
-#' @return [terra::SpatRaster-class] object containing the same layers and values
-#'   as `r` but restricted to the selected ROI, preserving all other properties.
-#'
-#' @note `rcaiman` uses terra without geographic semantics: rasters are kept with
-#'   unit resolution (cell size = 1) and a standardized extent
-#'   `ext(0, ncol, 0, nrow)` with CRS EPSG:7589 (see [set_rcaiman_geometry()]).
+#' @return [terra::SpatRaster-class] containing the selected cells, with the
+#'   same layers and values as `r`.
 #'
 #' @export
 #'
 #' @examples
 #' caim <- read_caim()
-#' ncell(caim)
-#' caim <- crop_caim(caim, c(231,334), 15, 10)
-#' ncell(caim)
-#'
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
-#'
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path)
-#' zenith_col_row <- spec$zenith_col_row
-#' horizon_radius <- spec$horizon_radius
-#' upper_left <- zenith_col_row - horizon_radius
-#' side <- horizon_radius * 2
-#' plot(crop_caim(caim, upper_left, side, side))
-#' }
-crop_caim <- function(r, upper_left = NULL, width = NULL,
+#' cropped_caim <- crop_caim(
+#'   caim,
+#'   upper_left_indices = c(2, 3),
+#'   width = 5,
+#'   height = 4
+#' )
+#' dim(cropped_caim)
+crop_caim <- function(r,
+                      upper_left_indices = NULL,
+                      width = NULL,
                       height = NULL) {
-
   .assert_spatraster(r)
-  .check_vector(upper_left, "numeric", 2, allow_null = TRUE, sign = "positive")
-  .check_vector(width, "numeric", 1, allow_null = TRUE, sign = "positive")
-  .check_vector(height, "numeric", 1, allow_null = TRUE, sign = "positive")
+  .check_vector(
+    upper_left_indices,
+    "integerish",
+    2,
+    allow_null = TRUE,
+    sign = "positive"
+  )
+  .check_vector(
+    width,
+    "integerish",
+    1,
+    allow_null = TRUE,
+    sign = "positive"
+  )
+  .check_vector(
+    height,
+    "integerish",
+    1,
+    allow_null = TRUE,
+    sign = "positive"
+  )
 
-  r <- set_rcaiman_geometry(r)
-
-  if (all(!is.null(upper_left), !is.null(height), !is.null(width))) {
-    xmn <- terra::xFromCol(r, upper_left[1])
-    xmx <- terra::xFromCol(r, upper_left[1] + width)
-    ymx <- terra::yFromRow(r, upper_left[2])
-    ymn <- terra::yFromRow(r, upper_left[2] + height)
-
-    if (any(is.na(xmn), is.na(xmx), is.na(ymn), is.na(ymx))) {
-      stop(
-        "The selection is outside the picture border, review `upper_left`, `height`, and `width`."
-      )
-    }
-    e <- terra::ext(xmn, xmx, ymn, ymx)
-    r <- terra::crop(r, e)
-    r <- set_rcaiman_geometry(r)
+  supplied <- !vapply(
+    list(upper_left_indices, width, height),
+    is.null,
+    logical(1)
+  )
+  if (any(supplied) && !all(supplied)) {
+    stop(
+      "`upper_left_indices`, `width`, and `height` must be supplied together.",
+      call. = FALSE
+    )
   }
 
-  r
+  r <- set_rcaiman_geometry(r)
+  if (!all(supplied)) {
+    return(r)
+  }
+
+  first_col <- as.integer(upper_left_indices[1])
+  first_row <- as.integer(upper_left_indices[2])
+  last_col <- first_col + as.integer(width) - 1L
+  last_row <- first_row + as.integer(height) - 1L
+
+  if (last_col > terra::ncol(r) || last_row > terra::nrow(r)) {
+    stop(
+      "The crop defined by `upper_left_indices`, `width`, and `height` ",
+      "extends outside `r`.",
+      call. = FALSE
+    )
+  }
+
+  x_min <- first_col - 1
+  x_max <- last_col
+  y_max <- terra::nrow(r) - first_row + 1
+  y_min <- terra::nrow(r) - last_row
+  crop_extent <- terra::ext(x_min, x_max, y_min, y_max)
+
+  r <- terra::crop(r, crop_extent)
+  set_rcaiman_geometry(r)
 }

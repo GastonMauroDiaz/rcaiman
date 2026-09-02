@@ -12,7 +12,7 @@ sky_grid_centers(z, a, angle_width, m = NULL)
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
 \item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary
-mask with \code{TRUE} for selected pixels. Only points over a selected pixel are
+mask with \code{TRUE} for selected pixels. Only indices of selected pixels are
 returned.}
 }
 \value{
@@ -29,10 +29,7 @@ equal angular resolution defined by \code{angle_width} such as in
 z <- zenith_image(100, equidistant_coef)
 a <- azimuth_image(z)
 pts <- sky_grid_centers(z, a, 30)
-\dontrun{
-display_caim(is.na(z), sampling_points = pts)
-}
 }
 \seealso{
-\code{\link[=fibonacci_points]{fibonacci_points()}}, \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}}
+\code{\link[=fibonacci_indices]{fibonacci_indices()}}, \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}}
 }

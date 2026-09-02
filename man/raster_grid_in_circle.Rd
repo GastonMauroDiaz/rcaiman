@@ -11,11 +11,11 @@ raster_grid_in_circle(z, a, spacing, m = NULL)
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
 
-\item{spacing}{numeric vector of length one. Must be positive and interpreted
-as integer. Distance in pixels between sampled points.}
+\item{spacing}{integer-like numeric vector of length one. Positive distance
+in pixels between sampled points.}
 
 \item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary
-mask with \code{TRUE} for selected pixels. Only points over a selected pixel are
+mask with \code{TRUE} for selected pixels. Only indices of selected pixels are
 returned.}
 }
 \value{
@@ -23,16 +23,15 @@ returned.}
 radians as in \code{\link[=add_directions]{add_directions()}}.
 }
 \description{
-Return continuous inage coordinates (see \code{\link[=xy_from_col_row]{xy_from_col_row()}}) for points
-regularly spaced on the image plane domain and restricted to the interior of
-the inscribed circle.
+Return cell indices for points regularly spaced on the image plane and
+restricted to the interior of the inscribed circle.
 }
 \details{
 This function operates purely in image space. Points are generated every
 \code{spacing} pixels along rows and columns, and only those strictly inside the
 inscribed circle are retained.
 
-Unlike \code{\link[=fibonacci_points]{fibonacci_points()}} and \code{\link[=sky_grid_centers]{sky_grid_centers()}}, which distribute
+Unlike \code{\link[=fibonacci_indices]{fibonacci_indices()}} and \code{\link[=sky_grid_centers]{sky_grid_centers()}}, which distribute
 points in angular space and then project them to the raster, this function
 performs sampling directly on the raster grid.
 }
@@ -43,5 +42,5 @@ pts <- raster_grid_in_circle(z, a, 10)
 head(pts)
 }
 \seealso{
-\code{\link[=fibonacci_points]{fibonacci_points()}}, \code{\link[=sky_grid_centers]{sky_grid_centers()}}
+\code{\link[=fibonacci_indices]{fibonacci_indices()}}, \code{\link[=sky_grid_centers]{sky_grid_centers()}}
 }

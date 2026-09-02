@@ -9,16 +9,16 @@
 #' standardized extent `ext(0, ncol, 0, nrow)` and assigns a non-geographic CRS
 #' as an explicit marker that no spatial semantics are intended. The `EPSG:7589`
 #' was selected because it does not have datum, projection, or physical units.
-#' This ensure consistent behavior across `terra`-based workflows. Using `crs =
+#' This ensures consistent behavior across `terra`-based workflows. Using `crs =
 #' NA` is intentionally avoided since many `terra` methods and external tools
 #' assume a defined CRS and may otherwise fail, emit warnings, or apply implicit
 #' defaults.
 #'
-#' @param r numeric [terra::SpatRaster-class]
+#' @param r numeric [terra::SpatRaster-class].
 #'
 #' @return The same [terra::SpatRaster-class] with standardized extent and CRS.
 #'
-#' @seealso [xy_from_col_row()]
+#' @seealso [y_down_from_y()] for image coordinate conventions.
 #'
 #' @export
 set_rcaiman_geometry <- function(r) {

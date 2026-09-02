@@ -2,28 +2,34 @@
 % Please edit documentation in R/reproject_points.R
 \name{reproject_points}
 \alias{reproject_points}
-\title{Update raster coordinates after radial reprojection}
+\title{Reproject points to continuous image coordinates}
 \usage{
-reproject_points(sampling_points, projection_coef, diameter)
+reproject_points(sampling_points, projection_coef, diameter, orientation = 0)
 }
 \arguments{
-\item{sampling_points}{data.frame with at least columns \code{"row"} and \code{"col"}.
-If \code{use_existing_angles = TRUE}, it must also contain \code{"zen"} and \code{"azi"}
-(see \code{\link[=add_directions]{add_directions()}}).}
+\item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"} in
+radians. Additional columns are preserved, except spatial columns \code{"x"},
+\code{"y_down"}, \code{"col"}, and \code{"row"}, which are replaced by the target
+coordinates.}
 
 \item{projection_coef}{numeric vector. Polynomial coefficients defining
 the radial projection model evaluated in radians.}
 
 \item{diameter}{numeric vector of length one. Diameter in pixels
 expressed as an even integer.}
+
+\item{orientation}{numeric vector of length one. Orientation of the target
+image (deg), using the convention of \code{\link[=azimuth_image]{azimuth_image()}}. The default is zero
+for a North-up target.}
 }
 \value{
-data.frame with updated \code{row} and \code{col} corresponding to the
-reprojected coordinates.
+\code{data.frame} with columns \code{"x"} and \code{"y_down"} followed by the
+nonspatial columns from \code{sampling_points}. Coordinates refer to the target
+image and use the convention described in \code{\link[=y_down_from_y]{y_down_from_y()}}.
 }
 \description{
-Recompute raster coordinates of points after changing the radial projection
-model that defines their radial distances.
+Recompute continuous image coordinates after changing the radial projection
+model or orientation that defines a target image geometry.
 }
 \details{
 \pkg{rcaiman} represents hemispherical images using a radial projection
@@ -32,19 +38,31 @@ azimuth).
 
 The radial projection model defines how zenith angles are transformed into
 normalized radial distances (see \code{\link[=calc_relative_radius]{calc_relative_radius()}}). These distances
-are then scaled to a planar grid and discretized into pixel indices according
-to \code{diameter}.
+are then scaled to the continuous image coordinates of a square target with
+the requested \code{diameter}.
 
-Reprojection consists of modifying the radial distance of each point while
-preserving its angular coordinates.
+Reprojection preserves angular coordinates. By default, the target geometry
+has North at the top. A nonzero \code{orientation} can restore the orientation of
+a geometry that was previously standardized.
 }
 \examples{
 z <- zenith_image(1000, equal_area_coef)
 a <- azimuth_image(z)
-pts <- fibonacci_points(z, a, 10)
-pts2 <- reproject_points(pts, equidistant_coef, ncol(z))
+sampling_indices <- fibonacci_indices(z, a, 10)
+reprojected_points <- reproject_points(
+  sampling_indices,
+  equidistant_coef,
+  ncol(z)
+)
 
 plot(!is.na(z))
-points(pts$col, nrow(z) - pts$row, col = "blue", pch = 10)
-points(pts2$col, nrow(z) - pts2$row, col = "darkgreen", pch = 10)
+points(xy_from_indices(
+         sampling_indices$col,
+         sampling_indices$row,
+         nrow(z)
+       ),
+       col = "blue", pch = 10)
+points(reprojected_points$x,
+       y_from_y_down(reprojected_points$y_down, nrow(z)),
+       col = "darkgreen", pch = 10)
 }

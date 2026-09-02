@@ -133,10 +133,21 @@ read_caim <- function(path = NULL,
 
   if (all(!is.null(zenith_col_row), !is.null(horizon_radius))) {
 
-    upper_left <- zenith_col_row - horizon_radius
+    # TODO (2026-09-02): Temporary transition. The legacy
+    # `zenith_col_row` contract must be migrated before this derivation of
+    # `upper_left_indices` can be considered canonical.
+    upper_left_indices <- zenith_col_row - horizon_radius
     height <- width <- horizon_radius * 2
 
-    r <- tryCatch(crop_caim(r, upper_left, width, height), error = function(e) NULL)
+    r <- tryCatch(
+      crop_caim(
+        r,
+        upper_left_indices = upper_left_indices,
+        width = width,
+        height = height
+      ),
+      error = function(e) NULL
+    )
     if (is.null(r)) {
       stop(
         "The selection is outside the picture border, review `zenith_col_row`",

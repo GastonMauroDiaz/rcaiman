@@ -252,7 +252,6 @@ seg <- merge_segments(
 
 plot(seg)
 plot(compute_mean(r, seg))
-display_caim(r, seg = seg)
 
 }
 

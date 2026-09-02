@@ -1,8 +1,8 @@
-#' Update raster coordinates after radial reprojection
+#' Reproject points to continuous image coordinates
 #'
 #' @description
-#' Recompute raster coordinates of points after changing the radial projection
-#' model that defines their radial distances.
+#' Recompute continuous image coordinates after changing the radial projection
+#' model or orientation that defines a target image geometry.
 #'
 #' @details
 #' \pkg{rcaiman} represents hemispherical images using a radial projection
@@ -11,46 +11,66 @@
 #'
 #' The radial projection model defines how zenith angles are transformed into
 #' normalized radial distances (see [calc_relative_radius()]). These distances
-#' are then scaled to a planar grid and discretized into pixel indices according
-#' to `diameter`.
+#' are then scaled to the continuous image coordinates of a square target with
+#' the requested `diameter`.
 #'
-#' Reprojection consists of modifying the radial distance of each point while
-#' preserving its angular coordinates.
+#' Reprojection preserves angular coordinates. By default, the target geometry
+#' has North at the top. A nonzero `orientation` can restore the orientation of
+#' a geometry that was previously standardized.
 #'
-#' @param sampling_points data.frame with at least columns `"row"` and `"col"`.
-#'   If `use_existing_angles = TRUE`, it must also contain `"zen"` and `"azi"`
-#'   (see [add_directions()]).
+#' @param sampling_points `data.frame` with columns `"zen"` and `"azi"` in
+#'   radians. Additional columns are preserved, except spatial columns `"x"`,
+#'   `"y_down"`, `"col"`, and `"row"`, which are replaced by the target
+#'   coordinates.
+#' @param orientation numeric vector of length one. Orientation of the target
+#'   image (deg), using the convention of [azimuth_image()]. The default is zero
+#'   for a North-up target.
 #'
 #' @inheritParams calc_relative_radius
 #' @inheritParams zenith_image
 #'
-#' @return data.frame with updated `row` and `col` corresponding to the
-#'   reprojected coordinates.
+#' @return `data.frame` with columns `"x"` and `"y_down"` followed by the
+#'   nonspatial columns from `sampling_points`. Coordinates refer to the target
+#'   image and use the convention described in [y_down_from_y()].
 #'
 #' @export
 #' @examples
 #' z <- zenith_image(1000, equal_area_coef)
 #' a <- azimuth_image(z)
-#' pts <- fibonacci_points(z, a, 10)
-#' pts2 <- reproject_points(pts, equidistant_coef, ncol(z))
+#' sampling_indices <- fibonacci_indices(z, a, 10)
+#' reprojected_points <- reproject_points(
+#'   sampling_indices,
+#'   equidistant_coef,
+#'   ncol(z)
+#' )
 #'
 #' plot(!is.na(z))
-#' points(pts$col, nrow(z) - pts$row, col = "blue", pch = 10)
-#' points(pts2$col, nrow(z) - pts2$row, col = "darkgreen", pch = 10)
+#' points(xy_from_indices(
+#'          sampling_indices$col,
+#'          sampling_indices$row,
+#'          nrow(z)
+#'        ),
+#'        col = "blue", pch = 10)
+#' points(reprojected_points$x,
+#'        y_from_y_down(reprojected_points$y_down, nrow(z)),
+#'        col = "darkgreen", pch = 10)
 reproject_points <- function(sampling_points,
                              projection_coef,
-                             diameter) {
+                             diameter,
+                             orientation = 0) {
 
   .check_columns(sampling_points,
                  required_columns = c("zen", "azi"))
   .check_vector(diameter, "even_integerish", 1, sign = "positive")
+  .check_vector(orientation, "numeric", 1)
 
   zen <- sampling_points$zen
   azi <- sampling_points$azi
 
   R <- .calc_relative_radius(zen, projection_coef)
 
-  theta <- azi + pi/2
+  orientation <- orientation * pi / 180
+  theta <- azi + orientation + pi/2
   r <- R * (pi/2)
 
   x <- r * cos(theta)
@@ -59,13 +79,19 @@ reproject_points <- function(sampling_points,
   n <- diameter
   res <- pi / n
 
-  # col <- floor((x + pi/2) / res) + 1
-  # row <- floor((pi/2 - y) / res) + 1
-  col <- (x + pi/2) / res + 1
-  row <- (pi/2 - y) / res + 1
+  x <- (x + pi/2) / res
+  y_down <- (pi/2 - y) / res
 
-  sampling_points$row <- row
-  sampling_points$col <- col
+  spatial_columns <- intersect(
+    c("x", "y_down", "col", "row"),
+    names(sampling_points)
+  )
+  sampling_points[spatial_columns] <- NULL
+  sampling_points$x <- x
+  sampling_points$y_down <- y_down
+  sampling_points <- sampling_points[
+    c("x", "y_down", setdiff(names(sampling_points), c("x", "y_down")))
+  ]
 
   sampling_points
 }

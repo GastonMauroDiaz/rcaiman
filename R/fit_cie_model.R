@@ -51,44 +51,15 @@
 #'
 #' @export
 #'
-#' @section Digitizing sky points with ImageJ:
-#' The [point selection tool of ‘ImageJ’
-#' software](https://imagej.net/ij/docs/guide/146-19.html#sec:Multi-point-Tool)
-#' can be used to manually digitize points and create a CSV file from which to
-#' read coordinates (see *Examples*). After digitizing the points on the image,
-#' this is a recommended workflow:
-#' 1. Use the dropdown menu *Analyze > Measure* to open the Results window.
-#' 2. Use *File > Save As...* to obtain the CSV file.
+#' @section Prepare sampling points:
+#' Point CSV files store continuous image coordinates as `"x"` and `"y_down"`.
+#' They can be created with
+#' [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects) and
+#' read with [read_points()]. Convert these coordinates explicitly with
+#' [indices_from_coord()] before extracting raster values or adding angular
+#' directions. See *Examples*.
 #'
-#' Use this code to create the input `sky_points` from ImageJ data:
-#' ````
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' ````
-#'
-#' @section Digitizing sky points with QGIS:
-#' To use the [QGIS software](https://qgis.org/) to manually digitize
-#' points, drag and drop the image in an empty project,
-#' create an new vector layer, digitize points manually, save the editions, and
-#' close the project.
-#'
-#' To create the new vector layer, this is a recommended workflow:
-#' 1. Fo to the dropdown menu *Layer > Create Layer > New Geopackage Layer...*
-#' 2. Choose "point" in the Geometry type dropdown list
-#' 3. Make sure the CRS is EPSG:7589 (see [set_rcaiman_geometry()] to know why).
-#' 4. Click on the *Toogle Editing* icon
-#' 5. Click on the *Add Points Feature* icon.
-#'
-#' Use this code to create the input `sky_points` from QGIS data:
-#' ````
-#' sky_points <- terra::vect(path)
-#' sky_points <- terra::extract(caim, sky_points, cells = TRUE)
-#' sky_points <- terra::rowColFromCell(caim, sky_points$cell) %>% as.data.frame()
-#' colnames(sky_points) <- c("row", "col")
-#' ````
-#'
-#' @seealso [write_cie_model()]
+#' @seealso [read_points()], [write_cie_model()]
 #'
 #' @examples
 #' \dontrun{
@@ -105,30 +76,46 @@
 #' r <- apply_flat_field(r, ff)
 #' plot(r)
 #'
-#' # Manual method following Lang et al. (2010)
+#' # Sampling points for the method of Lang et al. (2010)
 #' path <- system.file("external/sky_points.csv",
 #'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
+#' sampling_coord <- read_points(path)
+#' sampling_indices <- indices_from_coord(
+#'   sampling_coord$x,
+#'   sampling_coord$y_down
+#' )
+#' head(sampling_indices)
 #' plot(r)
-#' points(sky_points$col, nrow(r) - sky_points$r, col = 2, pch = 10)
+#' points(
+#'   sampling_coord$x,
+#'   y_from_y_down(sampling_coord$y_down, nrow(r)),
+#'   col = 2,
+#'   pch = 10
+#' )
 #'
 #' # x11()
 #' # plot(r)
 #' # sun_angles <- click(c(z, a), 1) %>% as.numeric()
 #' sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
 #'
-#' sun_row_col <- row_col_from_zen_azi(z, a,
-#'                                     sun_angles["zen_deg"] * pi/180,
-#'                                     sun_angles["azi_deg"] * pi/180)
-#' points(sun_row_col[2], nrow(r) - sun_row_col[1],
-#'        col = "yellow", pch = 8, cex = 3)
+#' sun_indices <- indices_from_zen_azi(
+#'   z,
+#'   a,
+#'   sun_angles["zen_deg"] * pi / 180,
+#'   sun_angles["azi_deg"] * pi / 180
+#' )
+#' sun_coord <- coord_from_indices(sun_indices$col, sun_indices$row)
+#' points(
+#'   sun_coord$x,
+#'   y_from_y_down(sun_coord$y_down, nrow(r)),
+#'   col = "yellow",
+#'   pch = 8,
+#'   cex = 3
+#' )
 #'
-#' sky_points <- extract_dn(r, sky_points)
-#' sky_points <- add_directions(sky_points, z, a)
-#' rr <- calc_relative_radiance(sky_points, 3)
+#' sampling_indices <- extract_dn(r, sampling_indices)
+#' sampling_indices <- add_directions(sampling_indices, z, a)
+#' rr <- calc_relative_radiance(sampling_indices, 3)
 #'
 #' set.seed(7)
 #' model <- fit_cie_model(rr, sun_angles,

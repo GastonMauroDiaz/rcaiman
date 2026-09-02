@@ -8,9 +8,6 @@ calc_cv(r, sampling_points)
 }
 \arguments{
 \item{r}{Single-layer numeric \link[terra:SpatRaster-class]{terra::SpatRaster}.}
-
-\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
-\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
 }
 \value{
 \code{data.frame} containing the original \code{sampling_points} plus one

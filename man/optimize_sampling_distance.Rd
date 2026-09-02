@@ -43,7 +43,7 @@ metrics across a sequence of distances.
 }
 \details{
 For each value in \code{distances}, nearby sky points are removed using
-\code{\link[=rem_nearby_points]{rem_nearby_points()}}, and sampling uniformity is assessed with
+\code{\link[=rem_nearby_indices]{rem_nearby_indices()}}, and sampling uniformity is assessed with
 \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}.
 
 The resulting Kullback–Leibler divergence (\code{kl}) and coverage sequences are

@@ -82,12 +82,17 @@
 #' \dontrun{
 #' z <- zenith_image(1000, equidistant_coef)
 #' a <- azimuth_image(z)
-#' sampling_points <- fibonacci_points(z, a, 5)
-#' head(sampling_points)
-#' nn <- nn_spherical(sampling_points, sampling_points, k = 30, search_radius = NULL)
+#' sampling_indices <- fibonacci_indices(z, a, 5)
+#' head(sampling_indices)
+#' nn <- nn_spherical(
+#'   sampling_indices,
+#'   sampling_indices,
+#'   k = 30,
+#'   search_radius = NULL
+#' )
 #'
 #' for (i in sample(seq_along(nn), 10)) {
-#'   plot(sampling_points[nn[[i]]$index, c("row", "col")],
+#'   plot(sampling_indices[nn[[i]]$index, c("row", "col")],
 #'        xlim = c(0, 1000), ylim = c(0, 1000),
 #'        col = grey(normalize_min_max(nn[[i]]$distance)),
 #'        asp = 1)

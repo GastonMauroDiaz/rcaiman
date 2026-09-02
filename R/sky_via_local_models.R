@@ -158,11 +158,11 @@ sky_via_local_models <- function(z,
     20 + conicity * (nrow(sky_points) - 20)
   )
 
-  query_points <- fibonacci_points(z, a, spacing_deg)
+  query_indices <- fibonacci_indices(z, a, spacing_deg)
 
-  query_points$seed <- seq_len(nrow(query_points))
+  query_indices$seed <- seq_len(nrow(query_indices))
   nn_density <- interpolate_spherical(
-    query_points,
+    query_indices,
     sky_points,
     col_id = "seed",
     k = 1,
@@ -180,7 +180,7 @@ sky_via_local_models <- function(z,
   )
 
   # Medimos la redundancia estructural pura de los datos (peor escenario local k = 20)
-  baseline_redundancy <- 20 * nrow(query_points) / nrow(sky_points)
+  baseline_redundancy <- 20 * nrow(query_indices) / nrow(sky_points)
   recycling_factor <- baseline_redundancy * (1 + kl)
 
   # Un umbral > 5 indica que cada punto se recicla excesivamente, destruyendo la independencia local

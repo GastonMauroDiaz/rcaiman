@@ -63,9 +63,6 @@ z <- zenith_image(1000, equidistant_coef)
 a <- azimuth_image(z)
 g <- sky_grid_segmentation(z, a, 15)
 plot(g == 24005)
-\dontrun{
-display_caim(seg = g)
-}
 }
 \seealso{
 \code{\link[=equal_area_segmentation]{equal_area_segmentation()}}

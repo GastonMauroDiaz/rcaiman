@@ -7,9 +7,6 @@
 assess_sampling_uniformity(sampling_points, equal_area_seg)
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"row"} and \code{"col"} (see
-\code{\link[=xy_from_row_col]{xy_from_row_col()}}). Additional columns are ignored.}
-
 \item{equal_area_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with
 \code{\link[=equal_area_segmentation]{equal_area_segmentation()}}.}
 }

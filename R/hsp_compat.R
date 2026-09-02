@@ -31,13 +31,15 @@
 #'   coordinates compatible with HSP; creates a file on disk.}
 #' }
 #'
-#' @param sky_points `data.frame` with columns `"row"` and `"col"`.
+#' @param sky_points `data.frame` with columns `"col"` and `"row"`, representing
+#'   cell indices numbered from 1.
 #' @param path_to_HSP_project character vector of length one. Path to the HSP
 #'   project folder (e.g., `"C:/Users/johndoe/Documents/HSP/projects/my_prj/"`).
 #' @param img_name character vector of length one (e.g., `"DSCN6342.pgm"` or
 #'   `"DSCN6342"`). See *About HSP software*.
-#' @param sun_row_col numeric vector of length two. Continuous image coordinates
-#'   (see [xy_from_col_row()]) of the solar disk.
+#' @param sun_row_col numeric vector of length two. Cell indices of the solar
+#'   disk in `row`, `col` order. The argument name and order follow the legacy
+#'   HSP format. See [y_down_from_y()] for spatial conventions.
 #'
 #' @return See *Functions*
 #'

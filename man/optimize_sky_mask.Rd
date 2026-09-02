@@ -31,7 +31,7 @@ radiometric consistency of sky pixels and spatial coverage.
 }
 \details{
 Each element in \code{bin_list} is evaluated as a candidate sky mask. For each
-mask, sky points are generated using \code{\link[=fibonacci_points]{fibonacci_points()}} at a fixed
+mask, sampling indices are generated using \code{\link[=fibonacci_indices]{fibonacci_indices()}} at a fixed
 angular resolution of 1 deg, ensuring high density sampling.
 
 Two criteria are computed:

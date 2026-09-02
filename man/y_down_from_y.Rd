@@ -5,6 +5,7 @@
 \alias{y_from_y_down}
 \alias{coord_from_indices}
 \alias{indices_from_coord}
+\alias{xy_from_indices}
 \title{Convert image coordinate representations}
 \usage{
 y_down_from_y(y, image_height)
@@ -14,6 +15,8 @@ y_from_y_down(y_down, image_height)
 coord_from_indices(col, row)
 
 indices_from_coord(x, y_down)
+
+xy_from_indices(col, row, image_height)
 }
 \arguments{
 \item{y}{numeric vector. Vertical component of continuous x-y coordinates,
@@ -24,8 +27,8 @@ measured upward from the lower image border.}
 \item{y_down}{numeric vector. Vertical component of continuous image
 coordinates, measured downward from the upper image border.}
 
-\item{col, row}{numeric vectors of equal length. One-based column and row cell
-indices.}
+\item{col, row}{numeric vectors of equal length. Column and row cell indices,
+numbered from 1.}
 
 \item{x}{numeric vector. Horizontal component of continuous image
 coordinates, measured rightward from the left image border.}
@@ -34,8 +37,8 @@ coordinates, measured rightward from the left image border.}
 See \emph{Functions}.
 }
 \description{
-Convert between continuous image coordinates, x-y coordinates, and cell
-indices.
+Convert between continuous image coordinates, ordinary x-y coordinates, and
+cell indices.
 }
 \details{
 \code{rcaiman} uses three representations of image locations:
@@ -46,12 +49,16 @@ to the right and \code{y_down} increasing downward.
 \item \code{xy}: continuous x-y coordinates, expressed as \code{x} and \code{y}. The
 origin is the lower-left image corner, with \code{x} increasing to the right
 and \code{y} increasing upward, as in an ordinary x-y plot.
-\item \code{indices}: one-based cell indices, expressed as \code{col} and \code{row},
-with columns increasing to the right and rows increasing downward.
+\item \code{indices}: cell indices, expressed as \code{col} and \code{row}, numbered
+from 1, with columns increasing to the right and rows increasing
+downward.
 }
 
 Throughout \code{rcaiman}, names ending in \verb{_coord}, \verb{_xy}, and \verb{_indices} refer
 to these representations, respectively.
+
+The term \code{point} is reserved for continuous locations (\code{coord} and \code{xy}),
+because a cell index identifies an area rather than a point.
 
 The \code{coord} and \code{xy} representations share the same horizontal coordinate.
 For an image of height \eqn{h}, their vertical coordinates are related by:
@@ -66,6 +73,9 @@ Cell indices identify raster cells rather than continuous locations.
 \code{\link[=coord_from_indices]{coord_from_indices()}} returns the continuous image coordinates of cell
 centers. Thus, cell \code{col = 1}, \code{row = 1} has coordinates
 \code{x = 0.5}, \code{y_down = 0.5}.
+\code{\link[=xy_from_indices]{xy_from_indices()}} returns the same cell centers in ordinary x-y
+coordinates, making its output suitable for functions such as
+\code{\link[graphics:points]{graphics::points()}}.
 
 Conversely, \code{\link[=indices_from_coord]{indices_from_coord()}} assigns each continuous image location to
 the cell containing it. This operation discards the subcell position and is
@@ -88,6 +98,9 @@ coordinates at cell centers. Return a \code{data.frame} with columns \code{x} an
 \code{y_down}.}
 \item{\code{indices_from_coord()}}{Assign continuous image coordinates to cells.
 Return a \code{data.frame} with columns \code{col} and \code{row}.}
+\item{\code{xy_from_indices()}}{Convert cell indices to continuous ordinary x-y
+coordinates at cell centers. Return a \code{data.frame} with columns \code{x} and
+\code{y}.}
 }
 }
 
@@ -105,4 +118,6 @@ indices <- indices_from_coord(coord$x, coord$y_down)
 indices
 
 coord_from_indices(indices$col, indices$row)
+
+xy_from_indices(indices$col, indices$row, image_height)
 }

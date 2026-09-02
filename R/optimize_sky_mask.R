@@ -6,7 +6,7 @@
 #'
 #' @details
 #' Each element in `bin_list` is evaluated as a candidate sky mask. For each
-#' mask, sky points are generated using [fibonacci_points()] at a fixed
+#' mask, sampling indices are generated using [fibonacci_indices()] at a fixed
 #' angular resolution of 1 deg, ensuring high density sampling.
 #'
 #' Two criteria are computed:
@@ -140,12 +140,12 @@ optimize_sky_mask <- function(cv, z, a,
 
   metrics <- lapply(seq_along(bin_list_index), function(i) {
     idx <- bin_list_index[i]
-    sky_points <- fibonacci_points(z, a, 1, m = bin_list[[idx]])
-    sky_points <- extract_dn(cv, sky_points, use_window = FALSE)
+    sky_indices <- fibonacci_indices(z, a, 1, m = bin_list[[idx]])
+    sky_indices <- extract_dn(cv, sky_indices, use_window = FALSE)
 
-    acc <- stats::median(sky_points$cv)
+    acc <- stats::median(sky_indices$cv)
     cov <- assess_sampling_uniformity(
-      sky_points,
+      sky_indices,
       equal_area_seg
     )$coverage
 

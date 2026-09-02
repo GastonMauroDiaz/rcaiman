@@ -3,32 +3,34 @@
 \name{read_points}
 \alias{read_points}
 \alias{write_points}
-\title{Write and read image points}
+\title{Read and write image points}
 \usage{
 read_points(path)
 
-write_points(pts, path)
+write_points(sampling_coord, path)
 }
 \arguments{
 \item{path}{character vector of length one. File path to read or write.}
 
-\item{pts}{\code{data.frame} with at least columns \code{"row"} and \code{"col"}.}
+\item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"},
+representing continuous image coordinates. Additional columns are
+preserved.}
 }
 \value{
 See \emph{Functions}
 }
 \description{
-Read and write image point coordinates stored as CSV files.
+Read and write continuous image coordinates stored as CSV files.
 }
 \details{
-Point coordinates are stored in raster coordinates, with \code{"row"} and \code{"col"}
-referring to image row and column positions. Additional columns are preserved.
+Coordinates use an image reference system with its origin at the upper-left
+corner. The \code{"x"} coordinate increases to the right and \code{"y_down"} increases
+downward. The center of the upper-left cell is \verb{(0.5, 0.5)}.
 
 \code{write_points()} writes CSV files. If \code{path} has no extension, \code{".csv"} is
-added. Files written by this function follow the standard rcaiman conventions
-and can be open by \href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
-These conventions include reordering columns when needed, so \code{"row"} and \code{"col"}
-are the first and second columns, respectively.
+added. It places \code{"x"} and \code{"y_down"} first, in that order. This CSV schema
+defines the point-data interoperability contract between \pkg{rcaiman} and
+\href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
 }
 \note{
 File extensions are recognized using \code{\link[tools:fileutils]{tools::file_ext()}}.
@@ -36,25 +38,27 @@ File extensions are recognized using \code{\link[tools:fileutils]{tools::file_ex
 \section{Functions}{
 
 \describe{
-\item{\code{write_points}}{Write a \code{data.frame} with image point coordinates to
-disk as a CSV file. No return value.}
-\item{\code{read_points}}{Read a CSV file and return a \code{data.frame} with, but not exclusively,
-columns \code{"row"}, \code{"col"}.}
+\item{\code{read_points}}{Read a CSV file and return a \code{data.frame} with columns
+\code{"x"} and \code{"y_down"}. Additional columns are preserved.}
+\item{\code{write_points}}{Write continuous image coordinates to disk as a CSV
+file. No return value.}
 }
 }
 
 \examples{
 \dontrun{
-z <- zenith_image(1000, equidistant_coef)
-a <- azimuth_image(z)
-pts <- fibonacci_points(z, a, 10)
-head(pts)
+sampling_coord <- data.frame(
+  x = c(10.2, 20.8),
+  y_down = c(15.7, 25.3),
+  point_id = c("p1", "p2")
+)
 my_file <- file.path(tempdir(), "pts.csv")
-write_points(pts, my_file)
-pts_from_disk <- read_points(my_file)
-head(pts_from_disk)
+write_points(sampling_coord, my_file)
+sampling_coord_from_disk <- read_points(my_file)
+sampling_coord_from_disk
 }
 }
 \seealso{
-\code{\link[=fibonacci_points]{fibonacci_points()}}
+\code{\link[=indices_from_coord]{indices_from_coord()}} to assign coordinates to raster cells and
+\code{\link[=coord_from_indices]{coord_from_indices()}} to obtain cell-center coordinates.
 }

@@ -7,12 +7,12 @@
 #' [sky_grid_segmentation()].
 #'
 #' @inheritParams add_directions
-#' @inheritParams fibonacci_points
+#' @inheritParams fibonacci_indices
 #'
 #' @return `data.frame` with columns `"row"`, `"col"` and directions in
 #'   radians as in [add_directions()], one per grid cell.
 #'
-#' @seealso [fibonacci_points()], [raster_grid_in_circle()]
+#' @seealso [fibonacci_indices()], [raster_grid_in_circle()]
 #'
 #' @export
 #'
@@ -20,9 +20,6 @@
 #' z <- zenith_image(100, equidistant_coef)
 #' a <- azimuth_image(z)
 #' pts <- sky_grid_centers(z, a, 30)
-#' \dontrun{
-#' display_caim(is.na(z), sampling_points = pts)
-#' }
 sky_grid_centers <- function(z, a, angle_width, m = NULL) {
   .assert_zenith_image(z)
   .assert_azimuth_image(a)

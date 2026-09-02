@@ -63,8 +63,8 @@
 #' sky_points <- extract_dn(r, sky_points)
 #' sky_points <- add_directions(sky_points, z, a)
 #'
-#' query_points <- fibonacci_points(z, a, 1)
-#' pts <- triangulate_spherical(sky_points, query_points, "Cyan")
+#' query_indices <- fibonacci_indices(z, a, 1)
+#' pts <- triangulate_spherical(sky_points, query_indices, "Cyan")
 #'
 #' sky <- interpolate_planar(pts, "Cyan", r,
 #'                           k = 3, p = 2, search_radius = 6, rigorous = TRUE)
