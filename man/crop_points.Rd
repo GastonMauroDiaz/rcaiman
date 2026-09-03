@@ -4,7 +4,12 @@
 \alias{crop_points}
 \title{Transform points to a cropped image frame}
 \usage{
-crop_points(sampling_coord, upper_left_indices)
+crop_points(
+  sampling_coord,
+  upper_left_indices = NULL,
+  snapped_zenith_coord = NULL,
+  horizon_radius = NULL
+)
 }
 \arguments{
 \item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"},
@@ -13,7 +18,17 @@ Additional columns are preserved.}
 
 \item{upper_left_indices}{integer-like numeric vector of length two. Cell
 indices of the upper-left cell included in the crop, in the order
-\code{c(col, row)}. Cell indices are numbered from 1.}
+\code{c(col, row)}. Cell indices are numbered from 1. Alternatively, use
+\code{snapped_zenith_coord} and \code{horizon_radius}.}
+
+\item{snapped_zenith_coord}{integer-like numeric vector of length two.
+Continuous image coordinates of the snapped optical center in the original
+image frame, in the order \code{c(x, y_down)}. Use with \code{horizon_radius} as an
+alternative to \code{upper_left_indices}.}
+
+\item{horizon_radius}{positive integer-like numeric vector of length one.
+Radius of the declared processing geometry in cell units. Use with
+\code{snapped_zenith_coord} as an alternative to \code{upper_left_indices}.}
 }
 \value{
 \code{data.frame} equal to \code{sampling_coord}, with \code{"x"} and \code{"y_down"}
@@ -28,6 +43,9 @@ The upper-left boundary of the first retained cell has original image
 coordinates \code{c(col - 1, row - 1)}. This value is subtracted from every input
 point. The function translates all rows and does not discard points outside
 the cropped image bounds.
+
+For a crop centered on a snapped zenith, the equivalent translation is
+\code{snapped_zenith_coord - horizon_radius}.
 }
 \examples{
 sampling_coord <- data.frame(
@@ -36,4 +54,13 @@ sampling_coord <- data.frame(
   id = c("a", "b")
 )
 crop_points(sampling_coord, upper_left_indices = c(4, 3))
+
+crop_points(
+  sampling_coord,
+  snapped_zenith_coord = c(6, 5),
+  horizon_radius = 2
+)
+}
+\seealso{
+\code{\link[=uncrop_points]{uncrop_points()}} to revert this operation
 }

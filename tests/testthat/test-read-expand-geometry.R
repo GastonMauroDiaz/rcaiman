@@ -3,15 +3,14 @@ geometry_test_image_path <- function() {
 }
 
 
-test_that("read_caim() centers a snapped zenith on an even crop", {
+test_that("read_caim() and crop_caim() compose on a real image", {
   path <- geometry_test_image_path()
   full_caim <- read_caim(path, fill_na = "none")
 
-  observed <- read_caim(
-    path,
+  observed <- crop_caim(
+    full_caim,
     snapped_zenith_coord = c(5, 5),
-    horizon_radius = 3,
-    fill_na = "none"
+    horizon_radius = 3
   )
   expected <- crop_caim(
     full_caim,
@@ -22,30 +21,6 @@ test_that("read_caim() centers a snapped zenith on an even crop", {
 
   expect_equal(dim(observed), c(6, 6, 3))
   expect_equal(terra::values(observed), terra::values(expected))
-})
-
-
-test_that("read_caim() validates its declared processing geometry", {
-  path <- geometry_test_image_path()
-
-  expect_error(
-    read_caim(path, snapped_zenith_coord = c(5, 5)),
-    "must be supplied together",
-    fixed = TRUE
-  )
-  expect_error(
-    read_caim(path, horizon_radius = 3),
-    "must be supplied together",
-    fixed = TRUE
-  )
-  expect_error(
-    read_caim(path, snapped_zenith_coord = c(5.5, 5), horizon_radius = 3),
-    "integer-like"
-  )
-  expect_error(
-    read_caim(path, snapped_zenith_coord = c(5, 5), horizon_radius = 2.5),
-    "integer-like"
-  )
 })
 
 

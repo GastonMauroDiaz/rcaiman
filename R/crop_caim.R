@@ -1,3 +1,68 @@
+.crop_offset_coord <- function(
+    upper_left_indices = NULL,
+    snapped_zenith_coord = NULL,
+    horizon_radius = NULL,
+    allow_null = FALSE
+) {
+  .check_vector(
+    upper_left_indices,
+    "integerish",
+    2,
+    allow_null = TRUE,
+    sign = "positive"
+  )
+  .check_vector(
+    snapped_zenith_coord,
+    "integerish",
+    2,
+    allow_null = TRUE,
+    sign = "positive"
+  )
+  .check_vector(
+    horizon_radius,
+    "integerish",
+    1,
+    allow_null = TRUE,
+    sign = "positive"
+  )
+
+  free_supplied <- !is.null(upper_left_indices)
+  centered_supplied <- c(
+    !is.null(snapped_zenith_coord),
+    !is.null(horizon_radius)
+  )
+
+  if (free_supplied && any(centered_supplied)) {
+    stop(
+      "Supply either `upper_left_indices` or the centered specification, ",
+      "not both.",
+      call. = FALSE
+    )
+  }
+  if (any(centered_supplied) && !all(centered_supplied)) {
+    stop(
+      "`snapped_zenith_coord` and `horizon_radius` must be supplied together.",
+      call. = FALSE
+    )
+  }
+  if (!free_supplied && !any(centered_supplied)) {
+    if (allow_null) {
+      return(NULL)
+    }
+    stop(
+      "Supply `upper_left_indices` or both `snapped_zenith_coord` and ",
+      "`horizon_radius`.",
+      call. = FALSE
+    )
+  }
+
+  if (free_supplied) {
+    return(upper_left_indices - 1)
+  }
+  snapped_zenith_coord - horizon_radius
+}
+
+
 #' Crop a canopy image
 #'
 #' @description
@@ -64,13 +129,6 @@ crop_caim <- function(r,
                       horizon_radius = NULL) {
   .assert_spatraster(r)
   .check_vector(
-    upper_left_indices,
-    "integerish",
-    2,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
     width,
     "integerish",
     1,
@@ -79,20 +137,6 @@ crop_caim <- function(r,
   )
   .check_vector(
     height,
-    "integerish",
-    1,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
-    snapped_zenith_coord,
-    "integerish",
-    2,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
-    horizon_radius,
     "integerish",
     1,
     allow_null = TRUE,
@@ -122,26 +166,25 @@ crop_caim <- function(r,
       call. = FALSE
     )
   }
-  if (any(centered_supplied) && !all(centered_supplied)) {
-    stop(
-      "`snapped_zenith_coord` and `horizon_radius` must be supplied together.",
-      call. = FALSE
-    )
-  }
+
+  offset_coord <- .crop_offset_coord(
+    upper_left_indices,
+    snapped_zenith_coord,
+    horizon_radius,
+    allow_null = TRUE
+  )
 
   r <- set_rcaiman_geometry(r)
-  if (!any(rectangle_supplied) && !any(centered_supplied)) {
+  if (is.null(offset_coord)) {
     return(r)
   }
 
   if (all(centered_supplied)) {
-    upper_left_indices <-
-      snapped_zenith_coord - horizon_radius + 1
     width <- height <- horizon_radius * 2
   }
 
-  first_col <- as.integer(upper_left_indices[1])
-  first_row <- as.integer(upper_left_indices[2])
+  first_col <- as.integer(offset_coord[1] + 1)
+  first_row <- as.integer(offset_coord[2] + 1)
   last_col <- first_col + as.integer(width) - 1L
   last_row <- first_row + as.integer(height) - 1L
 

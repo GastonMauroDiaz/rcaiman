@@ -163,6 +163,89 @@ test_that("crop_points() maps retained cell centers consistently", {
 })
 
 
+test_that("crop_points() accepts an equivalent centered specification", {
+  sampling_coord <- data.frame(
+    x = c(4.5, 6.2),
+    y_down = c(3.5, 5.8),
+    id = c("a", "b")
+  )
+
+  centered <- crop_points(
+    sampling_coord,
+    snapped_zenith_coord = c(6, 5),
+    horizon_radius = 2
+  )
+  explicit <- crop_points(
+    sampling_coord,
+    upper_left_indices = c(5, 4)
+  )
+
+  expect_equal(centered, explicit)
+})
+
+
+test_that("uncrop_points() is the exact inverse of crop_points()", {
+  original_coord <- data.frame(
+    x = c(3.5, 5.2, 3.5),
+    y_down = c(2.5, 4.8, 2.5),
+    id = c("a", "b", "a")
+  )
+
+  cropped_coord <- crop_points(
+    original_coord,
+    upper_left_indices = c(4, 3)
+  )
+  observed <- uncrop_points(
+    cropped_coord,
+    upper_left_indices = c(4, 3)
+  )
+
+  expect_equal(observed, original_coord)
+})
+
+
+test_that("uncrop_points() accepts a centered crop specification", {
+  original_coord <- data.frame(
+    x = c(4.5, 6.2),
+    y_down = c(3.5, 5.8),
+    id = c("a", "b")
+  )
+
+  cropped_coord <- crop_points(
+    original_coord,
+    snapped_zenith_coord = c(6, 5),
+    horizon_radius = 2
+  )
+  observed <- uncrop_points(
+    cropped_coord,
+    snapped_zenith_coord = c(6, 5),
+    horizon_radius = 2
+  )
+
+  expect_equal(observed, original_coord)
+})
+
+
+test_that("point crop transformations preserve a valid empty data set", {
+  original_coord <- data.frame(
+    x = numeric(),
+    y_down = numeric(),
+    id = character()
+  )
+
+  cropped_coord <- crop_points(
+    original_coord,
+    upper_left_indices = c(4, 3)
+  )
+  observed <- uncrop_points(
+    cropped_coord,
+    upper_left_indices = c(4, 3)
+  )
+
+  expect_equal(observed, original_coord)
+})
+
+
 test_that("crop_points() requires coord and integer-like crop indices", {
   expect_error(
     crop_points(data.frame(col = 1, row = 1), c(1, 1)),
@@ -172,5 +255,19 @@ test_that("crop_points() requires coord and integer-like crop indices", {
   expect_error(
     crop_points(data.frame(x = 0.5, y_down = 0.5), c(1.5, 1)),
     "integer-like"
+  )
+  expect_error(
+    crop_points(data.frame(x = 0.5, y_down = 0.5)),
+    "Supply `upper_left_indices`"
+  )
+  expect_error(
+    uncrop_points(
+      data.frame(x = 0.5, y_down = 0.5),
+      upper_left_indices = c(1, 1),
+      snapped_zenith_coord = c(2, 2),
+      horizon_radius = 1
+    ),
+    "not both",
+    fixed = TRUE
   )
 })

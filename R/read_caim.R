@@ -7,12 +7,8 @@
 #'
 #' Internally, this is a wrapper around [terra::rast()], so support for image
 #' formats depends on the capabilities of the `terra` package.
-#'
-#' When `snapped_zenith_coord` and `horizon_radius` are supplied, the function
-#' returns a square crop with side `2 * horizon_radius`. The snapped zenith is
-#' placed at the intersection of the four central cells. The first retained
-#' cell is therefore identified by
-#' `snapped_zenith_coord - horizon_radius + 1`.
+#' The function does not crop or resample the image. Use [crop_caim()] to define
+#' a processing geometry after reading.
 #'
 #' @section Example data:
 #' The package includes example files available through
@@ -54,7 +50,6 @@
 #'
 #' @param path character vector of length one.  Path to an image file, including
 #'   extension. If `NULL`, an example image is returned.
-#' @inheritParams crop_caim
 #' @param fill_na character vector of length one. Method used to fill `NA`
 #'   cells. Must be `"max"`, `"min"`, `"value"`, or `"none"`. Use `"max"` to
 #'   fill with the image maximum, `"min"` to fill with the image minimum,
@@ -72,7 +67,7 @@
 #'
 #' @export
 #'
-#' @seealso [write_caim()]
+#' @seealso [write_caim()], [crop_caim()]
 #'
 #' @references \insertAllCited{}
 #'
@@ -98,18 +93,14 @@
 #'
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 #' caim <- read_caim(path)
-#' snapped_zenith_coord <- spec$snapped_zenith_coord
-#' horizon_radius <- spec$horizon_radius
-#' caim <- read_caim(
-#'   path,
-#'   snapped_zenith_coord = snapped_zenith_coord,
-#'   horizon_radius = horizon_radius
+#' caim <- crop_caim(
+#'   caim,
+#'   snapped_zenith_coord = spec$snapped_zenith_coord,
+#'   horizon_radius = spec$horizon_radius
 #' )
 #' plot(caim)
 #' }
 read_caim <- function(path = NULL,
-                      snapped_zenith_coord = NULL,
-                      horizon_radius = NULL,
                       fill_na = "max",
                       fill_value = NULL) {
 
@@ -131,11 +122,7 @@ read_caim <- function(path = NULL,
                 }) %>%
     suppressWarnings()
 
-  r <- crop_caim(
-    r,
-    snapped_zenith_coord = snapped_zenith_coord,
-    horizon_radius = horizon_radius
-  )
+  r <- set_rcaiman_geometry(r)
 
   if (fill_na != "none") {
     value <- switch(
