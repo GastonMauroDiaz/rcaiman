@@ -14,23 +14,40 @@ rem_panoramic_padding(pano, angle_width = 1, padding_deg = 15)
 from_panoramic(pano, z, a, angle_width = 1)
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} containing at least \code{"zen"} and \code{"azi"},
-as in the output of \code{\link[=add_directions]{add_directions()}}. Additional columns are preserved.}
+\item{sampling_points}{\code{data.frame} containing numeric columns \code{"zen"} and
+\code{"azi"} in radians, as in the output of \code{\link[=add_directions]{add_directions()}} with
+\code{in_radians = TRUE}, or \code{\link[=add_directions_from_model]{add_directions_from_model()}}. Existing \code{"x"} and
+\code{"y_down"} columns are replaced by panoramic coordinates. Derived columns
+tied to the source image frame are removed with \code{\link[=keep_coord]{keep_coord()}}. Other
+columns are preserved, including the source directions.}
 
 \item{angle_width}{numeric vector of length one. Angular resolution in
 degrees.}
 
-\item{padding_deg}{numeric vector of length one. Must be positive and
-interpreted as integer.  Width of the padding region in degrees.}
+\item{padding_deg}{integer-like numeric vector of length one. Nonnegative
+width of the padding region in degrees. Use zero for no padding.}
 
-\item{pano}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} in panoramic geometry.}
+\item{pano}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} in panoramic geometry.
+Remove padding before passing this raster to \code{from_panoramic()}.}
 
 \item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
 
 \item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}}
 }
 \value{
-See \emph{Functions}.
+\code{to_panoramic()} returns a list with named elements:
+\describe{
+\item{\code{sampling_coord}}{A \code{data.frame} with continuous \code{x}, \code{y_down}
+coordinates and preserved frame-independent columns. Original rows
+appear first, followed by auxiliary top, left, and right padding rows.}
+\item{\code{raster}}{An empty, single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with
+geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}, for planar interpolation.}
+}
+\code{rem_panoramic_padding()} returns a raster without the padding regions.
+\code{from_panoramic()} returns a raster with the geometry of \code{z}, populated
+from the panoramic cells containing the corresponding directions. At the
+outer boundaries, indices are clamped to the nearest valid cell. Cells
+without a zenith value remain \code{NA}.
 }
 \description{
 Reparameterize hemispherical angular coordinates into a panoramic
@@ -41,7 +58,10 @@ logic, and map the resulting values back into hemispherical image domain.
 These functions transform hemispherical angular coordinates into a temporary
 panoramic domain.
 
-Coordinates are derived directly from zenith angle and azimuth angle.
+Continuous image coordinates are derived directly from zenith and azimuth
+angles, without selecting cells. After padding, \code{x} increases with azimuth
+and \code{y_down} increases with zenith angle. One coordinate unit corresponds
+to \code{angle_width} degrees. The unpadded origin is \code{zen = 0}, \code{azi = 0}.
 
 This introduces artificial discontinuities that are not
 present in hemispherical geometry:
@@ -66,7 +86,7 @@ Transform hemispherical angular coordinates into a temporary panoramic
 raster domain with or without padding regions.
 }
 
-\item{\code{remove_panoramic_padding()}}{
+\item{\code{rem_panoramic_padding()}}{
 Remove the padding regions from a panoramic raster.
 }
 
@@ -78,87 +98,21 @@ using zenith and azimuth images.
 }
 
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-rspec <- get_radiometry_spec(spec, "simple_method")
-
-z <- zenith_image(ncol(r), spec$parameters)
+z <- zenith_image(30, equidistant_coef)
 a <- azimuth_image(z)
-m <- !is.na(z)
+sampling_indices <- raster_grid_in_circle(z, a, spacing = 3)
+sampling_indices$dn <- cos(sampling_indices$zen)
 
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-
-# Manipulate image
-sampling_points <- raster_grid_in_circle(z, a, 1)
-sampling_points <- extract_dn(r, sampling_points, use_window = FALSE)
-
-angle_width <- 1
+angle_width <- 5
 padding_deg <- 10
-pano <- to_panoramic(sampling_points,
-                     angle_width = angle_width,
-                     padding_deg = padding_deg)
-pano <- interpolate_planar(pano$sampling_points,
-                           "Cyan",
-                           pano$raster,
-                           search_radius = 5)
-plot(pano)
-pano <- rem_panoramic_padding(pano, angle_width, padding_deg)
-plot(pano)
-
-hemi <- from_panoramic(pano, z, a, angle_width = angle_width)
+pano <- to_panoramic(sampling_indices, angle_width, padding_deg)
+interpolated <- interpolate_planar(
+  pano$sampling_coord, r = pano$raster, search_radius = 20,
+  parallel = FALSE
+)
+unpadded <- rem_panoramic_padding(interpolated, angle_width, padding_deg)
+hemi <- from_panoramic(unpadded, z, a, angle_width)
 plot(hemi)
-plot(r - hemi)
-
-# Work in panoramic and return to hemispherical
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-sky_points <- extract_dn(r, sky_points, use_window = FALSE)
-sky_points <- add_directions(sky_points, z, a)
-
-angle_width <- 1
-padding_deg <- 40
-pano <- to_panoramic(sky_points,
-                     angle_width = angle_width,
-                     padding_deg = padding_deg)
-
-## IDW
-idw <- interpolate_planar(pano$sampling_points,
-                          "Cyan",
-                          pano$raster,
-                          search_radius = 20)
-idw <- rem_panoramic_padding(idw, angle_width, padding_deg)
-idw <- from_panoramic(idw, z, a, angle_width = angle_width)
-plot(idw)
-## Triangulation
-tri <- triangulate_planar(pano$sampling_points,
-                          "Cyan",
-                          pano$raster)
-tri <- rem_panoramic_padding(tri, angle_width, padding_deg)
-tri <- from_panoramic(tri, z, a, angle_width = angle_width)
-plot(tri)
-
-## Fit trend surface
-ts <- fit_trend_surface(pano$sampling_points,
-                        "Cyan",
-                        pano$raster,
-                        extrapolate = TRUE)
-ts <- rem_panoramic_padding(ts, angle_width, padding_deg)
-ts <- from_panoramic(ts, z, a, angle_width = angle_width)
-plot(ts)
-}
 }
 \seealso{
 \code{\link[=fisheye_to_pano]{fisheye_to_pano()}}

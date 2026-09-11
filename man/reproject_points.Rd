@@ -8,9 +8,9 @@ reproject_points(sampling_points, projection_coef, diameter, orientation = 0)
 }
 \arguments{
 \item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"} in
-radians. Additional columns are preserved, except spatial columns \code{"x"},
-\code{"y_down"}, \code{"col"}, and \code{"row"}, which are replaced by the target
-coordinates.}
+radians. Existing \code{"x"} and \code{"y_down"} columns are replaced by the target
+coordinates. Columns \code{"col"}, \code{"row"}, \code{"y"}, \code{"relative_radius"}, and
+\code{"image_angle"} are removed. All other columns are preserved.}
 
 \item{projection_coef}{numeric vector. Polynomial coefficients defining
 the radial projection model evaluated in radians.}
@@ -23,9 +23,10 @@ image (deg), using the convention of \code{\link[=azimuth_image]{azimuth_image()
 for a North-up target.}
 }
 \value{
-\code{data.frame} with columns \code{"x"} and \code{"y_down"} followed by the
-nonspatial columns from \code{sampling_points}. Coordinates refer to the target
-image and use the convention described in \code{\link[=y_down_from_y]{y_down_from_y()}}.
+\code{data.frame} with columns \code{"x"} and \code{"y_down"} followed by preserved
+angular directions and other frame-independent columns from
+\code{sampling_points}. Coordinates refer to the target image and use the
+convention described in \code{\link[=y_down_from_y]{y_down_from_y()}}.
 }
 \description{
 Recompute continuous image coordinates after changing the radial projection
@@ -44,6 +45,10 @@ the requested \code{diameter}.
 Reprojection preserves angular coordinates. By default, the target geometry
 has North at the top. A nonzero \code{orientation} can restore the orientation of
 a geometry that was previously standardized.
+
+Existing continuous image coordinates are replaced. Derived columns tied to
+the source image frame are removed with \code{\link[=keep_coord]{keep_coord()}}. Angular
+directions and other columns are preserved.
 }
 \examples{
 z <- zenith_image(1000, equal_area_coef)

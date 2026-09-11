@@ -10,19 +10,22 @@
 #' `search_radius` is given in pixels but intended to approximate 15–20 deg in
 #' angular terms. Therefore, this value needs fine-tuning based on image
 #' resolution and radial projection. The proper workflow requires geometric
-#' standarization with [reproject_image()] and [equidistant_coef]. For best
+#' standardization with [reproject_image()] and [equidistant_coef]. For best
 #' results, the interpolated quantity should be linearly related to scene
 #' radiance--; for JPEG images, consider
 #' [invert_gamma_correction()].
 #'
-#' @param sampling_points `data.frame` with columns `"row"`, `"col"`, and one additional
-#'   numeric column with values to interpolate. Typically returned by
-#'   [extract_dn()].
+#' @param sampling_coord `data.frame` with numeric columns `"x"` and
+#'   `"y_down"` containing continuous image coordinates, and a numeric column
+#'   with values to interpolate. Coordinates follow [y_down_from_y()]. Convert
+#'   cell indices explicitly with [coord_from_indices()] when sampling cell
+#'   centers. Subpixel positions are used without snapping to cells.
 #' @param col_id numeric or character vector of length one. The name or position
-#'   of the column in `sampling_points` containing the values to interpolate.
-#' @param r numeric [terra::SpatRaster-class] with one layer. Image from which
-#'   `sampling_points` were derived, or another raster with the same number of rows
-#'   and columns. Used only as geometric template; cell values are ignored.
+#'   of the column in `sampling_coord` containing the values to interpolate.
+#' @param r numeric [terra::SpatRaster-class] with one layer. Image frame to
+#'   which `sampling_coord` refers, with geometry set by [set_rcaiman_geometry()].
+#'   Used only as a geometric template; cell values are ignored. Interpolation
+#'   is evaluated at cell centers.
 #' @param k numeric vector of length one. Must be positive and interpreted as
 #'   integer. Number of nearest neighbors to retrieve.
 #' @param p numeric vector of length one. Inverse distance weighting exponent.
@@ -32,20 +35,19 @@
 #'   method interpolates as long as there is at least one point not farther than
 #'   `search_radius`. If it is `TRUE`, it requires `k` points at range.
 #' @param engine character vector of length one. Interpolation engine to be
-#'   used. Allowed choises are `"cpp"` (default), an in-package C++ implementation,
+#'   used. Allowed choices are `"cpp"` (default), an in-package C++ implementation,
 #'   or `"terra"`, which delegates to [terra::interpIDW()], passing `k`, `p`,
 #'   and `search_radius` to `maxPoints`, `power`, and `radius`, respectively,
 #'   and when `rigorous = TRUE`, changes from `minPoints = 1` (default) to
 #'   `minPoints = k`. When `"terra"` is used, arguments `parallel`, `cores`,
-#'   `logical` and `leave_free` are ignored. The effective search neighborhood
-#'   differs slightly from engines, likely due to continuous vs rasterized
-#'   distance evaluation.
+#'   `logical` and `leave_free` are ignored. Both engines use continuous input
+#'   positions.
 #'
 #' @inheritParams apply_locally
 #'
 #' @note
 #' Interpolation is performed in the image plane assuming Euclidean
-#' geometry. When input points represent directions on the hemisphere,results
+#' geometry. When input points represent directions on the hemisphere, results
 #' depend on the projection used to map angles to the plane. Thus, for
 #' hemispherical data, the use of an equisolid-angle projection (see
 #' [equal_area_coef]) is recommended.
@@ -53,9 +55,9 @@
 #' When interpolation is carried out using a dense set of points, errors
 #' introduced by planar interpolation are expected to be negligible, i.e.,
 #' increasing point density should not change the interpolated surface in a
-#' meaninful way.
+#' meaningful way.
 #'
-#' No consistency checks are performed to ensure that `sampling_points` and `r`
+#' No consistency checks are performed to ensure that `sampling_coord` and `r`
 #' are geometrically compatible. Incorrect combinations may lead to invalid
 #' outputs.
 #'
@@ -69,38 +71,18 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' # See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
-#'
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#'
-#' sky <- interpolate_planar(sky_points, r, col_id = 3)
-#' plot(sky)
-#' plot(r/sky)
-#' }
-interpolate_planar <- function(sampling_points,
+#' r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+#' sampling_coord <- coord_from_indices(
+#'   col = c(1, 7, 1, 7, 2, 5, 3, 6),
+#'   row = c(1, 1, 5, 5, 3, 2, 4, 4)
+#' )
+#' sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+#' interpolated <- interpolate_planar(
+#'   sampling_coord, r = r, search_radius = 20, parallel = FALSE
+#' )
+#' plot(interpolated)
+#' points(sampling_coord$x, y_from_y_down(sampling_coord$y_down, nrow(r)))
+interpolate_planar <- function(sampling_coord,
                                col_id = "dn",
                                r,
                                k = 3,
@@ -113,8 +95,9 @@ interpolate_planar <- function(sampling_points,
                                logical = TRUE,
                                leave_free = 0) {
 
-  col_id <- .resolve_required_column(col_id, sampling_points)
-  .check_columns(sampling_points, required_columns = c("row", "col", col_id))
+  col_id <- .resolve_required_column(col_id, sampling_coord)
+  .check_columns(sampling_coord,
+                 required_columns = c("x", "y_down", col_id))
   .assert_single_layer(r)
   .check_vector(k, "integerish", 1, sign = "positive")
   .check_vector(p, "numeric", 1, sign = "positive")
@@ -135,24 +118,32 @@ interpolate_planar <- function(sampling_points,
     }
   }
 
-  cells <- terra::cellFromRowCol(r, sampling_points$row, sampling_points$col)
-  xy <- terra::xyFromCell(r, cells)
-
   if (engine == "terra") {
-    v <- terra::vect(xy, crs = crs(r), atts = data.frame(z = sampling_points[, col_id]) )
+    sampling_xy <- cbind(
+      x = sampling_coord$x,
+      y = y_from_y_down(sampling_coord$y_down, nrow(r))
+    )
+    v <- terra::vect(sampling_xy, crs = crs(r),
+                      atts = data.frame(z = sampling_coord[, col_id]))
 
     ir <- terra::interpIDW(r, v, field = "z", radius = search_radius, power = p,
                            maxPoints = k, minPoints = if (rigorous) k else 1)
   }
   if (engine == "cpp") {
 
-    target_rc <- terra::rowColFromCell(r, 1:terra::ncell(r))
+    target_indices <- terra::rowColFromCell(r, 1:terra::ncell(r))
+    target_coord <- coord_from_indices(
+      col = target_indices[, 2], row = target_indices[, 1]
+    )
 
     res_vals <- cpp_idw_planar_kdtree(
-      target_xy = as.matrix(target_rc[, 2:1]),
-      obs_x = sampling_points$col,
-      obs_y = sampling_points$row,
-      obs_z = sampling_points[[col_id]],
+      # Transition (2026-09-04): target_xy is the native engine's legacy
+      # argument name. Both inputs here use coord, not the xy representation.
+      # Keep its Euclidean-distance algorithm; rename that interface separately.
+      target_xy = as.matrix(target_coord),
+      obs_x = sampling_coord$x,
+      obs_y = sampling_coord$y_down,
+      obs_z = sampling_coord[[col_id]],
       k = k,
       p = p,
       rmax = search_radius,

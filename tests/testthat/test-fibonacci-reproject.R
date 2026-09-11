@@ -77,7 +77,12 @@ test_that("reproject_points() returns continuous target coordinates", {
     row = 1:5,
     zen = c(0, rep(pi / 4, 4)),
     azi = c(0, 0, pi / 2, pi, 3 * pi / 2),
-    id = letters[1:5]
+    id = letters[1:5],
+    x = 99,
+    y_down = 99,
+    y = 99,
+    relative_radius = 0.5,
+    image_angle = 0
   )
 
   observed <- reproject_points(

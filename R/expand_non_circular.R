@@ -1,24 +1,39 @@
-#' Expand a non-circular image
+#' Place a non-circular image in a square frame
 #'
 #' @description
-#' Add `NA` margins to a hemispherical photograph and align its snapped zenith
-#' with the center of a zenith image. This operation is intended for
-#' non-circular images.
+#' Translate a hemispherical photograph so that its snapped zenith coincides
+#' with the center of a zenith image, and return exactly the square processing
+#' frame defined by that zenith image.
+#'
+#' @details
+#' The photograph is translated along cell boundaries. Parts of the square
+#' processing frame without source-image coverage are filled with `NA`, while
+#' parts of the source image outside that frame are discarded. Thus, depending
+#' on the input dimensions and zenith position, the operation can require both
+#' padding and cropping.
+#'
+#' Since `z` has even dimensions and `snapped_zenith_coord` identifies an
+#' integer grid intersection, the translation is an integer number of cells.
+#' The implementation extends and crops the translated raster without
+#' resampling or interpolating its values.
 #'
 #' @param caim [terra::SpatRaster-class]. Typically the output of [read_caim()].
 #' @param snapped_zenith_coord integer-like numeric vector of length two.
 #'   Continuous image coordinates of the optical center in the original image
 #'   frame, in the order `c(x, y_down)`. The coordinates identify the center of
-#'   the nearest 2 x 2 cell window.
+#'   the nearest \eqn{2 \times 2}  cell window.
 #'
 #' @inheritParams add_directions
 #'
-#' @return [terra::SpatRaster-class] with the same layers and pixel values as `caim`,
-#'   but with `NA` margins added to center the zenith.
+#' @return [terra::SpatRaster-class] with the same geometry as `z` and the same
+#'   layers as `caim`. Covered cells retain their original values; uncovered
+#'   cells are `NA`.
 #'
 #' @note `rcaiman` uses terra without geographic semantics: rasters are kept with
 #'   unit resolution (cell size = 1) and a standardized extent
 #'   `ext(0, ncol, 0, nrow)` with CRS EPSG:7589 (see [set_rcaiman_geometry()]).
+#'
+#' @seealso [expand_non_circular_points()]
 #'
 #' @export
 #'
@@ -42,6 +57,30 @@
 #' }
 expand_non_circular <- function(caim, z, snapped_zenith_coord) {
   .assert_spatraster(caim)
+  translation_coord <- .expand_non_circular_translation_coord(
+    z,
+    snapped_zenith_coord
+  )
+
+  xmn <- translation_coord[1]
+  xmx <- xmn + ncol(caim)
+  ymx <- nrow(z) - translation_coord[2]
+  ymn <- ymx - nrow(caim)
+  e <- terra::ext(xmn, xmx, ymn, ymx)
+  r <- terra::deepcopy(caim)
+  terra::ext(r) <- e
+
+  r <- terra::extend(r, z)
+  # Correction (2026-09-04): extend() returns the union of both extents. Crop
+  # that union to make z the exact processing frame. The grids are aligned by
+  # the integer translation above, so no resampling is required.
+  r <- terra::crop(r, z)
+  r
+}
+
+
+.expand_non_circular_translation_coord <- function(z,
+                                                    snapped_zenith_coord) {
   .assert_zenith_image(z)
   .check_vector(
     snapped_zenith_coord,
@@ -50,65 +89,5 @@ expand_non_circular <- function(caim, z, snapped_zenith_coord) {
     sign = "positive"
   )
 
-  zenith_xy <- c(
-    snapped_zenith_coord[1],
-    y_from_y_down(snapped_zenith_coord[2], nrow(caim))
-  )
-  delta_x <-  zenith_xy[1] - (ncol(caim) / 2)
-  delta_y <-  zenith_xy[2] - (nrow(caim) / 2)
-  #In which quadrant is the zenith?
-  # (-)(+)|(+)(+)
-  #----------------
-  # (-)(-)|(+)(-)
-  #
-  center <- ncol(z) / 2
-  xmn <- center - ((ncol(caim)/2) + delta_x)
-  xmx <- center + ((ncol(caim)/2) - delta_x)
-  ymn <- center - ((nrow(caim)/2) + delta_y)
-  ymx <- center + ((nrow(caim)/2) - delta_y)
-  e <- terra::ext(xmn, xmx, ymn, ymx)
-  r <- terra::deepcopy(caim)
-  terra::ext(r) <- e
-
-  r <- terra::extend(r, z)
-  terra::ext(r) <- terra::align(terra::ext(r), z)
-  r <- terra::resample(r, z)
-  r
+  c(ncol(z) / 2, nrow(z) / 2) - snapped_zenith_coord
 }
-
-# # ============================
-# # Restricted view canopy photo
-# # ============================
-#
-# path <- system.file("external/APC_0020.jpg", package = "rcaiman")
-# caim <- read_caim(path)
-# plot(caim)
-# caim <- normalize_min_max(caim)
-# diameter <- calc_diameter(lens(), sqrt(nrow(caim)^2 + ncol(caim)^2)/2, 90)
-# z <- zenith_image(diameter, lens())
-# caim <- expand_non_circular(caim, z, c(ncol(caim)/2, nrow(caim)/2))
-# m <- !is.na(caim$Red)
-# a <- azimuth_image(z)
-# caim[!m] <- 0
-#
-# # Knowing from metadata that the diagonal FOV is 60.3º, and assuming
-# # central perspective projection, it is possible to build a lens function with
-# # radius relative to 30.15º but declaring it as 90º, for later
-# # generating the zenith image rescaling it accordingly. This is a workaround
-# # since central perspective cannot include the horizon.
-#
-# theta <- seq(0, 30.15, 0.15) * pi/180
-# px <- tan(theta)/tan(30.15 * pi/180)
-# theta <- normalize_min_max(theta) * pi/2
-#
-# fit <- lm(px ~ poly(theta, 3, raw = TRUE) - 1)
-# coef(fit) %>% round(3)
-# validate_projection_function(c(0.579, -0.009, 0.03))
-#
-# z <- zenith_image(diameter, c(0.579, -0.009, 0.03))
-# ring_segmentation(z, 10) %>% plot()
-# z <- normalize_min_max(z, 0, 90) * 30.15
-#
-# plot(caim$Blue, col = seq(0,1,1/255) %>% grey())
-# m <- !is.na(caim$Red) & !is.na(z)
-# plot(m, add = TRUE, alpha = 0.3, legend = FALSE)

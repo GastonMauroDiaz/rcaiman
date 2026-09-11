@@ -2,13 +2,18 @@
 % Please edit documentation in R/read_caim.R
 \name{read_caim}
 \alias{read_caim}
-\title{Read a canopy image from a file}
+\alias{write_caim}
+\title{Read and write canopy images}
 \usage{
 read_caim(path = NULL, fill_na = "max", fill_value = NULL)
+
+write_caim(caim, path, bit_depth)
 }
 \arguments{
-\item{path}{character vector of length one.  Path to an image file, including
-extension. If \code{NULL}, an example image is returned.}
+\item{path}{character vector of length one. Source image path for
+\code{\link[=read_caim]{read_caim()}} or destination path for \code{\link[=write_caim]{write_caim()}}. When reading, include
+the file extension; if \code{NULL}, an example image is returned. When writing,
+the \code{.tif} extension is enforced.}
 
 \item{fill_na}{character vector of length one. Method used to fill \code{NA}
 cells. Must be \code{"max"}, \code{"min"}, \code{"value"}, or \code{"none"}. Use \code{"max"} to
@@ -17,25 +22,39 @@ fill with the image maximum, \code{"min"} to fill with the image minimum,
 
 \item{fill_value}{numeric vector of length one. Value used to fill \code{NA}
 cells when \code{fill_na = "value"}.}
+
+\item{caim}{\link[terra:SpatRaster-class]{terra::SpatRaster} to write.}
+
+\item{bit_depth}{numeric vector of length one. Either \code{8} or \code{16}.}
 }
 \value{
-Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with layers named
-\code{"Red"}, \code{"Green"}, and \code{"Blue"} if an image of three layers is read.
+\itemize{
+\item \code{read_caim()} returns a numeric \link[terra:SpatRaster-class]{terra::SpatRaster}. Layers are named
+\code{"Red"}, \code{"Green"}, and \code{"Blue"} when a three-layer image is read.
+\item \code{write_caim()} returns nothing and is called for its side effect.
+}
 }
 \description{
-Reads a digital image (typically RGB-JPEG or RGB-TIFF) using
-\code{\link[terra:rast]{terra::rast()}} and returns a \link[terra:SpatRaster-class]{terra::SpatRaster} object.
+Read a digital image as a \link[terra:SpatRaster-class]{terra::SpatRaster} or write a canopy image
+as an 8- or 16-bit unsigned-integer GeoTIFF.
 }
 \details{
-Internally, this is a wrapper around \code{\link[terra:rast]{terra::rast()}}, so support for image
-formats depends on the capabilities of the \code{terra} package.
-The function does not crop or resample the image. Use \code{\link[=crop_caim]{crop_caim()}} to define
-a processing geometry after reading.
+\code{\link[=read_caim]{read_caim()}} wraps \code{\link[terra:rast]{terra::rast()}}, so support for image formats depends on
+the capabilities of the \code{terra} package. It does not crop or resample the
+image. Use \code{\link[=crop_caim]{crop_caim()}} to define a processing geometry after reading.
+
+\code{\link[=write_caim]{write_caim()}} wraps \code{\link[terra:writeRaster]{terra::writeRaster()}}. It adds the \code{.tif} extension to
+\code{path} if missing and writes \code{INT1U} data when \code{bit_depth = 8} or \code{INT2U} data
+when \code{bit_depth = 16}. Files follow the standard \code{rcaiman} conventions and
+can be consumed by
+\href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
 }
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with unit
 resolution (cell size = 1) and a standardized extent \code{ext(0, ncol, 0, nrow)}
 with CRS EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
+
+File extensions are interpreted with \code{\link[tools:fileutils]{tools::file_ext()}}.
 }
 \section{Example data}{
 
@@ -51,8 +70,9 @@ tools such as
 \href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
 
 Preprocessing of the example images requires explicit geometry and
-radiometry specifications. These are alse included with the package as a registry
-snapshot (see \href{https://github.com/GastonMauroDiaz/rcaiman.registry}{rcaiman.registry}).
+radiometry specifications. These are also included with the package as a
+registry snapshot (see
+\href{https://github.com/GastonMauroDiaz/rcaiman.registry}{rcaiman.registry}).
 
 \describe{
 \item{DSCN4248.tif and DSCN4248.tsv}{Sensor data and metadata extracted from
@@ -104,11 +124,13 @@ caim <- crop_caim(
   horizon_radius = spec$horizon_radius
 )
 plot(caim)
+
+write_caim(caim, file.path(tempdir(), "caim"), bit_depth = 8)
 }
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=write_caim]{write_caim()}}, \code{\link[=crop_caim]{crop_caim()}}
+\code{\link[=crop_caim]{crop_caim()}}
 }

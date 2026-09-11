@@ -26,11 +26,15 @@
 #' relative to the spatial variability of the interpolated field. Under this
 #' condition, discretization errors introduced by planar interpolation are
 #' expected to be negligible, i.e., increasing point density should not change
-#' the interpolated surface in a meaninful way.
+#' the interpolated surface in a meaningful way.
 #'
-#' No consistency checks are performed to ensure that `sampling_points` and `r`
+#' No consistency checks are performed to ensure that `sampling_coord` and `r`
 #' are geometrically compatible. Incorrect combinations may lead to invalid
 #' outputs.
+#'
+#' Vertex values are currently retrieved through an auxiliary raster. Distinct
+#' positions within the same cell can therefore share a value. This existing
+#' limitation is separate from the continuous-coordinate input contract.
 #'
 #' @param return character vector of length one. Either `"raster"`
 #'   (default) to return only the interpolation result, or `"all"`
@@ -54,42 +58,22 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#'
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
-#'
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#'
-#' # See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
-#'
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#'
-#' sky <- triangulate_planar(sky_points, "Cyan", r)
-#' plot(sky)
-#' }
-triangulate_planar <- function(sky_points, col_id = "dn", r, return = "raster") {
-  if (!is.data.frame(sky_points)) {
-    stop("`sky_points` must be a data frame.")
-  }
-  .assert_single_layer(r, allow_na = FALSE)
-  required_cols <- .resolve_required_column(col_id, sky_points)
+#' r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+#' sampling_coord <- coord_from_indices(
+#'   col = c(1, 7, 1, 7, 2, 5, 3, 6),
+#'   row = c(1, 1, 5, 5, 3, 2, 4, 4)
+#' )
+#' sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+#' interpolated <- triangulate_planar(sampling_coord, r = r)
+#' plot(interpolated)
+#' points(sampling_coord$x, y_from_y_down(sampling_coord$y_down, nrow(r)))
+triangulate_planar <- function(sampling_coord, col_id = "dn", r,
+                                return = "raster") {
+  col_id <- .resolve_required_column(col_id, sampling_coord)
+  .check_columns(sampling_coord,
+                 required_columns = c("x", "y_down", col_id))
+  # Correction (2026-09-04): template cell values are ignored, including NA.
+  .assert_single_layer(r, allow_na = TRUE)
   .assert_choice(return, c("raster", "all"))
 
   # Compute plane from three points using cross product
@@ -114,20 +98,26 @@ triangulate_planar <- function(sky_points, col_id = "dn", r, return = "raster") 
     unname(c(-a / c, -b / c, -d / c))
   }
 
-  cells <- terra::cellFromRowCol(r, sky_points$row, sky_points$col)
-  xy <- terra::xyFromCell(r, cells)
+  sampling_xy <- cbind(
+    x = sampling_coord$x,
+    y = y_from_y_down(sampling_coord$y_down, nrow(r))
+  )
 
-  p <- terra::vect(xy, "points", atts = data.frame(dn = sky_points[, col_id]))
+  p <- terra::vect(sampling_xy, "points",
+                    atts = data.frame(dn = sampling_coord[, col_id]))
   terra::crs(p) <- terra::crs(r)
 
+  # TODO (2026-09-04, existing limitation): vertex values pass through this
+  # raster, so distinct subpixel positions in one cell may share a value.
+  # Retained for this migration; replacing it needs a separate algorithm review.
   dummy_r <- terra::rasterize(p, r, field = "dn")
 
   mesh <- terra::delaunay(p)
 
   plane_coef <- lapply(1:length(mesh), function(i) {
-    xy <- geom(mesh[i])[-1, c("x", "y")]
-    z <- terra::extract(dummy_r, xy)
-    pts <- cbind(xy, z = z[,])
+    vertex_xy <- geom(mesh[i])[-1, c("x", "y")]
+    z <- terra::extract(dummy_r, vertex_xy)
+    pts <- cbind(vertex_xy, z = z[,])
     .plane_from_points(pts[1,], pts[2,], pts[3,])
   })
   plane_coef <- matrix(unlist(plane_coef), ncol = 3, byrow = TRUE)
@@ -143,8 +133,8 @@ triangulate_planar <- function(sky_points, col_id = "dn", r, return = "raster") 
   y[] <- yFromCell(r, 1:ncell(r))
   raster <- alpha* x + beta* y + gamma
 
-  xy <- xy[grDevices::chull(xy),]
-  p <- terra::vect(xy, "polygons", crs = crs(r))
+  hull_xy <- sampling_xy[grDevices::chull(sampling_xy),]
+  p <- terra::vect(hull_xy, "polygons", crs = crs(r))
 
   if (return == "raster") {
     return(raster)

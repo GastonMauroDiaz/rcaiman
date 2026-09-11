@@ -146,6 +146,39 @@ test_that("crop_points() translates coord from the first retained cell", {
 })
 
 
+test_that("point crop transformations remove previous-frame geometry", {
+  sampling_coord <- data.frame(
+    id = c("a", "b"),
+    x = c(3.5, 5.2),
+    y_down = c(2.5, 4.8),
+    col = c(4L, 6L),
+    row = c(3L, 5L),
+    y = c(7.5, 5.2),
+    relative_radius = c(0.2, 0.5),
+    image_angle = c(0, pi / 2),
+    zen = c(0.3, 0.7),
+    azi = c(0.4, 1.2),
+    dn = c(10, 20)
+  )
+
+  observed <- crop_points(
+    sampling_coord,
+    upper_left_indices = c(4, 3)
+  )
+
+  expect_identical(
+    names(observed),
+    c("x", "y_down", "id", "zen", "azi", "dn")
+  )
+  expect_equal(observed$x, c(0.5, 2.2))
+  expect_equal(observed$y_down, c(0.5, 2.8))
+  expect_identical(observed$id, sampling_coord$id)
+  expect_identical(observed$zen, sampling_coord$zen)
+  expect_identical(observed$azi, sampling_coord$azi)
+  expect_identical(observed$dn, sampling_coord$dn)
+})
+
+
 test_that("crop_points() maps retained cell centers consistently", {
   original_indices <- data.frame(
     col = c(4, 5),
@@ -195,6 +228,10 @@ test_that("uncrop_points() is the exact inverse of crop_points()", {
     original_coord,
     upper_left_indices = c(4, 3)
   )
+  cropped_coord <- add_indices(cropped_coord)
+  cropped_coord <- add_xy(cropped_coord, image_height = 10)
+  cropped_coord$relative_radius <- c(0.2, 0.5, 0.2)
+  cropped_coord$image_angle <- c(0, pi / 2, 0)
   observed <- uncrop_points(
     cropped_coord,
     upper_left_indices = c(4, 3)

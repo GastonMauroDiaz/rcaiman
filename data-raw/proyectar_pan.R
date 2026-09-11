@@ -1,119 +1,90 @@
 require(rcaiman.registry)
-path <- system.file("external/iPhone6plus.Olloclip_jpeg.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_jpeg", "simple_method_rescaled")
+rm(list = ls())
+my_entry <- readRDS("data-raw/entry_iPhone6plus.Olloclip_v3.rds")
+spec <- get_geometry_spec(my_entry,  "exif_raw", "simple_method")
 
-path <- "C:/Users/gdiaz/Downloads/WhatsApp Image 2026-06-10 at 3.23.32 PM.jpeg"
-caim <- read_caim(path)
-caim
-
-1125
 zenith_col_row <- c(642, 340)
-diameter <- calc_diameter(spec$parameters, 1125/2, spec$max_zenith_angle) - 1
+diameter <- calc_diameter(spec$parameters, 1125/2, spec$max_zenith_angle)
 
 z <- zenith_image(diameter,  spec$parameters)
 a <- azimuth_image(z)
-caim <- expand_non_circular(caim, z, zenith_col_row)
-plot(caim$Blue, col = seq(0, 1, 1/255) %>% grey())
-m <- !is.na(caim$Red) & !is.na(z)
-plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 
-write_caim(caim, "ref", 8)
+# read images -------------------------------------------------------------
 
-pts_ref <- read.csv("C:/Users/gdiaz/Downloads/Results_ref.csv")
-pts_ref <- pts_ref[c("Y", "X")]
-colnames(pts_ref) <- c("row", "col")
+# path <- "data-raw/WhatsApp Image 2026-06-10 at 3.23.32 PM.jpeg"
+# caim <- read_caim(path)
+#
+# caim <- expand_non_circular(caim, z, zenith_col_row)
+#
+# r <- read_caim("data-raw/WhatsApp Image 2026-06-10 at 3.23.32 PM (1).jpeg")
+# plot(r$Blue)
+#
+# write_caim(r, "data-raw/target", 8)
 
-pts <- read.csv("C:/Users/gdiaz/Downloads/Results.csv")
-pts <- pts[c("Y", "X")]
-colnames(pts) <- c("row", "col")
+ref <- read_caim("data-raw/crosscalibration_wide_angle/img_ref/ref.tif")
 
+r <- read_caim("data-raw/crosscalibration_wide_angle/img_target/target.tif")
+
+# read points -------------------------------------------------------------
+
+# pts_ref <- read.csv("data-raw/Results_ref.csv")
+# pts_ref <- pts_ref[c("X", "Y")]
+# colnames(pts_ref) <- c("x", "y_down")
+#
+# pts <- read.csv("data-raw/Results.csv")
+# pts <- pts[c("X", "Y")]
+# colnames(pts) <- c("x", "y_down")
+
+pts_ref <- read_points("data-raw/crosscalibration_wide_angle/pts_ref/ref.csv")
+pts <- read_points("data-raw/crosscalibration_wide_angle/pts_target/target.csv")
+
+# Enrich ------------------------------------------------------------------
+
+pts_ref <- add_indices(pts_ref)
 pts_ref <- add_directions(pts_ref, z, a)
 
-plot(caim$Blue)
-points(pts_ref$col, nrow(caim$Blue) - pts_ref$row, col = 2, pch = 10)
+# modelling ---------------------------------------------------------------
 
-r <- read_caim("C:/Users/gdiaz/Downloads/WhatsApp Image 2026-06-10 at 3.23.32 PM (1).jpeg")
-plot(r$Blue)
+calibration <- crosscalibrate_geometry(
+  pts_uncal = pts,
+  pts_cal = pts_ref,
+  model = "anisotropic_projection",
+  degree = 3,
+  width_uncal = ncol(r),
+  height_uncal = nrow(r),
+  atan_scale = 0.7
+)
 
-# center in (0,0)
-pts$y <- pts$row - nrow(r)/2
-pts$x <- pts$col - ncol(r)/2
-xy <- as.matrix(pts[, c("x", "y")])
-pol <- geometry::cart2pol(xy)
-max_r_px <- sqrt((ncol(r)/2)^2 + (nrow(r)/2)^2)
+summary(calibration$model$zen)
+summary(calibration$model$azi_cos)
+summary(calibration$model$azi_sin)
 
-pts$zen <- pts_ref$zen
-pts$azi <- pts_ref$azi
-pts$r <- (pol[, 2]) / max_r_px
+# Full image --------------------------------------------------------------
 
-# Zenith
-pts$atan_r <- atan(pts$r / 0.6)
-modelo_zenital <- lm(zen ~ atan_r + I(atan_r^2) + I(atan_r^3), data = pts)
-summary(modelo_zenital)
+all_pixels <- data.frame(col = colFromCell(r, 1:ncell(r)), row = rowFromCell(r, 1:ncell(r)))
+all_pixels <- add_coord(all_pixels)
+all_pixels <- add_image_polar(all_pixels, ncol(r), nrow(r))
+all_pixels <- add_directions_from_model(
+  all_pixels,
+  calibration$parameters
+)
 
-plot(pts$zen, predict(modelo_zenital), xlim = c(0, pi/2), ylim = c(0, pi/2))
-abline(0,1)
 
-#Azimuth
-pts$azi_img <- pol[,1]
+diameter <- calc_diameter(spec$parameters, 1125/2, spec$max_zenith_angle)
 
-# 1. Descompones la variable respuesta (real)
-pts$sin_real <- sin(pts$azi)
-pts$cos_real <- cos(pts$azi)
-
-# 2. Ajustas los modelos usando el azimut geométrico de la imagen como predictor
-modelo_sin <- lm(sin_real ~ sin(azi_img) + cos(azi_img) - 1, data = pts)
-modelo_cos <- lm(cos_real ~ sin(azi_img) + cos(azi_img) - 1, data = pts)
-
-# Modelo complejo para azimut (solo si hay distorsión tangencial rara)
-modelo_sin_complejo <- lm(sin_real ~ (sin(azi_img) + cos(azi_img)) * r, data = pts)
-
-summary(modelo_cos)
-summary(modelo_sin)
-summary(modelo_sin_complejo)
-
-#Calcular para toda la imagen
-row_col <- rowColFromCell(r, 1:ncell(r))
-row_col[, 1] <- row_col[, 1] - nrow(r)/2
-row_col[, 2] <- row_col[, 2] - ncol(r)/2
-pol_img <- geometry::cart2pol(row_col)
-r_norm <- (pol_img[, 2]) / max_r_px
-df <- data.frame(r = r_norm)
-df$atan_r <- atan(df$r / 0.6)
-
-zpan <- predict(modelo_zenital, df)
-summary(zpan)
-
-df$azi_img <- pol_img[, 1]
-
-apan <- atan2(predict(modelo_cos, df),
-              predict(modelo_sin, df))
-# Pasar de [-pi, pi] a [0, 2pi]
-apan <- apan %% (2 * pi)
-summary(apan)
-
-zpan_img <- apan_img <- r$Blue
-
-zpan_img[] <- zpan
-zpan_img[zpan < 0] <- 0
-plot(zpan_img == 0)
-
-apan_img[] <- apan
-plot(apan_img)
-
-#reprojectar
-row_col <- rowColFromCell(r, 1:ncell(r))
-row_col <- data.frame(row_col)
-names(row_col) <- c("row", "col")
-row_col$azi <- apan
-row_col$zen <- zpan
-row_col$dn <- r$Blue[]
-names(row_col)
-
-pts_reproj <- reproject_points(row_col, equal_area_coef, 1000)
+all_pixels$dn <- r$Blue[]
+pts_reproj <- reproject_points(all_pixels, spec$parameters, diameter)
 head(pts_reproj)
-z <- zenith_image(1000, equal_area_coef)
-a <- azimuth_image(z)
-r2 <- interpolate_planar(pts_reproj, "dn", z, search_radius = 5)
-plot(r2)
+r2 <- interpolate_planar(pts_reproj, 6, z, search_radius = 5)
+plot(ref$Blue)
+plot(r2, add = TRUE, alpha = 0.99)
+
+foo <- reproject_image(ref, z, a, !is.na(z), equidistant_coef, diameter)
+plot(foo$Blue)
+pts_reproj <- reproject_points(all_pixels, equidistant_coef, diameter)
+r2 <- interpolate_planar(pts_reproj, 6, z, search_radius = 5)
+plot(r2, add = TRUE, alpha = 0.99)
+
+zfoo <- zenith_image(diameter, equidistant_coef)
+m <- select_sky_region(z, 0, 100/2)
+plot(m, add = TRUE, alpha = 0.2)

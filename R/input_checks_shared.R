@@ -5,7 +5,7 @@
 #' They are exported for use in Package rcaiman.registry but are not intended
 #' for general use.
 #'
-#' @param x,path,allowed,type,length,allow_null,multiple,case_sensitive,sign,name,x_name,y_name,spectral_mapping,cfa_pattern,data,min_allowed,max_allowed,open_upper,label
+#' @param x,path,allowed,type,length,allow_null,allow_na,allow_inf,multiple,case_sensitive,sign,name,x_name,y_name,spectral_mapping,cfa_pattern,data,min_allowed,max_allowed,open_upper,label,required_columns,reserved_columns,parameters
 #' Parameters used across various validation helpers.
 #'
 #' @return
@@ -24,6 +24,7 @@ NULL
                           length = NULL,
                           allow_null = FALSE,
                           allow_na = FALSE,
+                          allow_inf = FALSE,
                           sign = c("any", "positive", "nonnegative",
                                    "negative", "nonpositive"),
                           name = deparse(substitute(x))
@@ -106,6 +107,10 @@ NULL
 
   if (!allow_na && anyNA(x)) {
     stop(sprintf("`%s` cannot contain `NA`.", name), call. = FALSE)
+  }
+
+  if(!allow_inf && any(is.infinite(x))) {
+    stop(sprintf("`%s` cannot contain `Inf`.", name), call. = FALSE)
   }
 
   if (sign != "any" &&
@@ -209,6 +214,60 @@ NULL
       stop(sprintf("`%s` must be %s.", name, msg), call. = FALSE)
     }
   }
+
+  invisible(TRUE)
+}
+
+#' @rdname internal-validation
+#' @export
+.assert_anisotropic_projection_parameters <- function(parameters) {
+  required_names <- c(
+    "zen_coef", "azi_sin_coef", "azi_cos_coef", "atan_scale"
+  )
+  valid_names <- is.list(parameters) &&
+    !is.null(names(parameters)) &&
+    !anyNA(names(parameters)) &&
+    !any(names(parameters) == "") &&
+    !anyDuplicated(names(parameters)) &&
+    length(parameters) == length(required_names) &&
+    setequal(names(parameters), required_names)
+
+  if (!valid_names) {
+    stop(
+      "`parameters` must be a named list containing exactly ",
+      paste(sprintf('"%s"', required_names), collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+
+  .check_vector(
+    parameters$zen_coef,
+    "numeric",
+    name = "parameters$zen_coef"
+  )
+  if (length(parameters$zen_coef) == 0) {
+    stop("`parameters$zen_coef` cannot be empty.", call. = FALSE)
+  }
+  .check_vector(
+    parameters$azi_sin_coef,
+    "numeric",
+    length = 2,
+    name = "parameters$azi_sin_coef"
+  )
+  .check_vector(
+    parameters$azi_cos_coef,
+    "numeric",
+    length = 2,
+    name = "parameters$azi_cos_coef"
+  )
+  .check_vector(
+    parameters$atan_scale,
+    "numeric",
+    length = 1,
+    sign = "positive",
+    name = "parameters$atan_scale"
+  )
 
   invisible(TRUE)
 }
@@ -335,6 +394,50 @@ NULL
   }
 
   invisible(z)
+}
+
+#' @rdname internal-validation
+#' @export
+.check_columns <- function(x,
+                           required_columns = NULL,
+                           reserved_columns = NULL,
+                           arg_name = deparse(substitute(x))) {
+
+  if (!is.data.frame(x)) {
+    stop(sprintf("`%s` argument must be a data.frame.", arg_name), call. = FALSE)
+  }
+
+  nms <- names(x)
+
+  if (!is.null(required_columns)) {
+    missing_cols <- setdiff(required_columns, nms)
+    if (length(missing_cols) > 0) {
+      stop(
+        sprintf(
+          "`%s` argument must contain required columns: %s.",
+          arg_name,
+          paste(missing_cols, collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
+  if (!is.null(reserved_columns)) {
+    present_cols <- intersect(reserved_columns, nms)
+    if (length(present_cols) > 0) {
+      stop(
+        sprintf(
+          "`%s` argument already contains reserved columns: %s.",
+          arg_name,
+          paste(present_cols, collapse = ", ")
+        ),
+        call. = FALSE
+      )
+    }
+  }
+
+  invisible(x)
 }
 
 #' @rdname internal-validation

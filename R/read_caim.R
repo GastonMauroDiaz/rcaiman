@@ -1,14 +1,19 @@
-#' Read a canopy image from a file
+#' Read and write canopy images
 #'
-#' Reads a digital image (typically RGB-JPEG or RGB-TIFF) using
-#' [terra::rast()] and returns a [terra::SpatRaster-class] object.
+#' @description
+#' Read a digital image as a [terra::SpatRaster-class] or write a canopy image
+#' as an 8- or 16-bit unsigned-integer GeoTIFF.
 #'
 #' @details
+#' [read_caim()] wraps [terra::rast()], so support for image formats depends on
+#' the capabilities of the `terra` package. It does not crop or resample the
+#' image. Use [crop_caim()] to define a processing geometry after reading.
 #'
-#' Internally, this is a wrapper around [terra::rast()], so support for image
-#' formats depends on the capabilities of the `terra` package.
-#' The function does not crop or resample the image. Use [crop_caim()] to define
-#' a processing geometry after reading.
+#' [write_caim()] wraps [terra::writeRaster()]. It adds the `.tif` extension to
+#' `path` if missing and writes `INT1U` data when `bit_depth = 8` or `INT2U` data
+#' when `bit_depth = 16`. Files follow the standard `rcaiman` conventions and
+#' can be consumed by
+#' [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects).
 #'
 #' @section Example data:
 #' The package includes example files available through
@@ -23,8 +28,9 @@
 #' [rcaiman-projects](https://github.com/GastonMauroDiaz/rcaiman-projects).
 #'
 #' Preprocessing of the example images requires explicit geometry and
-#' radiometry specifications. These are alse included with the package as a registry
-#' snapshot (see [rcaiman.registry](https://github.com/GastonMauroDiaz/rcaiman.registry)).
+#' radiometry specifications. These are also included with the package as a
+#' registry snapshot (see
+#' [rcaiman.registry](https://github.com/GastonMauroDiaz/rcaiman.registry)).
 #'
 #' \describe{
 #'  \item{DSCN4248.tif and DSCN4248.tsv}{Sensor data and metadata extracted from
@@ -48,26 +54,34 @@
 #' }
 #'
 #'
-#' @param path character vector of length one.  Path to an image file, including
-#'   extension. If `NULL`, an example image is returned.
+#' @param path character vector of length one. Source image path for
+#'   [read_caim()] or destination path for [write_caim()]. When reading, include
+#'   the file extension; if `NULL`, an example image is returned. When writing,
+#'   the `.tif` extension is enforced.
 #' @param fill_na character vector of length one. Method used to fill `NA`
 #'   cells. Must be `"max"`, `"min"`, `"value"`, or `"none"`. Use `"max"` to
 #'   fill with the image maximum, `"min"` to fill with the image minimum,
 #'   `"value"` to fill with `fill_value`, and `"none"` to preserve `NA` values.
 #' @param fill_value numeric vector of length one. Value used to fill `NA`
 #'   cells when `fill_na = "value"`.
+#' @param caim [terra::SpatRaster-class] to write.
+#' @param bit_depth numeric vector of length one. Either `8` or `16`.
 #'
-#' @return Numeric [terra::SpatRaster-class] with layers named
-#'   `"Red"`, `"Green"`, and `"Blue"` if an image of three layers is read.
+#' @return
+#' - `read_caim()` returns a numeric [terra::SpatRaster-class]. Layers are named
+#'   `"Red"`, `"Green"`, and `"Blue"` when a three-layer image is read.
+#' - `write_caim()` returns nothing and is called for its side effect.
 #'
 #' @note
 #' `rcaiman` uses terra without geographic semantics: rasters are kept with unit
 #' resolution (cell size = 1) and a standardized extent `ext(0, ncol, 0, nrow)`
 #' with CRS EPSG:7589 (see [set_rcaiman_geometry()]).
 #'
+#' File extensions are interpreted with [tools::file_ext()].
+#'
 #' @export
 #'
-#' @seealso [write_caim()], [crop_caim()]
+#' @seealso [crop_caim()]
 #'
 #' @references \insertAllCited{}
 #'
@@ -99,6 +113,8 @@
 #'   horizon_radius = spec$horizon_radius
 #' )
 #' plot(caim)
+#'
+#' write_caim(caim, file.path(tempdir(), "caim"), bit_depth = 8)
 #' }
 read_caim <- function(path = NULL,
                       fill_na = "max",
@@ -137,6 +153,46 @@ read_caim <- function(path = NULL,
 
   if (terra::nlyr(r) == 3) names(r) <- c("Red", "Green", "Blue")
   r
+}
+
+
+#' @rdname read_caim
+#' @export
+write_caim <- function(caim, path, bit_depth) {
+  .check_vector(path, "character", 1)
+
+  if (!any(bit_depth == 16, bit_depth == 8)) {
+    stop("bit_depth should be 8 or 16.")
+  }
+
+  caim <- set_rcaiman_geometry(caim)
+
+  file_name <- basename(path)
+  file_name <- .assert_file_extension(file_name, "tif")
+
+  if (bit_depth == 8) {
+    suppressWarnings(
+      terra::writeRaster(
+        caim,
+        file.path(dirname(path), file_name),
+        filetype = "GTiff",
+        datatype = "INT1U",
+        overwrite = TRUE,
+        NAflag = 2^8
+      )
+    )
+  } else {
+    suppressWarnings(
+      terra::writeRaster(
+        caim,
+        file.path(dirname(path), file_name),
+        filetype = "GTiff",
+        datatype = "INT2U",
+        overwrite = TRUE,
+        NAflag = 2^16
+      )
+    )
+  }
 }
 
 

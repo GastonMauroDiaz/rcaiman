@@ -4,15 +4,22 @@
 \alias{triangulate_planar}
 \title{Interpolate with Delaunay triangulation}
 \usage{
-triangulate_planar(sky_points, col_id = "dn", r, return = "raster")
+triangulate_planar(sampling_coord, col_id = "dn", r, return = "raster")
 }
 \arguments{
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_points} containing the values to interpolate.}
+\item{sampling_coord}{\code{data.frame} with numeric columns \code{"x"} and
+\code{"y_down"} containing continuous image coordinates, and a numeric column
+with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
+cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
+centers. Subpixel positions are used without snapping to cells.}
 
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
-\code{sampling_points} were derived, or another raster with the same number of rows
-and columns. Used only as geometric template; cell values are ignored.}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sampling_coord} containing the values to interpolate.}
+
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image frame to
+which \code{sampling_coord} refers, with geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
+Used only as a geometric template; cell values are ignored. Interpolation
+is evaluated at cell centers.}
 
 \item{return}{character vector of length one. Either \code{"raster"}
 (default) to return only the interpolation result, or \code{"all"}
@@ -55,43 +62,26 @@ geometry. In this case, the angular spacing of query points should be small
 relative to the spatial variability of the interpolated field. Under this
 condition, discretization errors introduced by planar interpolation are
 expected to be negligible, i.e., increasing point density should not change
-the interpolated surface in a meaninful way.
+the interpolated surface in a meaningful way.
 
-No consistency checks are performed to ensure that \code{sampling_points} and \code{r}
+No consistency checks are performed to ensure that \code{sampling_coord} and \code{r}
 are geometrically compatible. Incorrect combinations may lead to invalid
 outputs.
+
+Vertex values are currently retrieved through an auxiliary raster. Distinct
+positions within the same cell can therefore share a value. This existing
+limitation is separate from the continuous-coordinate input contract.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-rspec <- get_radiometry_spec(spec, "simple_method")
-
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-m <- !is.na(z)
-
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-
-sky_points <- extract_dn(r, sky_points)
-
-sky <- triangulate_planar(sky_points, "Cyan", r)
-plot(sky)
-}
+r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+sampling_coord <- coord_from_indices(
+  col = c(1, 7, 1, 7, 2, 5, 3, 6),
+  row = c(1, 1, 5, 5, 3, 2, 4, 4)
+)
+sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+interpolated <- triangulate_planar(sampling_coord, r = r)
+plot(interpolated)
+points(sampling_coord$x, y_from_y_down(sampling_coord$y_down, nrow(r)))
 }
 \seealso{
 \code{\link[=panoramic]{panoramic()}} for an alternative pipeline involving a temporary shift of image plane

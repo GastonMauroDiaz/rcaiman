@@ -25,5 +25,6 @@ set_rcaiman_geometry <- function(r) {
   .assert_spatraster(r)
   terra::ext(r) <- terra::ext(0, ncol(r), 0, nrow(r))
   terra::crs(r) <- "epsg:7589"
+  terra::setMinMax(r)
   r
 }

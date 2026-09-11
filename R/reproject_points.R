@@ -18,10 +18,14 @@
 #' has North at the top. A nonzero `orientation` can restore the orientation of
 #' a geometry that was previously standardized.
 #'
+#' Existing continuous image coordinates are replaced. Derived columns tied to
+#' the source image frame are removed with [keep_coord()]. Angular
+#' directions and other columns are preserved.
+#'
 #' @param sampling_points `data.frame` with columns `"zen"` and `"azi"` in
-#'   radians. Additional columns are preserved, except spatial columns `"x"`,
-#'   `"y_down"`, `"col"`, and `"row"`, which are replaced by the target
-#'   coordinates.
+#'   radians. Existing `"x"` and `"y_down"` columns are replaced by the target
+#'   coordinates. Columns `"col"`, `"row"`, `"y"`, `"relative_radius"`, and
+#'   `"image_angle"` are removed. All other columns are preserved.
 #' @param orientation numeric vector of length one. Orientation of the target
 #'   image (deg), using the convention of [azimuth_image()]. The default is zero
 #'   for a North-up target.
@@ -29,9 +33,10 @@
 #' @inheritParams calc_relative_radius
 #' @inheritParams zenith_image
 #'
-#' @return `data.frame` with columns `"x"` and `"y_down"` followed by the
-#'   nonspatial columns from `sampling_points`. Coordinates refer to the target
-#'   image and use the convention described in [y_down_from_y()].
+#' @return `data.frame` with columns `"x"` and `"y_down"` followed by preserved
+#'   angular directions and other frame-independent columns from
+#'   `sampling_points`. Coordinates refer to the target image and use the
+#'   convention described in [y_down_from_y()].
 #'
 #' @export
 #' @examples
@@ -82,16 +87,7 @@ reproject_points <- function(sampling_points,
   x <- (x + pi/2) / res
   y_down <- (pi/2 - y) / res
 
-  spatial_columns <- intersect(
-    c("x", "y_down", "col", "row"),
-    names(sampling_points)
-  )
-  sampling_points[spatial_columns] <- NULL
   sampling_points$x <- x
   sampling_points$y_down <- y_down
-  sampling_points <- sampling_points[
-    c("x", "y_down", setdiff(names(sampling_points), c("x", "y_down")))
-  ]
-
-  sampling_points
+  keep_coord(sampling_points)
 }

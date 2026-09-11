@@ -5,12 +5,14 @@
 \alias{.check_vector}
 \alias{.assert_file_exists}
 \alias{.assert_choice}
+\alias{.assert_anisotropic_projection_parameters}
 \alias{.assert_spatraster}
 \alias{.assert_single_layer}
 \alias{.assert_same_geom}
 \alias{.assert_logical_mask}
 \alias{.assert_raster_range}
 \alias{.assert_zenith_image}
+\alias{.check_columns}
 \alias{.check_cfa_pattern}
 \alias{.check_spectral_mapping}
 \alias{.validate_flat_field_data}
@@ -23,6 +25,7 @@
   length = NULL,
   allow_null = FALSE,
   allow_na = FALSE,
+  allow_inf = FALSE,
   sign = c("any", "positive", "nonnegative", "negative", "nonpositive"),
   name = deparse(substitute(x))
 )
@@ -37,6 +40,8 @@
   multiple = FALSE,
   case_sensitive = TRUE
 )
+
+.assert_anisotropic_projection_parameters(parameters)
 
 .assert_spatraster(
   x,
@@ -71,6 +76,13 @@
 
 .assert_zenith_image(z)
 
+.check_columns(
+  x,
+  required_columns = NULL,
+  reserved_columns = NULL,
+  arg_name = deparse(substitute(x))
+)
+
 .check_cfa_pattern(cfa_pattern)
 
 .check_spectral_mapping(mapping, cfa_pattern)
@@ -78,7 +90,7 @@
 .validate_flat_field_data(data)
 }
 \arguments{
-\item{x, path, allowed, type, length, allow_null, multiple, case_sensitive, sign, name, x_name, y_name, spectral_mapping, cfa_pattern, data, min_allowed, max_allowed, open_upper, label}{Parameters used across various validation helpers.}
+\item{x, path, allowed, type, length, allow_null, allow_na, allow_inf, multiple, case_sensitive, sign, name, x_name, y_name, spectral_mapping, cfa_pattern, data, min_allowed, max_allowed, open_upper, label, required_columns, reserved_columns, parameters}{Parameters used across various validation helpers.}
 }
 \value{
 Returns \code{invisible(TRUE)} on success. Raises an error otherwise.

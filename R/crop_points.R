@@ -1,12 +1,12 @@
-#' Transform points to a cropped image frame
+#' Transform points between original and cropped image frames
 #'
 #' @description
-#' Translate continuous image coordinates from an original image frame to the
-#' frame produced by a cell-aligned crop.
+#' Translate continuous image coordinates to or from the frame produced by a
+#' cell-aligned crop.
 #'
-#' @param sampling_coord `data.frame` with columns `"x"` and `"y_down"`,
-#'   representing continuous image coordinates in the original image frame.
-#'   Additional columns are preserved.
+#' @param sampling_coord `data.frame` with columns `"x"` and `"y_down"`.
+#'   Frame-independent columns are preserved. Columns removed by
+#'   [keep_coord()] are discarded after the translation.
 #' @param upper_left_indices integer-like numeric vector of length two. Cell
 #'   indices of the upper-left cell included in the crop, in the order
 #'   `c(col, row)`. Cell indices are numbered from 1. Alternatively, use
@@ -22,29 +22,40 @@
 #' @details
 #' The upper-left boundary of the first retained cell has original image
 #' coordinates `c(col - 1, row - 1)`. This value is subtracted from every input
-#' point. The function translates all rows and does not discard points outside
-#' the cropped image bounds.
+#' point. [crop_points()] subtracts this value from every input point, whereas
+#' [uncrop_points()] adds it. The original image is not required for the inverse
+#' operation.
 #'
 #' For a crop centered on a snapped zenith, the equivalent translation is
 #' `snapped_zenith_coord - horizon_radius`.
 #'
-#' @return `data.frame` equal to `sampling_coord`, with `"x"` and `"y_down"`
+#' Both functions translate every row without discarding points outside either
+#' image frame. Row order, duplicates, angular directions, and nonspatial
+#' columns are preserved. Derived columns tied to the previous image frame are
+#' removed with [keep_coord()].
+#'
+#' @return
+#' - `crop_points()` returns `sampling_coord` with `"x"` and `"y_down"`
 #'   expressed in the cropped image frame.
+#' - `uncrop_points()` returns `sampling_coord` with `"x"` and `"y_down"`
+#'   expressed in the original image frame.
 #'
 #' @export
 #'
-#' @seealso [uncrop_points()]
-#'
 #' @examples
-#' sampling_coord <- data.frame(
+#' original_coord <- data.frame(
 #'   x = c(3.5, 5.2),
 #'   y_down = c(2.5, 4.8),
 #'   id = c("a", "b")
 #' )
-#' crop_points(sampling_coord, upper_left_indices = c(4, 3))
+#' cropped_coord <- crop_points(
+#'   original_coord,
+#'   upper_left_indices = c(4, 3)
+#' )
+#' uncrop_points(cropped_coord, upper_left_indices = c(4, 3))
 #'
 #' crop_points(
-#'   sampling_coord,
+#'   original_coord,
 #'   snapped_zenith_coord = c(6, 5),
 #'   horizon_radius = 2
 #' )
@@ -58,6 +69,21 @@ crop_points <- function(sampling_coord,
     horizon_radius
   )
   .translate_points_coord(sampling_coord, -offset_coord)
+}
+
+
+#' @rdname crop_points
+#' @export
+uncrop_points <- function(sampling_coord,
+                          upper_left_indices = NULL,
+                          snapped_zenith_coord = NULL,
+                          horizon_radius = NULL) {
+  offset_coord <- .crop_offset_coord(
+    upper_left_indices,
+    snapped_zenith_coord,
+    horizon_radius
+  )
+  .translate_points_coord(sampling_coord, offset_coord)
 }
 
 
@@ -80,5 +106,5 @@ crop_points <- function(sampling_coord,
   sampling_coord$x <- sampling_coord$x + translation_coord[1]
   sampling_coord$y_down <-
     sampling_coord$y_down + translation_coord[2]
-  sampling_coord
+  keep_coord(sampling_coord)
 }

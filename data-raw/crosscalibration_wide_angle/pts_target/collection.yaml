@@ -1,0 +1,3 @@
+schema_version: 1
+class: point_collection
+parent: img_target

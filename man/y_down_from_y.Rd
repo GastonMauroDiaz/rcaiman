@@ -6,7 +6,11 @@
 \alias{coord_from_indices}
 \alias{indices_from_coord}
 \alias{xy_from_indices}
-\title{Convert image coordinate representations}
+\alias{add_coord}
+\alias{add_indices}
+\alias{add_xy}
+\alias{keep_coord}
+\title{Convert and manage image location representations}
 \usage{
 y_down_from_y(y, image_height)
 
@@ -17,6 +21,14 @@ coord_from_indices(col, row)
 indices_from_coord(x, y_down)
 
 xy_from_indices(col, row, image_height)
+
+add_coord(sampling_indices)
+
+add_indices(sampling_coord)
+
+add_xy(sampling_coord, image_height)
+
+keep_coord(sampling_coord)
 }
 \arguments{
 \item{y}{numeric vector. Vertical component of continuous x-y coordinates,
@@ -32,13 +44,22 @@ numbered from 1.}
 
 \item{x}{numeric vector. Horizontal component of continuous image
 coordinates, measured rightward from the left image border.}
+
+\item{sampling_indices}{\code{data.frame} with columns \code{col} and \code{row}. Additional
+columns are preserved. The output columns \code{x} and \code{y_down} must not already
+exist.}
+
+\item{sampling_coord}{\code{data.frame} with columns \code{x} and \code{y_down}. See
+\emph{Functions} for columns added or removed by each function. All other
+columns are preserved.}
 }
 \value{
 See \emph{Functions}.
 }
 \description{
 Convert between continuous image coordinates, ordinary x-y coordinates, and
-cell indices.
+cell indices. Enrich data frames with derived representations and remove
+image-frame-dependent columns when they become obsolete.
 }
 \details{
 \code{rcaiman} uses three representations of image locations:
@@ -82,6 +103,19 @@ the cell containing it. This operation discards the subcell position and is
 therefore not the inverse of \code{\link[=coord_from_indices]{coord_from_indices()}} for arbitrary
 coordinates.
 
+The \verb{add_*()} functions preserve the source representation and append a
+requested derived representation. \code{\link[=add_xy]{add_xy()}} appends only \code{y} because
+\code{coord} and \code{xy} share \code{x}. Existing target columns are rejected instead of
+overwritten. Derived columns remain valid only while the continuous image
+coordinates and their image frame remain unchanged.
+
+\code{\link[=keep_coord]{keep_coord()}} retains \code{coord} as the authoritative representation. It
+removes \code{col}, \code{row}, and \code{y}, as well as the frame-dependent predictors
+\code{relative_radius} and \code{image_angle} (see \code{\link[=add_image_polar]{add_image_polar()}}). It preserves
+angular directions such as \code{zen} and \code{azi} and all other columns. The
+function does not test whether the removed columns are consistent with
+\code{coord}.
+
 The \code{xy} representation assumes the standardized raster geometry established
 by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}, with unit resolution and extent
 \code{ext(0, ncol, 0, nrow)}.
@@ -101,6 +135,14 @@ Return a \code{data.frame} with columns \code{col} and \code{row}.}
 \item{\code{xy_from_indices()}}{Convert cell indices to continuous ordinary x-y
 coordinates at cell centers. Return a \code{data.frame} with columns \code{x} and
 \code{y}.}
+\item{\code{add_coord()}}{Append cell-center \code{x} and \code{y_down} coordinates to a
+\code{data.frame} containing \code{col} and \code{row}.}
+\item{\code{add_indices()}}{Append containing-cell \code{col} and \code{row} indices to a
+\code{data.frame} containing \code{x} and \code{y_down}.}
+\item{\code{add_xy()}}{Append \code{y} to a \code{data.frame} containing \code{x} and
+\code{y_down}.}
+\item{\code{keep_coord()}}{Retain \code{x} and \code{y_down} and remove columns that
+depend on the previous image frame.}
 }
 }
 
@@ -120,4 +162,15 @@ indices
 coord_from_indices(indices$col, indices$row)
 
 xy_from_indices(indices$col, indices$row, image_height)
+
+# Enrich data frames while preserving identifiers and source representations
+sampling_indices <- data.frame(
+  col = c(1, 5),
+  row = c(1, 3),
+  id = c("a", "b")
+)
+sampling_coord <- add_coord(sampling_indices)
+sampling_coord <- add_indices(sampling_coord[c("x", "y_down", "id")])
+sampling_coord <- add_xy(sampling_coord, image_height)
+keep_coord(sampling_coord)
 }

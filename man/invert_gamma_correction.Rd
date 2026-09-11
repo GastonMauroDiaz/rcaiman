@@ -46,7 +46,7 @@ path <- system.file("external/APC_0836.jpg", package = "rcaiman")
 caim <- read_caim(path)
 z <- zenith_image(spec$horizon_radius * 2,  spec$parameters)
 a <- azimuth_image(z)
-caim <- expand_non_circular(caim, z, spec$zenith_col_row)
+caim <- expand_non_circular(caim, z, spec$snapped_zenith_coord)
 m <- !is.na(caim$Red) & !is.na(z)
 caim[!m] <- 0
 plot(caim$Blue)

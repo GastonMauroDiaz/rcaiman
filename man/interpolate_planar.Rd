@@ -5,7 +5,7 @@
 \title{Interpolate in planar space}
 \usage{
 interpolate_planar(
-  sampling_points,
+  sampling_coord,
   col_id = "dn",
   r,
   k = 3,
@@ -20,16 +20,19 @@ interpolate_planar(
 )
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, and one additional
-numeric column with values to interpolate. Typically returned by
-\code{\link[=extract_dn]{extract_dn()}}.}
+\item{sampling_coord}{\code{data.frame} with numeric columns \code{"x"} and
+\code{"y_down"} containing continuous image coordinates, and a numeric column
+with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
+cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
+centers. Subpixel positions are used without snapping to cells.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_points} containing the values to interpolate.}
+of the column in \code{sampling_coord} containing the values to interpolate.}
 
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
-\code{sampling_points} were derived, or another raster with the same number of rows
-and columns. Used only as geometric template; cell values are ignored.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image frame to
+which \code{sampling_coord} refers, with geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
+Used only as a geometric template; cell values are ignored. Interpolation
+is evaluated at cell centers.}
 
 \item{k}{numeric vector of length one. Must be positive and interpreted as
 integer. Number of nearest neighbors to retrieve.}
@@ -44,14 +47,13 @@ method interpolates as long as there is at least one point not farther than
 \code{search_radius}. If it is \code{TRUE}, it requires \code{k} points at range.}
 
 \item{engine}{character vector of length one. Interpolation engine to be
-used. Allowed choises are \code{"cpp"} (default), an in-package C++ implementation,
+used. Allowed choices are \code{"cpp"} (default), an in-package C++ implementation,
 or \code{"terra"}, which delegates to \code{\link[terra:interpIDW]{terra::interpIDW()}}, passing \code{k}, \code{p},
 and \code{search_radius} to \code{maxPoints}, \code{power}, and \code{radius}, respectively,
 and when \code{rigorous = TRUE}, changes from \code{minPoints = 1} (default) to
 \code{minPoints = k}. When \code{"terra"} is used, arguments \code{parallel}, \code{cores},
-\code{logical} and \code{leave_free} are ignored. The effective search neighborhood
-differs slightly from engines, likely due to continuous vs rasterized
-distance evaluation.}
+\code{logical} and \code{leave_free} are ignored. Both engines use continuous input
+positions.}
 
 \item{parallel}{logical vector of length one. If \code{TRUE}, operations are
 executed in parallel.}
@@ -87,14 +89,14 @@ Defaults follow \insertCite{Lang2013;textual}{rcaiman}. Note that
 \code{search_radius} is given in pixels but intended to approximate 15–20 deg in
 angular terms. Therefore, this value needs fine-tuning based on image
 resolution and radial projection. The proper workflow requires geometric
-standarization with \code{\link[=reproject_image]{reproject_image()}} and \link{equidistant_coef}. For best
+standardization with \code{\link[=reproject_image]{reproject_image()}} and \link{equidistant_coef}. For best
 results, the interpolated quantity should be linearly related to scene
 radiance--; for JPEG images, consider
 \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}.
 }
 \note{
 Interpolation is performed in the image plane assuming Euclidean
-geometry. When input points represent directions on the hemisphere,results
+geometry. When input points represent directions on the hemisphere, results
 depend on the projection used to map angles to the plane. Thus, for
 hemispherical data, the use of an equisolid-angle projection (see
 \link{equal_area_coef}) is recommended.
@@ -102,44 +104,24 @@ hemispherical data, the use of an equisolid-angle projection (see
 When interpolation is carried out using a dense set of points, errors
 introduced by planar interpolation are expected to be negligible, i.e.,
 increasing point density should not change the interpolated surface in a
-meaninful way.
+meaningful way.
 
-No consistency checks are performed to ensure that \code{sampling_points} and \code{r}
+No consistency checks are performed to ensure that \code{sampling_coord} and \code{r}
 are geometrically compatible. Incorrect combinations may lead to invalid
 outputs.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky_points <- extract_dn(r, sky_points)
-
-sky <- interpolate_planar(sky_points, r, col_id = 3)
-plot(sky)
-plot(r/sky)
-}
+r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+sampling_coord <- coord_from_indices(
+  col = c(1, 7, 1, 7, 2, 5, 3, 6),
+  row = c(1, 1, 5, 5, 3, 2, 4, 4)
+)
+sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+interpolated <- interpolate_planar(
+  sampling_coord, r = r, search_radius = 20, parallel = FALSE
+)
+plot(interpolated)
+points(sampling_coord$x, y_from_y_down(sampling_coord$y_down, nrow(r)))
 }
 \references{
 \insertAllCited{}

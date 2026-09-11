@@ -22,47 +22,7 @@
   invisible(TRUE)
 }
 
-.check_columns <- function(x,
-                           required_columns = NULL,
-                           reserved_columns = NULL,
-                           arg_name = deparse(substitute(x))) {
 
-  if (!is.data.frame(x)) {
-    stop(sprintf("`%s` argument must be a data.frame.", arg_name), call. = FALSE)
-  }
-
-  nms <- names(x)
-
-  if (!is.null(required_columns)) {
-    missing_cols <- setdiff(required_columns, nms)
-    if (length(missing_cols) > 0) {
-      stop(
-        sprintf(
-          "`%s` argument must contain required columns: %s.",
-          arg_name,
-          paste(missing_cols, collapse = ", ")
-        ),
-        call. = FALSE
-      )
-    }
-  }
-
-  if (!is.null(reserved_columns)) {
-    present_cols <- intersect(reserved_columns, nms)
-    if (length(present_cols) > 0) {
-      stop(
-        sprintf(
-          "`%s` argument already contains reserved columns: %s.",
-          arg_name,
-          paste(present_cols, collapse = ", ")
-        ),
-        call. = FALSE
-      )
-    }
-  }
-
-  invisible(x)
-}
 
 
 # .assert_*(), for semantic objects -------------------------------------

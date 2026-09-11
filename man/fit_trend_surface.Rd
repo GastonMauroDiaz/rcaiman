@@ -5,7 +5,7 @@
 \title{Fit a trend surface to sky digital numbers}
 \usage{
 fit_trend_surface(
-  sky_points,
+  sampling_coord,
   col_id = "dn",
   r,
   np = 6,
@@ -14,12 +14,19 @@ fit_trend_surface(
 )
 }
 \arguments{
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_points} containing the values to interpolate.}
+\item{sampling_coord}{\code{data.frame} with numeric columns \code{"x"} and
+\code{"y_down"} containing continuous image coordinates, and a numeric column
+with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
+cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
+centers. Subpixel positions are used without snapping to cells.}
 
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image from which
-\code{sampling_points} were derived, or another raster with the same number of rows
-and columns. Used only as geometric template; cell values are ignored.}
+\item{col_id}{numeric or character vector of length one. The name or position
+of the column in \code{sampling_coord} containing the values to interpolate.}
+
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image frame to
+which \code{sampling_coord} refers, with geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
+Used only as a geometric template; cell values are ignored. Interpolation
+is evaluated at cell centers.}
 
 \item{np}{
 degree of polynomial surface
@@ -29,8 +36,8 @@ degree of polynomial surface
 extrapolated to the entire extent of \code{r}; otherwise, predictions are
 limited to the convex hull of the input sky points.}
 
-\item{return}{character vector of length one. Either "raster" (default) to
-return the fitted surface as a raster, or "all" to also return the model
+\item{return}{character vector of length one. Either \code{"raster"} (default) to
+return the fitted surface as a raster, or \code{"all"} to also return the model
 and coefficient of determination.}
 }
 \value{
@@ -55,43 +62,17 @@ capture smooth large-scale gradients and is more effective when called via
 \code{\link[=apply_by_direction]{apply_by_direction()}} or the \code{\link[=panoramic]{panoramic()}} pipeline.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky_points <- extract_dn(r, sky_points)
-
-sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 4,
-                           extrapolate = TRUE)
-plot(sky_s)
-binarize_with_thr(r/sky_s, 0.5) \%>\% plot()
-
-sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 6,
-                           extrapolate = FALSE)
-plot(sky_s)
-binarize_with_thr(r/sky_s, 0.9) \%>\% plot()
-}
+r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+sampling_coord <- coord_from_indices(
+  col = c(1, 7, 1, 7, 2, 5, 3, 6),
+  row = c(1, 1, 5, 5, 3, 2, 4, 4)
+)
+sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+fitted <- fit_trend_surface(
+  sampling_coord, r = r, np = 2, extrapolate = TRUE, return = "all"
+)
+plot(fitted$raster)
+fitted$r2
 }
 \seealso{
 \code{\link[=panoramic]{panoramic()}} for an alternative pipeline involving a temporary

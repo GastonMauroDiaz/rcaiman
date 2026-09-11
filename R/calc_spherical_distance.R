@@ -24,13 +24,23 @@
 #' the spherical geometry. Internally, more efficient implementations may be
 #' used without changing the underlying distance definition.
 #'
-#' @param zen_1 numeric vector. Zenithal angle in radians.
-#' @param azi_1 numeric vector. Azimuthal angle in radians.
-#' @param zen_2 numeric vector of length one. Zenithal angle in radians.
-#' @param azi_2 numeric vector of length one. Azimuthal angle in radians.
+#' Directions are compared element by element. Within each direction set,
+#' `zen` and `azi` must have the same length. The two sets must either have the
+#' same length or one set must contain exactly one direction, which is then
+#' compared with every direction in the other set. Other forms of vector
+#' recycling are rejected. This function does not calculate all pairwise
+#' combinations between two direction sets.
 #'
-#' @returns Numeric vector of the same length as `zen_1` and `azi_1`, containing the
-#'   spherical distance (radians) to (`zen_2`, `azi_2`).
+#' Missing values are propagated element by element. Empty paired inputs return
+#' `numeric(0)`.
+#'
+#' @param zen_1,azi_1 numeric vectors of equal length. Zenith and azimuth angles
+#'   in radians defining the first direction set.
+#' @param zen_2,azi_2 numeric vectors of equal length. Zenith and azimuth angles
+#'   in radians defining the second direction set.
+#'
+#' @returns Numeric vector containing one spherical distance in radians per
+#'   paired comparison.
 #'
 #' @export
 #'
@@ -39,11 +49,59 @@
 #' zen_1 <- rnorm(10, 45, 20) * pi/180
 #' azi_1 <- rnorm(10, 180, 90) * pi/180
 #' calc_spherical_distance(zen_1, azi_1, 0, 0)
+#'
+#' zen_2 <- zen_1 + 0.01
+#' azi_2 <- azi_1 - 0.02
+#' calc_spherical_distance(zen_1, azi_1, zen_2, azi_2)
 calc_spherical_distance  <- function(zen_1, azi_1, zen_2, azi_2) {
-  .check_vector(zen_1, "numeric", sign = "any", allow_na = TRUE)
-  .check_vector(azi_1, "numeric", sign = "any", allow_na = TRUE)
-  .check_vector(zen_2, "numeric", 1, sign = "any")
-  .check_vector(azi_2, "numeric", 1, sign = "any")
+  .check_vector(
+    zen_1,
+    "numeric",
+    sign = "any",
+    allow_na = TRUE,
+    name = "zen_1"
+  )
+  .check_vector(
+    azi_1,
+    "numeric",
+    sign = "any",
+    allow_na = TRUE,
+    name = "azi_1"
+  )
+  .check_vector(
+    zen_2,
+    "numeric",
+    sign = "any",
+    allow_na = TRUE,
+    name = "zen_2"
+  )
+  .check_vector(
+    azi_2,
+    "numeric",
+    sign = "any",
+    allow_na = TRUE,
+    name = "azi_2"
+  )
+
+  if (length(zen_1) != length(azi_1)) {
+    stop("`zen_1` and `azi_1` must have the same length.", call. = FALSE)
+  }
+  if (length(zen_2) != length(azi_2)) {
+    stop("`zen_2` and `azi_2` must have the same length.", call. = FALSE)
+  }
+
+  length_1 <- length(zen_1)
+  length_2 <- length(zen_2)
+  compatible_lengths <- length_1 == length_2 ||
+    length_1 == 1L ||
+    length_2 == 1L
+  if (!compatible_lengths) {
+    stop(
+      "The two direction sets must have the same length, or one set must ",
+      "contain exactly one direction.",
+      call. = FALSE
+    )
+  }
 
   #https://stackoverflow.com/questions/14026297/acos1-returns-nan-for-some-values-not-others
   acos(pmax(pmin(cos(zen_1) * cos(zen_2) +

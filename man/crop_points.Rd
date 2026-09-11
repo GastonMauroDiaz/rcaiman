@@ -2,7 +2,8 @@
 % Please edit documentation in R/crop_points.R
 \name{crop_points}
 \alias{crop_points}
-\title{Transform points to a cropped image frame}
+\alias{uncrop_points}
+\title{Transform points between original and cropped image frames}
 \usage{
 crop_points(
   sampling_coord,
@@ -10,11 +11,18 @@ crop_points(
   snapped_zenith_coord = NULL,
   horizon_radius = NULL
 )
+
+uncrop_points(
+  sampling_coord,
+  upper_left_indices = NULL,
+  snapped_zenith_coord = NULL,
+  horizon_radius = NULL
+)
 }
 \arguments{
-\item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"},
-representing continuous image coordinates in the original image frame.
-Additional columns are preserved.}
+\item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"}.
+Frame-independent columns are preserved. Columns removed by
+\code{\link[=keep_coord]{keep_coord()}} are discarded after the translation.}
 
 \item{upper_left_indices}{integer-like numeric vector of length two. Cell
 indices of the upper-left cell included in the crop, in the order
@@ -31,36 +39,47 @@ Radius of the declared processing geometry in cell units. Use with
 \code{snapped_zenith_coord} as an alternative to \code{upper_left_indices}.}
 }
 \value{
-\code{data.frame} equal to \code{sampling_coord}, with \code{"x"} and \code{"y_down"}
+\itemize{
+\item \code{crop_points()} returns \code{sampling_coord} with \code{"x"} and \code{"y_down"}
 expressed in the cropped image frame.
+\item \code{uncrop_points()} returns \code{sampling_coord} with \code{"x"} and \code{"y_down"}
+expressed in the original image frame.
+}
 }
 \description{
-Translate continuous image coordinates from an original image frame to the
-frame produced by a cell-aligned crop.
+Translate continuous image coordinates to or from the frame produced by a
+cell-aligned crop.
 }
 \details{
 The upper-left boundary of the first retained cell has original image
 coordinates \code{c(col - 1, row - 1)}. This value is subtracted from every input
-point. The function translates all rows and does not discard points outside
-the cropped image bounds.
+point. \code{\link[=crop_points]{crop_points()}} subtracts this value from every input point, whereas
+\code{\link[=uncrop_points]{uncrop_points()}} adds it. The original image is not required for the inverse
+operation.
 
 For a crop centered on a snapped zenith, the equivalent translation is
 \code{snapped_zenith_coord - horizon_radius}.
+
+Both functions translate every row without discarding points outside either
+image frame. Row order, duplicates, angular directions, and nonspatial
+columns are preserved. Derived columns tied to the previous image frame are
+removed with \code{\link[=keep_coord]{keep_coord()}}.
 }
 \examples{
-sampling_coord <- data.frame(
+original_coord <- data.frame(
   x = c(3.5, 5.2),
   y_down = c(2.5, 4.8),
   id = c("a", "b")
 )
-crop_points(sampling_coord, upper_left_indices = c(4, 3))
+cropped_coord <- crop_points(
+  original_coord,
+  upper_left_indices = c(4, 3)
+)
+uncrop_points(cropped_coord, upper_left_indices = c(4, 3))
 
 crop_points(
-  sampling_coord,
+  original_coord,
   snapped_zenith_coord = c(6, 5),
   horizon_radius = 2
 )
-}
-\seealso{
-\code{\link[=uncrop_points]{uncrop_points()}} to revert this operation
 }

@@ -32,7 +32,7 @@ evaluated. Must contain columns \verb{""zen""} and \verb{""azi""} (see
 Additional columns are ignored.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_points} containing the values to interpolate.}
+of the column in \code{sampling_coord} containing the values to interpolate.}
 
 \item{filling_source}{numeric or character vector of length one. The name or
 position of the column in \code{query_points} providing complementary values.}

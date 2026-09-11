@@ -11,8 +11,8 @@
 #' @param extrapolate logical vector of length one. If `TRUE`, predictions are
 #'   extrapolated to the entire extent of `r`; otherwise, predictions are
 #'   limited to the convex hull of the input sky points.
-#' @param return 	character vector of length one. Either "raster" (default) to
-#'   return the fitted surface as a raster, or "all" to also return the model
+#' @param return character vector of length one. Either `"raster"` (default) to
+#'   return the fitted surface as a raster, or `"all"` to also return the model
 #'   and coefficient of determination.
 #'
 #' @inheritParams interpolate_planar
@@ -35,52 +35,26 @@
 #' }
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' # See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
-#'
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#'
-#' sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 4,
-#'                            extrapolate = TRUE)
-#' plot(sky_s)
-#' binarize_with_thr(r/sky_s, 0.5) %>% plot()
-#'
-#' sky_s <- fit_trend_surface(sky_points, col_id = 3, r, np = 6,
-#'                            extrapolate = FALSE)
-#' plot(sky_s)
-#' binarize_with_thr(r/sky_s, 0.9) %>% plot()
-#' }
-fit_trend_surface <- function(sky_points,
+#' r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
+#' sampling_coord <- coord_from_indices(
+#'   col = c(1, 7, 1, 7, 2, 5, 3, 6),
+#'   row = c(1, 1, 5, 5, 3, 2, 4, 4)
+#' )
+#' sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
+#' fitted <- fit_trend_surface(
+#'   sampling_coord, r = r, np = 2, extrapolate = TRUE, return = "all"
+#' )
+#' plot(fitted$raster)
+#' fitted$r2
+fit_trend_surface <- function(sampling_coord,
                               col_id = "dn",
                               r,
                               np = 6,
                               extrapolate = FALSE,
                               return = "raster") {
 
-  if (!is.data.frame(sky_points)) {
-    stop("`sky_points` must be a data frame.")
+  if (!is.data.frame(sampling_coord)) {
+    stop("`sampling_coord` must be a data frame.")
   }
   .assert_single_layer(r, allow_na = TRUE)
   .check_vector(np, "integerish", 1, sign = "positive")
@@ -91,21 +65,23 @@ fit_trend_surface <- function(sky_points,
              error = function(e) FALSE)
   )
   if (!any(handling_col_id)) {
-    stop("`col_id` must be the name or position of the column in `sky_points` containing the values to interpolate.")
+    stop("`col_id` must be the name or position of the column in `sampling_coord` containing the values to interpolate.")
   }
-  if (is.numeric(col_id)) col_id <- names(sky_points)[col_id]
-  required_cols <- c("row", "col", col_id)
-  if (!all(required_cols %in% names(sky_points))) {
-    stop(sprintf("`sky_points` must contain columns %s.",
+  if (is.numeric(col_id)) col_id <- names(sampling_coord)[col_id]
+  required_cols <- c("x", "y_down", col_id)
+  if (!all(required_cols %in% names(sampling_coord))) {
+    stop(sprintf("`sampling_coord` must contain columns %s.",
                  paste(sprintf('"%s"', required_cols), collapse = ", ")))
   }
   .check_vector(extrapolate, "logical", 1)
 
-  xy <- terra::cellFromRowCol(r, sky_points$row, sky_points$col) %>%
-    terra::xyFromCell(r, .)
-  fit <- spatial::surf.ls(x = xy[, 1],
-                          y = xy[, 2],
-                          z = sky_points[, col_id],
+  sampling_xy <- cbind(
+    x = sampling_coord$x,
+    y = y_from_y_down(sampling_coord$y_down, nrow(r))
+  )
+  fit <- spatial::surf.ls(x = sampling_xy[, "x"],
+                          y = sampling_xy[, "y"],
+                          z = sampling_coord[, col_id],
                           np)
   xl <- terra::xmin(r)
   xu <- terra::xmax(r)
@@ -118,15 +94,15 @@ fit_trend_surface <- function(sky_points,
   terra::ext(out) <- terra::ext(r)
   out <- terra::resample(out, r)
 
-  observed <- sky_points[, col_id]
-  fitted <- terra::extract(out, xy)[,]
+  observed <- sampling_coord[, col_id]
+  fitted <- terra::extract(out, sampling_xy)[,]
   ss_res <- sum((observed - fitted)^2)
   ss_tot <- sum((observed - mean(observed))^2)
   r2 <- 1 - ss_res / ss_tot
 
   if (!extrapolate) {
-    xy <- xy[grDevices::chull(xy),]
-    v <- terra::vect(list(xy), type = "polygon", crs = terra::crs(r))
+    hull_xy <- sampling_xy[grDevices::chull(sampling_xy),]
+    v <- terra::vect(list(hull_xy), type = "polygon", crs = terra::crs(r))
     v <- terra::rasterize(v, r) %>% is.na()
     out[v] <- NA
   }

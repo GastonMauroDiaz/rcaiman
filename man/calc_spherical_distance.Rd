@@ -7,17 +7,15 @@
 calc_spherical_distance(zen_1, azi_1, zen_2, azi_2)
 }
 \arguments{
-\item{zen_1}{numeric vector. Zenithal angle in radians.}
+\item{zen_1, azi_1}{numeric vectors of equal length. Zenith and azimuth angles
+in radians defining the first direction set.}
 
-\item{azi_1}{numeric vector. Azimuthal angle in radians.}
-
-\item{zen_2}{numeric vector of length one. Zenithal angle in radians.}
-
-\item{azi_2}{numeric vector of length one. Azimuthal angle in radians.}
+\item{zen_2, azi_2}{numeric vectors of equal length. Zenith and azimuth angles
+in radians defining the second direction set.}
 }
 \value{
-Numeric vector of the same length as \code{zen_1} and \code{azi_1}, containing the
-spherical distance (radians) to (\code{zen_2}, \code{azi_2}).
+Numeric vector containing one spherical distance in radians per
+paired comparison.
 }
 \description{
 Compute the angular distance between directions on the unit sphere from
@@ -42,10 +40,24 @@ computed as the arc-cosine of the dot-product.
 This function is kept for clarity and transparency, as it directly expresses
 the spherical geometry. Internally, more efficient implementations may be
 used without changing the underlying distance definition.
+
+Directions are compared element by element. Within each direction set,
+\code{zen} and \code{azi} must have the same length. The two sets must either have the
+same length or one set must contain exactly one direction, which is then
+compared with every direction in the other set. Other forms of vector
+recycling are rejected. This function does not calculate all pairwise
+combinations between two direction sets.
+
+Missing values are propagated element by element. Empty paired inputs return
+\code{numeric(0)}.
 }
 \examples{
 set.seed(1)
 zen_1 <- rnorm(10, 45, 20) * pi/180
 azi_1 <- rnorm(10, 180, 90) * pi/180
 calc_spherical_distance(zen_1, azi_1, 0, 0)
+
+zen_2 <- zen_1 + 0.01
+azi_2 <- azi_1 - 0.02
+calc_spherical_distance(zen_1, azi_1, zen_2, azi_2)
 }

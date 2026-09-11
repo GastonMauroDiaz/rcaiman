@@ -2,7 +2,7 @@
 % Please edit documentation in R/expand_non_circular.R
 \name{expand_non_circular}
 \alias{expand_non_circular}
-\title{Expand a non-circular image}
+\title{Place a non-circular image in a square frame}
 \usage{
 expand_non_circular(caim, z, snapped_zenith_coord)
 }
@@ -14,16 +14,29 @@ expand_non_circular(caim, z, snapped_zenith_coord)
 \item{snapped_zenith_coord}{integer-like numeric vector of length two.
 Continuous image coordinates of the optical center in the original image
 frame, in the order \code{c(x, y_down)}. The coordinates identify the center of
-the nearest 2 x 2 cell window.}
+the nearest \eqn{2 \times 2}  cell window.}
 }
 \value{
-\link[terra:SpatRaster-class]{terra::SpatRaster} with the same layers and pixel values as \code{caim},
-but with \code{NA} margins added to center the zenith.
+\link[terra:SpatRaster-class]{terra::SpatRaster} with the same geometry as \code{z} and the same
+layers as \code{caim}. Covered cells retain their original values; uncovered
+cells are \code{NA}.
 }
 \description{
-Add \code{NA} margins to a hemispherical photograph and align its snapped zenith
-with the center of a zenith image. This operation is intended for
-non-circular images.
+Translate a hemispherical photograph so that its snapped zenith coincides
+with the center of a zenith image, and return exactly the square processing
+frame defined by that zenith image.
+}
+\details{
+The photograph is translated along cell boundaries. Parts of the square
+processing frame without source-image coverage are filled with \code{NA}, while
+parts of the source image outside that frame are discarded. Thus, depending
+on the input dimensions and zenith position, the operation can require both
+padding and cropping.
+
+Since \code{z} has even dimensions and \code{snapped_zenith_coord} identifies an
+integer grid intersection, the translation is an integer number of cells.
+The implementation extends and crops the translated raster without
+resampling or interpolating its values.
 }
 \note{
 \code{rcaiman} uses terra without geographic semantics: rasters are kept with
@@ -48,4 +61,7 @@ plot(caim$Blue, col = seq(0, 1, 1/255) \%>\% grey())
 m <- !is.na(caim$Red) & !is.na(z)
 plot(m, add = TRUE, alpha = 0.3, legend = FALSE)
 }
+}
+\seealso{
+\code{\link[=expand_non_circular_points]{expand_non_circular_points()}}
 }
