@@ -123,15 +123,7 @@ test_that("extraction functions accept zero-row index data", {
   expect_equal(nrow(observed_cell), 0)
   expect_equal(nrow(observed_window), 0)
 
-  z <- zenith_image(10, equidistant_coef)
-  a <- azimuth_image(z)
-  observed_directions <- add_directions(sampling_indices, z, a)
 
-  expect_identical(
-    names(observed_directions),
-    c("col", "row", "id", "zen", "azi")
-  )
-  expect_equal(nrow(observed_directions), 0)
 })
 
 
@@ -158,65 +150,6 @@ test_that("extract_dn() requires integer-like positive indices", {
 })
 
 
-test_that("add_directions() preserves indices and adds angles", {
-  z <- zenith_image(10, equidistant_coef)
-  a <- azimuth_image(z)
-  sampling_indices <- data.frame(
-    col = c(5, 6, 8),
-    row = c(5, 5, 6),
-    id = letters[1:3]
-  )
-
-  observed <- add_directions(sampling_indices, z, a)
-
-  expect_equal(observed$col, sampling_indices$col)
-  expect_equal(observed$row, sampling_indices$row)
-  expect_identical(observed$id, sampling_indices$id)
-  expect_equal(
-    observed$zen,
-    c(0.3141592654, 0.3141592654, 0.9424777961),
-    tolerance = 1e-8
-  )
-  expect_equal(
-    observed$azi,
-    c(0.7853981634, 5.4977871438, 4.5149934205),
-    tolerance = 1e-8
-  )
-})
-
-
-test_that("add_directions() preserves additional column names", {
-  z <- zenith_image(10, equidistant_coef)
-  a <- azimuth_image(z)
-  sampling_indices <- data.frame(col = 5, row = 5)
-  sampling_indices[["Zenith image note"]] <- "keep zen"
-  sampling_indices[["Azimuth image note"]] <- "keep azi"
-
-  observed <- add_directions(sampling_indices, z, a)
-
-  expect_identical(
-    names(observed),
-    c(
-      "col",
-      "row",
-      "Zenith image note",
-      "Azimuth image note",
-      "zen",
-      "azi"
-    )
-  )
-})
-test_that("add_directions() rejects indices outside the angular domain", {
-  z <- zenith_image(10, equidistant_coef)
-  a <- azimuth_image(z)
-
-  expect_error(
-    add_directions(data.frame(col = 1, row = 1), z, a),
-    "Some sampling points fall outside"
-  )
-})
-
-
 test_that("extraction functions reject continuous image coordinates", {
   r <- terra::rast(nrows = 3, ncols = 3)
   names(r) <- "dn"
@@ -228,11 +161,5 @@ test_that("extraction functions reject continuous image coordinates", {
     fixed = TRUE
   )
 
-  z <- zenith_image(10, equidistant_coef)
-  a <- azimuth_image(z)
-  expect_error(
-    add_directions(sampling_coord, z, a),
-    "required columns: col, row",
-    fixed = TRUE
-  )
+
 })

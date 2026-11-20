@@ -5,157 +5,157 @@
 \title{Sky via local models}
 \usage{
 sky_via_local_models(
-  z,
-  a,
-  sky_points,
+  d,
+  sampling_directions,
   col_id,
   conicity = 0,
   spacing_deg = 10,
-  spacing_px = 5
+  spacing_px = 5,
+  m = NULL
 )
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order. Defines the output grid
+and the external direction of each pixel.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{sampling_directions}{data frame with numeric columns \code{zenith} and
+\code{azimuth} in radians and the observed values selected by \code{col_id}.
+Required columns must be finite; rows are not removed automatically.
+At least 20 observations are needed. Additional columns, including cell
+indices, are ignored. See \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}} for angle ranges and
+sample requirements.}
 
-\item{col_id}{character or integer vector of length one. Name or position of
-the column in \code{sky_points} containing the values sampled from the image.}
+\item{col_id}{character or integer vector of length one. Name or position
+of the column containing observed values in \code{sampling_directions}.}
 
 \item{conicity}{numeric vector of length one ranging from 0 to 1. Controls
-the tendency of the reconstructed sky surface toward a global cone-shaped
-structure. Smaller values fit models using fewer neighboring points and can
-capture more complex sky radiance patterns, whereas larger values produce
-smoother reconstructions that increasingly resemble a single cone-shaped
-surface. The effective flexibility of fitted models also depends on the
-spatial distribution of \code{sky_points}. Highly clustered sampling patterns
-may reduce the ability of low \code{conicity} values to produce highly local
-reconstructions.}
+the tendency toward a global cone-shaped model by increasing the number
+of observations used in each fit. Zero uses the 20 nearest observations;
+one uses all observations. See \emph{Neighborhoods and sampling support}.}
 
-\item{spacing_deg}{numeric vector of length one. Angular spacing (degrees)
-between query directions where local models are fitted. Smaller values
-increase the number of fitted models and have impact on defining what local
-means in this context, see \emph{Structural redundancy and sampling support}.}
+\item{spacing_deg}{positive numeric vector of length one, at most 180.
+Approximate separation in degrees between query directions where local
+models are fitted and evaluated. Also sets the spherical interpolation
+radius as described in Details.}
 
-\item{spacing_px}{numeric vector of length one. Pixel spacing used to
-densify local predictions before reconstructing the final raster. Smaller
-values produce denser intermediate predictions.}
+\item{spacing_px}{positive integer vector of length one. Spacing of rows
+and columns in the intermediate image grid, starting at row and column
+one. Also sets the planar interpolation radius as described in Details.}
+
+\item{m}{optional logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster} on the same
+grid as \code{d}. Limits the output and intermediate grid to selected cells.
+With \code{NULL}, all cells with both angles available and zenith angle at
+most 90 degrees are selected. These angular restrictions also apply when
+a mask is supplied. An undefined azimuth, including at zenith, is excluded.}
 }
 \value{
-Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same
-geometry as \code{z}.
+Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer named \code{sky} and the
+same grid as \code{d}. Cells outside the selected sky region or lacking
+interpolation support are \code{NA}. With fewer than 20 observations, returns
+an all-\code{NA} raster with a warning. An empty selected intermediate grid or
+failure of all local fits also leaves the result entirely \code{NA}.
 }
 \description{
-Reconstruct a sky vault by fitting local cone-shaped models to sampled image
-values.
+Reconstruct a sky image by fitting local cone-shaped models to sampled
+values and interpolating their predictions.
 }
 \details{
 This method extends the cone-shaped model proposed by
-\insertCite{Diaz2018;textual}{rcaiman} by applying it locally across
-hemispherical space. Neighboring observations are selected around multiple
-query directions, local cone-shaped models are fitted independently, and
-their predictions are interpolated to reconstruct a continuous sky vault.
+\insertCite{Diaz2018;textual}{rcaiman} by applying it locally across the sky.
+Unlike \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}}, which fits one model to all observations,
+it allows different regions to follow different cone-shaped models.
+\code{conicity} controls the transition from local fits to a global fit without
+requiring the user to choose a number of observations for each model.
 
-Unlike \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}}, which fits a single cone-shaped model to
-all observations, this approach combines multiple local models, allowing
-complex sky patterns to emerge without assuming a globally cone-shaped
-surface.
+All calculations of angular neighborhoods and cone-shaped models use
+external directions, relative to zenith and north. Supply the acquisition
+orientation to \code{\link[=direction_image]{direction_image()}}. Raster angles are in degrees and table
+angles are in radians, following \code{\link[=add_directions]{add_directions()}}.
+
+Query directions are generated on a Fibonacci lattice over the upper
+hemisphere with approximate separation \code{spacing_deg}. They remain continuous
+and are generated independently of image coverage and \code{m}, including outside
+the observed field of view. Each query uses its nearest observations without
+an angular search limit. Select suitable sky observations before calling this
+function; the output mask does not select observations for fitting.
+
+Each local fit uses the \code{"zenith_n_azimuth"} method of
+\code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}} and is evaluated only at its query direction.
+Failed fits return no prediction, with the warning from that function.
+Predictions are interpolated in spherical space onto selected cells of an
+intermediate image grid spaced by \code{spacing_px}. These values are then
+interpolated in planar space onto the final grid. Both steps use inverse
+distance weighting with up to three neighbors and power two. Search radii
+are \code{min(180, 2 * spacing_deg)} degrees and \code{2 * spacing_px} pixels,
+respectively. Neither step uses background filling or clips predicted values.
+
+The final planar step is an approximation that depends on image projection
+and resolution. Decreasing \code{spacing_px} makes the intermediate grid denser;
+compare reconstructions to assess its effect for the image in question.
 }
-\note{
-\code{spacing_deg} operates as a reconstruction hyperparameter.
-Smaller values do not necessarily increase reconstruction flexibility because
-neighboring local models can become highly redundant when sampling support is
-limited. The redundancy warning can help identify parameter combinations that
-produce excessive overlap among fitted models.
-}
-\section{Structural redundancy and sampling support}{
+\section{Neighborhoods and sampling support}{
 
+Each fit uses the nearest observations in angular distance, without a fixed
+angular radius. For \eqn{N} observations, the requested number of neighbors
+is \code{round(20 + conicity * (N - 20))}. With at least 20 observations,
+\code{conicity = 0} uses 20 neighbors and \code{conicity = 1} uses all observations.
 
-Reconstruction flexibility emerges from the interaction between the density
-of the query grid (\code{spacing_deg}) and the spatial distribution of \code{sky_points}.
+The selected observations lie in a spherical cap centered on the query
+(see \code{\link[=nn_spherical]{nn_spherical()}}), whose angular radius is the distance to the farthest
+selected neighbor. Here that radius results from selecting a number of
+observations, rather than being specified in advance.
 
-To assess whether the sampling design allows for true local flexibility, a
-baseline structural redundancy score is internally computed. This index
-estimates the average times a single sampling point is reused across
-neighboring local models under the highest possible local setting.
+The angular extent of each neighborhood depends on the distribution of
+observations: densely sampled regions can supply the requested neighbors
+nearby, whereas sparsely sampled regions require more distant observations.
+A low \code{conicity} therefore does not guarantee a small angular neighborhood.
 
-Under ideal, perfectly uniform sampling conditions (\eqn{\mathrm{KL} = 0}),
-potential structural redundancy (\eqn{R_{\text{ideal}}}) depends only on the
-ratio between the minimum required points per neighborhood and the available
-sampling pool:
+Reducing \code{spacing_deg} increases the number of query directions, but does
+not add observations or guarantee finer reconstructed detail. Nearby queries
+can use overlapping or identical sets of observations. Identical sets give
+the same fitted model, evaluated at different directions. Such overlap is
+expected and does not by itself indicate a problem with the reconstruction.
 
-\deqn{R_{\text{ideal}} = \frac{20 \cdot N_{\text{query}}}{N_{\text{points}}}}
-
-where \eqn{N_{\text{query}}} is the number of query directions and
-\eqn{N_{\text{points}}} is the total number of sampling points.
-
-In practice, clustered or sparse sampling patterns alter this support. The
-effective recycling factor is adjusted using the Kullback–Leibler divergence
-(\eqn{\mathrm{KL}}) obtained from neighborhood support sizes:
-
-\deqn{R_{\text{effective}} = R_{\text{ideal}} \cdot (1 + \mathrm{KL})}
-
-where \eqn{\mathrm{KL}} is the Kullback–Leibler divergence defined in
-\code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}, computed here from neighborhood support
-rather than from occupancy of an equal-area hemispherical tessellation.
-
-This quantity is used only as an internal heuristic and should not be
-interpreted as a formal property of the reconstructed sky surface.
-
-A warning is issued when \eqn{R_{\text{effective}}} suggests excessive
-overlap (values greater than 5), indicating that the data distribution
-restricts local independence, forcing the reconstruction to behave as if a
-higher \code{conicity} was requested.
+With \code{conicity = 1}, every query uses the same global fit. The output still
+passes through the two interpolation steps, so it is not generally identical
+to evaluating that model at every pixel. \code{spacing_px} controls the density
+of the intermediate image grid; it does not change the observations used
+for fitting.
 }
 
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, zenith_col_row = spec$zenith_col_row ,
-                   horizon_radius = spec$horizon_radius)
-z <- zenith_image(ncol(caim), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "wagner2001_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`0`)
-r <- apply_flat_field(caim$Blue, ff)
-m <- !is.na(z)
-
-r <- invert_gamma_correction(r)
-
-thr <- apply_by_direction(r, z, a, m)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-seg <- equal_area_segmentation(z, a, 1000)
-sky_points <- sample_sky_points(r, bin, seg, dist_to_black = 1)
-sky_points <- add_directions(sky_points, z, a)
-sky_points <- extract_dn(r, sky_points)
-sky_points <- rem_outliers(
-   sky_points,
-   col_id = "Blue",
-   k = 20,
-   search_radius = 20,
-   laxity = 2,
-   cutoff_side = "left"
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
 )
-cv <- cv_image(r)
-sky_points <- extract_dn(cv, sky_points, use_window = FALSE)
-i <- is_outlier(sky_points$cv, sky_points$cv, laxity = 1, cutoff_side = "right")
-sky_points <- sky_points[!i,]
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 60)
+m <- !is.na(d$zenith) & !is.na(d$azimuth) & d$zenith <= 90
 
-plot(m)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky <- sky_via_local_models(z, a, sky_points, col_id = "Blue",
-                             spacing_deg = 25, conicity = 0.5)
+# Illustrative sky values. With measurements, select sky observations from
+# a radiometrically corrected image before fitting.
+r <- 1000 + 200 * (d$zenith * pi / 180)^2 +
+  100 * sin(d$azimuth * pi / 180)^2
+names(r) <- "Blue"
+sampling_indices <- expand.grid(col = seq(1, 80, 4), row = seq(1, 60, 4))
+sampling_indices <- rem_unselected(sampling_indices, m)
+samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+samples <- add_directions(samples, d = d)
+sky <- sky_via_local_models(d, samples, "Blue", conicity = 0.3,
+                            spacing_deg = 15, spacing_px = 3, m = m)
 plot(sky)
-plot(r/sky)
-
-thr <- thr_mblt(sky, -7.8, 0.95 * 0.5)
-plot(binarize_with_thr(r, thr))
+global <- sky_via_local_models(d, samples, "Blue", conicity = 1,
+                               spacing_deg = 15, spacing_px = 3, m = m)
+plot(sky - global)
 }
+\references{
+\insertAllCited{}
+}
+\seealso{
+\code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}}, \code{\link[=cone_shaped_image]{cone_shaped_image()}},
+\code{\link[=interpolate_spherical]{interpolate_spherical()}}, \code{\link[=interpolate_planar]{interpolate_planar()}}
 }

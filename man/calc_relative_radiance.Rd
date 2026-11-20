@@ -7,8 +7,8 @@
 calc_relative_radiance(sky_points, col_id, k = 3, zenith_dn = NULL)
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, \code{"zen"}, and
-\code{"azi"} as in the output of \code{\link[=add_directions]{add_directions()}}, and at least one
+\item{sky_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, \code{"zenith"}, and
+\code{"azimuth"} (external angles in radians) as in the output of \code{\link[=add_directions]{add_directions()}}, and at least one
 additional column identified by argument \code{col_id}. Other columns are
 preserved.}
 
@@ -28,11 +28,13 @@ List with named elements:
 \describe{
 \item{\code{zenith_dn}}{A numeric vector of length one. Estimated DN at the zenith.}
 \item{\code{sky_points}}{A \code{data.frame} same as \code{sky_points} with additional
-column \code{rr} (relative radiance).
+column \code{relative_radiance} (relative radiance).
 }
 }
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Compute relative radiance at sampled sky points using the zenith digital
 number (DN) as reference.
 }
@@ -40,32 +42,79 @@ number (DN) as reference.
 Estimate zenith DN using inverse-distance weighting of the k nearest sky
 points (weights proportional to \eqn{1 / d^2}, where \eqn{d} is angular
 distance, see \code{\link[=apply_locally]{apply_locally()}}).
+If selected points lie exactly at the zenith, only their DN values
+contribute to the reference, with equal weights.
 }
 \examples{
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+sky_coef <- as.numeric(cie_table[4, 1:5])
+
+sun_angles <- data.frame(zenith = 45 * pi/180, azimuth = 10 * pi/180)
+
+m <- !is.na(d$zenith) & d$zenith < 80
+sky <- cie_image(d, sun_angles, sky_coef, m = m)
+plot(sky)
+r <- sky * 20
+names(r) <- "dn"
+
+directions <- fibonacci_directions(5)
+masked_g <- g
+masked_g[!m] <- NA
+fov <- extract_fov(masked_g)
+directions <- select_directions_in_fov(directions, fov)
+
+sky_points <- coord_from_internal_directions(directions, geometry) \%>\% add_indices()
+
+sky_points <- extract_dn(r, sky_points, use_window = FALSE)
+sky_points <- add_directions(sky_points, d = d)
+head(sky_points)
+calc_relative_radiance(sky_points, "dn")
+
+
 \dontrun{
 require(rcaiman.registry)
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+metadata <- read.delim(gsub("tif", "tsv", path))
+sensor_data <- read_caim(path)
+
+# Get specs
 path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-plot(r)
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
+raw_geometry <- get_geometry_spec(cygm, "simple_method")
+raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
 
-# See fit_cie_model() for details on the CSV file
+# Represent image geometry
+g <- set_internal_geometry(raw$dim, raw_geometry)
+d <- direction_image(g)
+m <- !is.na(g$off_axis)
+w <- area_weight_image(g, raw_geometry)
+
+# Read and preprocess the image
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
+r <- caim$Cyan
+ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan, m = m)
+r <- apply_flat_field(r, ff)
+
 path <- system.file("external/sky_points.csv",
                     package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
+sky_points <- read_points(path) \%>\% add_indices()
+
 sky_points <- extract_dn(r, sky_points, use_window = TRUE)
-sky_points <- add_directions(sky_points, z, a)
-calc_relative_radiance(sky_points, "Cyan")
+sky_points <- add_directions(sky_points, d = d)
+head(sky_points)
+rr <- calc_relative_radiance(sky_points, "Cyan")
+rr
 }
 }
 \references{

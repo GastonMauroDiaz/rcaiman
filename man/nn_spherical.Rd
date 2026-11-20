@@ -5,121 +5,115 @@
 \title{Find nearest neighbors in spherical coordinates}
 \usage{
 nn_spherical(
-  sampling_points,
-  query_points,
+  sampling_directions,
+  query_directions,
   k = 1,
   search_radius = NULL,
   rule = "any",
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
-  leave_free = 1
+  leave_free = 1,
+  angle_columns = c("zenith", "azimuth")
 )
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in
-the output of \code{\link[=add_directions]{add_directions()}}. Candidate neighbors of \code{query_points}.
-Additional columns are ignored.}
+\item{sampling_directions, query_directions}{data frames containing the angular
+columns selected by \code{angle_columns}, in radians, as returned by
+\code{\link[=add_directions]{add_directions()}}. Other columns are ignored.}
 
-\item{query_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in the
-output of \code{\link[=add_directions]{add_directions()}}. Additional columns are ignored.}
+\item{k}{positive integer-like numeric vector of length one, or \code{NULL}.
+Maximum number of neighbors. With \code{NULL}, retrieve all neighbors within
+\code{search_radius}, which must be supplied.}
 
-\item{k}{numeric vector of length one. Must be positive and
-interpreted as integer. Number of nearest neighbors to retrieve.}
+\item{search_radius}{positive numeric vector of length one, at most 180,
+or \code{NULL}. Maximum angular distance in degrees. With \code{NULL}, only \code{k}
+limits the selection.}
 
-\item{search_radius}{numeric vector of length one or \code{NULL}. Maximum angular
-distance (deg) to include neighbors. If \code{NULL}, no distance filtering is
-applied.}
+\item{rule}{character vector of length one. With \code{"any"}, return the
+available neighbors. With \code{"all"}, return an empty neighborhood when
+fewer than \code{k} neighbors are available within \code{search_radius}. Ignored
+when \code{search_radius} or \code{k} is \code{NULL}.}
 
-\item{rule}{character vector of length one. \code{"any"} or \code{"all"}. See \emph{Details}.}
+\item{parallel}{logical vector of length one. If \code{TRUE}, evaluate queries
+in parallel. Result order follows \code{query_data} in either mode.}
+
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
+
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
+
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
+
+\item{angle_columns}{character vector of length two. Names of the polar
+and azimuthal angle columns, in that order. Defaults to
+\code{c("zenith", "azimuth")}. Polar angles must lie in \verb{[0, pi]} and
+azimuthal angles in \verb{[0, 2 * pi)}.}
 }
 \value{
-List of length equal to \code{nrow(query_points)}. Each element contains:
+list of length \code{nrow(query_directions)}, with one element per query:
 \describe{
-\item{\code{index}}{integer vector. Indices of selected neighbors in
-\code{sampling_points}.}
-\item{\code{distance}}{numeric vector. Angular distances (radians) to each
-neighbor.}
+\item{\code{index}}{Integer vector of row positions in \code{sampling_directions}.}
+\item{\code{distance}}{Numeric vector of angular distances in radians.}
 }
+An empty neighborhood contains \code{integer(0)} and \code{numeric(0)}.
 }
 \description{
-Identify nearest sampling points to each query point based on angular
-distance on the unit sphere.
+Select sampling directions around each query direction by angular distance.
 }
 \details{
-Neighbor searches are performed in a three-dimensional Cartesian
-representation of points on the unit sphere rather than by explicitly
-computing great-circle distances through
-\code{\link[=calc_spherical_distance]{calc_spherical_distance()}}.
+Directions supplied by \code{\link[=add_directions]{add_directions()}} are in radians. Select their
+columns with \code{angle_columns}: \code{c("zenith", "azimuth")} for external
+directions or \code{c("off_axis", "internal_azimuth")} for internal directions.
+Both tables must use the same reference frame. A common rotation of all
+directions preserves angular distances and neighbor selection.
 
-Directional coordinates are transformed into unit vectors:
+A spherical cap contains all directions within a given angular distance
+of a central direction. Here, each query defines the center and a supplied
+\code{search_radius} defines the angular radius of the cap. A radius of 90 deg
+defines a hemisphere. Image coverage and masks used to select the input
+samples determine which observations are available within the cap.
 
-\deqn{
-x = \sin(\theta)\cos(\phi)
-}
+With a numeric \code{k}, return up to \code{k} nearest neighbors, restricted by
+\code{search_radius} when supplied. Set \code{k = NULL} and supply a radius to
+retrieve all points within that angular neighborhood. This performs a
+radius search without first requesting all nearest neighbors.
 
-\deqn{
-y = \sin(\theta)\sin(\phi)
-}
+The search uses unit vectors and Euclidean chord distances. Chord length
+and angular distance are related by \eqn{d = 2\sin(\gamma/2)} and have
+the same ordering for angles from 0 to 180 deg. Returned distances are
+angular distances in radians, ordered from nearest to farthest.
 
-\deqn{
-z = \cos(\theta)
-}
-
-Neighbor identification is then carried out using Euclidean distance in
-three-dimensional space. Search radii expressed as angular distances are
-internally converted to chord lengths:
-
-\deqn{
-d = 2\sin\left(\frac{\theta}{2}\right)
-}
-
-Although chord distance and great-circle distance are different geometric
-quantities, they are in one-to-one monotonic correspondence on the unit
-sphere. Consequently, radius and nearest-neighbor searches yield the same
-point ordering and neighbor selection as angular distances while avoiding
-explicit computation of pairwise spherical distances.
-
-This implementation is faster than \code{\link[=calc_spherical_distance]{calc_spherical_distance()}}.
-
-The angular neighborhood is defined by two parameters:
-\itemize{
-\item \code{k}: number of nearest neighbors used by \code{fun}.
-\item \code{search_radius}: maximum allowed spherical distance (deg). Provide
-NULL  (default) to override this criterion.
-}
-
-Argument \code{rule} controls how neighbor availability is interpreted (ignored if
-\code{search_radius = NULL}):
-\itemize{
-\item \code{"any"}: all neighbors found within \code{search_radius} are passed to \code{fun}
-(even if fewer than \code{k}).
-\item \code{"all"}: if fewer than \code{k} neighbors lie within the radius, no point is returned.
-}
+Sampling directions with missing angles are excluded. Query directions with
+missing angles return empty neighborhoods. At polar angles of 0 or
+\code{pi}, the second angle may be \code{NA}: the direction is still defined.
+Returned indices always refer to the original sampling table.
 }
 \examples{
-\dontrun{
-z <- zenith_image(1000, equidistant_coef)
-a <- azimuth_image(z)
-sampling_indices <- fibonacci_indices(z, a, 5)
-head(sampling_indices)
-nn <- nn_spherical(
-  sampling_indices,
-  sampling_indices,
-  k = 30,
-  search_radius = NULL
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(10, 8),
+  normalization_radius = 10,
+  normalization_angle = 90
 )
-
-for (i in sample(seq_along(nn), 10)) {
-  plot(sampling_indices[nn[[i]]$index, c("row", "col")],
-       xlim = c(0, 1000), ylim = c(0, 1000),
-       col = grey(normalize_min_max(nn[[i]]$distance)),
-       asp = 1)
-  Sys.sleep(1)
-}
-}
-
+g <- set_internal_geometry(c(20, 16), geometry)
+sampling_indices <- expand.grid(col = 1:20, row = 1:16)
+m <- !is.na(g$off_axis) & !is.na(g$internal_azimuth)
+sampling_indices <- rem_unselected(sampling_indices, m)
+query_indices <- data.frame(col = c(10, 14), row = c(8, 8))
+sampling_directions <- add_directions(sampling_indices, g = g)
+query_directions <- add_directions(query_indices, g = g)
+neighbors <- nn_spherical(
+  sampling_directions, query_directions, k = NULL, search_radius = 12,
+  angle_columns = c("off_axis", "internal_azimuth"), parallel = FALSE
+)
+sampling_directions[neighbors[[1]]$index, ]
 }
 \seealso{
-\code{\link[=add_directions]{add_directions()}}
+\code{\link[=add_directions]{add_directions()}}, \code{\link[=calc_spherical_distance]{calc_spherical_distance()}}, \code{\link[=apply_locally]{apply_locally()}}
 }

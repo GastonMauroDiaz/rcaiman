@@ -54,7 +54,7 @@ can be consumed by
 resolution (cell size = 1) and a standardized extent \code{ext(0, ncol, 0, nrow)}
 with CRS EPSG:7589 (see \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}).
 
-File extensions are interpreted with \code{\link[tools:fileutils]{tools::file_ext()}}.
+File extensions are interpreted with \code{\link[tools:file_ext]{tools::file_ext()}}.
 }
 \section{Example data}{
 
@@ -78,54 +78,56 @@ registry snapshot (see
 \item{DSCN4248.tif and DSCN4248.tsv}{Sensor data and metadata extracted from
 a raw file ("DSCN4606.NEF") with rcaiman-projects. Original 16-bit TIFF file
 was degraded to 8-bit to save space.}
-\item{Nikon_Coolpix5700.FCE9_raw_poly.yaml}{Registry snapshot valid for
-processing "DSCN4248.tif" and with parameters for a polynomial-based
-radiometric correction.}
-\item{Nikon_Coolpix5700.FCE9_raw_tsurf.yaml}{Registry snapshot valid for
-processing "DSCN4248.tif" and with data for supporting a trend-surface-based
-radiometric correction.}
+\item{sky_points.csv and sun_disk_mark.csv}{points manually digitized over the
+DSCN4248.tif preprocessed with \code{\link[=split_cfa]{split_cfa()}}.}
+\item{Nikon_Coolpix5700.FCE9_raw.yaml}{Registry snapshot valid for
+preprocessing "DSCN4248.tif".}
 \item{DSCN4500.JPG}{JPEG file obtained as described in \insertCite{Diaz2018}{rcaiman}.}
 \item{Nikon_Coolpix5700.FCE9_jpeg.yaml}{Registry snapshot valid for
 processing "DSCN4500.JPG".}
-\item{APC_0836.jpg}{JPEG file obtained as described in \insertCite{Diaz2023}{rcaiman}.}
-\item{iPhone6plus.Olloclip_jpeg.yaml}{Registry snapshot valid for
-processing "APC_0836.jpg".}
-\item{sky_points.csv and sun_disk_mark.csv}{points manually digitized over the
-DSCN4248.tif cropped with the geometry spec "simple_method" attached to the
-"exif_raw" embedded metadata signature.}
 }
 }
 
 \examples{
+r <- set_rcaiman_geometry(terra::rast(nrows = 12, ncols = 20))
+values(r) <- 1
+file <- tempfile(fileext = ".tif")
+write_caim(r, file, 8)
+read_caim(file)
+unlink(file)
+
 \dontrun{
 dir(system.file("external", package = "rcaiman"))
 
+require(rcaiman.registry)
 path <- system.file("external/DSCN4248.tif", package = "rcaiman")
 sensor_data <- read_caim(path)
 
-cfa_labels <- label_cfa(sensor_data)
-cfa_pattern <- matrix(c("Green","Magenta",
-                        "Yellow" ,"Cyan"), byrow = TRUE, ncol = 2)
-caim <- split_cfa(sensor_data, cfa_labels, cfa_pattern)
-caim <- map_spectral_bands(caim, list(Red = "(Magenta + Yellow)/2",
-                                      Green = "Green",
-                                      Blue = "Cyan"))
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
 
-require(rcaiman.registry)
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
+caim <- map_spectral_bands(caim, spectral_mapping = cygm$spectral_mapping)
+caim
+terra::plotRGB(normalize_min_max(caim, clip = TRUE) * 255)
+
 path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
 my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
+jpeg_geometry <- get_geometry_spec(my_entry, "jpeg", "rgb", "simple_method_rescaled")
 
 path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
 caim <- read_caim(path)
-caim <- crop_caim(
-  caim,
-  snapped_zenith_coord = spec$snapped_zenith_coord,
-  horizon_radius = spec$horizon_radius
-)
-plot(caim)
 
-write_caim(caim, file.path(tempdir(), "caim"), bit_depth = 8)
+crop_radius <- calc_relative_radius(90, jpeg_geometry$parameters)
+crop_radius <- round(crop_radius * jpeg_geometry$normalization_radius)
+side <- 2 * crop_radius
+center_of_vision <- jpeg_geometry$center_of_vision
+upper_left_indices <- center_of_vision - crop_radius + 1
+centered_caim <- crop_caim(caim, upper_left_indices, side, side)
+plot(centered_caim)
 }
 }
 \references{

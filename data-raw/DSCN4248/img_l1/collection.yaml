@@ -1,0 +1,5 @@
+schema_version: 2
+class: preprocessed_image_collection
+previous_level: "img_l0"
+registry: "img_l1/registry_entry.yaml"
+script: "scripts/02_img_preprocessing_level_1.R"

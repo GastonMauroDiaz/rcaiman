@@ -10,9 +10,10 @@ distance_to_black(bin)
 \item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.}
 }
 \value{
-Integer \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Pixels corresponding
-to \code{FALSE} values in \code{bin} are assigned \code{0}; pixels corresponding to
-\code{TRUE} values receive their distance to the nearest \code{FALSE} pixel.
+Integer \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer named
+\code{"distance_to_black"}. Pixels corresponding to \code{FALSE} values in \code{bin} are
+assigned \code{0}; pixels corresponding to \code{TRUE} values receive their distance
+to the nearest \code{FALSE} pixel.
 }
 \description{
 Compute the Chebyshev distance from each \code{TRUE} pixel to the nearest
@@ -27,31 +28,40 @@ inside connected \code{TRUE} regions and farther from region boundaries.
 If \code{bin} contains no \code{FALSE} pixels, distances are undefined. In this case,
 a warning is issued and a raster filled with \code{NA} values is returned.
 }
-\examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
+\section{Sky sampling}{
 
-thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40)
-plot(thr$v1)
-plot(thr$n)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
+Threshold this image to create candidate masks for \code{\link[=optimize_sky_mask]{optimize_sky_mask()}}.
+For integer \code{k}, \code{distance > k} removes TRUE pixels within \code{k} pixels of
+black, in the Chebyshev metric. This is equivalent to repeated erosion
+with a 3 by 3 square neighborhood, without treating the image exterior as
+black. Only FALSE pixels within the image act as distance sources.
 
-dtb <- distance_to_black(bin)
-plot(dtb)
+After choosing a mask, its distances can also prioritize candidates in
+\code{\link[=optimize_sampling_distance]{optimize_sampling_distance()}} and \code{\link[=rem_nearby_indices]{rem_nearby_indices()}}: extract them
+with \code{\link[=extract_dn]{extract_dn()}} and pass the resulting column with \code{prioritize = "higher"}.
+Use the same priority for distance estimation and final selection.
 }
+
+\examples{
+bin <- set_rcaiman_geometry(terra::rast(nrows = 12, ncols = 16))
+bin[] <- FALSE
+bin[3:10, 3:14] <- TRUE
+distance <- distance_to_black(bin)
+plot(distance)
+
+# Progressively shrink the TRUE region, preserving the original at k = 0.
+bin_list <- lapply(0:3, function(k) distance > k)
+plot(terra::rast(bin_list))
+
+# Attach the distance as a priority value for candidate sampling indices.
+sampling_indices <- expand.grid(col = 1:16, row = 1:12)
+sampling_indices <- rem_unselected(sampling_indices, bin)
+sampling_indices <- extract_dn(distance, sampling_indices, use_window = FALSE)
+retained <- rem_nearby_indices(sampling_indices, min_dist = 3,
+  col_id = "distance_to_black", prioritize = "higher", space = "planar")
+# See optimize_sky_mask() for selection with angular separation.
 }
 \seealso{
-\code{\link[=label_components]{label_components()}}
+\code{\link[=label_components]{label_components()}}, \code{\link[=optimize_sky_mask]{optimize_sky_mask()}},
+\code{\link[=optimize_sampling_distance]{optimize_sampling_distance()}}, \code{\link[=rem_nearby_indices]{rem_nearby_indices()}}
 }

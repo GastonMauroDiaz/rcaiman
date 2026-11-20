@@ -11,7 +11,9 @@ triangulate_planar(sampling_coord, col_id = "dn", r, return = "raster")
 \code{"y_down"} containing continuous image coordinates, and a numeric column
 with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
 cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
-centers. Subpixel positions are used without snapping to cells.}
+centers. Subpixel positions are used without snapping to cells. Rows with
+missing or nonfinite coordinates or values are omitted. With no available
+samples, the result contains only \code{NA}.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
 of the column in \code{sampling_coord} containing the values to interpolate.}
@@ -46,7 +48,7 @@ interpolation is performed by evaluating the plane equation at each
 pixel position. This approach produces a continuous surface with
 sharp transitions at triangle borders.
 
-The function internally uses \code{\link[terra:voronoi]{terra::delaunay()}} to construct the
+The function internally uses \code{\link[terra:delaunay]{terra::delaunay()}} to construct the
 triangulated mesh.
 }
 \note{

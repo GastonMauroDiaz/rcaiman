@@ -14,7 +14,7 @@
 #'
 #' This is useful after estimating thresholds using [thr_two_corner()],
 #' [thr_isodata()], or
-#' `apply_by_direction(method = "thr_isodata")`, among other posibilities.
+#' [apply_by_direction()] with `fun = thr_isodata`, among other possibilities.
 #'
 #' @param r numeric [terra::SpatRaster-class] of one layer.
 #' @param thr either a numeric vector of length one (for global thresholding) or
@@ -30,8 +30,10 @@
 #' @export
 #'
 #' @examples
-#' r <- read_caim()
-#' r <- r$Cyan
+#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+#' r <- read_caim(path, fill_na = "none")$Blue
+#' # Use a small crop to illustrate thresholding.
+#' r <- crop_caim(r, c(600, 800), 200, 200)
 #' bin <- binarize_with_thr(r, thr_isodata(r[]))
 #' plot(bin)
 #'

@@ -1,3 +1,61 @@
+# rcaiman 3.0.0.9000
+
+## Transition to the rcaiman suite
+
+Version 3 establishes `rcaiman` as the independent core toolbox of a suite for
+canopy photography. Other components support calibration records, their
+distribution, and project workflows. This transition deliberately breaks
+compatibility with earlier interfaces; scripts must follow the v3 documentation.
+
+## Geometry beyond the upward-looking hemisphere
+
+Earlier versions represented viewing directions with two square rasters, `z`
+and `a`, containing zenith and azimuth angles. This design served traditional
+upward-looking hemispherical photography well: the zenith was at the image
+center and the grid represented a complete hemisphere. Images with a smaller
+field of view were accommodated by expanding the grid and filling unobserved
+regions with `NA`.
+
+Version 3 separates internal geometry (`g`), which describes viewing directions
+relative to the optical system, from external directions (`d`), which express
+them relative to zenith and north. This supports inclined acquisitions and
+partial fields of view directly on the original image grid. Reprojection
+becomes a separate choice.
+
+Keeping manually marked points and masks on the original grid also makes them
+reusable when calibration changes. Their directions and reprojected positions
+can be recalculated without repeating the marking solely because an earlier
+projection has changed.
+
+This separation is the main reason for the break with earlier interfaces, and
+a foundation for the new suite.
+
+## From out-of-the-box pipelines to shared workflows
+
+Version 2 built on the early out-of-the-box pipelines from version 1, developing
+them into more complete automated processing workflows. Experience with these 
+pipelines exposed a limitation: long-running computations and decisions made 
+inside the functions were difficult for users to inspect and adapt.
+
+In version 3, the core provides the tools, while workflow logic resides in
+scripts distributed with projects and templates for `rcaiman-projects`. These
+scripts make processing steps, parameters, and intermediate results available
+for inspection and modification. Researchers can reuse a prepared workflow,
+adapt individual steps, and share the resulting scripts with others.
+
+This approach grew from discussions with Mait Lang and his proposal to share
+processing scripts as reusable extensions. It preserves automation while
+making the scientific decisions behind a workflow explicit.
+
+## Interface stability from v3
+
+From the v3 release onward, established public interfaces remain compatible
+within each major version. Replacements will be announced with alternatives
+and a deprecation period before removal in a later major release. Experimental
+interfaces may change without that period. The package now includes `lifecycle`
+support to communicate these distinctions in documentation and future
+deprecation messages.
+
 # rcaiman 2.0.0
 
 Version 2.0 is a major overhaul of **rcaiman** that introduces a more consistent function naming and removes unuseful functions. Therefore, scripts written for version 1.2.x will need updating. The main goal of this release is to present a clear and cohesive interface accompanying our latest developments.

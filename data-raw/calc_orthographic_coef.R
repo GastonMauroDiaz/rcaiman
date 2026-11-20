@@ -9,11 +9,13 @@ R <- sin(theta)
 lines(theta, R, col = 2)
 
 
-fit <- lm(R ~ poly(theta, 4, raw = TRUE) - 1)
+fit <- lm(R ~ poly(theta, 5, raw = TRUE) - 1)
 summary(fit)
 
 validate_projection_function(signif(coef(fit), 4))
-coef <- fix_projection_coef(signif(coef(fit), 4), tol = 0.0012)
+coef <- fix_projection_coef(signif(coef(fit), 4))
+
+validate_projection_function(coef)
 
 or <- calc_relative_radius(theta, coef, units = "radian")
 lines(theta, or, col = "blue")

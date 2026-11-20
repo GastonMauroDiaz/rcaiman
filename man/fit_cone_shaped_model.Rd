@@ -2,95 +2,99 @@
 % Please edit documentation in R/fit_cone_shaped_model.R
 \name{fit_cone_shaped_model}
 \alias{fit_cone_shaped_model}
-\title{Fit cone-shaped model}
+\title{Fit a cone-shaped sky model}
 \usage{
-fit_cone_shaped_model(sky_points, col_id, method = "zenith_n_azimuth")
+fit_cone_shaped_model(
+  sampling_directions,
+  col_id,
+  method = "zenith_n_azimuth",
+  return = "parameters"
+)
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, \code{"zen"}, and
-\code{"azi"} as in the output of \code{\link[=add_directions]{add_directions()}}, and at least one
-additional column identified by argument \code{col_id}. Other columns are
-preserved.}
+\item{sampling_directions}{data frame with a numeric column \code{zenith} in
+radians and the values selected by \code{col_id}. For \code{"zenith_n_azimuth"},
+a numeric column \code{azimuth} in radians is also required. Zenith angles must
+lie in \eqn{[0, \pi]} and azimuths in \eqn{[0, 2\pi)}. Additional columns,
+including cell indices, are ignored.}
 
-\item{col_id}{character or integer vector of length one. Name or position of
-the column in \code{sky_points} containing the values sampled from the image.}
+\item{col_id}{character or integer vector of length one. Name or position
+of the column containing sampled values in \code{sampling_directions}.}
 
-\item{method}{character. Model type to fit:
-\describe{
-\item{\code{"zenith_only"}}{Quadratic polynomial in zenith angle.}
-\item{\code{"zenith_n_azimuth"}}{Quadratic polynomial in zenith plus
-sinusoidal terms in azimuth.}
-}}
+\item{method}{character vector of length one. Either \code{"zenith_n_azimuth"}
+(default), adding sinusoidal azimuth terms to a quadratic zenith model,
+or \code{"zenith_only"}, using only the quadratic zenith model.}
+
+\item{return}{character vector of length one. Either \code{"parameters"}
+(default) or \code{"all"}.}
 }
 \value{
-List with the following components:
-\describe{
-\item{\code{fun}}{Function taking \code{zen} and \code{azi} (angle units can be declared
-via the argument \code{units}) and returning predicted values.}
-\item{\code{model}}{\code{lm} object fitted by \code{\link[stats:lm]{stats::lm()}}.}
-}
-Returns \code{NULL} (with a warning) if the number of input points is fewer than 20.
+With \code{return = "parameters"}, a plain named list containing \code{method}
+and \code{coefficients}, the named coefficient vector from \code{\link[stats:coef]{stats::coef()}}.
+With \code{return = "all"}, a list containing \code{parameters} and \code{model}, the
+complete \code{lm} object. Use \code{\link[stats:fitted]{stats::fitted()}} and \code{\link[stats:residuals]{stats::residuals()}} for
+values in input row order, and \code{predict(model, newdata = query_directions)}
+for predictions from \code{zenith} and, when used, \code{azimuth} in radians.
+Returns \code{NULL} with a warning for fewer than 20 observations or a
+rank-deficient fit.
 }
 \description{
-Fit a polynomial model to predict sky digital numbers from directions (see
-\code{\link[=add_directions]{add_directions()}}) using data sampled from a canopy photograph.
+Fit sky digital numbers as a function of external viewing directions and
+return parameters for \code{\link[=cone_shaped_image]{cone_shaped_image()}}.
 }
 \details{
-Depending on \code{method}, it can fit:
+Both models are fitted by ordinary least squares with \code{\link[stats:lm]{stats::lm()}}.
+For zenith angle \eqn{\theta} and azimuth \eqn{\phi}, in radians:
 \describe{
-\item{\emph{A zenith-only quadratic model}}{\deqn{sDN = a + b\theta + c\theta^2}}
-\item{\emph{A zenith-plus-azimuth model, adding sinusoidal terms}}{\deqn{sDN = a + b\theta + c\theta^2 + d\sin(\phi) + e\cos(\phi)}}
+\item{\code{"zenith_only"}}{\deqn{sDN = a + b\theta + c\theta^2}}
+\item{\code{"zenith_n_azimuth"}}{\deqn{sDN = a + b\theta + c\theta^2 + d\sin(\phi) + e\cos(\phi)}}
 }
+These are external angles, relative to the upward vertical and geographic
+north. Supply the acquisition orientation to \code{\link[=direction_image]{direction_image()}} and use
+\code{\link[=add_directions]{add_directions()}} to associate sampled values with these directions.
+The model is independent of the image projection and optical-axis direction.
 
-See \insertCite{Diaz2018;textual}{rcaiman} for additional details.
+Select suitable sky observations before fitting. Required columns must have
+finite values; rows are not removed automatically. At least 20 observations
+are required, and their directions must allow all coefficients to be
+estimated. An insufficient or rank-deficient sample returns \code{NULL} with a
+warning. No normalization or constraint on predicted values is imposed.
 
-See \code{\link[=sky_via_local_models]{sky_via_local_models()}} for an extension of this approach that fits
-multiple local cone-shaped models across hemispherical space.  By combining
-local predictions, that approach can capture complex sky radiance patterns
-without restricting the reconstructed sky surface to a single cone-shaped
-structure.
+In the model with azimuth, the sinusoidal terms do not vanish at zenith.
+Consequently, the prediction there depends on the supplied azimuth convention.
+A missing azimuth cannot be inferred from a zero zenith angle. The zenith-only
+model does not use azimuth.
+
+See \insertCite{Diaz2018;textual}{rcaiman} for the approach underlying these
+models. \code{\link[=cone_shaped_image]{cone_shaped_image()}} evaluates the fitted parameters on an
+image grid; \code{\link[stats:predict]{stats::predict()}} applied to the returned \code{lm} object evaluates
+them at directions supplied as a table.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-
-model <- fit_cone_shaped_model(sky_points, col_id = "Cyan")
-summary(model$model)
-sky_cs <- model$fun(z, a)
-sky_cs
-plot(sky_cs)
-
-z_mini <- zenith_image(50, equidistant_coef)
-sky_cs <- model$fun(z_mini, azimuth_image(z_mini))
-persp(sky_cs, theta = 90, phi = 20)
-
-}
+# Illustrative sky image. With measured data, use a sky mask to select samples.
+geometry <- list(model = "radial_projection", parameters = equidistant_coef,
+  center_of_vision = c(40, 30), normalization_radius = 30,
+  normalization_angle = 90)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 60)
+r <- 1000 + 200 * (d$zenith * pi / 180)^2 +
+  50 * sin(d$azimuth * pi / 180) + 10 * cos(2 * d$azimuth * pi / 180)
+names(r) <- "Blue"
+m <- !is.na(d$zenith) & !is.na(d$azimuth) & d$zenith < 90
+sampling_indices <- expand.grid(col = seq(5, 75, 5), row = seq(5, 55, 5))
+sampling_indices <- rem_unselected(sampling_indices, m)
+samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+samples <- add_directions(samples, d = d)
+fit <- fit_cone_shaped_model(samples, col_id = "Blue", return = "all")
+summary(fit$model)
+sky <- cone_shaped_image(d, fit$parameters, m = m)
+plot(sky)
+query_directions <- sky_grid_centers(15)
+head(predict(fit$model, newdata = query_directions))
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=cone_shaped_image]{cone_shaped_image()}}, \code{\link[=extract_dn]{extract_dn()}}, \code{\link[=add_directions]{add_directions()}}
 }

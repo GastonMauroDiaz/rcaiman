@@ -5,115 +5,158 @@
 \alias{to_panoramic}
 \alias{rem_panoramic_padding}
 \alias{from_panoramic}
-\title{Transform hemispherical data through a panoramic domain}
+\title{Work in a panoramic representation of the sky}
 \usage{
 to_panoramic(sampling_points, angle_width = 1, padding_deg = 15)
 
 rem_panoramic_padding(pano, angle_width = 1, padding_deg = 15)
 
-from_panoramic(pano, z, a, angle_width = 1)
+from_panoramic(pano, d, angle_width = 1)
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} containing numeric columns \code{"zen"} and
-\code{"azi"} in radians, as in the output of \code{\link[=add_directions]{add_directions()}} with
-\code{in_radians = TRUE}, or \code{\link[=add_directions_from_model]{add_directions_from_model()}}. Existing \code{"x"} and
-\code{"y_down"} columns are replaced by panoramic coordinates. Derived columns
-tied to the source image frame are removed with \code{\link[=keep_coord]{keep_coord()}}. Other
-columns are preserved, including the source directions.}
+\item{sampling_points}{data frame with numeric \code{zenith} and \code{azimuth}
+columns in radians, as returned by \code{\link[=add_directions]{add_directions()}}. Zenith must be in
+\verb{[0, pi]} and azimuth in \verb{[0, 2 * pi)}. Missing angles are allowed.
+Original rows are retained; directions outside the sky hemisphere or
+with missing angles have \code{NA} working coordinates and generate no padding.
+Existing \code{x} and \code{y_down} are replaced, and frame-dependent columns are
+removed with \code{\link[=keep_coord]{keep_coord()}}. Other columns are preserved.}
 
-\item{angle_width}{numeric vector of length one. Angular resolution in
-degrees.}
+\item{angle_width}{positive numeric vector of length one. Angular width
+of one panoramic cell in degrees. Must divide 90 into a whole number.}
 
-\item{padding_deg}{integer-like numeric vector of length one. Nonnegative
-width of the padding region in degrees. Use zero for no padding.}
+\item{padding_deg}{integer-like numeric vector of length one in \verb{[0, 90]}.
+Padding width in degrees. Must be a whole number of panoramic cells.
+Use zero for no padding.}
 
-\item{pano}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} in panoramic geometry.
-Remove padding before passing this raster to \code{from_panoramic()}.}
+\item{pano}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one or more layers,
+on the standardized grid from \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}. Its dimensions
+must match \code{angle_width} and, for \code{rem_panoramic_padding()}, \code{padding_deg}.
+For \code{from_panoramic()}, supply an unpadded raster with cell values.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, describing
+the destination, with \code{zenith} and \code{azimuth} layers in degrees, in that
+order. Its grid may be rectangular and its acquisition inclined.}
 }
 \value{
-\code{to_panoramic()} returns a list with named elements:
+\code{to_panoramic()} returns a list containing:
 \describe{
-\item{\code{sampling_coord}}{A \code{data.frame} with continuous \code{x}, \code{y_down}
-coordinates and preserved frame-independent columns. Original rows
-appear first, followed by auxiliary top, left, and right padding rows.}
-\item{\code{raster}}{An empty, single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with
-geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}, for planar interpolation.}
+\item{\code{sampling_coord}}{A data frame with continuous \code{x}, \code{y_down}
+coordinates and preserved columns. Original rows appear first,
+followed by top, right-margin, and left-margin copies.}
+\item{\code{raster}}{A single-layer segmentation on the standardized image
+grid, with one segment per cell. Labels run from 1 to the number of
+cells, from left to right and top to bottom, including padding cells.
+It can also be used as a template for \code{\link[=interpolate_planar]{interpolate_planar()}}, which
+ignores its cell values.}
 }
-\code{rem_panoramic_padding()} returns a raster without the padding regions.
-\code{from_panoramic()} returns a raster with the geometry of \code{z}, populated
-from the panoramic cells containing the corresponding directions. At the
-outer boundaries, indices are clamped to the nearest valid cell. Cells
-without a zenith value remain \code{NA}.
+\code{rem_panoramic_padding()} returns the central unpadded raster, with
+standardized geometry. \code{from_panoramic()} returns a raster on the grid
+of \code{d}. Both preserve the number and names of layers in \code{pano}.
 }
 \description{
-Reparameterize hemispherical angular coordinates into a panoramic
-working domain, operate in this domain following a planar
-logic, and map the resulting values back into hemispherical image domain.
+Express external viewing directions as continuous panoramic coordinates,
+process values on that grid, and transfer them to an image described by
+external directions.
 }
 \details{
-These functions transform hemispherical angular coordinates into a temporary
-panoramic domain.
+The unpadded domain covers zenith angles from 0 to 90 deg and geographic
+azimuths from 0 to 360 deg. \code{x} increases from north toward east with
+azimuth; \code{y_down} increases from zenith toward the horizon. One coordinate
+unit spans \code{angle_width} degrees. The representation uses equal angular
+steps, not equal solid angles.
 
-Continuous image coordinates are derived directly from zenith and azimuth
-angles, without selecting cells. After padding, \code{x} increases with azimuth
-and \code{y_down} increases with zenith angle. One coordinate unit corresponds
-to \code{angle_width} degrees. The unpadded origin is \code{zen = 0}, \code{azi = 0}.
+\code{to_panoramic()} transforms directions and creates a raster with one segment
+per cell, also usable as a template for interpolation.
+It does not aggregate or interpolate measurements. For example, use
+\code{\link[=interpolate_planar]{interpolate_planar()}} to populate the template. Its search distances are
+distances on this rectangular grid, not spherical distances. Interpolation
+can extend beyond observed coverage; its extent is not a coverage mask.
+\subsection{Aggregation by angular cells}{
 
-This introduces artificial discontinuities that are not
-present in hemispherical geometry:
-\itemize{
-\item azimuth becomes discontinuous at the 0 deg / 360 deg seam,
-\item and directions near the zenith become artificially separated in the
-rectangular domain despite converging geometrically toward a single point.
-}
+Use \code{\link[=aggregate_by_segment]{aggregate_by_segment()}} with the returned \code{raster} to summarize the
+observations inside each panoramic cell. This
+recovers the angular aggregation approach of the earlier \code{fisheye_to_pano()}
+workflow, used in \insertCite{Diaz2021;textual}{rcaiman}. The summary may be
+a mean, median, percentile, or another scalar function.
 
-To reduce these effects during computation, the panoramic domain is extended
-with auxiliary padding regions:
-\itemize{
-\item lateral padding in both sides of the azimuth seam,
-\item and reflected padding across the zenith boundary.
-}
-}
-\section{Functions}{
-
-\describe{
-\item{\code{to_panoramic()}}{
-Transform hemispherical angular coordinates into a temporary panoramic
-raster domain with or without padding regions.
+To summarize the pixels of an image, supply every selected source pixel,
+rather than a sparse sample. Each pixel then contributes once to its cell's
+summary, without interpolation weights. Use \code{padding_deg = 0} because
+aggregation does not need observations from neighboring cells. Cells without
+observations remain \code{NA}. Assignment follows the containing-cell convention
+of \code{\link[=aggregate_by_segment]{aggregate_by_segment()}}, including its treatment of boundary coordinates.
 }
 
-\item{\code{rem_panoramic_padding()}}{
-Remove the padding regions from a panoramic raster.
+\subsection{Padding}{
+
+The rectangular domain separates directions across the azimuth seam and
+near zenith. Auxiliary copies of observations allow planar operations to
+use data across these boundaries. Lateral copies shift \code{x} by a full turn.
+To continue across zenith, a copy has negative zenith coordinate and its
+azimuth is shifted by 180 deg. This combination represents the same
+spherical direction. Lateral copies are added after the zenith copies,
+including those needed at the upper corners. There is no horizon padding.
+
+Padding changes only the working coordinates. Source \code{zenith}, \code{azimuth},
+measured values, and other frame-independent columns remain attached to
+each copy. These auxiliary rows are for panoramic processing, not new
+observations. Padding does not remove the projection's metric distortion.
 }
 
-\item{\code{from_panoramic()}}{
-Map values from panoramic geometry back into hemispherical image geometry
-using zenith and azimuth images.
-}
-}
-}
+\subsection{Returning to an image}{
 
+Remove padding with \code{rem_panoramic_padding()} before calling
+\code{from_panoramic()}. The latter selects the panoramic cell containing each
+direction in \code{d}, without interpolation or angular aggregation. A direction
+exactly at the horizon uses the last row. Directions below the horizon,
+missing directions, and undefined azimuths at zenith produce \code{NA}; they
+are not assigned values from an edge cell. Missing panoramic values remain
+missing. This transfer does not undo previous resampling or processing.
+}
+}
 \examples{
-z <- zenith_image(30, equidistant_coef)
-a <- azimuth_image(z)
-sampling_indices <- raster_grid_in_circle(z, a, spacing = 3)
-sampling_indices$dn <- cos(sampling_indices$zen)
-
-angle_width <- 5
-padding_deg <- 10
-pano <- to_panoramic(sampling_indices, angle_width, padding_deg)
-interpolated <- interpolate_planar(
-  pano$sampling_coord, r = pano$raster, search_radius = 20,
-  parallel = FALSE
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
 )
-unpadded <- rem_panoramic_padding(interpolated, angle_width, padding_deg)
-hemi <- from_panoramic(unpadded, z, a, angle_width)
-plot(hemi)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+sampling_indices <- expand.grid(col = seq(1, ncol(d), 3),
+                                row = seq(1, nrow(d), 3))
+m <- !is.na(d$zenith) & !is.na(d$azimuth) & d$zenith <= 90
+sampling_indices <- rem_unselected(sampling_indices, m)
+samples <- add_directions(sampling_indices, d = d)
+# Illustrative values; use extract_dn() for image measurements.
+samples$dn <- cos(samples$zenith)
+pano <- to_panoramic(samples, angle_width = 5, padding_deg = 10)
+interpolated <- interpolate_planar(pano$sampling_coord, r = pano$raster,
+  search_radius = 3, parallel = FALSE)
+unpadded <- rem_panoramic_padding(interpolated, 5, 10)
+result <- from_panoramic(unpadded, d, angle_width = 5)
+plot(result)
+
+# Aggregate all selected image pixels instead of interpolating samples.
+r <- cos(d$zenith * pi / 180)
+names(r) <- "dn"
+sampling_indices <- expand.grid(col = seq_len(ncol(d)), row = seq_len(nrow(d)))
+sampling_indices <- rem_unselected(sampling_indices, m)
+samples <- add_directions(sampling_indices, d = d)
+samples <- extract_dn(r, samples, use_window = FALSE)
+pano <- to_panoramic(samples, angle_width = 10, padding_deg = 0)
+aggregated <- aggregate_by_segment(pano$sampling_coord, pano$raster)
+plot(aggregated)
+# A percentile uses the same spatial assignment.
+peaks <- aggregate_by_segment(pano$sampling_coord, pano$raster,
+                              fun = quantile, probs = 0.99, na.rm = TRUE)
+}
+\references{
+\insertAllCited{}
 }
 \seealso{
-\code{\link[=fisheye_to_pano]{fisheye_to_pano()}}
+\code{\link[=interpolate_planar]{interpolate_planar()}}, \code{\link[=aggregate_by_segment]{aggregate_by_segment()}},
+\code{\link[=triangulate_planar]{triangulate_planar()}}, \code{\link[=direction_image]{direction_image()}}
 }

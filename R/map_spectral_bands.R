@@ -2,7 +2,7 @@
 #'
 #' @description
 #' Derive named spectral bands from CFA or sensor bands using algebraic
-#' expressions.
+#' expressions. Its intended use is to facilitate RGB visualization.
 #'
 #' @details
 #' The input `caim` is typically obtained from [split_cfa()].
@@ -41,10 +41,12 @@
 #'
 #' @export
 #' @examples
-#' caim <- read_caim()
+#' caim <- set_rcaiman_geometry(rast(nrow = 2, ncol = 2, nlyr = 4))
+#' caim[] <- 1
+#' names(caim) <- c("Green", "Magenta", "Yellow", "Cyan")
 #' map_spectral_bands(caim, list(Red = "(Magenta + Yellow)/2",
-#'                            Green = "Green",
-#'                            Blue = "Cyan"))
+#'                               Green = "Green",
+#'                               Blue = "Cyan"))
 map_spectral_bands <- function(caim, spectral_mapping) {
   .assert_spatraster(caim)
   .check_spectral_mapping(spectral_mapping, names(caim))

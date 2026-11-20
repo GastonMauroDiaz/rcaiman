@@ -9,30 +9,40 @@ rem_nearby_indices(
   min_dist = 3,
   col_id = NULL,
   prioritize = NULL,
-  space = "planar"
+  space = "planar",
+  angle_columns = c("zenith", "azimuth")
 )
 }
 \arguments{
-\item{sampling_indices}{\code{data.frame} with at least columns \code{"col"} and
-\code{"row"}. If \code{space = "spherical"}, it must also contain \code{"zen"} and
-\code{"azi"} (see \code{\link[=add_directions]{add_directions()}}).}
+\item{sampling_indices}{\code{data.frame} with positive integer-like columns
+\code{col} and \code{row}, numbered from 1. For \code{space = "spherical"}, it must also
+contain the angular columns selected by \code{angle_columns}, in radians.
+Additional columns are preserved.}
 
-\item{min_dist}{numeric vector of length one. Minimum allowed distance
-between retained indices. Units: pixels for \code{"planar"}, deg for
-\code{"spherical"}.}
+\item{min_dist}{numeric vector of length one. Nonnegative minimum allowed
+distance between retained indices. Units: pixels for \code{"planar"}, degrees
+for \code{"spherical"}. Angular distances must not exceed 180 degrees.}
 
 \item{col_id}{numeric or character vector of length one or \code{NULL}. The name
 or position of the column in \code{sampling_indices} containing the optional
-ranking value used to prioritize retention (higher values kept first).}
+numeric ranking value used to prioritize retention. Values must be finite
+and nonmissing. With \code{NULL}, use input order.}
 
 \item{prioritize}{character vector of length one. Either \code{"higher"} or \code{"lower"}.
-Criterion used to prioritize retention. Ignored when \code{col_id = NULL}.}
+Required when \code{col_id} is supplied: process higher or lower values first.
+Ignored when \code{col_id = NULL}.}
 
 \item{space}{character vector of length one. Coordinate system for distances:
 \code{"planar"} (default) or \code{"spherical"}.}
+
+\item{angle_columns}{character vector of length two. Names of the polar
+and azimuthal angle columns, in that order. Defaults to
+\code{c("zenith", "azimuth")}. Polar angles must lie in \verb{[0, pi]} and
+azimuthal angles in \verb{[0, 2 * pi)}.}
 }
 \value{
-The retained rows of \code{sampling_indices} as a \code{data.frame}.
+The retained rows of \code{sampling_indices} as a \code{data.frame}, with all
+columns and their original row order, even when selection uses a ranking.
 }
 \description{
 Select a subset of cell indices so that no retained pair is closer than
@@ -41,75 +51,61 @@ Select a subset of cell indices so that no retained pair is closer than
 \details{
 When \code{space = "planar"}, distances are computed from cell indices and
 directions (see \code{\link[=add_directions]{add_directions()}}) are not required. When
-\code{space = "spherical"}, distances are computed as in \code{\link[=nn_spherical]{nn_spherical()}}. If
-\code{col_id} is provided, rows are ranked by it before indices are selected.
+\code{space = "spherical"}, angular distances are computed from the columns
+selected by \code{angle_columns}, as in \code{\link[=nn_spherical]{nn_spherical()}}. Use
+\code{c("zenith", "azimuth")} for external directions or
+\code{c("off_axis", "internal_azimuth")} for internal directions. Both are in
+radians, as returned by \code{\link[=add_directions]{add_directions()}}. A common rotation of all
+directions preserves their angular separations.
+
+Selection follows input order unless \code{col_id} and \code{prioritize} specify a
+ranking. Each retained row excludes its nearby candidates from subsequent
+selection. Tied ranking values are processed in input order. This greedy
+selection does not seek the largest possible subset, and changing the
+processing order can change which indices are retained.
+
+In spherical space, each retained direction defines an exclusion cap
+with angular radius \code{min_dist} (see \code{\link[=nn_spherical]{nn_spherical()}}). Candidates strictly
+inside that cap are excluded; those on its boundary satisfy the minimum
+separation. This cap describes angular separation, independently of the
+image projection.
+
+Missing directions cause an error. At polar angles of zero or \code{pi}, the
+azimuth may be \code{NA} because the direction is still defined. A zero
+\code{min_dist} retains all rows, including repeated indices.
 }
 \note{
 Cell indices, angular directions, and any raster-derived values must refer to
 the same underlying raster geometry. This relationship is not checked.
+\code{angle_columns} is ignored for planar distances.
 }
 \examples{
-\dontrun{
-z <- zenith_image(1000, orthographic_coef)
-a <- azimuth_image(z)
-sampling_indices <- raster_grid_in_circle(z, a, 10)
-retained_indices <- rem_nearby_indices(
-  sampling_indices,
-  min_dist = 20,
-  space = "spherical"
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
 )
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+sampling_indices <- expand.grid(col = seq(1, 80, 4), row = seq(1, 60, 4))
+sampling_indices <- rem_unselected(sampling_indices, !is.na(d$zenith))
+sampling_indices <- add_directions(sampling_indices,
+                                  g = g, d = d)
 
-plot(!is.na(z))
-points(xy_from_indices(
-         sampling_indices$col,
-         sampling_indices$row,
-         nrow(z)
-       ), col = 2, pch = 20, cex = 0.1)
-points(xy_from_indices(
-         retained_indices$col,
-         retained_indices$row,
-         nrow(z)
-       ), col = 1, pch = 0)
+retained_indices <- rem_nearby_indices(sampling_indices,
+  min_dist = 20, space = "spherical")
+# The same angular separation can be evaluated in the internal frame.
+retained_internal <- rem_nearby_indices(sampling_indices,
+  min_dist = 20, space = "spherical",
+  angle_columns = c("off_axis", "internal_azimuth"))
 
-retained_indices <- rem_nearby_indices(
-  sampling_indices,
-  min_dist = 100,
-  space = "planar"
-)
+rem_nearby_indices(sampling_indices, min_dist = 10, space = "planar")
 
-plot(!is.na(z))
-points(xy_from_indices(
-         sampling_indices$col,
-         sampling_indices$row,
-         nrow(z)
-       ), col = 2, pch = 20, cex = 0.1)
-points(xy_from_indices(
-         retained_indices$col,
-         retained_indices$row,
-         nrow(z)
-       ), col = 1, pch = 0)
-
-r <- cie_image(
-  z,
-  a,
-  c(zen_deg = 45, azi_deg = 45),
-  as.numeric(cie_table[12, 1:5])
-)
-sampling_indices <- extract_dn(r, sampling_indices, use_window = FALSE)
-head(sampling_indices)
-
-retained_indices <- rem_nearby_indices(
-  sampling_indices,
-  min_dist = 100,
-  col_id = 5,
-  prioritize = "higher",
-  space = "planar"
-)
-
-points(xy_from_indices(
-         retained_indices$col,
-         retained_indices$row,
-         nrow(z)
-       ), col = 1, pch = 5)
-}
+# Prefer higher DN when neighboring candidates compete for retention.
+candidates <- data.frame(col = c(1, 2, 10), row = c(1, 1, 10),
+                         dn = c(100, 200, 150))
+rem_nearby_indices(candidates, min_dist = 2,
+                   col_id = "dn", prioritize = "higher")
 }

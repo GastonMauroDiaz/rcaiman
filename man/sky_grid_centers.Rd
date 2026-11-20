@@ -2,34 +2,52 @@
 % Please edit documentation in R/sky_grid_centers.R
 \name{sky_grid_centers}
 \alias{sky_grid_centers}
-\title{Map sky-grid centers to raster coordinates}
+\title{Generate the centers of a sky grid}
 \usage{
-sky_grid_centers(z, a, angle_width, m = NULL)
+sky_grid_centers(angle_width)
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary
-mask with \code{TRUE} for selected pixels. Only indices of selected pixels are
-returned.}
+\item{angle_width}{positive numeric vector of length one. Width of both
+angular intervals, in degrees. Must divide 90 into a whole number of
+rings (and consequently 360 into a whole number of sectors).}
 }
 \value{
-\code{data.frame} with columns \code{"row"}, \code{"col"} and directions in
-radians as in \code{\link[=add_directions]{add_directions()}}, one per grid cell.
+data frame with \code{zenith} and \code{azimuth} in radians. Rows follow
+increasing zenith intervals; azimuth increases within each interval.
 }
 \description{
-Return image raster coordinates and directions (see \link{add_directions}) for the
-center point of each cell in a sky grid composed of circular trapezoids of
-equal angular resolution defined by \code{angle_width} such as in
+Generate external viewing directions at the angular midpoints of the
+zenith rings and geographic-azimuth sectors used by
 \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}.
 }
+\details{
+The grid covers zenith angles from 0 to 90 deg and a full turn in azimuth,
+measured from north toward east. The reference is the sky, independently
+of the optical axis or acquisition orientation.
+
+Each direction is the midpoint of its two angular intervals, rather than
+an area centroid. Equal angular widths do not give equal solid angles:
+the cells occupy less sky near zenith than near the horizon.
+
+The centers correspond to the default \code{first_ring_different = FALSE} in
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}. Generation is independent of image coverage,
+raster dimensions, and projection model. Use \code{\link[=reproject_points]{reproject_points()}} with
+the destination geometry and orientation to locate these directions in an
+image, then \code{\link[=indices_from_coord]{indices_from_coord()}} or \code{\link[=add_indices]{add_indices()}} to assign them to cells.
+}
 \examples{
-z <- zenith_image(100, equidistant_coef)
-a <- azimuth_image(z)
-pts <- sky_grid_centers(z, a, 30)
+query_directions <- sky_grid_centers(15)
+head(query_directions)
+
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+ )
+query_coord <- reproject_points(query_directions, geometry, elevation = 32.5)
 }
 \seealso{
-\code{\link[=fibonacci_indices]{fibonacci_indices()}}, \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}}
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, \code{\link[=reproject_points]{reproject_points()}}, \code{\link[=add_directions]{add_directions()}}
 }

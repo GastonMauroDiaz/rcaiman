@@ -1,269 +1,202 @@
-# .plot_it <- function(starts) {
-#   .normalize_angles <- function(zen_deg, azi_deg) {
-#     if (zen_deg < 0) {
-#       zen_deg <- -zen_deg      # Make zenith angle positive
-#       azi_deg <- azi_deg + 180 # Rotate azimuth angle 180 deg
-#     }
-#
-#     # Ensure azimuth angle is in [0, 360)
-#     azi_deg <- azi_deg %% 360
-#
-#     angles <- c(zen_deg, azi_deg)
-#     names(angles) <- c("zen_deg", "azi_deg")
-#     angles
-#   }
-#   za <- lapply(1:nrow(starts), function(i)
-#     .normalize_angles(starts[i,1], starts[i,2]))
-#   zen <- unlist(lapply(za, function(x) x[1])) * pi/180
-#   azi <- unlist(lapply(za, function(x) x[2])) * pi/180
-#   row_col <- row_col_from_zen_azi(z, a, zen, azi)
-#   plot(row_col, asp = 1)
-# }
-
-.compute_spacing <- function(n, radius_deg) {
-  r <- radius_deg * pi / 180
-
-  frac <- 1 - cos(r)
-  frac <- max(frac, 1e-6)
-
-  N <- n / frac
-
-  d <- sqrt(2 * pi / N)
-  theta <- 2 * asin(pmin(1, d / 2))
-
-  list(
-    spacing = theta * 180 / pi,
-    N_full = 4 * pi / (d^2)
-  )
-}
-
-.generate_starts <- function(center, n, radius_deg, grid_xyz) {
-
-  if (n == 1) return(matrix(center, nrow = 1))
-
-  center_xyz <- .directions_to_cartesian(
-    data.frame(zen = center["zen_deg"] %>% .degree2radian(),
-               azi = center["azi_deg"] %>% .degree2radian())
-  )
-
-  nn <- .nn_spherical_fast(
-    xyz = grid_xyz,
-    xyz0 = c(x = center_xyz$x, y = center_xyz$y, z = center_xyz$z),
-    k = n - 1,
-    search_radius = .degree2radian(radius_deg)
-  )
-
-  pts <- grid_xyz[nn$index, ]
-
-  ang <- .cartesian_to_directions(as.matrix(pts))
-
-  starts <- rbind(center,
-                  cbind(zen_deg = ang[, "zen"] %>% .radian2degree(),
-                        azi_deg = ang[, "azi"] %>% .radian2degree()))
-
-  starts
-}
-
-.optimize_sun_angles <- function(sun_angles, rr, sky_coef, method_sun) {
-  .normalize_angles <- function(zen_deg, azi_deg) {
-    if (zen_deg < 0) {
-      zen_deg <- -zen_deg      # Make zenith angle positive
-      azi_deg <- azi_deg + 180 # Rotate azimuth angle 180 deg
-    }
-
-    # Ensure azimuth angle is in [0, 360)
-    azi_deg <- azi_deg %% 360
-
-    angles <- c(zen_deg, azi_deg)
-    names(angles) <- c("zen_deg", "azi_deg")
-    angles
-  }
-  .refine_sun_coord <- function(param) {
-    zen_deg <- param[1]
-    azi_deg <- param[2]
-
-    chi <- calc_spherical_distance(zen_deg %>% .degree2radian(),
-                                   azi_deg %>% .degree2radian(),
-                                   sun_angles["zen_deg"] %>% .degree2radian(),
-                                   sun_angles["azi_deg"] %>% .degree2radian())
-
-
-    pred <- .cie_sky_model(AzP = rr$sky_points$azi %>% .degree2radian(),
-                           Zp = rr$sky_points$zen %>% .degree2radian(),
-                           AzS = azi_deg %>% .degree2radian(),
-                           Zs =  zen_deg %>% .degree2radian(),
-                           sky_coef[1], sky_coef[2], sky_coef[3],
-                           sky_coef[4], sky_coef[5])
-
-    (.calc_rmse(pred - rr$sky_points$rr) / mean(rr$sky_points$rr)) *
-      max(1, .radian2degree(chi)/10)
-  }
-  fit <- tryCatch(stats::optim(c(sun_angles["zen_deg"],
-                                 sun_angles["azi_deg"]),
-                               .refine_sun_coord,
-                               method = method_sun),
-                  error = function(e) NULL)
-
-  tryCatch(.normalize_angles(fit$par[1], fit$par[2]),
-           error = function(e) NULL)
-}
-
 #' Optimize sun angular coordinates
 #'
 #' @description
-#' Refine sun zenith and azimuth angles to minimize mismatch between observed
-#' and predicted relative radiance under a CIE sky model.
+#' `r lifecycle::badge("experimental")`
+#'
+#' Refine a solar direction by repeatedly fitting the CIE sky coefficients at
+#' candidate positions. Use the relative-radiance samples of an existing model.
 #'
 #' @details
-#' The procedure combines an iterative heuristic search with a final local
-#' optimization step. The heuristic stage explores the parameter space to avoid
-#' poor local minima, while the final step refines the best solution found.
+#' A change in solar position generally requires a change in sky coefficients.
+#' Each candidate is therefore evaluated with [fit_cie_model()], starting from
+#' the coefficients of the current model. This is a search for a solar direction
+#' supported by the sampled sky radiance, rather than a detection of the disk
+#' in the image. The distribution and purity of sky samples affect the result.
 #'
-#' 1. **Heuristic candidate generation**
-#'    A spherical Fibonacci lattice is generated at each iteration with angular
-#'    spacing adapted to the current search radius. The radius decreases
-#'    monotonically across iterations, while the sampling density increases
-#'    accordingly. This defines a coarse-to-fine exploration of the parameter
-#'    space with approximately constant sampling effort.
+#' The solar search combines discrete exploration and continuous refinement
+#' on the same spherical geometry. Exploration compares a finite set of
+#' positions distributed around the current estimate. Refinement then lets
+#' [stats::optim()] propose positions between and beyond those candidates.
+#' Both stages refit the sky coefficients at every new position. A final
+#' comparison broadens the choice of sky models at the resulting solar position.
 #'
-#'    The angular domain extends beyond the horizon (up to ~96 deg zenith
-#'    angle), allowing the method to operate under crepuscular illumination
-#'    conditions. The upper bound (~96 deg) corresponds to civil twilight.
-#'    Beyond this range, image acquisition is not feasible due to insufficient
-#'    illumination, and therefore such conditions are not considered.
+#' To describe a trial position, the search uses an *offset*: an angular
+#' displacement from a reference solar direction, called the search center.
+#' Imagine a plane touching the unit sphere at that direction. Two signed
+#' components, in degrees along perpendicular directions in this tangent
+#' plane, specify the displacement. Their combined length gives the angular
+#' distance to travel on the sphere, and their orientation gives the direction
+#' of travel along a great circle. Thus, offset `(0, 0)` is the center, and
+#' offset `(3, 4)` reaches a position 5 deg away because
+#' \eqn{\sqrt{3^2 + 4^2} = 5}.
 #'
-#' 2. **Heuristic model evaluation**
-#'    Each candidate position is evaluated by fitting a CIE sky model using
-#'    [fit_cie_model()] with fixed coefficients as starting values
-#'    (`custom_sky_coef = model$coef`). The candidate yielding the lowest model
-#'    metric is selected.
+#' These components are not increments added to solar azimuth and zenith.
+#' They are converted together into a new direction on the sphere. This
+#' representation accommodates travel across azimuth zero and near the zenith,
+#' where a change in azimuth alone is a poor measure of angular displacement.
+#' Offsets are internal search variables; input and output solar positions
+#' remain tables of `zenith` and `azimuth` in radians.
 #'
-#' 3. **Iterative update**
-#'    If an improved solution is found, the model is updated and used as the
-#'    reference for the next iteration. This defines an iterative search process
-#'    guided by local exploration of the angular neighborhood.
+#' 1. **Discrete exploration.** Generate Fibonacci candidates directly within a
+#'    spherical cap around the current sun. Include its current position, and
+#'    shrink the cap from `start_radius` to `tol_angle` over `max_iter`
+#'    iterations. This stage chooses a finite set of offsets within each cap.
+#'    Refit the sky with `method_sky` at each position. All candidates
+#'    within an iteration start from the same coefficients. Accept an improvement
+#'    and use it as the center of the next cap. A stationary estimate alone does
+#'    not establish convergence: stop at the final cap radius, after
+#'    `max_no_improve` consecutive iterations without improvement, or at
+#'    `max_iter`. With `max_iter = 1`, evaluate the initial cap only.
 #'
-#' 4. **Convergence criteria**
-#'    Iteration stops when any of the following conditions is met:
-#'    \itemize{
-#'      \item angular change between successive estimates is below `tol_angle`,
-#'      \item no improvement is observed for `max_no_improve` iterations,
-#'      \item the number of iterations reaches `max_iter`.
-#'    }
+#' 2. **Continuous local refinement.** Starting at offset `(0, 0)`, each method
+#'    in `method_sun` varies the two offset components through [stats::optim()].
+#'    The components are continuous variables: trial positions need not belong
+#'    to the Fibonacci pattern or remain within the last exploration cap.
+#'    The same geometric conversion maps each offset to a solar direction,
+#'    and another fit with `method_sky` supplies its cost. The optimizer
+#'    therefore evaluates a position together with its refitted sky, rather
+#'    than moving the sun under fixed sky coefficients. Offsets may reach
+#'    at most 180 deg from the center; the solar domain and displacement
+#'    penalty described below also apply. Repeated positions within a
+#'    refinement reuse their evaluations. Each method has a budget of
+#'    `max_sun_evaluations` distinct, admissible positions. Retain the best
+#'    evaluated candidate, even if the optimizer fails or exhausts its budget.
 #'
-#'    Iteration may also stop when the angular resolution becomes finer than
-#'    required by `tol_angle`, or when the implied sampling density would lead
-#'    to excessive computational cost.
+#' 3. **Final sky comparison.** At the resulting solar position, fit the 15
+#'    standard skies again, or the starts selected by `custom_sky_coef`,
+#'    `std_sky_no`, or `general_sky_type`. These selectors and `method` apply
+#'    only to this stage. Retain the preceding model if the comparison does not
+#'    improve its mean squared deviation. This wider comparison is performed
+#'    once, rather than at every trial solar position.
 #'
-#' 5. **Final local refinement**
-#'    After convergence, a local optimization is performed from the final
-#'    estimate using each method in `method_sun` via [stats::optim()]. The
-#'    resulting candidates are evaluated with [fit_cie_model()], and the best
-#'    solution is retained.
+#' During exploration and local refinement, rank candidates by
+#' \deqn{\frac{\sqrt{\mathrm{MSD}}}{\overline{L_r}}
+#'        \max\left(1, \frac{\delta}{10\ \mathrm{deg}}\right),}
+#' where MSD is the refitted model's mean squared deviation, \eqn{\overline{L_r}}
+#' is mean observed relative radiance, and \eqn{\delta} is angular distance from
+#' the current search center. This is a soft penalty: displacements beyond
+#' 10 deg are allowed when their improvement compensates for the distance.
+#' The center moves after each accepted exploration step or refinement method;
+#' it is not tied to the initial solar detection. Within one refinement, both
+#' the center and the initial coefficients remain fixed, so evaluation order
+#' does not change the cost assigned to a position.
 #'
-#' This strategy separates global exploration (heuristic stage) from local
-#' exploitation (final refinement), improving robustness against local minima.
+#' The zenith DN reference is held fixed throughout the solar search.
+#' `optim_zenith_dn` applies only to the final sky comparison; see
+#' [fit_cie_model()] for its interpretation and effect on the comparison scale.
+#' The coefficient fits use that function's existing physical penalties and
+#' selection rule, including the horizon reference for the brightness penalty
+#' when the sun is below the horizon. No additional constraints on sky
+#' coefficients are introduced.
 #'
-#' @param model list returned by [fit_cie_model()].
-#' @param method_sun character vector. Optimization methods supported by
-#'   [stats::optim()]. Used only in the final refinement step.
-#' @param max_iter integer of length one. Maximum number of outer iterations.
-#' @param tol_angle numeric of length one. Angular tolerance in degrees.
-#' @param max_no_improve integer of length one. Maximum number of consecutive
-#'   iterations without improvement.
-#' @param n_starts integer of length one. Number of candidate sun positions
-#'   evaluated per iteration. Must be >= 1.
-#' @param start_radius numeric of length one. Angular radius (deg) defining the
-#'   neighborhood used to generate candidate positions.
+#' Search positions are restricted to solar zenith angles from 0 to 96 deg,
+#' including the civil-twilight range. This is the search domain, not a claim
+#' that photographs beyond it are impossible. An initial position outside the
+#' domain is rejected rather than silently changed. Candidates outside it are
+#' excluded, so a cap near the boundary can contain fewer than `n_starts` rows.
 #'
+#' @param model list returned by [fit_cie_model()]. Solar and sample directions
+#'   use the external reference frame and are in radians.
+#' @param method_sun character vector or `NULL`. Optimization methods for continuous
+#'   solar refinement using the two offset components explained in *Details*.
+#'   Defaults to `"Nelder-Mead"`, to limit the number of nested sky fits. Supports
+#'   the multivariate methods of [stats::optim()]. Use `NULL` to skip
+#'   local refinement. Methods run in order, each from the best result so far.
+#' @param max_iter nonnegative integer-like numeric vector of length one.
+#'   Maximum number of exploration iterations; zero skips exploration.
+#' @param tol_angle positive numeric vector of length one. Final exploration
+#'   radius in degrees, no greater than `start_radius`.
+#' @param max_no_improve positive integer-like numeric vector of length one.
+#'   Maximum consecutive exploration iterations without improvement.
+#' @param n_starts positive integer-like numeric vector of length one. Maximum
+#'   positions per exploration iteration, including the current sun.
+#' @param start_radius positive numeric vector of length one, at most 180.
+#'   Initial exploration radius in degrees.
+#' @param method_sky character vector. Coefficient-fitting methods used at every
+#'   trial solar position, starting from the current coefficients. Defaults to
+#'   `"Nelder-Mead"`. Supports `"Nelder-Mead"`, `"BFGS"`, `"CG"`, and
+#'   `"L-BFGS-B"`. SANN is excluded here to keep repeated cost evaluations
+#'   deterministic. Independent of the winning `model$method`.
+#' @param max_sun_evaluations positive integer-like numeric vector of length one.
+#'   Maximum distinct admissible solar positions fitted per local refinement
+#'   method, including its center. Defaults to 60. Exploration and the final
+#'   sky comparison are outside this budget.
+#' @param method character vector. Coefficient-fitting methods for the final
+#'   sky comparison, as in [fit_cie_model()].
+#' @param optim_zenith_dn logical vector of length one. Optimize the zenith DN
+#'   reference only in the final sky comparison; keep it fixed during the solar
+#'   search. See [fit_cie_model()] for the reference-adjustment penalty.
+#' @param parallel,cores,logical,leave_free Controls passed to [fit_cie_model()]
+#'   for the final sky comparison only. The nested solar search is sequential.
 #' @inheritParams fit_cie_model
 #'
-#' @return List like `model` with updated components and an additional element:
+#' @return A model with the same components as [fit_cie_model()], plus:
 #' \describe{
-#'   \item{`method_sun`}{character string indicating the selected optimization
-#'   method in the final refinement step, or `NULL` if no improvement was found.}
+#'   \item{`method_sun`}{The last local-refinement method that improved the solar
+#'     search, or `NULL` if none did.}
+#'   \item{`sun_search`}{A list with `history`, `stop_reason`, and `refinements`.
+#'     `history` records evaluated positions (`zenith` and `azimuth` in radians),
+#'     stage, iteration, method, MSD (`metric`), penalized cost (`score`),
+#'     acceptance, and diagnostic messages. `stop_reason` describes the end of
+#'     exploration. `refinements` records each local optimizer's convergence,
+#'     number of evaluated positions, budget exhaustion, and messages.
+#'     Failed candidate fits have infinite cost. `accepted` marks successive
+#'     retained models, not only the final result.}
 #' }
 #'
 #' @note
-#' The heuristic stage is deterministic given `n_starts` and `start_radius`,
-#' as it relies on a fixed spherical Fibonacci lattice and nearest-neighbor
-#' selection in angular space.
+#' The search is local and does not guarantee a global optimum. Some skies
+#' provide little information about solar position; for example, a CIE model
+#' with both indicatrix coefficients `c` and `e` equal to zero is independent
+#' of the sun. Equal-cost candidates retain the existing position.
 #'
-#' Sun angles are internally normalized to enforce `zen_deg >= 0` and
-#' `azi_deg` in [0, 360).
+#' Candidate generation and `method_sky` are deterministic. SANN in
+#' `method_sun` or the final `method` uses randomness; set a seed in the calling
+#' script for repeatability. This function does not set a seed or change the
+#' caller's random-number generator configuration. Finite nonconverged sky
+#' fits may be used, as in [fit_cie_model()]; inspect the search diagnostics.
 #'
-#' In contrast to [estimate_sun_angles()], this function allows zenith angles
-#' greater than 90 deg to support crepuscular conditions.
-#'
+#' @seealso [fit_cie_model()], [calc_relative_radiance()],
+#'   [optimize_sky_mask()], [optimize_sampling_distance()]
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' plot(r)
-#'
-#' # See fit_cie_model() for details on below file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' sun_angles <- c(zen_deg = 49.5, azi_deg = 33.4)
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#' sky_points <- add_directions(sky_points, z, a)
-#' rr <- calc_relative_radiance(sky_points, col_id = names(r))
-#'
-#' set.seed(7)
-#' model <- fit_cie_model(rr, sun_angles, general_sky_type = "Clear")
-#'
-#' print(model$sun_angles)
-#' print(model$metric)
-#'
-#' plot(model$rr$sky_points$rr, model$rr$sky_points$pred)
-#' abline(0,1)
-#' lm(model$rr$sky_points$pred~model$rr$sky_points$rr) %>% summary()
-#'
-#' model2 <- optimize_sun_angles(model,
-#'                               max_iter = 30,
-#'                               tol_angle = 0.1,
-#'                               max_no_improve = 20,
-#'                               n_starts = 30,
-#'                               start_radius = 10
+#' # Known synthetic sky, with a displaced initial solar position.
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(20, 15),
+#'   normalization_radius = 18,
+#'   normalization_angle = 90
 #' )
+#' g <- set_internal_geometry(c(40, 30), geometry)
+#' d <- direction_image(g)
+#' sun <- data.frame(zenith = 45 * pi/180, azimuth = 30 * pi/180)
+#' sky <- cie_image(d, sun, as.numeric(cie_table[12, 1:5])) * 1000
+#' names(sky) <- "Blue"
+#' indices <- expand.grid(col = seq(2, 40, 4), row = seq(2, 30, 4))
+#' indices <- rem_unselected(indices, !is.na(sky))
+#' samples <- add_directions(extract_dn(sky, indices, use_window = FALSE), d = d)
+#' rr <- calc_relative_radiance(samples, "Blue", zenith_dn = 1000)
+#' initial_sun <- sun
+#' initial_sun$zenith <- 48 * pi/180
+#' fit <- fit_cie_model(rr, initial_sun, std_sky_no = 12, method = "Nelder-Mead")
+#' refined <- optimize_sun_angles(fit, max_iter = 2, n_starts = 5,
+#'   max_sun_evaluations = 12, std_sky_no = 12, method = "Nelder-Mead")
+#' rbind(initial = fit$sun_angles, refined = refined$sun_angles, known = sun)
+#' c(initial = fit$metric, refined = refined$metric)
+#' refined$sun_search$history
 #'
-#' plot(model2$rr$sky_points$rr, model2$rr$sky_points$pred)
-#' abline(0,1)
-#'
-#' print(model$sun_angles)
-#' print(model2$sun_angles)
-#' print(model$metric)
-#' print(model2$metric)
-#' model2$method_sun
-#'
-#' plot(r)
-#' .add_sun_disk <- function(sun_angles,  col) {
-#'   sun_row_col <- row_col_from_zen_azi(z, a,
-#'                                       sun_angles["zen_deg"] * pi/180,
-#'                                       sun_angles["azi_deg"] * pi/180)
-#'   points(sun_row_col[2], nrow(r) - sun_row_col[1],
-#'          col = col, pch = 8, cex = 3)
-#' }
-#' .add_sun_disk(sun_angles, col = "yellow")
-#' .add_sun_disk(model2$sun_angles, col = "orange")
+#' \dontrun{
+#' # Broader final comparison, with all 15 skies and the default fit methods.
+#' set.seed(7)
+#' refined <- optimize_sun_angles(fit, parallel = TRUE, cores = 4)
+#' fitted_sky <- cie_image(d, refined$sun_angles, refined$coef) *
+#'   refined$relative_radiance$zenith_dn
+#' plot(fitted_sky)
 #' }
 optimize_sun_angles <- function(model,
-                                method_sun = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+                                method_sun = "Nelder-Mead",
                                 max_iter = 20,
                                 tol_angle = 0.1,
                                 max_no_improve = 5,
@@ -272,136 +205,229 @@ optimize_sun_angles <- function(model,
                                 custom_sky_coef = NULL,
                                 std_sky_no = NULL,
                                 general_sky_type = NULL,
-                                optim_zenith_dn = FALSE) {
+                                optim_zenith_dn = FALSE,
+                                method_sky = "Nelder-Mead",
+                                max_sun_evaluations = 60,
+                                method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+                                parallel = FALSE,
+                                cores = NULL,
+                                logical = TRUE,
+                                leave_free = 1) {
 
   .assert_cie_model(model)
-
-  if (model$sun_angles["zen_deg"] > 96) {
-    message(
-      sprintf(
-        "Provided sun zenith angle was %f. Since it is unrealistic, it was changed to 96 deg (civic twilight) before optimization.",
-        model$sun_angles["zen_deg"]
-      )
-    )
-    model$sun_angles["zen_deg"] <- 96
+  .check_cie_sun_angles(model$sun_angles)
+  if (model$sun_angles$zenith > 96 * pi/180) {
+    stop("The initial solar zenith angle must not exceed 96 degrees.", call. = FALSE)
   }
-
-  my_col_names <- names(model$rr$sky_points)
-  if ("dn" %in% my_col_names) {
-    model$rr$sky_points <- model$rr$sky_points[, -grep("dn", my_col_names)]
+  .check_vector(model$coef, "numeric", 5)
+  .check_vector(model$metric, "numeric", 1, sign = "nonnegative")
+  .check_vector(max_iter, "integerish", 1, sign = "nonnegative")
+  for (value in c("max_no_improve", "n_starts", "max_sun_evaluations")) {
+    .check_vector(get(value), "integerish", 1, sign = "positive", name = value)
   }
-
-  iter <- 0
-  no_improve <- 0
-  best_metric <- model$metric
-
-  # multi-scale schedule
-  alpha <- (tol_angle / start_radius)^(1 / (max_iter - 1))
-
-  # internal guardrail (not exposed)
-  N_max_internal <- 2e5
-
-  repeat {
-    iter <- iter + 1
-    if (iter > max_iter) break
-
-    # radius decay
-    radius_iter <- start_radius * alpha^(iter - 1)
-
-    # adaptive spacing
-    sp <- .compute_spacing(n_starts, radius_iter)
-    spacing <- sp$spacing
-    N_full <- sp$N_full
-
-    # stopping criteria (resolution + cost)
-    if (spacing < tol_angle / 2) break
-    if (N_full > N_max_internal) break
-
-    # regenerate grid at current scale
-    grid_xyz <- .fibonacci(spacing, max_zenith_angle = 96) #civil twilight
-    grid_xyz <- data.frame(grid_xyz)
-    names(grid_xyz) <- c("x", "y", "z")
-
-    pre_optim_sun <- model$sun_angles
-
-    starts <- .generate_starts(
-      model$sun_angles,
-      n_starts,
-      radius_iter,
-      grid_xyz
-    )
-
-    models <- lapply(seq_len(nrow(starts)), function(i) {
-      sun_angles <- starts[i, ]
-      names(sun_angles) <- c("zen_deg", "azi_deg")
-
-      fit_cie_model(
-        model$rr,
-        sun_angles,
-        custom_sky_coef = model$coef,
-        method = model$method
-      )
+  .check_vector(tol_angle, "numeric", 1, sign = "positive")
+  .check_vector(start_radius, "numeric", 1, sign = "positive")
+  if (start_radius > 180 || tol_angle > start_radius) {
+    stop("Require `tol_angle <= start_radius <= 180` degrees.", call. = FALSE)
+  }
+  supported <- c("Nelder-Mead", "BFGS", "CG", "SANN", "L-BFGS-B")
+  for (value in c("method_sun", "method_sky", "method")) {
+    x <- get(value)
+    if (value == "method_sun" && is.null(x)) next
+    allowed <- if (value == "method_sky") setdiff(supported, "SANN") else supported
+    if (!is.character(x) || anyNA(x) || any(!x %in% allowed) ||
+        (value != "method_sun" && !length(x))) {
+      stop("`", value, "` must contain supported optimization methods.", call. = FALSE)
+    }
+  }
+  method_sun <- unique(method_sun)
+  method_sky <- unique(method_sky)
+  .check_vector(optim_zenith_dn, "logical", 1)
+  .check_vector(parallel, "logical", 1)
+  .check_vector(cores, "integerish", 1, sign = "positive", allow_null = TRUE)
+  .check_vector(logical, "logical", 1)
+  .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
+  .check_cie_general_sky_type(general_sky_type)
+  if (!is.null(custom_sky_coef)) {
+    if (!is.null(std_sky_no) || !is.null(general_sky_type)) {
+      stop("Do not combine `custom_sky_coef` with standard sky selectors.", call. = FALSE)
+    }
+    x <- custom_sky_coef
+    if (is.numeric(x) && is.null(dim(x)) && length(x) == 5L) x <- matrix(x, nrow = 1)
+    if (!is.matrix(x) || !is.numeric(x) || ncol(x) != 5L || !nrow(x) || any(!is.finite(x))) {
+      stop("`custom_sky_coef` must contain finite five-coefficient starts.", call. = FALSE)
+    }
+  }
+  if (!is.null(std_sky_no)) {
+    .check_vector(std_sky_no, "integerish", sign = "positive")
+    if (!length(std_sky_no) || any(std_sky_no > 15)) {
+      stop("`std_sky_no` must contain numbers from 1 to 15.", call. = FALSE)
+    }
+  }
+  rr <- model$relative_radiance
+  .check_vector(rr$zenith_dn, "numeric", 1, sign = "positive")
+  .check_columns(rr$sky_points, c("zenith", "azimuth", "relative_radiance"))
+  for (column in c("zenith", "azimuth", "relative_radiance")) {
+    .check_vector(rr$sky_points[[column]], "numeric", name = column)
+  }
+  if (!nrow(rr$sky_points) || any(rr$sky_points$zenith < 0 | rr$sky_points$zenith > pi/2) ||
+      any(rr$sky_points$azimuth < 0 | rr$sky_points$azimuth >= 2*pi) ||
+      !is.finite(mean(rr$sky_points$relative_radiance)) || mean(rr$sky_points$relative_radiance) <= 0) {
+    stop("Supply finite sky samples with external directions in radians and positive mean relative radiance.", call. = FALSE)
+  }
+  mean_radiance <- mean(rr$sky_points$relative_radiance)
+  history <- list()
+  record <- function(sun, fit, stage, iteration, method, score, message = "") {
+    id <- length(history) + 1L
+    history[[id]] <<- data.frame(stage = stage, iteration = iteration,
+      method = method, zenith = sun$zenith, azimuth = sun$azimuth,
+      metric = if (is.null(fit)) Inf else fit$metric, score = score,
+      accepted = FALSE, message = message, stringsAsFactors = FALSE)
+    id
+  }
+  accept <- function(id) history[[id]]$accepted <<- TRUE
+  score <- function(fit, center) {
+    delta <- calc_spherical_distance(fit$sun_angles$zenith, fit$sun_angles$azimuth,
+      center$zenith, center$azimuth) * 180/pi
+    sqrt(fit$metric) / mean_radiance * max(1, delta/10)
+  }
+  attempt <- function(sun, anchor, final = FALSE) {
+    messages <- character()
+    fit <- tryCatch(withCallingHandlers({
+      if (final) {
+        fit_cie_model(anchor$relative_radiance, sun,
+          custom_sky_coef = custom_sky_coef, std_sky_no = std_sky_no,
+          general_sky_type = general_sky_type, optim_zenith_dn = optim_zenith_dn,
+          method = method, parallel = parallel, cores = cores,
+          logical = logical, leave_free = leave_free)
+      } else {
+        fit_cie_model(anchor$relative_radiance, sun,
+          custom_sky_coef = anchor$coef, method = method_sky)
+      }
+    }, warning = function(w) {
+      messages <<- c(messages, conditionMessage(w)); invokeRestart("muffleWarning")
+    }), error = function(e) {
+      messages <<- c(messages, conditionMessage(e)); NULL
     })
-
-    metrics <- vapply(models, function(m) m$metric, numeric(1))
-    i <- which.min(metrics)
-
-    if (metrics[i] < model$metric) {
-      model <- models[[i]]
-    }
-
-    delta_chi <- calc_spherical_distance(
-      pre_optim_sun["zen_deg"],
-      pre_optim_sun["azi_deg"],
-      model$sun_angles["zen_deg"],
-      model$sun_angles["azi_deg"]
-    )
-
-    if (model$metric < best_metric) {
-      best_metric <- model$metric
-      no_improve <- 0
-    } else {
-      no_improve <- no_improve + 1
-    }
-
-    if (delta_chi < tol_angle * pi / 180) break
-    if (no_improve >= max_no_improve) break
+    list(fit = fit, message = paste(unique(messages), collapse = "; "))
   }
-
-  suns <- lapply(method_sun, function(x) {
-    .optimize_sun_angles(
-      sun_angles = model$sun_angles,
-      rr = model$rr,
-      sky_coef = model$coef,
-      method_sun = x
-    )
-  })
-
-  valid <- vapply(suns, function(x) !is.null(x), logical(1))
-
-  if (any(valid)) {
-    method_sun_subset <- method_sun[valid]
-    suns <- suns[valid]
-
-    models <- lapply(suns, function(sun_angles)
-      fit_cie_model(model$rr,
-                    sun_angles,
-                    custom_sky_coef = custom_sky_coef,
-                    std_sky_no = std_sky_no,
-                    general_sky_type = general_sky_type,
-                    optim_zenith_dn = optim_zenith_dn,
-                    method = model$method)
-    )
-
-    metrics <- vapply(models, function(m) m$metric, numeric(1))
-    i <- which.min(metrics)
-
-    if (metrics[i] < model$metric) {
-      model <- models[[i]]
-      .method_sun <- method_sun_subset[i]
+  id <- record(model$sun_angles, model, "initial", 0L, NA_character_,
+    sqrt(model$metric)/mean_radiance)
+  accept(id)
+  stop_reason <- if (max_iter == 0) "exploration_skipped" else "max_iter"
+  no_improve <- 0L
+  selected_method <- NULL
+  radii <- if (max_iter > 1) exp(seq(log(start_radius), log(tol_angle), length.out = max_iter)) else start_radius
+  for (iteration in seq_len(max_iter)) {
+    anchor <- model
+    candidates <- .sun_cap_candidates(anchor$sun_angles, n_starts, radii[iteration])
+    best <- model; best_score <- sqrt(model$metric)/mean_radiance; best_id <- NULL
+    for (j in seq_len(nrow(candidates))) {
+      sun <- candidates[j, , drop = FALSE]
+      trial <- attempt(sun, anchor)
+      cost <- if (is.null(trial$fit)) Inf else score(trial$fit, anchor$sun_angles)
+      id <- record(sun, trial$fit, "exploration", iteration, NA_character_, cost, trial$message)
+      if (cost < best_score) {
+        best <- trial$fit; best_score <- cost; best_id <- id
+      }
+    }
+    if (!is.null(best_id)) {
+      model <- best; accept(best_id); no_improve <- 0L
+    } else no_improve <- no_improve + 1L
+    if (radii[iteration] <= tol_angle * (1 + 1e-12)) {
+      stop_reason <- "tol_angle"; break
+    }
+    if (no_improve >= max_no_improve) {
+      stop_reason <- "max_no_improve"; break
     }
   }
-
-  model$method_sun <- .method_sun
+  refinements <- list()
+  for (solar_method in method_sun) {
+    anchor <- model
+    best <- model; best_score <- sqrt(model$metric)/mean_radiance; best_id <- NULL
+    cache <- new.env(parent = emptyenv())
+    evaluations <- 0L; exhausted <- FALSE
+    objective <- function(offset) {
+      if (any(!is.finite(offset)) || sqrt(sum(offset^2)) > 180) return(Inf)
+      sun <- .sun_offset_direction(anchor$sun_angles, offset[1], offset[2])
+      if (sun$zenith > 96*pi/180) return(Inf)
+      key <- paste(sprintf("%.17g", unlist(sun)), collapse = ":")
+      if (exists(key, cache, inherits = FALSE)) return(get(key, cache))
+      if (evaluations >= max_sun_evaluations) {
+        exhausted <<- TRUE
+        return(Inf)
+      }
+      evaluations <<- evaluations + 1L
+      trial <- attempt(sun, anchor)
+      cost <- if (is.null(trial$fit)) Inf else score(trial$fit, anchor$sun_angles)
+      id <- record(sun, trial$fit, "refinement", 0L, solar_method, cost, trial$message)
+      assign(key, cost, cache)
+      if (cost < best_score) {
+        best <<- trial$fit; best_score <<- cost; best_id <<- id
+      }
+      cost
+    }
+    messages <- character()
+    opt <- tryCatch(withCallingHandlers(
+      stats::optim(c(0, 0), objective, method = solar_method,
+        control = list(maxit = max_sun_evaluations, parscale = rep(start_radius, 2))),
+      warning = function(w) {
+        messages <<- c(messages, conditionMessage(w)); invokeRestart("muffleWarning")
+      }), error = function(e) {
+        messages <<- c(messages, conditionMessage(e)); NULL
+      })
+    if (!is.null(opt$message)) messages <- c(messages, opt$message)
+    if (!is.null(best_id)) {
+      model <- best; accept(best_id); selected_method <- solar_method
+    }
+    refinements[[length(refinements) + 1L]] <- data.frame(method = solar_method,
+      convergence = if (is.null(opt)) NA_integer_ else opt$convergence,
+      evaluations = evaluations, budget_exhausted = exhausted,
+      message = paste(unique(messages), collapse = "; "), stringsAsFactors = FALSE)
+  }
+  trial <- attempt(model$sun_angles, model, final = TRUE)
+  final_score <- if (is.null(trial$fit)) Inf else sqrt(trial$fit$metric)/mean_radiance
+  id <- record(model$sun_angles, trial$fit, "final", 0L, NA_character_, final_score, trial$message)
+  if (!is.null(trial$fit) && trial$fit$metric < model$metric) {
+    model <- trial$fit; accept(id)
+  }
+  if (is.null(trial$fit)) {
+    warning("The final sky comparison failed; retaining the preceding model. See `sun_search$history`.", call. = FALSE)
+  }
+  model["method_sun"] <- list(selected_method)
+  model$sun_search <- list(history = do.call(rbind, history), stop_reason = stop_reason,
+    refinements = if (length(refinements)) do.call(rbind, refinements) else
+      data.frame(method = character(), convergence = integer(), evaluations = integer(),
+        budget_exhausted = logical(), message = character()))
   model
+}
+
+# Exponential map from a two-dimensional angular offset (degrees).
+.sun_offset_direction <- function(center, east, south) {
+  theta <- center$zenith; phi <- center$azimuth
+  v <- c(sin(theta)*cos(phi), sin(theta)*sin(phi), cos(theta))
+  e <- c(-sin(phi), cos(phi), 0)
+  s <- c(cos(theta)*cos(phi), cos(theta)*sin(phi), -sin(theta))
+  rho <- sqrt(east^2 + south^2) * pi/180
+  if (rho == 0) return(center[, c("zenith", "azimuth"), drop = FALSE])
+  xyz <- cos(rho)*v + sin(rho)/rho * (east*e + south*s)*pi/180
+  azimuth <- atan2(xyz[2], xyz[1]) %% (2*pi)
+  if (azimuth >= 2*pi) azimuth <- 0
+  data.frame(zenith = atan2(sqrt(sum(xyz[1:2]^2)), xyz[3]),
+    azimuth = azimuth)
+}
+
+.sun_cap_candidates <- function(center, n, radius) {
+  candidates <- center[, c("zenith", "azimuth"), drop = FALSE]
+  if (n == 1) return(candidates)
+  j <- seq_len(n - 1L)
+  # Area-uniform radii, computed without cancellation in very small caps.
+  rho <- 2*asin(sqrt((j-.5)/(n-1L))*sin(radius*pi/360)) * 180/pi
+  phi <- 2*pi*(j-1)/((1+sqrt(5))/2)
+  extra <- lapply(j, function(i) .sun_offset_direction(center,
+    rho[i]*cos(phi[i]), rho[i]*sin(phi[i])))
+  candidates <- rbind(candidates, do.call(rbind, extra))
+  candidates <- candidates[candidates$zenith <= 96*pi/180, , drop = FALSE]
+  rownames(candidates) <- NULL
+  candidates
 }

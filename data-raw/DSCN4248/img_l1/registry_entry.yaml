@@ -1,0 +1,145 @@
+schema_version: 4
+created_with:
+  package: rcaiman.registry
+  version: 0.2.0.9000
+  date: '2026-10-28'
+configuration:
+  signature: raw
+  band_spec: cygm
+  geometry_spec: ~
+  radiometry_spec: ~
+registry_entry:
+  instrument_metadata:
+    id: Nikon_Coolpix5700.FCE9.CIEFAP
+    body:
+      model: E5700
+      manufacturer: NIKON CORP
+      serial: '7053067'
+    device: ~
+    lens:
+      model: Zoom Nikkor ED 8.9-71.2mm 1:2.8-4.2
+      manufacturer: NIKON CORP
+      serial: ~
+    auxiliary_lens:
+      model: Fisheye Converter FC-E9 0.2x
+      manufacturer: NIKON CORP
+      serial: ~
+    institution: CIEFAP
+  signature:
+    id: raw
+    dim:
+      - 1288.0
+      - 962.0
+    validated_with_libraw: 0.21.1
+    validated_with_exiftool: '13.59'
+    metadata_profile: exiftool_g1_short_v1
+    rules:
+      auto_focus:
+        group: Composite
+        tag: AutoFocus
+        label: AutoFocus
+        expected: 'On'
+      cfapattern:
+        group: Composite
+        tag: CFAPattern
+        label: CFAPattern
+        expected: '[Yellow,Cyan][Green,Magenta]'
+      focal_length35efl:
+        group: Composite
+        tag: FocalLength35efl
+        label: FocalLength35efl
+        expected: 8.9 mm
+      flash:
+        group: ExifIFD
+        tag: Flash
+        label: Flash
+        expected: Off, Did not fire
+      file_type:
+        group: File
+        tag: FileType
+        label: FileType
+        expected: NEF
+      file_type_extension:
+        group: File
+        tag: FileTypeExtension
+        label: FileTypeExtension
+        expected: nef
+      make:
+        group: IFD0
+        tag: Make
+        label: Make
+        expected: NIKON
+      model:
+        group: IFD0
+        tag: Model
+        label: Model
+        expected: E5700
+      software:
+        group: IFD0
+        tag: Software
+        label: Software
+        expected: E5700v1.1
+      digital_zoom:
+        group: Nikon
+        tag: DigitalZoom
+        label: DigitalZoom
+        expected: '1'
+      iso:
+        group: Nikon
+        tag: ISO
+        label: ISO
+        expected: '100'
+      isoselection:
+        group: Nikon
+        tag: ISOSelection
+        label: ISOSelection
+        expected: Manual
+      noise_reduction:
+        group: Nikon
+        tag: NoiseReduction
+        label: NoiseReduction
+        expected: 'Off'
+      quality:
+        group: Nikon
+        tag: Quality
+        label: Quality
+        expected: RAW
+      bits_per_sample:
+        group: SubIFD1
+        tag: BitsPerSample
+        label: BitsPerSample
+        expected: '12'
+      cfapattern2:
+        group: SubIFD1
+        tag: CFAPattern2
+        label: CFAPattern2
+        expected: 5 3 1 4
+      image_height:
+        group: SubIFD1
+        tag: ImageHeight
+        label: ImageHeight
+        expected: '1924'
+      image_width:
+        group: SubIFD1
+        tag: ImageWidth
+        label: ImageWidth
+        expected: '2576'
+    date: '2026-10-27'
+  band_spec:
+    id: cygm
+    cfa_pattern:
+      values:
+        - Green
+        - Magenta
+        - Yellow
+        - Cyan
+      dimnames: ~
+    spectral_mapping:
+      Red: Magenta
+      Green: Green
+      Blue: Cyan
+    date: '2026-10-27'
+    notes: ~
+    contact_information: ~
+  geometry_spec: ~
+  radiometry_spec: ~

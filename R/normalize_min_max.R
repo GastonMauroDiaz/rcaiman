@@ -20,7 +20,9 @@
 #' @export
 #'
 #' @examples
-#' normalize_min_max(read_caim())
+#' normalize_min_max(1:10)
+#' normalize_min_max(1:10, 3, 7)
+#' normalize_min_max(1:10, 3, 7, clip = TRUE)
 normalize_min_max <- function(r, mn = NULL, mx = NULL, clip = FALSE) {
   handling_r <- c(
     tryCatch(.check_vector(r, "numeric", sign = "any"),

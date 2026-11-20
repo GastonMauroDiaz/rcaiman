@@ -29,5 +29,7 @@ values will be within \eqn{[0, 1]} even if this implies data loss.
 Rescale numeric or raster data from an expected range to the range \eqn{[0, 1]}.
 }
 \examples{
-normalize_min_max(read_caim())
+normalize_min_max(1:10)
+normalize_min_max(1:10, 3, 7)
+normalize_min_max(1:10, 3, 7, clip = TRUE)
 }

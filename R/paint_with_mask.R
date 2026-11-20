@@ -21,32 +21,24 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#'
-#' rspec <- get_radiometry_spec(spec, "spectral_bands")
-#' caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
-#'
-#' caim <- normalize_min_max(caim)
-#'
-#' m <- select_sky_region(z, 20, 70) & select_sky_region(a, 90, 180)
-#' masked_caim <-  paint_with_mask(caim, m)
-#' plotRGB(masked_caim * 255)
-#'
-#' bin <- binarize_with_thr(caim$Blue, thr_isodata(caim$Blue[]))
-#' masked_bin <- paint_with_mask(bin, m)
-#' plotRGB(masked_bin * 255)
-#'
-#' paint_with_mask(caim, m, color = c(0.2, 0.2, 0.2))  # vector
-#' paint_with_mask(caim, m, color = "blue")     # name
-#' paint_with_mask(caim, m, color = "#00FF00")  # hexadecimal
-#' }
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g, elevation = 32.5)
+#' r <- normalize_min_max(g$off_axis)
+#' z <- d$zenith
+#' a <- d$azimuth
+#' m <- !is.na(z) & !is.na(a) &
+#'   z >= 20 & z <= 70 & a >= 90 & a <= 180
+#' painted <- paint_with_mask(r, m)
+#' terra::plotRGB(painted, scale = 1)
+#' painted <- paint_with_mask(r, m, color = "blue", where = "inside")
+#' terra::plotRGB(painted, scale = 1)
 paint_with_mask <- function(r, m, color = "red", where = "outside") {
   .assert_spatraster(r)
   .assert_logical_mask(m)

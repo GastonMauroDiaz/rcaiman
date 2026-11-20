@@ -4,73 +4,117 @@
 \alias{complementary_gradients}
 \title{Calculate complementary gradients}
 \usage{
-complementary_gradients(caim)
+complementary_gradients(caim, cfa_type = c("bayer", "cygm"))
 }
 \arguments{
-\item{caim}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with three layers named
-\code{"Red"}, \code{"Green"}, and \code{"Blue"}. Digital numbers should be linearly
-related to radiance \insertCite{Lang2010;textual}{rcaiman}.}
+\item{caim}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with exactly four uniquely
+named layers: \code{"Red"}, \code{"Green1"}, \code{"Green2"}, and \code{"Blue"} for Bayer;
+\code{"Cyan"}, \code{"Yellow"}, \code{"Green"}, and \code{"Magenta"} for CYGM. Layer order
+is unrestricted. Declare these names in the \code{cfa_pattern} supplied to
+\code{\link[=split_cfa]{split_cfa()}}. The two Bayer green positions may be named \code{"Green1"}
+and \code{"Green2"} in either order because their average is used.
+Values are sensor-band measurements before RGB mapping. Their relative
+scaling affects the gradients; no white balance is estimated or applied.}
+
+\item{cfa_type}{character vector of length one: \code{"bayer"} (default) or
+\code{"cygm"}. Selects the expected band names and gradient formulas.}
 }
 \value{
 Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with three layers and the same
 geometry as \code{caim}. The layers (\code{"green_magenta"}, \code{"yellow_blue"},
-\code{"red_cyan"}) are chromatic gradients modulated by brightness.
+\code{"red_cyan"}) are normalized chromatic gradients. A missing value in a
+band used by a gradient, or a zero denominator, produces \code{NA} in that
+gradient. For Bayer, all four bands contribute to every gradient.
+For CYGM, \code{green_magenta} uses only Green and Magenta; the other two
+gradients use only Cyan, Yellow, and Magenta.
 }
 \description{
 Compute three color-opponent gradients to enhance the visual separation
 between sky and canopy in photographs, particularly under
-diffuse light or complex cloud patterns.
+non-diffuse light or complex cloud patterns.
 }
 \details{
-The method exploits chromatic differences between the red, green, and blue
-bands, following a simplified opponent-color logic. Each gradient is
-normalized by total brightness and modulated by a logistic contrast
-function to reduce the influence of underexposed regions:
+Inspired by opponent processing in human color vision, this function
+combines spectral bands into opposing chromatic signals designed to
+distinguish sky from canopy. The gradients are tailored to canopy
+photography rather than intended to reproduce human visual responses.
+
+Use the four bands returned by \code{\link[=split_cfa]{split_cfa()}}, with the names described
+in \code{caim}. No mapping to RGB is needed. Layers are selected by name,
+independently of their order or position in the CFA pattern.
+
+For \code{cfa_type = "bayer"}, it averages the two green bands:
+\eqn{G = (G_1 + G_2)/2}. The gradients are:
 \itemize{
-\item \code{"green_magenta"} = \eqn{(R - G + B) / (R + G + B)} · logistic(brightness)
-\item \code{"yellow_blue"}   = \eqn{(-R - G + B) / (R + G + B)} · logistic(brightness)
-\item \code{"red_cyan"}      = \eqn{(-R + G + B) / (R + G + B)} · logistic(brightness)
+\item \code{"green_magenta"} = \eqn{(R - G + B) / (R + G + B)}
+\item \code{"yellow_blue"}   = \eqn{(-R - G + B) / (R + G + B)}
+\item \code{"red_cyan"}      = \eqn{(-R + G + B) / (R + G + B)}
 }
 
-The \code{logistic(brightness)} term is computed as:
-\deqn{
-\text{logistic}(x) = \frac{1}{1 + \exp\left(-\frac{x - q_{0.1}}{\mathrm{IQR}}\right)}
+For \code{cfa_type = "cygm"}, it uses Cyan (C), Yellow (Y), Green (G), and
+Magenta (M) directly:
+\itemize{
+\item \code{"green_magenta"} = \eqn{(M - G) / (M + G)}
+\item \code{"yellow_blue"}   = \eqn{(M + C - Y) / (M + C + Y)}
+\item \code{"red_cyan"}      = \eqn{(C - M - Y) / (C + M + Y)}
 }
-where \eqn{q_{0.1}} is the 10th percentile of brightness values
-(\eqn{x = R + G + B}), and \eqn{IQR} is their interquartile range.
 
-This weighting suppresses gradients in poorly exposed regions to reduce
-spurious values caused by low signal-to-noise ratios.
+Higher values favor magenta over green, blue over yellow, and cyan over
+red, respectively, for both CFA types. These contrasts are intended to
+place the sky toward higher values, consistently with brightness.
+The calculation is pixelwise: multiplying all bands by the same positive
+factor leaves the gradients unchanged. CYGM combinations define chromatic
+contrasts; they do not reconstruct missing RGB bands. The same polarity
+does not imply numerically interchangeable gradients between CFA types.
+
+If all four input bands have the same positive value, Bayer gradients
+equal 1/3, -1/3, and 1/3 in the order listed above; CYGM gradients equal
+0, 1/3, and -1/3. Thus, even when white is represented by equal band
+values, it does not generally coincide with zero. Zero is not defined
+as a common achromatic reference for these gradients.
+
+Equal band responses to white light should not be assumed for RAW data
+from a photographic system without a characterization of its relative band
+responses. This is a limitation to consider when using photographic
+equipment as a measuring instrument.
 }
 \note{
 This function is part of a paper under preparation.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw2.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g)
+sun_angles <- data.frame(zenith = 45 * pi/180, azimuth = 10 * pi/180)
+m <- !is.na(d$zenith)
 
-z <- zenith_image(ncol(caim), spec$parameters)
-a <- azimuth_image(z)
-m <- !is.na(z)
+# Construct synthetic Bayer bands from three different CIE distributions.
+# Both green positions receive the same values in this example.
+# Independent rescaling creates the colors of this example; it is not
+# a required preprocessing step for photographs.
+r <- cie_image(d, sun_angles, as.numeric(cie_table[12, 1:5]), m = m) \%>\%
+  normalize_min_max()
+green <- cie_image(d, sun_angles, as.numeric(cie_table[4, 1:5]), m = m) \%>\%
+  normalize_min_max()
+b <- cie_image(d, sun_angles, as.numeric(cie_table[1, 1:5]), m = m) \%>\%
+  normalize_min_max()
+caim <- c(r, green, green, b)
+names(caim) <- c("Red", "Green1", "Green2", "Blue")
+terra::plotRGB(caim, r = 1, g = 2, b = 4, scale = 1, stretch = NULL)
 
-rspec <- get_radiometry_spec(spec, "flat_field_reconstruction")
-ff <- ff_trend_surface(z, a, rspec$data, "5", names(caim))
-caim <- apply_flat_field(caim, ff)
-
-rspec <- get_radiometry_spec(spec, "spectral_bands")
-caim <- cfa_to_spectral(caim, rspec$spectral_mapping)
-
-com <- complementary_gradients(caim)
+com <- complementary_gradients(caim, cfa_type = "bayer")
 plot(com)
 
-bin <- binarize_with_thr(com$red_cyan, 0.37)
-plot(bin)
-}
-}
-\references{
-\insertAllCited{}
+# A synthetic CYGM example: each row supplies four sensor-band responses.
+cygm <- set_rcaiman_geometry(rast(nrows = 2, ncols = 2, nlyrs = 4))
+names(cygm) <- c("Cyan", "Yellow", "Green", "Magenta")
+values(cygm) <- rbind(c(8, 2, 2, 8), c(2, 8, 8, 2),
+                      c(8, 2, 2, 2), c(5, 5, 5, 5))
+complementary_gradients(cygm, cfa_type = "cygm")[]
 }

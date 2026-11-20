@@ -21,11 +21,13 @@
 #' \deqn{
 #' \hat{\rho_R}^{\circ}(\theta, \phi) =
 #' \frac{\Phi(\theta) \cdot f(\chi(\theta, \phi; \theta_\odot, \phi_\odot))}
-#' {\Phi(0) \cdot f(\chi(\theta, \phi; 0, 0))}
+#' {\Phi(0) \cdot f(\theta_\odot)}
 #' }
 #'
 #' where \eqn{\theta} is the zenith angle, \eqn{\phi} is the azimuth angle,
 #' and \eqn{\theta_\odot, \phi_\odot} are the zenith and azimuth of the sun disk.
+#' The angular distance between zenith and the sun is \eqn{\theta_\odot},
+#' which determines the indicatrix value in the normalization denominator.
 #'
 #' @format `data.frame` with 15 rows and 8 columns:
 #' \describe{
@@ -49,107 +51,107 @@
 #' Equidistant projection coefficient
 #'
 #' @description
-#' Coefficient for an ideal equidistant projection normalized at the horizon.
+#' Coefficient for an ideal equidistant projection normalized at an off-axis
+#' angle of 90 deg.
 #'
 #' @details
 #' In an equidistant projection, also called polar projection, radial distance
-#' in image space is linearly proportional to the zenith angle
+#' in image space is linearly proportional to the off-axis angle
 #' \insertCite{Schneider2009}{rcaiman}:
 #'
-#' \deqn{r_{rel} = k \cdot \theta}
+#' \deqn{r_{rel} = k \cdot \theta'}
 #'
-#' where \eqn{r_{rel}} is the relative radius (radius expresed as a fraction of
-#' the radius at 90 deg), and \eqn{\theta} is the zenith angle in radians and
+#' where \eqn{r_{rel}} is the relative radius (radius expressed as a fraction of
+#' the radius at 90 deg), \eqn{\theta'} is the off-axis angle in radians, and
 #' \eqn{k} is a scalar.
 #'
 #' Enforcing the geometric constraint \eqn{r_{rel} = 1} at
-#' \eqn{\theta = \pi/2} yields \eqn{k = 2 / \pi}.
+#' \eqn{\theta' = \pi/2} yields \eqn{k = 2 / \pi}.
 #'
 #' @format Numeric vector of length one.
 #'
 #' @references \insertAllCited{}
 #'
-#' @seealso [orthographic_coef], [equal_area_coef]
+#' @seealso [normalize_projection_coef()] to change the normalization
+#'   reference; [orthographic_coef], [equal_area_coef].
 #'
 #' @export
 #'
 #' @examples
-#' zenith_image(diameter, equidistant_coef)
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' set_internal_geometry(c(80, 60), geometry)
 equidistant_coef <- 2/pi
 
 #' Orthographic projection coefficients
 #'
 #' @description
 #' Polynomial coefficients approximating an orthographic projection normalized
-#' at the horizon.
+#' at an off-axis angle of 90 deg.
 #'
 #' @details
 #' In an orthographic projection, radial distance in image space is proportional
-#' to the sine of the zenith angle \insertCite{Schneider2009}{rcaiman}:
+#' to the sine of the off-axis angle \insertCite{Schneider2009}{rcaiman}:
 #'
-#' \deqn{r_{rel} = \sin(\theta)}
+#' \deqn{r_{rel} = \sin(\theta')}
 #'
-#' where \eqn{r_{rel}} is the relative radius (radius expresed as a fraction of
-#' the radius at 90 deg), and \eqn{\theta} is the zenith angle in
+#' where \eqn{r_{rel}} is the relative radius (radius expressed as a fraction of
+#' the radius at 90 deg), and \eqn{\theta'} is the off-axis angle in
 #' radians.
 #'
-#' In `rcaiman`, radial projection models are defined as polynomials (see
-#' [calc_relative_radius()]):
+#' The supplied coefficients fit the radial polynomial described in
+#' [set_internal_geometry()] to the orthographic projection over off-axis
+#' angles in \eqn{[0, \pi/2]}.
 #'
-#' \deqn{r_{rel}(\theta) = \sum_{p=1}^{n} a_p \theta^p}
-#'
-#' where the coeficients are \eqn{a_1, a_2, ..., a_n)} and the coeficient at
-#' position `p` multiplies \eqn{\theta^p}.
-#'
-#' The coefficients provided here were obtained by fitting this
-#' polynomial to the orthographic projection over the interval \eqn{[0, \pi/2]},
-#' and satisfy the normalization constraints enforced by
-#' [validate_projection_function()].
-#'
-#' @format Numeric vector of length four.
+#' @format Numeric vector of length five.
 #'
 #' @references \insertAllCited{}
 #'
-#' @seealso [equidistant_coef], [equal_area_coef]
+#' @seealso [normalize_projection_coef()] to change the normalization
+#'   reference; [equidistant_coef], [equal_area_coef].
 #'
 #' @examples
-#' z <- zenith_image(diameter, orthographic_coef)
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = orthographic_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' set_internal_geometry(c(80, 60), geometry)
 #' @export
-orthographic_coef <- c(0.9972, 0.01719, -0.2008, 0.028018)
+orthographic_coef <- c(0.9998, 0.001840, -0.171600, 0.005626, 0.005848)
 
 
 #' Equal-area projection coefficients
 #'
 #' @description
 #' Polynomial coefficients approximating an equal-area projection (also
-#' called equisolid-angle projection), normalized at the horizon.
+#' called equisolid-angle projection), normalized at an off-axis angle of
+#' 90 deg.
 #'
 #' @details
 #' In an equal-area projection, radial distance in image space is
-#' proportional to the sine of half the zenith angle
+#' proportional to the sine of half the off-axis angle
 #' \insertCite{Schneider2009}{rcaiman}:
 #'
-#' \deqn{r_{rel} = \sqrt{2} \sin(\theta/2)}
+#' \deqn{r_{rel} = \sqrt{2} \sin(\theta'/2)}
 #'
-#' where \eqn{r_{rel}} is the relative radius (radius expresed as a fraction of
-#' the radius at 90 deg), and \eqn{\theta} is the zenith angle in
+#' where \eqn{r_{rel}} is the relative radius (radius expressed as a fraction of
+#' the radius at 90 deg), and \eqn{\theta'} is the off-axis angle in
 #' radians.
 #'
 #' This formulation preserves solid angle, meaning that equal areas in the image
 #' correspond to equal portions of the hemisphere.
 #'
-#' In `rcaiman`, radial projection models are defined as polynomials (see
-#' [calc_relative_radius()]):
-#'
-#' \deqn{r_{rel}(\theta) = \sum_{p=1}^{n} a_p \theta^p}
-#'
-#' where the coeficients are \eqn{a_1, a_2, ..., a_n)} and the coeficient at
-#' position `p` multiplies \eqn{\theta^p}.
-#'
-#' The coefficients provided here were obtained by fitting this
-#' polynomial to the equal-area projection over the interval \eqn{[0, \pi/2]},
-#' and satisfy the normalization constraints enforced by
-#' [validate_projection_function()].
+#' The supplied coefficients fit the radial polynomial described in
+#' [set_internal_geometry()] to the equal-area projection over off-axis
+#' angles in \eqn{[0, \pi/2]}.
 #'
 #' @format Numeric vector of length four.
 #'
@@ -157,8 +159,16 @@ orthographic_coef <- c(0.9972, 0.01719, -0.2008, 0.028018)
 #'
 #' @export
 #'
-#' @seealso [equidistant_coef], [orthographic_coef]
+#' @seealso [normalize_projection_coef()] to change the normalization
+#'   reference; [equidistant_coef], [orthographic_coef].
 #'
 #' @examples
-#' z <- zenith_image(diameter, equal_area_coef)
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equal_area_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' set_internal_geometry(c(80, 60), geometry)
 equal_area_coef <- c(0.7070, 0.000913, -0.0312, 0.00135)

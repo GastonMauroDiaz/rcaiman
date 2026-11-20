@@ -2,79 +2,70 @@
 % Please edit documentation in R/fit_trend_surface.R
 \name{fit_trend_surface}
 \alias{fit_trend_surface}
-\title{Fit a trend surface to sky digital numbers}
+\title{Fit a polynomial trend surface}
 \usage{
-fit_trend_surface(
-  sampling_coord,
-  col_id = "dn",
-  r,
-  np = 6,
-  extrapolate = FALSE,
-  return = "raster"
-)
+fit_trend_surface(sampling_coord, col_id = "dn", np = 6, return = "parameters")
 }
 \arguments{
-\item{sampling_coord}{\code{data.frame} with numeric columns \code{"x"} and
-\code{"y_down"} containing continuous image coordinates, and a numeric column
-with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
-cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
-centers. Subpixel positions are used without snapping to cells.}
+\item{sampling_coord}{\code{data.frame} with numeric columns \code{x}, \code{y_down}, and
+the values selected by \code{col_id}. Coordinates and values must be finite.
+Remove missing observations before fitting.}
 
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_coord} containing the values to interpolate.}
+\item{col_id}{character or numeric vector of length one. Name or position
+of the column to model in \code{sampling_coord}.}
 
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Image frame to
-which \code{sampling_coord} refers, with geometry set by \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
-Used only as a geometric template; cell values are ignored. Interpolation
-is evaluated at cell centers.}
+\item{np}{integer vector of length one. Polynomial degree, from 1 to 6.}
 
-\item{np}{
-degree of polynomial surface
-}
-
-\item{extrapolate}{logical vector of length one. If \code{TRUE}, predictions are
-extrapolated to the entire extent of \code{r}; otherwise, predictions are
-limited to the convex hull of the input sky points.}
-
-\item{return}{character vector of length one. Either \code{"raster"} (default) to
-return the fitted surface as a raster, or \code{"all"} to also return the model
-and coefficient of determination.}
+\item{return}{character vector of length one. Either \code{"parameters"}
+(default) or \code{"all"}.}
 }
 \value{
-If \code{return = "raster"}, a numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer
-and the same geometry as \code{r}.
-
-If \code{return = "all"}, a list with named elements:
+With \code{return = "parameters"}, a plain named list containing:
 \describe{
-\item{\code{raster}}{\link[terra:SpatRaster-class]{terra::SpatRaster} containing the fitted surface.}
-\item{\code{model}}{object of class \code{trls} returned by \code{\link[spatial:surf.ls]{spatial::surf.ls()}}.}
-\item{\code{r2}}{numeric value giving the coefficient of determination (R\eqn{^2}) of the fit.}
+\item{\code{np}}{polynomial degree.}
+\item{\code{beta}}{fitted coefficients in the basis used by \code{spatial}.}
+\item{\code{rx}, \code{ry}}{ranges of \code{x} and \code{y_down} used during fitting.}
 }
+With \code{return = "all"}, a list containing \code{parameters}, \code{model} (the
+complete \code{trls} object returned by \code{\link[spatial:surf.ls]{spatial::surf.ls()}}), and \code{r2}.
+Use \code{\link[stats:fitted]{stats::fitted()}} and \code{\link[stats:residuals]{stats::residuals()}} on \code{model} for fitted values
+and residuals in input row order. For predictions at other positions,
+use \code{predict(model, x, y_down)}; the model's \code{y} coordinate is \code{y_down}.
+\code{r2} is \code{NA} for constant observations.
 }
 \description{
-Fits a trend surface to sky digital numbers using
-\code{\link[spatial:surf.ls]{spatial::surf.ls()}} as the computational workhorse.
+Fit a polynomial surface to observations in image coordinates and return
+compact parameters for evaluating it on a raster grid.
 }
 \details{
-This function models the variation in digital numbers across the sky
-dome by fitting a polynomial surface in Cartesian space. It is intended to
-capture smooth large-scale gradients and is more effective when called via
-\code{\link[=apply_by_direction]{apply_by_direction()}} or the \code{\link[=panoramic]{panoramic()}} pipeline.
+The surface is fitted with \code{\link[spatial:surf.ls]{spatial::surf.ls()}} using \code{x} and \code{y_down}
+directly, following \code{\link[=coord_from_indices]{coord_from_indices()}}. Values may be positive, zero,
+or negative. No normalization is performed and the constant term is
+fitted freely.
+
+A degree \code{np} surface has \code{(np + 1) * (np + 2) / 2} coefficients. Sample
+positions must provide at least that many independent constraints. The
+coordinate ranges retained in the parameters scale the polynomial basis;
+they are not image dimensions and must not be replaced during evaluation.
+
+\code{\link[=trend_surface_image]{trend_surface_image()}} evaluates the parameters on a grid. To restrict
+predictions to the convex hull of the samples, apply \code{\link[=convex_hull_mask]{convex_hull_mask()}}
+separately. The parameters contain neither observations nor their hull.
+
+For an application of this method to radiometric preprocessing, see the
+"Radiometric preprocessing" section in \code{\link[=trend_surface_image]{trend_surface_image()}}.
 }
 \examples{
-r <- set_rcaiman_geometry(terra::rast(nrows = 5, ncols = 7))
-sampling_coord <- coord_from_indices(
-  col = c(1, 7, 1, 7, 2, 5, 3, 6),
-  row = c(1, 1, 5, 5, 3, 2, 4, 4)
-)
-sampling_coord$dn <- c(2, 7, 4, 11, 3, 9, 6, 10)
-fitted <- fit_trend_surface(
-  sampling_coord, r = r, np = 2, extrapolate = TRUE, return = "all"
-)
-plot(fitted$raster)
-fitted$r2
+samples <- expand.grid(x = c(2, 6, 10, 14, 18), y_down = c(2, 5, 8, 10))
+samples$dn <- 10 + 2 * samples$x - 3 * samples$y_down +
+  0.1 * samples$x * samples$y_down
+fit <- fit_trend_surface(samples, np = 2, return = "all")
+range(residuals(fit$model))
+r <- set_rcaiman_geometry(terra::rast(nrows = 12, ncols = 20))
+m <- convex_hull_mask(samples, r)
+surface <- trend_surface_image(r, fit$parameters, m = m)
+plot(surface)
 }
 \seealso{
-\code{\link[=panoramic]{panoramic()}} for an alternative pipeline involving a temporary
-shift of image plane
+\code{\link[=trend_surface_image]{trend_surface_image()}}, \code{\link[=convex_hull_mask]{convex_hull_mask()}}
 }

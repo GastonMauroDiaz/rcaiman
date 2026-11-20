@@ -5,38 +5,18 @@
 \alias{uncrop_points}
 \title{Transform points between original and cropped image frames}
 \usage{
-crop_points(
-  sampling_coord,
-  upper_left_indices = NULL,
-  snapped_zenith_coord = NULL,
-  horizon_radius = NULL
-)
+crop_points(sampling_coord, upper_left_indices)
 
-uncrop_points(
-  sampling_coord,
-  upper_left_indices = NULL,
-  snapped_zenith_coord = NULL,
-  horizon_radius = NULL
-)
+uncrop_points(sampling_coord, upper_left_indices)
 }
 \arguments{
 \item{sampling_coord}{\code{data.frame} with columns \code{"x"} and \code{"y_down"}.
 Frame-independent columns are preserved. Columns removed by
 \code{\link[=keep_coord]{keep_coord()}} are discarded after the translation.}
 
-\item{upper_left_indices}{integer-like numeric vector of length two. Cell
-indices of the upper-left cell included in the crop, in the order
-\code{c(col, row)}. Cell indices are numbered from 1. Alternatively, use
-\code{snapped_zenith_coord} and \code{horizon_radius}.}
-
-\item{snapped_zenith_coord}{integer-like numeric vector of length two.
-Continuous image coordinates of the snapped optical center in the original
-image frame, in the order \code{c(x, y_down)}. Use with \code{horizon_radius} as an
-alternative to \code{upper_left_indices}.}
-
-\item{horizon_radius}{positive integer-like numeric vector of length one.
-Radius of the declared processing geometry in cell units. Use with
-\code{snapped_zenith_coord} as an alternative to \code{upper_left_indices}.}
+\item{upper_left_indices}{positive integer-like numeric vector of length two.
+Cell indices of the upper-left cell included in the crop, in the order
+\code{c(col, row)}. See \code{\link[=y_down_from_y]{y_down_from_y()}}.}
 }
 \value{
 \itemize{
@@ -52,13 +32,13 @@ cell-aligned crop.
 }
 \details{
 The upper-left boundary of the first retained cell has original image
-coordinates \code{c(col - 1, row - 1)}. This value is subtracted from every input
-point. \code{\link[=crop_points]{crop_points()}} subtracts this value from every input point, whereas
+coordinates \code{c(col - 1, row - 1)}. \code{\link[=crop_points]{crop_points()}} subtracts this value
+from every input point, whereas
 \code{\link[=uncrop_points]{uncrop_points()}} adds it. The original image is not required for the inverse
 operation.
 
-For a crop centered on a snapped zenith, the equivalent translation is
-\code{snapped_zenith_coord - horizon_radius}.
+Supply the same \code{upper_left_indices} used with \code{\link[=crop_caim]{crop_caim()}} or
+\code{\link[=uncrop_caim]{uncrop_caim()}}. Grid dimensions are not needed to translate points.
 
 Both functions translate every row without discarding points outside either
 image frame. Row order, duplicates, angular directions, and nonspatial
@@ -76,10 +56,7 @@ cropped_coord <- crop_points(
   upper_left_indices = c(4, 3)
 )
 uncrop_points(cropped_coord, upper_left_indices = c(4, 3))
-
-crop_points(
-  original_coord,
-  snapped_zenith_coord = c(6, 5),
-  horizon_radius = 2
-)
+}
+\seealso{
+\code{\link[=read_points]{read_points()}}, \code{\link[=crop_caim]{crop_caim()}}, \code{\link[=uncrop_caim]{uncrop_caim()}}
 }

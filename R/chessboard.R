@@ -19,10 +19,12 @@
 #' @export
 #'
 #' @examples
-#' caim <- read_caim()
-#' seg <- chessboard(caim, 20)
-#' plot(caim$Cyan)
-#' plot(compute_mean(caim$Cyan, seg))
+#' r <- set_rcaiman_geometry(rast(nrow = 20, ncol = 60))
+#' values(r) <- 1
+#' seg <- chessboard(r, 20)
+#' plot(seg)
+#' seg <- chessboard(r, 13)
+#' plot(seg)
 chessboard <- function(r, side) {
   .assert_spatraster(r)
   .check_vector(side, "integerish", sign = "positive")

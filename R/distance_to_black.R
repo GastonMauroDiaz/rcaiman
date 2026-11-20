@@ -15,44 +15,54 @@
 #'
 #' @param bin logical [terra::SpatRaster-class] of one layer.
 #'
-#' @return Integer [terra::SpatRaster-class] of one layer. Pixels corresponding
-#'   to `FALSE` values in `bin` are assigned `0`; pixels corresponding to
-#'   `TRUE` values receive their distance to the nearest `FALSE` pixel.
+#' @return Integer [terra::SpatRaster-class] of one layer named
+#'   `"distance_to_black"`. Pixels corresponding to `FALSE` values in `bin` are
+#'   assigned `0`; pixels corresponding to `TRUE` values receive their distance
+#'   to the nearest `FALSE` pixel.
 #'
-#' @seealso [label_components()]
+#' @section Sky sampling:
+#' Threshold this image to create candidate masks for [optimize_sky_mask()].
+#' For integer `k`, `distance > k` removes TRUE pixels within `k` pixels of
+#' black, in the Chebyshev metric. This is equivalent to repeated erosion
+#' with a 3 by 3 square neighborhood, without treating the image exterior as
+#' black. Only FALSE pixels within the image act as distance sources.
+#'
+#' After choosing a mask, its distances can also prioritize candidates in
+#' [optimize_sampling_distance()] and [rem_nearby_indices()]: extract them
+#' with [extract_dn()] and pass the resulting column with `prioritize = "higher"`.
+#' Use the same priority for distance estimation and final selection.
+#'
+#' @seealso [label_components()], [optimize_sky_mask()],
+#'   [optimize_sampling_distance()], [rem_nearby_indices()]
 #'
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
+#' bin <- set_rcaiman_geometry(terra::rast(nrows = 12, ncols = 16))
+#' bin[] <- FALSE
+#' bin[3:10, 3:14] <- TRUE
+#' distance <- distance_to_black(bin)
+#' plot(distance)
 #'
-#' thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40)
-#' plot(thr$v1)
-#' plot(thr$n)
-#' bin <- binarize_with_thr(r, thr$v1)
-#' plot(bin)
+#' # Progressively shrink the TRUE region, preserving the original at k = 0.
+#' bin_list <- lapply(0:3, function(k) distance > k)
+#' plot(terra::rast(bin_list))
 #'
-#' dtb <- distance_to_black(bin)
-#' plot(dtb)
-#' }
+#' # Attach the distance as a priority value for candidate sampling indices.
+#' sampling_indices <- expand.grid(col = 1:16, row = 1:12)
+#' sampling_indices <- rem_unselected(sampling_indices, bin)
+#' sampling_indices <- extract_dn(distance, sampling_indices, use_window = FALSE)
+#' retained <- rem_nearby_indices(sampling_indices, min_dist = 3,
+#'   col_id = "distance_to_black", prioritize = "higher", space = "planar")
+#' # See optimize_sky_mask() for selection with angular separation.
 distance_to_black <- function(bin) {
   .assert_logical_mask(bin)
 
   x <- terra::as.matrix(bin, wide = TRUE)
 
-  d <- distance_to_black_cpp(x)
+  distance <- distance_to_black_cpp(x)
 
-  terra::setValues(bin, d)
+  distance <- terra::setValues(bin, distance)
+  names(distance) <- "distance_to_black"
+  distance
 }

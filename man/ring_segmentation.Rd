@@ -4,27 +4,55 @@
 \alias{ring_segmentation}
 \title{Assign zenith-ring labels}
 \usage{
-ring_segmentation(z, angle_width, return = "id")
+ring_segmentation(d, angle_width, return = "id")
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order. Only \code{zenith} is used;
+\code{azimuth} is ignored, including its missing values.}
 
-\item{angle_width}{numeric vector of length one. Ring width in degrees.
-Must divide the 0-90 deg range into an integer number of segments.}
+\item{angle_width}{positive numeric vector of length one. Ring width in
+degrees. Must divide 90 into a whole number of rings.}
 
 \item{return}{character vector of length one. Output mode: \code{"id"} (default)
 or \code{"angle"}.}
 }
 \value{
-Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}: ring IDs if \code{return = "id"},
-or mean zenith angle (deg) if \code{return = "angle"}. The object carries attribute \code{return}.
+Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as \code{d}.
+Values are ring IDs starting at 1, or angular midpoints in degrees when
+\code{return = "angle"}. Zero denotes cells outside the segmentation.
+The object carries attribute \code{return}.
 }
 \description{
-Segment a hemispherical view into concentric rings by slicing the zenith
-angle from \code{0} to \code{90} deg at equal steps.
+Divide the sky into rings of equal zenith-angle width and label the
+observed directions on the image grid.
+}
+\details{
+Rings are defined relative to the upward vertical, independently of the
+optical axis. Supply the acquisition orientation to \code{\link[=direction_image]{direction_image()}}
+before segmenting. A partial view retains the same ring boundaries and IDs
+as a complete view of the sky.
+
+Intervals include their upper boundary; the first also includes zero.
+For example, with a width of 15 deg, the first ring includes 0 through
+15 deg, and the second includes angles greater than 15 through 30 deg.
+Missing zenith angles and directions below the horizon receive zero.
+A direction exactly at zenith belongs to the first ring even when its
+azimuth is undefined.
 }
 \examples{
-z <- zenith_image(600, equidistant_coef)
-rings <- ring_segmentation(z, 15)
-plot(rings == 1)
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+rings <- ring_segmentation(d, 15)
+plot(rings)
+}
+\seealso{
+\code{\link[=sector_segmentation]{sector_segmentation()}}, \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}
 }

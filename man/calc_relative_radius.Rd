@@ -2,54 +2,93 @@
 % Please edit documentation in R/calc_relative_radius.R
 \name{calc_relative_radius}
 \alias{calc_relative_radius}
-\title{Calculate relative radius (radial projection model)}
+\alias{calc_off_axis_angle}
+\title{Evaluate a radial projection in either direction}
 \usage{
 calc_relative_radius(angle, projection_coef, units = "degree")
+
+calc_off_axis_angle(
+  relative_radius,
+  projection_coef,
+  max_off_axis_angle = 90,
+  units = "degree"
+)
 }
 \arguments{
-\item{angle}{numeric vector. Zenith angles expressed as declared in \code{units}.}
+\item{angle}{numeric vector of off-axis angles, in \verb{[0, 180]} degrees or
+\verb{[0, pi]} radians, as declared by \code{units}. Missing values are retained.}
 
-\item{projection_coef}{numeric vector. Polynomial coefficients defining
-the radial projection model evaluated in radians.}
+\item{projection_coef}{nonempty finite numeric vector. Coefficients in
+increasing order of degree, without an intercept. The polynomial is
+evaluated in radians, irrespective of \code{units}.}
 
-\item{units}{character vector of length one. Either \code{"radian"} or \code{"degree"},
-for declaring the units in which \code{angle} is provided.}
+\item{units}{character vector of length one, either \code{"degree"} or
+\code{"radian"}. Declares the input angle units for \code{calc_relative_radius()}
+and the output angle units for \code{calc_off_axis_angle()}.}
+
+\item{relative_radius}{numeric vector of non-negative relative radii.
+Missing values are retained.}
+
+\item{max_off_axis_angle}{positive numeric vector of length one, at most
+180. Upper limit for inversion, always in degrees. Defaults to 90.}
 }
 \value{
-Numeric vector of the same length as \code{angle}.
+numeric vector with the same length, order, and names as the input.
+\code{calc_relative_radius()} returns dimensionless relative radii.
+\code{calc_off_axis_angle()} returns off-axis angles in the requested units,
+with \code{NA} for radii outside the inversion interval.
 }
 \description{
-Convert zenith angles to normalized radial distance under a
-radial projection model with circular symmetry.
+Convert between off-axis angles and relative radii using a radial
+projection polynomial.
 }
 \details{
-This function applies to hemispherical imaging systems where the mapping
-between zenith angle and image position is radially symmetric, such as in
-fisheye lenses.
+\code{\link[=calc_relative_radius]{calc_relative_radius()}} evaluates the polynomial from angle to relative
+radius. \code{\link[=calc_off_axis_angle]{calc_off_axis_angle()}} numerically inverts the same polynomial
+from relative radius to angle. The radial model and its angular convention
+are described in \code{\link[=set_internal_geometry]{set_internal_geometry()}}.
 
-The projection function is defined as:
-\deqn{
-r_{rel}(\theta) = \sum_{p=1}^{n} a_p \theta^p
+Relative radius is measured as a fraction of \code{normalization_radius}, the
+radius in pixels at the chosen \code{normalization_angle}. That reference is
+expressed by the coefficients: the polynomial equals one at the reference
+angle. Use \code{\link[=normalize_projection_coef]{normalize_projection_coef()}} to change the reference.
+Relative radii greater than one correspond to angles beyond that reference;
+they do not necessarily lie beyond the field of view.
+
+To convert a measured pixel radius to an angle, first divide it by
+\code{normalization_radius}. To convert an angle to a pixel radius, multiply
+the relative radius returned by \code{calc_relative_radius()} by that same
+reference radius.
+\subsection{Evaluation and inversion}{
+
+The forward evaluator uses the supplied polynomial throughout, including
+above 90 deg. It can also be used to inspect an unconstrained fit; evaluating
+a polynomial does not establish that it is a valid lens projection.
+
+Inversion requires a strictly increasing polynomial on
+\verb{[0, max_off_axis_angle]}. This is the same condition and numerical inversion
+used by \code{\link[=set_internal_geometry]{set_internal_geometry()}}. Radii beyond the value of the polynomial
+at the upper limit return \code{NA}. The limit is independent of normalization
+and does not describe the range over which the lens was calibrated.
 }
-where \eqn{r_{rel}} is the relative radius (radius expresed as a fraction of
-the radius at 90 deg), \eqn{\theta} is the zenith angle in radians and
-\code{projection_coef = c(a_1, a_2, ..., a_n)}. The element at position \code{p}
-multiplies \eqn{\theta^p}.
-
-This function can manage \code{angle} units to reflects common practice in
-hemispherical photography software, where fitting is performed in radians but
-operational workflows use degrees.
-
-Under a valid calibration (see \code{\link[=validate_projection_function]{validate_projection_function()}}), values are
-expected to lie in [0, 1], with 0 at the zenith (0 deg) and 1 at the
-horizon (90 deg).
-}
-\note{
-If it is forced to extrapolate by inputing values above 90 deg, the
-\link{equidistant_coef} is applied to guarantee monotonicity.
 }
 \examples{
-calc_relative_radius(45, equidistant_coef)
-calc_relative_radius(45, equal_area_coef)
-calc_relative_radius(45, orthographic_coef)
+# A standard projection, normalized at 90 degrees.
+rho <- calc_relative_radius(c(0, 30, 60, 90), equal_area_coef)
+calc_off_axis_angle(rho, equal_area_coef)
+
+# Normalize at 60 degrees and calculate angles up to 120 degrees.
+# This quadratic example illustrates the calculation, not a lens calibration.
+projection_coef <- normalize_projection_coef(c(0, 1), 60)
+rho <- calc_relative_radius(c(30, 60, 90, 120), projection_coef)
+calc_off_axis_angle(rho, projection_coef, max_off_axis_angle = 120)
+
+# Estimate the direction corresponding to a measured pixel radius.
+normalization_radius <- 300
+measured_radius <- 400
+calc_off_axis_angle(measured_radius / normalization_radius,
+                    projection_coef, max_off_axis_angle = 120)
+}
+\seealso{
+\code{\link[=normalize_projection_coef]{normalize_projection_coef()}}, \code{\link[=set_internal_geometry]{set_internal_geometry()}}
 }

@@ -1,0 +1,3 @@
+schema_version: 2
+class: point_collection
+image_frame: "img_l1"

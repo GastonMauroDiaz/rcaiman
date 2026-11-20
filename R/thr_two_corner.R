@@ -1,365 +1,125 @@
-#' Compute two-corner thresholds
+#' Compute thresholds with the two-corner method
 #'
 #' @description
-#' Apply Rosin’s geometric corner detector for unimodal histograms
-#' \insertCite{Rosin2001;textual}{rcaiman} to both sides of a bimodal canopy
-#' histogram as in Macfarlane’s two-corner approach
-#' \insertCite{Macfarlane2011}{rcaiman}. Optional slope-reduction as in
-#' \insertCite{Macfarlane2011;textual}{rcaiman} is supported. Peak detection can
-#' use the multimode package or Macfarlane’s original windowed maxima.
+#' Compute thresholds between two histogram corners using the method of
+#' \insertCite{Macfarlane2011;textual}{rcaiman}, based on
+#' \insertCite{Rosin2001;textual}{rcaiman}. Histogram preparation and peak
+#' selection are separate steps.
 #'
 #' @details
+#' The lower peak is used to find a corner toward higher values; the upper
+#' peak is used to find a corner toward lower values. Each construction follows
+#' [thr_rosin()]. With `slope_reduction = TRUE`, a peak above the mean bin
+#' frequency is lowered to that mean when constructing its reference line,
+#' following \insertCite{Macfarlane2011;textual}{rcaiman}.
 #'
-#' Runs the following pipeline:
-#' \enumerate{
-#'   \item Build an 8-bit histogram of `x` after min–max normalization to
-#'   `[0,255]`.
-#'   \item Smooth the histogram with a discrete Gaussian kernel of standard
-#'   deviation `sigma` (in DN), using reflective padding to mitigate edge
-#'   bias.
-#'   \item Detect the two mode peaks according to `method`:
-#'     \itemize{
-#'       \item `method = "multimode"`: use `multimode::locmodes(mod0 = 2)`.
-#'       \item `method = "macfarlane"`: search peaks within fixed DN windows as in
-#'       \insertCite{Macfarlane2011;textual}{rcaiman}. Peak search is performed on the
-#'       **unsmoothed** histogram, as originally proposed.
-#'     }
-#'   \item Apply Rosin’s corner construction on each mode. If
-#'   `slope_reduction = TRUE` and the peak height exceeds the mean of the
-#'   smoothed histogram, the peak height is reduced to that mean before the
-#'   geometric construction (Macfarlane’s variant).
-#'   \item Derive thresholds:
-#'   \deqn{T_l = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.25}
-#'   \deqn{T_m = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.50}
-#'   \deqn{T_h = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.75}
-#'   where \eqn{DN_{lc}} and \eqn{DN_{uc}} are the lower and upper corners.
-#'   \item \insertCite{Macfarlane2014;textual}{rcaiman}'s single threshold: minimum point
-#'    between the two corners.
-#' }
+#' All thresholds are computed from `h`, including the minimum between the
+#' corners (`ts`) \insertCite{Macfarlane2011}{rcaiman}. To use a smoothed curve,
+#' pass the result of [smooth_histogram()] as `h`. Smoothing is a separate
+#' choice made by the researcher; it is not applied internally. Peaks may be
+#' located on another version of the histogram, provided the bin positions are
+#' unchanged. If there is no bin strictly between the corners, `ts` is `NA` with
+#' a warning; the other thresholds are still returned.
 #'
-#' When `diagnose = TRUE`, a geometric construction like the one shown below is
-#' sent to the active graphics device.
-#' \if{html}{\figure{twocorner_method.png}{options: style="display:block;margin:0 auto;max-width:40%;"}}
-#' \if{latex}{\figure{twocorner_method.png}}
-#' When `diagnose = TRUE` and `adjust_par = TRUE`, the function temporarily
-#' adjusts margins to draw the geometric construction in a large square format
-#' and restores the previous settings on exit. If `adjust_par = FALSE`, no
-#' parameters are changed and the plot respects the current device/layout.
+#' [find_macfarlane_peaks()] requires exactly 256 bins because its search
+#' windows were defined on that scale. Prepare them explicitly with
+#' `build_histogram(x, n_bins = 256)`. This is independent of image bit depth.
+#' When peaks come from another procedure, the corner calculation itself
+#' accepts other numbers of equally spaced bins. Returned values always use
+#' the original observation units.
 #'
-#' @param sigma numeric vector of length one or `NULL`. Standard deviation (DN)
-#'   of the Gaussian kernel used to smooth the histogram prior to Rosin’s
-#'   construction.
-#' @param method character vector of length one. Peak detection strategy. One of
-#'   `"multimode"` (default) or `"macfarlane"`.
-#' @param slope_reduction logical vector of length one. If `TRUE`, apply
-#'   Macfarlane’s slope-reduction before Rosin’s construction on each side.
-#' @param diagnose logical vector of length one. If `TRUE`, plot the geometric
-#'   construction.
-#' @param adjust_par logical vector of length one. If `TRUE` and
-#'   `diagnose = TRUE`, temporarily adjust and then restore graphical
-#'   parameters.
+#' @section Exploring modality and locating peaks:
+#' [find_histogram_peaks()] identifies local maxima in the supplied histogram.
+#' Comparing their number and positions after [smooth_histogram()] with
+#' different values of `sigma` helps distinguish persistent features from
+#' small fluctuations. This describes the curve; it is not a statistical test
+#' of the number of modes in the underlying population. Weighted histograms
+#' can be explored in exactly the same way.
 #'
-#' @inheritParams thr_isodata
+#' For unweighted observations, [multimode::modetest()] offers formal tests.
+#' With `mod0 = 1`, it tests unimodality against more than one mode.
 #'
-#' @return A list with:
-#' \describe{
-#'   \item{lp}{Lower peak DN.}
-#'   \item{lc}{Lower corner DN (Rosin on the left mode).}
-#'   \item{tl}{Low threshold derived from `lc` and `uc`.}
-#'   \item{tm}{Mid threshold derived from `lc` and `uc`.}
-#'   \item{th}{High threshold derived from `lc` and `uc`.}
-#'   \item{uc}{Upper corner DN (Rosin on the right mode).}
-#'   \item{up}{Upper peak DN.}
-#'   \item{ts}{single threshold.}
-#' }
+#' [multimode::locmodes()] estimates locations for a specified number of modes;
+#' `mod0 = 2` requests two rather than testing for them. Its `locations` vector
+#' alternates modes and antimodes: positions 1 and 3 are the two modes. Map
+#' these locations to distinct histogram bin indices before supplying `peaks`,
+#' as shown below. Neither function is called internally by `thr_two_corner()`.
 #'
+#' These `multimode` functions can receive the original unweighted observations,
+#' not histogram frequencies. The use of solid-angle weights are not supported
+#' by that alternative workflow.
+#'
+#' @inheritParams thr_rosin
+#' @param peaks integer-like numeric vector of length two. Distinct bin indices
+#'   in increasing order, starting at 1. They must have positive frequency in
+#'   the curve used for corner detection. They need not be local maxima of `h`:
+#'   for example, they may have been located before smoothing.
+#' @param slope_reduction logical vector of length one. Apply the modification
+#'   described in *Details*. Default `FALSE`.
+#'
+#' @return A list with `lp` and `up` (peak locations), `lc` and `uc` (corner
+#'   locations), thresholds `tl`, `tm`, and `th` at 25%, 50%, and 75% of the
+#'   interval between the corners, and `ts` (the first minimum-frequency bin
+#'   strictly between the corners). All values use the original observation
+#'   units. An error is raised if a corner cannot be found or `lc > uc`.
+#'
+#' @seealso [build_histogram()], [smooth_histogram()],
+#'   [find_macfarlane_peaks()], [find_histogram_peaks()], [thr_rosin()],
+#'   [binarize_by_region()], [apply_by_direction()]
 #' @references \insertAllCited{}
-#'
 #' @export
-#'
 #' @examples
+#' x <- c(qnorm(ppoints(2000), 30, 7), qnorm(ppoints(1800), 210, 9),
+#'        seq(0, 255, length.out = 200))
+#' h <- build_histogram(x, n_bins = 256)
+#' peaks <- find_macfarlane_peaks(h)
+#' h_smooth <- smooth_histogram(h, sigma = 2)
+#' thr_two_corner(h_smooth, peaks, slope_reduction = TRUE, diagnose = TRUE)
+#'
+#' local_peaks <- find_histogram_peaks(h_smooth)
+#' h$mids[local_peaks]
+#'
+#' # An alternative using the original, unweighted observations:
 #' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
-#' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, zenith_col_row = spec$zenith_col_row ,
-#'                   horizon_radius = spec$horizon_radius)
-#' z <- zenith_image(ncol(caim), spec$parameters)
-#' rspec <- get_radiometry_spec(spec, "wagner2001_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`0`)
-#' r <- apply_flat_field(caim$Blue, ff)
-#'
-#' # Original Macfarlane
-#' thr <- thr_two_corner(r[], sigma = NULL, slope_reduction = TRUE,
-#'                      method = "macfarlane")
-#'
-#' plot(binarize_with_thr(r, thr$tm))
+#' assessment <- multimode::modetest(x, mod0 = 1)
+#' assessment
+#' modes <- multimode::locmodes(x, mod0 = 2, display = TRUE)
+#' locations <- modes$locations[c(1, 3)]
+#' peaks <- vapply(locations, function(value) {
+#'   which.min(abs(h$mids - value))
+#' }, integer(1))
+#' thr_two_corner(h_smooth, peaks)
 #' }
-thr_two_corner <- function(x,
-                          sigma = 2,
-                          slope_reduction = FALSE,
-                          method = "multimode",
-                          diagnose = FALSE,
-                          adjust_par = TRUE
-                          ) {
-
-  .this_requires_multimode()
-
-  # Coerce matrix or data.frame to numeric
-  if (is.matrix(x) | is.data.frame(x)) {
-    x <- as.numeric(x)
-  }
-  # Validate that x is numeric
-  if (!is.numeric(x)) {
-    stop("`x` must be a numeric vector or coercible to numeric.")
-  }
-  .check_vector(sigma, "numeric", 1, sign = "positive", allow_null = TRUE)
+thr_two_corner <- function(h, peaks, slope_reduction = FALSE,
+                           diagnose = FALSE, adjust_par = TRUE) {
+  .check_threshold_histogram(h)
+  .check_histogram_peaks(peaks, h, 2L)
   .check_vector(slope_reduction, "logical", 1)
-  .assert_choice(method, c("macfarlane", "multimode"))
   .check_vector(diagnose, "logical", 1)
   .check_vector(adjust_par, "logical", 1)
-
-  # Remove NA values
-  x <- x[!is.na(x)]
-
-  # Gaussian smoothing of a discrete histogram (length 256)
-  .smooth_hist_gaussian <- function(h, sigma, pad = c("reflect","replicate")) {
-    if (is.null(sigma)) {
-      ys <- h
-    } else {
-      pad <- match.arg(pad)
-      stopifnot(length(h) >= 3, is.finite(sigma), sigma > 0)
-      r <- ceiling(3 * sigma)
-      x <- -r:r
-      k <- exp(-(x*x) / (2 * sigma * sigma))
-      k <- k / sum(k)  # normalize kernel to unit area
-
-      # build padded vector
-      if (pad == "replicate") {
-        padL <- rep(h[1], r); padR <- rep(h[length(h)], r)
-      } else { # reflect
-        padL <- h[seq.int(r+1, 2, by = -1)]
-        padR <- h[seq.int(length(h)-1, length(h)-r, by = -1)]
-      }
-      hp <- c(padL, h, padR)
-
-      # convolution (centered, same length)
-      ys <- as.numeric(stats::filter(hp, k, sides = 2))
-      ys <- ys[(r + 1):(length(ys) - r)]
-    }
-    ys
-  }
-
-
-  .exact_geometric_construction <- function(h, peak_dn, sigma = NULL,
-                                            slope_reduction = FALSE) {
-    # Rosin, P. L. (2001). Unimodal thresholding. Pattern Recognition, 34(11),
-    # 2083–2096. https://doi.org/10.1016/S0031-3203(00)00136-9
-
-    # p2
-    x2 <- 256
-    y2 <- 0
-
-    h <- .smooth_hist_gaussian(h, sigma)
-    if (slope_reduction && h[peak_dn + 1] > mean(h)) {
-      # Macfarlane, C. (2011). Classification method of mixed pixels does not
-      # affect canopy metrics from digital images of forest overstorey.
-      # Agricultural and Forest Meteorology, 151(7), 833–840.
-      # https://doi.org/10.1016/j.agrformet.2011.01.019
-
-      # p1
-      x1 <- peak_dn
-      y1 <- mean(h)
-    } else {
-      # p1
-      x1 <- peak_dn
-      y1 <- h[peak_dn + 1]
-    }
-
-    # Prepara las coordenadas de todos los puntos del histograma
-    # (xi, yi) con xi en 0:255
-    xs <- 0:255
-    ys <- h
-
-    # Parámetros de la línea p1→p2
-    dx <- x2 - x1
-    dy <- y2 - y1
-    denom <- sqrt(dx^2 + dy^2)
-
-    # Función de distancia perpendicular punto→línea
-    perp_dist <- function(x0, y0, x1, y1, dx, dy, denom) {
-      num <- abs(dy * x0 - dx * y0 + x2 * y1 - y2 * x1)
-      num / denom
-    }
-
-    # Vectorizamos
-    dists <- perp_dist(
-      x0 = xs,
-      y0 = ys,
-      x1 = x1,
-      y1 = y1,
-      dx = dx,
-      dy = dy,
-      denom = denom
-    )
-
-    # perpendiculares incluidas entre p1 y p2 y sobre la linea p1→p2
-    l <- stats::line(c(x1,x2), c(y1, y2))
-    if (any(is.na(stats::coef(l)))) stop("Peak detection failed")
-    lfn <- function(x) stats::coef(l)[1] + stats::coef(l)[2] * x
-    valid <- (xs + 1)[ys < lfn(xs) & xs > x1]
-
-    if (length(valid) == 0) stop("Empty valid range")
-
-    # punto con máxima distancia entre los válidos
-    i_max <- valid[which.max(dists[valid])]
-    max_dist <- dists[i_max]
-
-    # Proyección escalar t = ((x0-x1)*dx + (y0-y1)*dy) / (dx^2+dy^2)
-    # Parametro t de la proyección (p1 + t*(p2-p1) es el pie)
-    x0 <- xs[i_max]
-    y0 <- ys[i_max]
-    t <- ((x0 - x1)*dx + (y0 - y1)*dy) / (dx^2 + dy^2)
-
-    # Coordenadas del punto proyectado (pie de la perpendicular)
-    xp <- x1 + t * dx
-    yp <- y1 + t * dy
-
-    # corner
-    list(
-      x = xs,
-      y = ys,
-      p1 = c(x1, y1),
-      p2 = c(x2, y2),
-      p0 = c(x0, y0),
-      perpendicular_foot = c(xp, yp),
-      max_dist = max_dist
-    )
-  }
-
-  .revert_normalization <- function(x, mn, mx) x * (mx - mn) + mn
-
-  mn <- min(x)
-  mx <- max(x)
-  vals <- (normalize_min_max(x, mn, mx) * 255) %>% round()
-  h <- as.numeric(table(factor(vals, levels = 0:255)))
-
-
-  # find peaks
-  if (identical(method, "multimode")) {
-    modes <- multimode::locmodes(vals, mod0 = 2) %>% suppressWarnings()
-    if (is.null(modes$locations)) {
-      stop("'multimode' has fail")
-    } else if (length(modes$locations) != 3) {
-      stop("'multimode' has fail")
-    }
-    DNMAX_left <- round(modes$locations[1])
-    DNMAX_right <- round(modes$locations[3])
+  left <- .histogram_corner(h, peaks[1], "right", slope_reduction)
+  right <- .histogram_corner(h, peaks[2], "left", slope_reduction)
+  lc <- unname(h$mids[left$index])
+  uc <- unname(h$mids[right$index])
+  if (lc > uc) stop("The lower corner is higher than the upper corner.", call. = FALSE)
+  between <- which(seq_along(h$counts) > left$index & seq_along(h$counts) < right$index)
+  ts <- NA_real_
+  if (length(between)) {
+    ts <- unname(h$mids[between[which.min(h$counts[between])]])
   } else {
-    # Find peaks (Macfarlane 2011)
-    DNL1 <- 5; DNL2 <- 55; DNR1 <- 200; DNR2 <- 250
-
-    repeat {
-      DNMAX_left  <- which.max(h[DNL1:DNL2]) + (DNL1 - 1)
-      ok_left  <- (DNL2 - DNMAX_left  >= 10)
-      if (ok_left) break
-      if (!ok_left && DNL2 < 255) DNL2 <- min(255, DNL2 + 25)
-      if (DNL2 >= 255) {
-        stop("Left peack close to the maximum bin")
-      }
-    }
-
-    repeat {
-      DNMAX_right <- which.max(h[DNR1:DNR2]) + (DNR1 - 1)
-      ok_right <- (DNMAX_right - DNR1 >= 10)
-      if (ok_right) break
-      if (!ok_right && DNR1 > 0) DNR1 <- max(0,   DNR1 - 25)
-      if (DNR1 <= 0) {
-        stop("Right peak close to the minimum bin")
-      }
-    }
-    if ((DNMAX_right - DNMAX_left) < 20) stop("Unimodal histogram")
+    warning("No bin lies strictly between the corners; `ts` is NA.", call. = FALSE)
   }
-
-  # To draw in a square canvas
-  h <- h / max(.smooth_hist_gaussian(h, sigma)) * 255
-
-  # Rosin (2001) modified by Macfarlane (2011)
-  left <- .exact_geometric_construction(h, DNMAX_left,
-                                        sigma, slope_reduction)
-  right <- .exact_geometric_construction(rev(h), 255 - DNMAX_right,
-                                         sigma, slope_reduction)
-
   if (diagnose) {
-    .draw <- function(col = "black") {
-      segments(x1, y1, x2, y2, lwd=1, col = col)
-      points(x1, y1, pch=20, col = col)
-      points(x2, y2, pch=20, col = col)
-      points(x0, y0, pch=20, col = col)
-      points(xp, yp,  pch=20, col = col)
-      segments(x0, y0, xp, yp, lty=2, col = col)
-      abline(v = x0, lty = 3, col = col)
-    }
-    xs <- left$x
-    ys <- left$y
-    x0 <- left$p0[1]
-    y0 <- left$p0[2]
-    xp <- left$perpendicular_foot[1]
-    yp <- left$perpendicular_foot[2]
-    x1 <- left$p1[1]
-    y1 <- left$p1[2]
-    x2 <- left$p2[1]
-    y2 <- left$p2[2]
-
     if (adjust_par) {
-      opar <- par()
-      on.exit(par(opar))
-      par(mar = c(0,0,0,0))
+      old_mar <- graphics::par("mar")
+      on.exit(graphics::par(mar = old_mar))
+      graphics::par(mar = c(4, 4, 2, 1))
     }
-    xlim <- c(0,255)
-    plot(xs, ys, type='l', asp = 1, xlim = xlim, ylim = xlim,
-         axes = FALSE, xlab = "", ylab = "")
-    segments(0,-5,255,-5)
-
-    .draw()
-
-    xs <- 255- right$x
-    ys <- right$y
-    x0 <- 255 - right$p0[1]
-    y0 <- right$p0[2]
-    xp <- 255 - right$perpendicular_foot[1]
-    yp <- right$perpendicular_foot[2]
-    x2 <- 255 - right$p1[1]
-    y2 <- right$p1[2]
-    x1 <- 255 - right$p2[1]
-    y1 <- right$p2[2]
-
-    .draw("blue")
+    .plot_histogram_corners(h, list(left, right), c("right", "left"),
+                           "Two-corner thresholds")
   }
-
-  lc <- .revert_normalization(left$p0[1]/255, mn, mx)
-  uc <- .revert_normalization((255 - right$p0[1])/255, mn, mx)
-
-  if (lc > uc) stop("The lower corner is higher than the upper corner")
-
-  # “selecting the minimum point between the two corners as a global threshold” ([Macfarlane et al., 2014, p. 247](zotero://select/library/items/JQZQ5A3B)) ([pdf](zotero://open-pdf/library/items/FBFSSCY5?page=4&annotation=JMZETWXC))
-  .lc <- left$p0[1] + 1
-  .uc <- (255 - right$p0[1]) + 1
-  .h <- h
-  .h[1:.lc] <- Inf
-  .h[.uc:256] <- Inf
-  ts <- which.min(.h) - 1
-
-  list(
-    lp = .revert_normalization(DNMAX_left/255, mn, mx),
-    lc = lc,
-    tl = lc + (uc - lc) * 0.25,
-    tm = lc + (uc - lc) * 0.5,
-    th = lc + (uc - lc) * 0.75,
-    uc = uc,
-    up = .revert_normalization(DNMAX_right/255, mn, mx),
-    ts = .revert_normalization(ts/255, mn, mx)
-  )
+  list(lp = unname(h$mids[peaks[1]]), lc = lc,
+       tl = lc + (uc - lc) * .25, tm = lc + (uc - lc) * .5,
+       th = lc + (uc - lc) * .75, uc = uc,
+       up = unname(h$mids[peaks[2]]), ts = ts)
 }

@@ -4,25 +4,52 @@
 \alias{sector_segmentation}
 \title{Assign azimuth-sector labels}
 \usage{
-sector_segmentation(a, angle_width)
+sector_segmentation(d, angle_width)
 }
 \arguments{
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order. Only \code{azimuth} is used;
+\code{zenith} is ignored, including its missing values.}
 
-\item{angle_width}{numeric vector of lenght one. Sector width in degrees.
-Must divide the 0–360 deg range into an integer number of sectors.}
+\item{angle_width}{positive numeric vector of length one. Sector width in
+degrees. Must divide 360 into a whole number of sectors.}
 }
 \value{
-Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} with integer values.
-Segments will resemble pizza slices.
+Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as \code{d},
+with sector IDs starting at 1. Zero denotes cells without an azimuth.
 }
 \description{
-Segment a hemispherical view into equal azimuth sectors by slicing the
-azimuth angle from \code{0} to \code{360} deg at fixed steps.
+Divide the sky into sectors of equal geographic-azimuth width and label
+the observed directions on the image grid.
+}
+\details{
+Azimuth is measured from north toward east, as in \code{\link[=direction_image]{direction_image()}}.
+Sector boundaries and IDs are independent of the acquisition orientation
+and the fraction of sky covered by the image.
+
+Intervals include their upper boundary; the first also includes zero.
+With a width of 30 deg, azimuths from 0 through 30 deg belong to sector 1,
+and angles greater than 30 through 60 deg belong to sector 2.
+Azimuths must be in \verb{[0, 360)} degrees.
+
+Missing azimuths receive zero, including the undefined azimuth at zenith
+or nadir. Because zenith angles are ignored, this function also assigns
+sectors below the horizon when their azimuth is available. Use
+\code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}} to restrict the partition to the sky hemisphere.
 }
 \examples{
-z <- zenith_image(600, equidistant_coef)
-a <- azimuth_image(z)
-sectors <- sector_segmentation(a, 15)
-plot(sectors == 1)
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+sectors <- sector_segmentation(d, 30)
+plot(sectors)
+}
+\seealso{
+\code{\link[=ring_segmentation]{ring_segmentation()}}, \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}
 }

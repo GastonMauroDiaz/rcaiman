@@ -12,8 +12,12 @@ to compute object mean.}
 
 \item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
 of \code{r}, typically created with functions such as \code{\link[=healpix_segmentation]{healpix_segmentation()}},
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}} or \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, but any raster with
-integer segment labels is accepted.}
+\code{\link[=beckers_segmentation]{beckers_segmentation()}} or \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, but any raster with
+nonnegative integer segment labels is accepted. Missing labels are excluded.
+A logical mask (see \code{\link[=direction_image]{direction_image()}} for examples) is also accepted:
+\code{TRUE} is label 1 and \code{FALSE} is label 0. All selected pixels belong to
+one segment, even when disconnected. Use \code{\link[=label_components]{label_components()}} if connected
+regions should have separate labels.}
 
 \item{return}{character of length one. Either \code{"raster"} (default) or
 \code{"vector"}, controlling whether to return a map with per-segment values or
@@ -24,31 +28,37 @@ a named vector (one value per segment).}
 }
 \value{
 If \code{return = "raster"}, a \link[terra:SpatRaster-class]{terra::SpatRaster} where each pixel
-holds its segment’s feature value. If \code{return = "vector"}, a named numeric
-(or logical) vector with one value per segment.
+holds its segment's feature value. If \code{return = "vector"}, a named numeric
+vector with one value per included segment, ordered by label, including
+segments with no valid measurements. Excluded raster cells are \code{NA}.
 }
 \description{
 Compute the mean value of raster pixels within each segment. This is a
 lightweight alternative to \code{\link[=compute_features]{compute_features()}} when only segment means are
 required.
 }
-\examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-g <- sky_grid_segmentation(z, a, 10)
-print(compute_mean(r$Cyan, g, return = "vector"))
-plot(compute_mean(r$Cyan, g, return = "raster"))
+\details{
+Every nonmissing pixel contributes equally. Missing measurements are omitted;
+a segment with no valid measurements receives \code{NA}. Included measurements
+must otherwise be finite. For area-weighted statistics use \code{\link[=compute_features]{compute_features()}}.
 }
+\examples{
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+w <- area_weight_image(g, geometry)
+seg <- sky_grid_segmentation(d, 15)
+# Illustrative measurements; supply an image band in a real analysis.
+r <- cos(d$zenith * pi / 180)
+compute_mean(r, seg, return = "vector")
+plot(compute_mean(r, seg))
+}
+\seealso{
+\code{\link[=aggregate_by_segment]{aggregate_by_segment()}} for observations stored in a table.
 }

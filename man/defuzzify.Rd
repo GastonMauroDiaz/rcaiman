@@ -4,91 +4,62 @@
 \alias{defuzzify}
 \title{Defuzzify a fuzzy classification}
 \usage{
-defuzzify(mem, seg)
+defuzzify(mem, seg, ignore_label_0 = TRUE)
 }
 \arguments{
-\item{mem}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Degree of
-membership in a fuzzy classification.}
+\item{mem}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Membership values
+in \verb{[0, 1]}. Missing values are treated as zero and remain \code{FALSE} in the
+output. Use a mask to exclude missing measurements from subsequent analyses.}
 
 \item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
 of \code{r}, typically created with functions such as \code{\link[=healpix_segmentation]{healpix_segmentation()}},
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}} or \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, but any raster with
-integer segment labels is accepted.}
+\code{\link[=beckers_segmentation]{beckers_segmentation()}} or \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, but any raster with
+nonnegative integer segment labels is accepted. Missing labels are excluded.
+A logical mask (see \code{\link[=direction_image]{direction_image()}} for examples) is also accepted:
+\code{TRUE} is label 1 and \code{FALSE} is label 0. All selected pixels belong to
+one segment, even when disconnected. Use \code{\link[=label_components]{label_components()}} if connected
+regions should have separate labels.}
+
+\item{ignore_label_0}{logical of length one. If \code{TRUE}, the segment labeled
+\code{0} is ignored.}
 }
 \value{
-Logical \link[terra:SpatRaster-class]{terra::SpatRaster} of the same dimensions as \code{mem},
-where each pixel value represents the binary version of \code{mem} after
-applying the regional defuzzification procedure.
+Logical \link[terra:SpatRaster-class]{terra::SpatRaster} without \code{NA}, on the same grid as
+\code{mem}. Excluded labels (missing labels and, by default, zero) retain the
+initial value \code{FALSE}. This is a fill value, not a classification outside
+the analysis domain; delimit that domain with a mask.
 }
 \description{
-Converts fuzzy membership values into a binary classification using a
-regional approach that preserves aggregation consistency between the fuzzy
-and binary representations.
+Convert fuzzy membership values to a binary classification within segments,
+approximating each segment's total membership by an integer count of pixels.
 }
 \details{
-The conversion is applied within segments defined by \code{seg},
-ensuring that, in each segment, the aggregated Boolean result matches the
-aggregated fuzzy value. This approach is well suited for converting subpixel
-estimates, such as gap fraction, into binary outputs.
+Within each included segment, the function selects the pixels with the largest
+memberships until their count equals \code{round(sum(mem))}. R's rounding rule
+applies, including rounding exact halves to the nearest even integer. Ties
+are resolved in raster cell order, from left to right and top to bottom.
+The binary fraction therefore approximates the mean membership; an exact
+match is not always possible with an integer number of pixels.
+
+This is an unweighted pixel count, not an area-weighted fraction. Missing
+memberships contribute zero to the sum and are never selected. Values outside
+\verb{[0, 1]} produce a warning; the requested count is bounded by zero and the
+number of nonmissing pixels in the segment. Membership values are not clipped.
 }
 \note{
 This method is also available in the HSP software package. See
 \code{\link[=hsp_compat]{hsp_compat()}}.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-plot(r)
-
-# Manual method following Lang et al. (2010)
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-plot(r)
-points(sky_points$col, nrow(r) - sky_points$r, col = 2, pch = 10)
-
-# x11()
-# plot(r)
-# sun_angles <- click(c(z, a), 1) \%>\% as.numeric()
-sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
-
-sun_row_col <- row_col_from_zen_azi(z, a,
-                                    sun_angles["zen_deg"] * pi/180,
-                                    sun_angles["azi_deg"] * pi/180)
-points(sun_row_col[2], nrow(r) - sun_row_col[1],
-       col = "yellow", pch = 8, cex = 3)
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-rr <- calc_relative_radiance(sky_points, 3)
-
-set.seed(7)
-model <- fit_cie_model(rr, sun_angles,
-                       general_sky_type = "Clear")
-
-plot(model$rr$sky_points$rr, model$rr$sky_points$pred)
-abline(0,1)
-lm(model$rr$sky_points$pred~model$rr$sky_points$rr) \%>\% summary()
-
-sky <- cie_image(z, a, model$sun_angles, model$coef) * model$rr$zenith_dn
-names(sky) <- "DN"
-
-ratio <- r/sky
-seg <- equal_area_segmentation(z, a, 50)
-bin2 <- defuzzify(ratio, seg)
-plot(bin2) # unsatisfactory results due to light conditions
+mem <- set_rcaiman_geometry(terra::rast(nrows = 2, ncols = 4))
+terra::values(mem) <- c(0.9, 0.6, 0.2, 1, 0.8, 0.3, NA, 1)
+seg <- terra::rast(mem)
+terra::values(seg) <- c(1, 1, 1, 0, 2, 2, 2, NA)
+bin <- defuzzify(mem, seg)
+plot(bin)
+# Include label zero as another region when appropriate.
+defuzzify(mem, seg, ignore_label_0 = FALSE)
 }
+\seealso{
+\code{\link[=binarize_by_region]{binarize_by_region()}}
 }

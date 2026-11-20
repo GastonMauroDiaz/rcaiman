@@ -19,7 +19,7 @@ The output preserves the geometry of \code{caim}.
 }
 \description{
 Derive named spectral bands from CFA or sensor bands using algebraic
-expressions.
+expressions. Its intended use is to facilitate RGB visualization.
 }
 \details{
 The input \code{caim} is typically obtained from \code{\link[=split_cfa]{split_cfa()}}.
@@ -48,8 +48,10 @@ Expressions are evaluated in an environment where channel names correspond
 to layer names of \code{caim}.
 }
 \examples{
-caim <- read_caim()
+caim <- set_rcaiman_geometry(rast(nrow = 2, ncol = 2, nlyr = 4))
+caim[] <- 1
+names(caim) <- c("Green", "Magenta", "Yellow", "Cyan")
 map_spectral_bands(caim, list(Red = "(Magenta + Yellow)/2",
-                           Green = "Green",
-                           Blue = "Cyan"))
+                              Green = "Green",
+                              Blue = "Cyan"))
 }

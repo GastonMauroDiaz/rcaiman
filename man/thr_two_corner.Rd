@@ -2,117 +2,122 @@
 % Please edit documentation in R/thr_two_corner.R
 \name{thr_two_corner}
 \alias{thr_two_corner}
-\title{Compute two-corner thresholds}
+\title{Compute thresholds with the two-corner method}
 \usage{
 thr_two_corner(
-  x,
-  sigma = 2,
+  h,
+  peaks,
   slope_reduction = FALSE,
-  method = "multimode",
   diagnose = FALSE,
   adjust_par = TRUE
 )
 }
 \arguments{
-\item{x}{numeric vector or a single-column \code{matrix} or \code{data.frame} able to
-be coerced to numeric. It can contain \code{NA} values.}
+\item{h}{histogram from \code{\link[=build_histogram]{build_histogram()}} or \code{\link[=smooth_histogram]{smooth_histogram()}}, or a
+list with numeric \code{breaks}, \code{mids}, and nonnegative \code{counts}. Bins must be
+equally spaced, with matching midpoints and positive total frequency.}
 
-\item{sigma}{numeric vector of length one or \code{NULL}. Standard deviation (DN)
-of the Gaussian kernel used to smooth the histogram prior to Rosin’s
-construction.}
+\item{peaks}{integer-like numeric vector of length two. Distinct bin indices
+in increasing order, starting at 1. They must have positive frequency in
+the curve used for corner detection. They need not be local maxima of \code{h}:
+for example, they may have been located before smoothing.}
 
-\item{slope_reduction}{logical vector of length one. If \code{TRUE}, apply
-Macfarlane’s slope-reduction before Rosin’s construction on each side.}
+\item{slope_reduction}{logical vector of length one. Apply the modification
+described in \emph{Details}. Default \code{FALSE}.}
 
-\item{method}{character vector of length one. Peak detection strategy. One of
-\code{"multimode"} (default) or \code{"macfarlane"}.}
+\item{diagnose}{logical vector of length one. If \code{TRUE}, plot the histogram,
+reference line, and corner. Horizontal tick labels and the returned
+threshold use the units of the observations.}
 
-\item{diagnose}{logical vector of length one. If \code{TRUE}, plot the geometric
-construction.}
-
-\item{adjust_par}{logical vector of length one. If \code{TRUE} and
-\code{diagnose = TRUE}, temporarily adjust and then restore graphical
-parameters.}
+\item{adjust_par}{logical vector of length one. If \code{TRUE} (default), adjust
+plot margins for the diagnostic diagram and restore them afterward.}
 }
 \value{
-A list with:
-\describe{
-\item{lp}{Lower peak DN.}
-\item{lc}{Lower corner DN (Rosin on the left mode).}
-\item{tl}{Low threshold derived from \code{lc} and \code{uc}.}
-\item{tm}{Mid threshold derived from \code{lc} and \code{uc}.}
-\item{th}{High threshold derived from \code{lc} and \code{uc}.}
-\item{uc}{Upper corner DN (Rosin on the right mode).}
-\item{up}{Upper peak DN.}
-\item{ts}{single threshold.}
-}
+A list with \code{lp} and \code{up} (peak locations), \code{lc} and \code{uc} (corner
+locations), thresholds \code{tl}, \code{tm}, and \code{th} at 25\%, 50\%, and 75\% of the
+interval between the corners, and \code{ts} (the first minimum-frequency bin
+strictly between the corners). All values use the original observation
+units. An error is raised if a corner cannot be found or \code{lc > uc}.
 }
 \description{
-Apply Rosin’s geometric corner detector for unimodal histograms
-\insertCite{Rosin2001;textual}{rcaiman} to both sides of a bimodal canopy
-histogram as in Macfarlane’s two-corner approach
-\insertCite{Macfarlane2011}{rcaiman}. Optional slope-reduction as in
-\insertCite{Macfarlane2011;textual}{rcaiman} is supported. Peak detection can
-use the multimode package or Macfarlane’s original windowed maxima.
+Compute thresholds between two histogram corners using the method of
+\insertCite{Macfarlane2011;textual}{rcaiman}, based on
+\insertCite{Rosin2001;textual}{rcaiman}. Histogram preparation and peak
+selection are separate steps.
 }
 \details{
-Runs the following pipeline:
-\enumerate{
-\item Build an 8-bit histogram of \code{x} after min–max normalization to
-\verb{[0,255]}.
-\item Smooth the histogram with a discrete Gaussian kernel of standard
-deviation \code{sigma} (in DN), using reflective padding to mitigate edge
-bias.
-\item Detect the two mode peaks according to \code{method}:
-\itemize{
-\item \code{method = "multimode"}: use \code{multimode::locmodes(mod0 = 2)}.
-\item \code{method = "macfarlane"}: search peaks within fixed DN windows as in
-\insertCite{Macfarlane2011;textual}{rcaiman}. Peak search is performed on the
-\strong{unsmoothed} histogram, as originally proposed.
+The lower peak is used to find a corner toward higher values; the upper
+peak is used to find a corner toward lower values. Each construction follows
+\code{\link[=thr_rosin]{thr_rosin()}}. With \code{slope_reduction = TRUE}, a peak above the mean bin
+frequency is lowered to that mean when constructing its reference line,
+following \insertCite{Macfarlane2011;textual}{rcaiman}.
+
+All thresholds are computed from \code{h}, including the minimum between the
+corners (\code{ts}) \insertCite{Macfarlane2011}{rcaiman}. To use a smoothed curve,
+pass the result of \code{\link[=smooth_histogram]{smooth_histogram()}} as \code{h}. Smoothing is a separate
+choice made by the researcher; it is not applied internally. Peaks may be
+located on another version of the histogram, provided the bin positions are
+unchanged. If there is no bin strictly between the corners, \code{ts} is \code{NA} with
+a warning; the other thresholds are still returned.
+
+\code{\link[=find_macfarlane_peaks]{find_macfarlane_peaks()}} requires exactly 256 bins because its search
+windows were defined on that scale. Prepare them explicitly with
+\code{build_histogram(x, n_bins = 256)}. This is independent of image bit depth.
+When peaks come from another procedure, the corner calculation itself
+accepts other numbers of equally spaced bins. Returned values always use
+the original observation units.
 }
-\item Apply Rosin’s corner construction on each mode. If
-\code{slope_reduction = TRUE} and the peak height exceeds the mean of the
-smoothed histogram, the peak height is reduced to that mean before the
-geometric construction (Macfarlane’s variant).
-\item Derive thresholds:
-\deqn{T_l = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.25}
-\deqn{T_m = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.50}
-\deqn{T_h = DN_{lc} + (DN_{uc} - DN_{lc}) \times 0.75}
-where \eqn{DN_{lc}} and \eqn{DN_{uc}} are the lower and upper corners.
-\item \insertCite{Macfarlane2014;textual}{rcaiman}'s single threshold: minimum point
-between the two corners.
+\section{Exploring modality and locating peaks}{
+
+\code{\link[=find_histogram_peaks]{find_histogram_peaks()}} identifies local maxima in the supplied histogram.
+Comparing their number and positions after \code{\link[=smooth_histogram]{smooth_histogram()}} with
+different values of \code{sigma} helps distinguish persistent features from
+small fluctuations. This describes the curve; it is not a statistical test
+of the number of modes in the underlying population. Weighted histograms
+can be explored in exactly the same way.
+
+For unweighted observations, \code{\link[multimode:modetest]{multimode::modetest()}} offers formal tests.
+With \code{mod0 = 1}, it tests unimodality against more than one mode.
+
+\code{\link[multimode:locmodes]{multimode::locmodes()}} estimates locations for a specified number of modes;
+\code{mod0 = 2} requests two rather than testing for them. Its \code{locations} vector
+alternates modes and antimodes: positions 1 and 3 are the two modes. Map
+these locations to distinct histogram bin indices before supplying \code{peaks},
+as shown below. Neither function is called internally by \code{thr_two_corner()}.
+
+These \code{multimode} functions can receive the original unweighted observations,
+not histogram frequencies. The use of solid-angle weights are not supported
+by that alternative workflow.
 }
 
-When \code{diagnose = TRUE}, a geometric construction like the one shown below is
-sent to the active graphics device.
-\if{html}{\figure{twocorner_method.png}{options: style="display:block;margin:0 auto;max-width:40\%;"}}
-\if{latex}{\figure{twocorner_method.png}}
-When \code{diagnose = TRUE} and \code{adjust_par = TRUE}, the function temporarily
-adjusts margins to draw the geometric construction in a large square format
-and restores the previous settings on exit. If \code{adjust_par = FALSE}, no
-parameters are changed and the plot respects the current device/layout.
-}
 \examples{
+x <- c(qnorm(ppoints(2000), 30, 7), qnorm(ppoints(1800), 210, 9),
+       seq(0, 255, length.out = 200))
+h <- build_histogram(x, n_bins = 256)
+peaks <- find_macfarlane_peaks(h)
+h_smooth <- smooth_histogram(h, sigma = 2)
+thr_two_corner(h_smooth, peaks, slope_reduction = TRUE, diagnose = TRUE)
+
+local_peaks <- find_histogram_peaks(h_smooth)
+h$mids[local_peaks]
+
+# An alternative using the original, unweighted observations:
 \dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
-path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-caim <- read_caim(path, zenith_col_row = spec$zenith_col_row ,
-                  horizon_radius = spec$horizon_radius)
-z <- zenith_image(ncol(caim), spec$parameters)
-rspec <- get_radiometry_spec(spec, "wagner2001_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`0`)
-r <- apply_flat_field(caim$Blue, ff)
-
-# Original Macfarlane
-thr <- thr_two_corner(r[], sigma = NULL, slope_reduction = TRUE,
-                     method = "macfarlane")
-
-plot(binarize_with_thr(r, thr$tm))
+assessment <- multimode::modetest(x, mod0 = 1)
+assessment
+modes <- multimode::locmodes(x, mod0 = 2, display = TRUE)
+locations <- modes$locations[c(1, 3)]
+peaks <- vapply(locations, function(value) {
+  which.min(abs(h$mids - value))
+}, integer(1))
+thr_two_corner(h_smooth, peaks)
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=build_histogram]{build_histogram()}}, \code{\link[=smooth_histogram]{smooth_histogram()}},
+\code{\link[=find_macfarlane_peaks]{find_macfarlane_peaks()}}, \code{\link[=find_histogram_peaks]{find_histogram_peaks()}}, \code{\link[=thr_rosin]{thr_rosin()}},
+\code{\link[=binarize_by_region]{binarize_by_region()}}, \code{\link[=apply_by_direction]{apply_by_direction()}}
 }

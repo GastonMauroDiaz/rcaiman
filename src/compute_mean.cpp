@@ -16,7 +16,7 @@ Rcpp::List compute_mean_cpp(NumericVector values,
   for (R_xlen_t i = 0; i < n; ++i) {
 
     if (NumericVector::is_na(values[i]) ||
-        NumericVector::is_na(labels[i])) {
+        IntegerVector::is_na(labels[i])) {
       continue;
     }
 

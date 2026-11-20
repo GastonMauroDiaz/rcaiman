@@ -1,185 +1,205 @@
-#' Interpolate in spherical space in point-wise manner
+#' Interpolate values at viewing directions
 #'
 #' @description
-#' Generate new values on query locations using inverse distance weighting
-#' (IDW) with k-nearest neighbors, computing distances in spherical coordinates.
-#' Optionally blend with complementary source to fill voids.
+#' `r lifecycle::badge("experimental")`
+#'
+#' Interpolate sampled values using inverse angular distance weighting (IDW),
+#' optionally blending them with a complementary source at the query directions.
 #'
 #' @details
-#' The function is a wrapper of [apply_locally()]. When filling_source is
-#' provided, interpolation follows the blending strategy proposed by
-#' \insertCite{Lang2010;textual}{rcaiman}, where local inverse-distance weighted
-#' estimates are combined with a complementary surface.
+#' [nn_spherical()] selects the neighbors and [apply_locally()] evaluates each
+#' query. Both tables must use the same reference frame. Select external or
+#' internal directions through `angle_columns`; a common rotation of all
+#' directions preserves distances and interpolated values.
 #'
-#' \deqn{
-#' B(\theta, \phi) =
-#'   \frac{
-#'     \sum_{k=1}^{n} w_k \, b_k + W \, M(\theta, \phi)
-#'   }{
-#'     \sum_{k=1}^{n} w_k + W
-#'   }
-#' }
+#' A supplied `search_radius` defines a spherical cap centered on each query
+#' (see [nn_spherical()]). The cap bounds the search region; `k` limits the
+#' number of observations used from that region.
 #'
-#' with \eqn{w_k = \frac{1}{\chi_k^p}}
+#' Without active filling, weights are proportional to \eqn{1/\chi^p}, where
+#' \eqn{\chi} is angular distance. If any retrieved neighbors coincide exactly
+#' with a query, their mean value is returned and other neighbors are ignored.
+#' With no eligible neighbors, the result is `NA`.
 #'
-#' where \eqn{B(\theta, \phi)} is the value to interpolate in direction \eqn{(\theta,
-#' \phi)}, calculated with \eqn{k = 0, 1,... n} closest values \eqn{b_k}, and
-#' the filling source \eqn{M(\theta, \phi)}, with user defined weigth \eqn{W}
-#' here equal to `w`.
+#' @section Blending with a complementary source:
+#' Supply a column of values at the query directions through `filling_source`.
+#' These values must be in the same units as the sampled values. For example,
+#' a model of relative radiance must be scaled to the sampled DN before blending.
+#' The blend follows the form proposed by \insertCite{Lang2010;textual}{rcaiman}:
+#' \deqn{B = \frac{\sum_j v_j b_j + W M}{\sum_j v_j + W},}
+#' where \eqn{b_j} are neighboring observations, \eqn{M} is the complementary
+#' value, and \eqn{W} is `filling_weight`.
 #'
-#' The original version propose a normalization of \eqn{w_k} based on the
-#' available neighborhood. However, it may produce context-dependent behavior. For
-#' example, with `k = 1`, local normalization would force the single neighbor to
-#' full weight regardless of its actual angular distance, making the blend
-#' insensitive to proximity.
+#' Here inverse-distance weights are rescaled using fixed angular bounds,
+#' rather than the distances of the available neighbors:
+#' \deqn{v_j = \operatorname{clip}_{[0,1]}
+#'   \left(\frac{\chi_j^{-p} - \chi_{max}^{-p}}
+#'   {\chi_{min}^{-p} - \chi_{max}^{-p}}\right).}
+#' The bounds are `min_dist` and `search_radius`. A neighbor at or closer than
+#' `min_dist` has weight one; a neighbor at `search_radius` has weight zero.
+#' This preserves the influence of distance even when only one neighbor is
+#' available. The implementation evaluates an equivalent expression that
+#' avoids infinite weights at zero distance.
 #'
-#' To preserve a stable interpretation of `w` across interpolation contexts, this
-#' implementation normalizes inverse-distance weights using fixed angular bounds
-#' defined by the interpolation domain rather than by the observed neighborhood
-#' itself. Specifically, weights are computed from angular distances in
-#' spherical space and min-max rescaling using:
+#' A coincident observation therefore has finite weight in the blend and does
+#' not override the complementary source. Without eligible neighbors, or when
+#' all their rescaled weights are zero, the complementary value is returned.
+#' With `rule = "all"`, this also applies when fewer than `k` neighbors are
+#' available. A missing complementary value produces `NA` when filling is active.
+#' A missing query direction always produces `NA`, even with a filling value.
 #'
-#' \deqn{
-#'  w_{min} = 1 / chi_{max}^p
-#'  }
-#' \deqn{
-#'  w_{max} = 1 / chi_{min}^p
-#'  }
+#' `filling_weight = 0` disables filling entirely and uses ordinary IDW, just
+#' as `filling_source = NULL` does. `filling_weight` controls the complementary
+#' source; it is not an observation weight or a pixel solid-angle weight.
 #'
-#' where, \eqn{chi_{max}} is equal to `search_radius`  and \eqn{chi_{min}} is
-#' equal to `min_dist`, both internally transformed to radians. Rescaling is
-#' carried out with [normalize_min_max()] with `clip = TRUE`.
-#'
-#' This yields bounded weights with stable meaning across query locations while
-#' preserving the expected transition between local dominance and model-based
-#' filling.
-#'
-#' For efficiency, interpolation runs in point-wise manner, meaning that
-#' computing workload can regulated with the number of query points. To obtain a
-#' raster use interpolate_planar() with the query points as input. Use
-#' `raster_grid_in_circle(ncol(r), 1)` to produce one query point per pixel.
-#'
-#' @param sky_points `data.frame` with columns `"zen"` and `"azi"` (see
-#'   [add_directions()]), and one additional numeric column with values to
-#'   interpolate, identified by argument `col_id`. Additional columns are ignored.
-#' @param query_points `data.frame` defining locations where interpolation is
-#'   evaluated. Must contain columns `""zen""` and `""azi""` (see
-#'   [add_directions()]). Cannot contain a column named as `col_id` (by name).
-#'   Additional columns are ignored.
-#' @param filling_source numeric or character vector of length one. The name or
-#'   position of the column in `query_points` providing complementary values.
-#' @param min_dist numeric vector of length one. Minimum angular distance in
-#'   degrees considered for min-max rescaling. See *Details*.
-#' @param w numeric vector of length one or single-layer
-#'   [terra::SpatRaster-class]. Weight assigned to `filling_source` in the blend
-#'   with local estimates (see Eq. 6 in \insertCite{Lang2010;textual}{rcaiman}).
-#' @param rule character vector of length one. Either `"any"` or `"all"`.
-#'   With `"any"`, pixels within `search_radius` of at least one sample are
-#'   interpolated. With `"all"`, pixels are interpolated only if the `k`
-#'   nearest neighbors lie within `search_radius`. If `k = 1`, both are
-#'   equivalent.
-#'
+#' @param sampling_directions data frame containing angular columns selected
+#'   by `angle_columns`, in radians, and a numeric column selected by `col_id`.
+#'   Samples with missing values or directions are excluded before neighbor
+#'   selection. Infinite values are not allowed. Additional columns are ignored.
+#' @param query_directions data frame containing the same angular columns, in
+#'   radians. Other columns are preserved. Must not already contain the column
+#'   selected by `col_id` in `sampling_directions`.
+#' @param col_id character or integer vector of length one. Name or position
+#'   of the sampled-value column in `sampling_directions`.
+#' @param filling_source optional character or integer vector of length one.
+#'   Name or position of a numeric column in `query_directions` containing
+#'   complementary values. Values must be finite or `NA`.
+#' @param filling_weight nonnegative finite numeric vector of length one.
+#'   Weight assigned to the complementary source. Zero disables filling.
+#' @param p positive finite numeric vector of length one. IDW exponent.
+#' @param min_dist positive finite numeric vector of length one. Lower angular
+#'   bound in degrees for rescaling neighbor weights when filling is active.
+#'   Must be smaller than `search_radius`. Ignored without active filling.
+#' @param search_radius positive numeric vector of length one, at most 180,
+#'   or `NULL`. Maximum angular distance in degrees for selecting neighbors.
+#'   A finite radius is required when filling is active or `k = NULL`.
+#' @inheritParams nn_spherical
 #' @inheritParams apply_locally
-#' @inheritParams interpolate_planar
 #'
-#' @references \insertAllCited{}
+#' @return Data frame with the same rows, order, and columns as `query_directions`,
+#'   plus the interpolated column, named as the sampled-value column. Queries
+#'   without an estimate remain as `NA`; no rows are removed. Values are not
+#'   normalized or clipped.
 #'
-#' @return
-#' `data.frame` equal to `query_points` with added columns `col_id` (by name)
-#' and without points outside the interpolation domian, i.e., for which
-#' `col_id` equals to `NA`.
-#'
-#'
+#' @seealso [add_directions()], [nn_spherical()], [reproject_points()],
+#'   [interpolate_planar()]
 #' @export
-#'
+#' @references \insertAllCited{}
 #' @examples
+#' sampling_directions <- sky_grid_centers(30)
+#' sampling_directions$dn <- 100 + 20 * sampling_directions$zenith +
+#'   5 * sin(sampling_directions$azimuth)
+#' query_directions <- sky_grid_centers(15)
+#' interpolated <- interpolate_spherical(
+#'   sampling_directions, query_directions, col_id = "dn",
+#'   k = 3, search_radius = 20
+#' )
+#' head(interpolated)
+#'
+#' # Complementary values for queries without nearby samples, or for blending.
+#' query_directions$background <- 100 + 20 * query_directions$zenith
+#' blended <- interpolate_spherical(
+#'   sampling_directions, query_directions, col_id = "dn",
+#'   filling_source = "background", filling_weight = 0.1,
+#'   min_dist = 1, search_radius = 10
+#' )
+#' head(blended)
+#'
 #' \dontrun{
 #' require(rcaiman.registry)
+#' path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+#' metadata <- read.delim(gsub("tif", "tsv", path))
+#' sensor_data <- read_caim(path)
+#'
+#' # Get specs
 #' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 #' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
+#' raw <- get_signature(my_entry, "raw")
+#' cygm <- get_band_spec(raw, "cygm")
+#' raw_geometry <- get_geometry_spec(cygm, "simple_method")
+#' raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
+#'
+#' # Represent image geometry
+#' g <- set_internal_geometry(raw$dim, raw_geometry)
+#' d <- direction_image(g)
+#' m <- !is.na(g$off_axis)
+#' w <- area_weight_image(g, raw_geometry)
+#'
+#' # Read and preprocess the image
+#' caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+#' caim
 #' r <- caim$Cyan
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#'
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
-#'
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+#' ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan, m = m)
 #' r <- apply_flat_field(r, ff)
 #'
-#' # See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
+#' # Read cie model
+#' path <- system.file("external/cie_model.RDS", package = "rcaiman")
+#' model <- readRDS(path)
+#'
+#' sky_cie <- cie_image(d, model$sun_angles, model$coef) * model$relative_radiance$zenith_dn
+#' names(sky_cie) <- "above-canopy dn"
+#' plot(sky_cie)
+#'
+#' # Binarize
+#' bin <- binarize_with_thr(r/sky_cie, 0.5)
+#' bin <- distance_to_black(bin) > 2
+#' plot(bin)
+#'
+#' # Dense sampling of the sky DN
+#' seg <- healpix_segmentation(d, 32)
+#' seg[!bin] <- 0
+#' features <- compute_features(r, seg, d, w)
+#' sky_points <- features[features$effective_pixel_area > 3, ]
+#' sky_points <- internal_directions_from_external(sky_points) %>%
+#'   coord_from_internal_directions(., raw_geometry) %>% add_indices()
 #' head(sky_points)
+#' nrow(sky_points)
 #'
+#' # Prepare interpolation
+#' fov <- extract_fov(g)
+#' query_directions <- fibonacci_directions(1)
+#' query_directions <- select_directions_in_fov(query_directions, fov)
+#' query_directions <- external_directions_from_internal(query_directions)
 #'
-#' sky_points <- extract_dn(r, sky_points)
-#' sky_points <- add_directions(sky_points, z, a)
-#'
-#' query_points <- raster_grid_in_circle(z, a, 10)
-#'
-#' pts <- interpolate_spherical(
+#' # Interpolate without blending
+#' interpolated <- interpolate_spherical(
 #'   sky_points,
-#'   query_points,
-#'   col_id = "Cyan",
+#'   query_directions,
+#'   col_id = "max",
 #'   k = 3,
-#'   p = 2,
-#'   search_radius = 20,
-#'   rule = "any"
+#'   search_radius = 20
 #' )
+#' head(interpolated)
+#' interpolated <- coord_from_internal_directions(interpolated, raw_geometry)
+#' plot(interpolate_planar(interpolated, "max", r,  search_radius = 10))
 #'
-#' head(pts)
-#' sky <- interpolate_planar(pts, "Cyan", r,
-#'                           k = 3, p = 2, search_radius = 13, rigorous = TRUE)
-#' plot(sky)
+#' # Get complementary values for blending
+#' query_directions <- coord_from_internal_directions(query_directions, raw_geometry) %>%
+#'   add_indices()
+#' query_directions <- extract_dn(sky_cie, query_directions, use_window = FALSE)
 #'
-#' # x11()
-#' # plot(r)
-#' # sun_angles <- click(c(z, a), 1) %>% as.numeric()
-#' sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
-#' rr <- calc_relative_radiance(sky_points, 3)
-#'
-#' set.seed(7)
-#' model <- fit_cie_model(rr, sun_angles,
-#'                        general_sky_type = "Clear")
-#'
-#' sky_cie <- cie_image(z, a, model$sun_angles, model$coef)
-#' sky_cie <- sky_cie * rr$zenith_dn
-#' names(sky_cie) <- "dn_cie"
-#'
-#' query_points <- raster_grid_in_circle(z, a, 5)
-#' query_points <- extract_dn(sky_cie, query_points, use_window = FALSE)
-#' head(query_points)
-#'
-#' pts <- interpolate_spherical(
-#'   rr$sky_points,
-#'   query_points,
-#'   col_id = "Cyan",
-#'   filling_source = "dn_cie",
+#' # Interpolate and blend
+#' blended <- interpolate_spherical(
+#'   sky_points,
+#'   query_directions,
+#'   col_id = "max",
+#'   filling_source = "above-canopy dn",
+#'   filling_weight = 0.01,
 #'   min_dist = 1,
-#'   w = 0.01,
-#'   k = 3,
-#'   p = 2,
-#'   search_radius = 20,
-#'   rule = "any"
+#'   rule = "all",
+#'   search_radius = 20
 #' )
+#' head(blended)
 #'
-#' head(pts)
-#' sky <- interpolate_planar(pts, "Cyan", r,
-#'                           k = 3, p = 2, search_radius = 7, rigorous = TRUE)
+#' sky <- interpolate_planar(blended, "max", r,  search_radius = 10)
 #' plot(sky)
 #' plot(r/sky)
 #' }
-interpolate_spherical <- function(sky_points,
-                                  query_points,
+interpolate_spherical <- function(sampling_directions,
+                                  query_directions,
                                   col_id,
                                   filling_source = NULL,
-                                  w = 1,
+                                  filling_weight = 1,
                                   k = 3,
                                   p = 2,
                                   search_radius = 20,
@@ -188,86 +208,81 @@ interpolate_spherical <- function(sky_points,
                                   parallel = FALSE,
                                   cores = NULL,
                                   logical = TRUE,
-                                  leave_free = 1
-                              ) {
-
-  col_id <- .resolve_required_column(col_id, sky_points)
-  .check_columns(sky_points,
-                 required_columns = c("row", "col", "zen", "azi", col_id),
-                 reserved_columns = NULL
-                 )
-
-  if (is.null(filling_source)) {
-    .check_columns(query_points,
-                   required_columns = c("row", "col", "zen", "azi"),
-                   reserved_columns = col_id
-                   )
-  } else {
-    filling_source <- .resolve_required_column(filling_source, query_points)
-    .check_columns(query_points,
-                   required_columns = c("row", "col", "zen", "azi", filling_source),
-                   reserved_columns = col_id
-                   )
-    .check_vector(min_dist, "numeric", 1, sign = "positive")
-  }
-
-  .check_vector(w, "numeric", 1, sign = "nonnegative")
+                                  leave_free = 1,
+                                  angle_columns = c("zenith", "azimuth")) {
+  .check_columns(sampling_directions)
+  if (is.numeric(col_id)) .check_vector(col_id, "integerish", 1, sign = "positive")
+  col_id <- .resolve_required_column(col_id, sampling_directions)
+  .check_columns(query_directions, reserved_columns = col_id)
+  .check_vector(sampling_directions[[col_id]], "numeric", allow_na = TRUE,
+                name = col_id)
+  .check_vector(filling_weight, "numeric", 1, sign = "nonnegative")
   .check_vector(p, "numeric", 1, sign = "positive")
-
-  neighbors <- nn_spherical(sky_points,
-                            query_points,
-                            k = k,
-                            search_radius = search_radius,
-                            rule = "any")
-
-  if (is.null(filling_source)) {
-    eval_points <- apply_locally(
-      sky_points,
-      query_points,
-      neighbors,
-      fun = function(df, chi, ...) {
-        b_k <- df[, col_id]
-        w_k <- 1 / chi^p
-        sum(w_k * b_k) / sum(w_k)
-      },
-      parallel = parallel,
-      cores = cores,
-      logical = logical,
-      leave_free = leave_free
-    )
-  } else {
-    # eq6 from Lang et al. 2010
-    .eq6 <- function(w_k, b_k, W, M) {
-      (sum(w_k * b_k) + W * M) / (sum(w_k) + W)
+  if (!is.null(filling_source)) {
+    if (is.numeric(filling_source)) {
+      .check_vector(filling_source, "integerish", 1, sign = "positive")
     }
-    chi_mx <- search_radius * pi/180
-    chi_mn <- min_dist * pi/180
-
-    eval_points <- apply_locally(
-      sky_points,
-      query_points,
-      neighbors,
-      fun = function(df, chi, i, ...) {
-        M <- query_points[i, filling_source]
-        if (length(chi) != 0) {
-          w_k <- 1 / chi^p
-          w_mn <- 1 / chi_mx^p
-          w_mx <- 1 / chi_mn^p
-          w_k <- normalize_min_max(w_k, w_mn, w_mx, clip = TRUE)
-          .eq6(w_k, df[, col_id], w, M)
-        } else {
-          M
-        }
-      },
-      parallel = parallel,
-      cores = cores,
-      logical = logical,
-      leave_free = leave_free
-    )
+    filling_source <- .resolve_required_column(filling_source, query_directions)
+    .check_vector(query_directions[[filling_source]], "numeric", allow_na = TRUE,
+                  name = filling_source)
   }
+  blend <- !is.null(filling_source) && filling_weight > 0
+  if (blend) {
+    .check_vector(min_dist, "numeric", 1, sign = "positive")
+    .check_vector(search_radius, "numeric", 1, sign = "positive")
+    if (min_dist >= search_radius) {
+      stop("`min_dist` must be smaller than `search_radius` when filling is active.",
+           call. = FALSE)
+    }
+  }
+  # Validate the direction-column contract even for tables with no usable DN.
+  .check_vector(angle_columns, "character", 2)
+  if (anyDuplicated(angle_columns)) {
+    stop("`angle_columns` must name two different columns.", call. = FALSE)
+  }
+  .spherical_neighbor_vectors(sampling_directions, angle_columns)
+  valid_query <- stats::complete.cases(
+    .spherical_neighbor_vectors(query_directions, angle_columns))
+  samples <- sampling_directions[!is.na(sampling_directions[[col_id]]), , drop = FALSE]
+  neighbors <- nn_spherical(samples, query_directions, k = k,
+                             search_radius = search_radius, rule = rule,
+                             parallel = parallel, cores = cores, logical = logical,
+                             leave_free = leave_free, angle_columns = angle_columns)
 
-  i <- !is.na(eval_points$output)
-  eval_points <- eval_points[i,]
-  names(eval_points)[ncol(eval_points)] <- col_id
-  eval_points
+  evaluate <- if (!blend) {
+    function(data, distance, i) {
+      if (!valid_query[i] || !nrow(data)) return(NA_real_)
+      zero <- distance == 0
+      if (any(zero)) return(mean(data[[col_id]][zero]))
+      weights <- (min(distance) / distance)^p
+      stats::weighted.mean(data[[col_id]], weights)
+    }
+  } else {
+    lower <- .degree2radian(min_dist)
+    upper <- .degree2radian(search_radius)
+    function(data, distance, i) {
+      if (!valid_query[i]) return(NA_real_)
+      background <- query_directions[[filling_source]][i]
+      if (is.na(background) || !nrow(data)) return(background)
+      weights <- as.numeric(distance <= lower)
+      between <- distance > lower & distance < upper
+      chi <- distance[between]
+      # Equivalent to fixed-bound min-max rescaling of inverse distances.
+      weights[between] <- exp(p * log(lower / chi)) *
+        (-expm1(p * log(chi / upper))) / (-expm1(p * log(lower / upper)))
+      weights <- pmax(0, pmin(1, weights))
+      if (any(!is.finite(weights))) {
+        stop("Cannot compute finite blending weights from the supplied angular bounds.",
+             call. = FALSE)
+      }
+      weights <- c(weights, filling_weight)
+      stats::weighted.mean(c(data[[col_id]], background), weights / max(weights))
+    }
+  }
+  # A zero-column query table retains rows without reserving names in the user's table.
+  result <- apply_locally(samples, query_directions[, FALSE, drop = FALSE],
+                           neighbors, fun = evaluate, parallel = parallel,
+                           cores = cores, logical = logical, leave_free = leave_free)
+  query_directions[[col_id]] <- result$output
+  query_directions
 }

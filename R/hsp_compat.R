@@ -1,6 +1,8 @@
 #' HSP compatibility functions
 #'
 #' @description
+#' `r lifecycle::badge("experimental")`
+#'
 #' Read and write legacy files from HSP (HemiSPherical Project Manager) projects
 #' to interoperate with existing workflows. Intended for legacy support; not
 #' required when working fully within `rcaiman`.
@@ -8,7 +10,7 @@
 #' @section About HSP software:
 #'
 #' HSP was introduced in \insertCite{Lang2013}{rcaiman} and is based on the
-#' method presented in \insertCite{Lang2010;textual}{rcaiman}). It runs
+#' method presented in \insertCite{Lang2010;textual}{rcaiman}. It runs
 #' exclusively on Windows. HSP stores pre-processed images as PGM files in the
 #' `manipulate` subfolder of each project (itself inside the `projects` folder).
 #'
@@ -18,28 +20,41 @@
 #'   \item{\code{hsp_read_manual_input()}}{read sky marks and sun position
 #'   defined manually within an HSP project; returns a named list with
 #'   components \code{weight}, \code{max_points}, \code{angle},
-#'   \code{point_radius}, \code{sun_row_col}, \code{sky_points},
-#'   \code{zenith_dn}, \code{masks}, and \code{marked_areas}.}
+#'   \code{point_radius}, \code{sun_indices}, \code{sky_indices},
+#'   \code{zenith_dn}, \code{masks}, and \code{marked_areas}.
+#'   The first four components and `zenith_dn` are numeric scalars read from
+#'   HSP settings and statistics. `sun_indices` is a one-row `data.frame` with
+#'   numeric `row` and `col` columns. `sky_indices` is a `data.frame` with
+#'   numeric `col`, `row`, and `type` columns; `type` retains the HSP mark code.
+#'   Both tables use cell indices numbered from 1 and can be passed to
+#'   [add_directions()]. `masks` and `marked_areas` are polygon
+#'   [terra::SpatVector-class] objects on the image grid from [read_caim()],
+#'   or `NULL` when the corresponding HSP file contains no polygons.}
 #'
 #'   \item{\code{hsp_read_opt_sky_coef()}}{read optimized CIE sky coefficients
-#'   from an HSP project; returns a numeric vector of length five.}
+#'   from an HSP project; returns a numeric vector of length five, in CIE
+#'   coefficient order `a`, `b`, `c`, `d`, `e`.}
 #'
-#'   \item{\code{hsp_write_sky_points()}}{write a file with sky point
-#'   coordinates compatible with HSP; creates a file on disk.}
+#'   \item{\code{hsp_write_sky_indices()}}{write sky cell indices to
+#'   `<img_name>_points.conf` in `manipulate`, replacing an existing file.
+#'   Each mark is written with HSP type code 3. Returns `NULL` invisibly.}
 #'
-#'   \item{\code{hsp_write_sun_coord()}}{write a file with solar disk
-#'   coordinates compatible with HSP; creates a file on disk.}
+#'   \item{\code{hsp_write_sun_indices()}}{write solar disk cell indices to
+#'   `<img_name>_sun.conf` in `manipulate`, replacing an existing file.
+#'   Returns `NULL` invisibly.}
 #' }
 #'
-#' @param sky_points `data.frame` with columns `"col"` and `"row"`, representing
-#'   cell indices numbered from 1.
+#' @param sky_indices `data.frame` with numeric columns `"col"` and `"row"`
+#'   containing positive, integer-valued cell indices numbered from 1, without
+#'   missing values. Additional columns are ignored, including `type`.
 #' @param path_to_HSP_project character vector of length one. Path to the HSP
 #'   project folder (e.g., `"C:/Users/johndoe/Documents/HSP/projects/my_prj/"`).
 #' @param img_name character vector of length one (e.g., `"DSCN6342.pgm"` or
 #'   `"DSCN6342"`). See *About HSP software*.
-#' @param sun_row_col numeric vector of length two. Cell indices of the solar
-#'   disk in `row`, `col` order. The argument name and order follow the legacy
-#'   HSP format. See [y_down_from_y()] for spatial conventions.
+#' @param sun_indices one-row `data.frame` with numeric columns `"col"` and
+#'   `"row"` containing positive, integer-valued cell indices of the solar
+#'   disk, numbered from 1, without missing values. Additional columns are
+#'   ignored. Columns are identified by name; their order does not matter.
 #'
 #' @return See *Functions*
 #'
@@ -47,72 +62,77 @@
 #'
 #' @name hsp_compat
 #' @rdname hsp_compat
-#' @aliases hsp_read_manual_input hsp_read_opt_sky_coef hsp_write_sky_points hsp_write_sun_coord
+#' @aliases hsp_read_manual_input hsp_read_opt_sky_coef hsp_write_sky_indices hsp_write_sun_indices
 #'
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' # NOTE: assumes the working directory is the HSP project folder (e.g., an RStudio project).
+#' setwd("~/HSP/Projects/KS_2021_11_18")
+#'
+#' r <- read_caim("manipulate/DSCN6269.pgm")
+#'
+#' rho <- ncol(r) / 2
+#' hsp_geometry <- list(
+#'   model = "radial_projection",
+#'   center_of_vision = c(rho, rho),
+#'   parameters = equidistant_coef,
+#'   normalization_radius = rho,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(rho, rho) * 2, hsp_geometry)
+#' d <- direction_image(g)
 #'
 #' # From HSP to R in order to compare ---------------------------------------
-#' r <- read_caim("manipulate/IMG_1013.pgm")
-#' z <- zenith_image(ncol(r), equidistant_coef)
-#' a <- azimuth_image(z)
-#' manual_input <- read_manual_input(".", "IMG_1013")
-#' sun_row_col <- manual_input$sun_row_col
-#' sun_angles <- zen_azi_from_row_col(
-#'   z, a,
-#'   sun_row_col[1],
-#'   sun_row_col[2]
-#' )
-#' sun_angles <- as.vector(sun_angles) * 180/pi
-#' names(sun_angles) <- c("zen_deg", "azi_deg")
 #'
-#' sky_points <- manual_input$sky_points
+#' manual_input <- hsp_read_manual_input(".", "DSCN6269")
+#' sun_angles <- manual_input$sun_indices %>% add_directions(., d = d)
+#'
+#' sky_points <- manual_input$sky_indices %>% add_directions(., d = d)
 #' sky_points <- extract_dn(r, sky_points)
-#' sky_poinst <- add_directions(sky_points, z, a)
+#' head(sky_points)
 #'
-#' rr <- calc_relative_radiance(sky_points, cold_id = 3, zenith_dn = manual_input$zenith_dn)
-#' model <- fit_cie_model(rr, sun_angles)
-#' sky <- cie_image(
-#'   z, a,
-#'   model$sun_angles,
-#'   model$coef
-#' ) * model$rr$zenith_dn
-#' names(sky) <- "DN"
+#' rr <- calc_relative_radiance(sky_points, col_id = 3, zenith_dn = manual_input$zenith_dn)
+#' head(rr)
+#' model <- fit_cie_model(rr, sun_angles, parallel = TRUE)
+#' sky <- cie_image(d, model$sun_angles, model$coef) * model$relative_radiance$zenith_dn
+#' plot(sky)
+#' names(sky) <- "above-canopy dn"
 #' plot(r / sky)
 #'
-#' r <- read_caim("manipulate/IMG_1013.pgm")
-#' sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-#' sky_m <- cie_image(z, a, sun_angles, sky_coef)
-#' sky_m <- cie_sky_manual * manual_input$zenith_dn
-#' names(sky_m) <- "DN"
+#' r <- read_caim("manipulate/DSCN6269.pgm")
+#' sky_coef <- hsp_read_opt_sky_coef(".", "DSCN6269")
+#' sky_m <- cie_image(d, sun_angles, sky_coef) * manual_input$zenith_dn
+#' names(sky_m) <- "above-canopy dn"
+#' plot(sky_m)
 #' plot(r / sky_m)
 #'
 #' # From R to HSP  ----------------------------------------------------------
-#' r <- read_caim("manipulate/IMG_1014.pgm")
-#' z <- zenith_image(ncol(r), equidistant_coef)
-#' a <- azimuth_image(z)
-#' m <- !is.na(z)
-#' g <- sky_grid_segmentation(z, a, 10)
-#' bin <- binarize_with_thr(r, thr_isodata(r[m]))
-#' bin <- select_sky_region(z, 0, 85) & bin
 #'
-#' sun_angles <- estimate_sun_angles(r, z, a, bin, g)
-#' sun_row_col <- row_col_from_zen_azi(
-#'   z, a,
-#'   sun_angles["zen_deg"] * pi/180,
-#'   sun_angles["azi_deg"] * pi/180
-#' ) %>% as.numeric()
-#' write_sun_coord(sun_row_col, ".", "IMG_1014")
+#' w <- area_weight_image(g, hsp_geometry)
+#' m <- !is.na(g$off_axis)
 #'
-#' sky_points <- sample_sky_points(r, bin, g)
-#' write_sky_points(sky_points, ".", "IMG_1014")
+#' bin <- binarize_with_thr(r, thr_isodata(r[m], w[m]))
+#' seg <- beckers_segmentation(d, 500)
+#'
+#' sun_indices <- estimate_sun_angles(r, d, bin, seg, w) %>%
+#'   internal_directions_from_external() %>%
+#'   coord_from_internal_directions(., hsp_geometry) %>% add_indices()
+#'
+#' hsp_write_sun_indices(sun_indices, ".", "DSCN6269")
+#'
+#' sky_indices <- compute_features(distance_to_black(bin), seg, d, w) %>%
+#'   internal_directions_from_external %>%
+#'   coord_from_internal_directions(., hsp_geometry) %>% add_indices()
+#' head(sky_indices)
+#'
+#' hsp_write_sky_indices(sky_indices, ".", "DSCN6269")
+#'
 #' }
 hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "character", 1)
+  .check_vector(img_name, "character", 1)
+  img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 
   .get_vect_from_plain <- function(file) {
     # Mait Lang, 04.11.2025.
@@ -199,12 +219,14 @@ hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
   file <- files[grep(img_name, files)]
   marked_areas <- .get_vect_from_plain(file)
 
+  sun_indices <- data.frame(row = sun_row_col[1], col = sun_row_col[2])
+
   list(weight = settings[1,2] %>% as.numeric(),
        max_points = settings[2,2] %>% as.numeric(),
        angle = settings[3,2] %>% as.numeric(),
        point_radius = settings[4,2] %>% as.numeric(),
-       sun_row_col = sun_row_col,
-       sky_points = sky_marks,
+       sun_indices = sun_indices,
+       sky_indices = sky_marks,
        zenith_dn = zenith_dn,
        masks = masks,
        marked_areas = marked_areas)
@@ -214,7 +236,8 @@ hsp_read_manual_input <- function(path_to_HSP_project, img_name) {
 #' @export
 hsp_read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "character", 1)
+  .check_vector(img_name, "character", 1)
+  img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 
   files <- dir(file.path(path_to_HSP_project, "manipulate"),
                pattern = "opt-parameters", full.names = TRUE)
@@ -229,22 +252,26 @@ hsp_read_opt_sky_coef <- function(path_to_HSP_project, img_name) {
 
 #' @rdname hsp_compat
 #' @export
-hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
-  .check_columns(sky_points, c("row", "col"))
+hsp_write_sky_indices <- function(sky_indices, path_to_HSP_project, img_name) {
+  .check_columns(sky_indices, c("row", "col"))
+  for (column in c("row", "col")) {
+    .check_vector(sky_indices[[column]], "integerish", sign = "positive",
+                  name = paste0("sky_indices$", column))
+  }
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "character", 1)
+  .check_vector(img_name, "character", 1)
 
-  no <- nrow(sky_points)
+  no <- nrow(sky_indices)
 
-  col.row_coordinates <- paste(sky_points$col, sky_points$row, "3", sep = ".")
+  col.row_coordinates <- paste(sky_indices$col, sky_indices$row, "3", sep = ".")
   col.row_coordinates <- paste(col.row_coordinates, collapse = " ")
 
-  sky_points <- c(no, col.row_coordinates)
-  sky_points <- data.frame(sky_points)
+  sky_indices <- c(no, col.row_coordinates)
+  sky_indices <- data.frame(sky_indices)
 
   img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 
-  utils::write.table(sky_points, file.path(path_to_HSP_project,
+  utils::write.table(sky_indices, file.path(path_to_HSP_project,
                                            "manipulate",
                                            paste0(img_name, "_points.conf")),
                      quote = FALSE, row.names = FALSE, col.names = FALSE,
@@ -253,12 +280,16 @@ hsp_write_sky_points <- function(sky_points, path_to_HSP_project, img_name) {
 
 #' @rdname hsp_compat
 #' @export
-hsp_write_sun_coord <- function(sun_row_col, path_to_HSP_project, img_name) {
-  .check_vector(sun_row_col, "numeric", 2, sign = "positive")
+hsp_write_sun_indices <- function(sun_indices, path_to_HSP_project, img_name) {
+  .check_columns(sun_indices, c("row", "col"))
+  for (column in c("row", "col")) {
+    .check_vector(sun_indices[[column]], "integerish", 1, sign = "positive",
+                  name = paste0("sun_indices$", column))
+  }
   .check_vector(path_to_HSP_project, "character", 1)
-  .check_vector(path_to_HSP_project, "character", 1)
+  .check_vector(img_name, "character", 1)
 
-  sun_col_row <- paste(sun_row_col[c(2,1)], collapse = ".")
+  sun_col_row <- paste(sun_indices$col, sun_indices$row, sep = ".")
 
   img_name <- basename(tools::file_path_sans_ext(img_name, compression = FALSE))
 

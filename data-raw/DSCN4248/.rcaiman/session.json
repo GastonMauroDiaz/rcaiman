@@ -1,0 +1,89 @@
+{
+    "current_tab": 0,
+    "schema_version": 3,
+    "sync_split_views": false,
+    "sync_split_zoom": true,
+    "tabs": [
+        {
+            "active_panel": 0,
+            "panels": [
+                {
+                    "center": [
+                        643.4265360641135,
+                        481.70970614425613
+                    ],
+                    "coordinate_reference": "img_l1/DSCN4248.tif",
+                    "layers": [
+                        {
+                            "name": "sun_disk_mark.csv",
+                            "point_style": {
+                                "color": "#ffffff00",
+                                "label_field": "",
+                                "label_size": 10,
+                                "size": 20,
+                                "symbol": 0
+                            },
+                            "source": "sun_disk_mark/sun_disk_mark.csv",
+                            "type": "points",
+                            "visible": true
+                        },
+                        {
+                            "name": "sky_points.csv",
+                            "point_style": {
+                                "color": "#ffff00ff",
+                                "label_field": "",
+                                "label_size": 10,
+                                "size": 10,
+                                "symbol": 1
+                            },
+                            "source": "sky_points/sky_points.csv",
+                            "type": "points",
+                            "visible": true
+                        },
+                        {
+                            "image_style": {
+                                "band": 0,
+                                "blend_mode": 0,
+                                "blue_band": 2,
+                                "gamma": 2.2,
+                                "green_band": 1,
+                                "manual_max": 1,
+                                "manual_min": 0,
+                                "manual_range_enabled": false,
+                                "mode": 1,
+                                "opacity": 1,
+                                "ramp": 0,
+                                "red_band": 0,
+                                "stretch": 1,
+                                "tail_trim": false,
+                                "trim_left_tail": true,
+                                "trim_percent": 2,
+                                "trim_right_tail": true
+                            },
+                            "name": "img_l1/DSCN4248.tif",
+                            "source": "img_l1/DSCN4248.tif",
+                            "type": "image",
+                            "visible": true
+                        }
+                    ],
+                    "source": "img_l1/DSCN4248.tif",
+                    "transform": [
+                        0.8718944099378888,
+                        0,
+                        0,
+                        0,
+                        0.8718944099378888,
+                        0,
+                        0,
+                        0,
+                        1
+                    ]
+                }
+            ],
+            "split_sizes": [
+                1128
+            ],
+            "title": "DSCN4248.tif"
+        }
+    ]
+}

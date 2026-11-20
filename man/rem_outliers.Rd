@@ -2,10 +2,10 @@
 % Please edit documentation in R/rem_outliers.R
 \name{rem_outliers}
 \alias{rem_outliers}
-\title{Remove statistical outliers in sky points}
+\title{Remove local outliers from sampled directions}
 \usage{
 rem_outliers(
-  sampling_points,
+  sampling_directions,
   col_id,
   k = 20,
   search_radius = 20,
@@ -15,22 +15,26 @@ rem_outliers(
   parallel = FALSE,
   cores = NULL,
   logical = TRUE,
-  leave_free = 1
+  leave_free = 1,
+  angle_columns = c("zenith", "azimuth")
 )
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"row"}, \code{"col"}, \code{"zen"},
-\code{"azi"} (as in the output of \code{\link[=add_directions]{add_directions()}}), and one additional
-numeric column with values to evaluate, identified by \code{col_id}.}
+\item{sampling_directions}{data frame containing the angular columns selected
+by \code{angle_columns}, in radians, and the numeric values selected by \code{col_id}.
+For detrending, also supply external \code{zenith} and \code{azimuth}. Cell indices
+are not required. Additional columns are preserved unchanged.}
 
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_points} containing the values to evaluate.}
+\item{col_id}{character or integer-like numeric vector of length one. Name
+or position of the column containing the finite values to evaluate.}
 
-\item{k}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of nearest neighbors to retrieve.}
+\item{k}{integer-like numeric vector of length one, at least 3. Number of
+other observations required for each comparison. The query is not counted.
+Must be at least 20 when \code{detrend = TRUE}.}
 
-\item{search_radius}{numeric vector of length one. The maximum radius for
-searching k-nearest neighbors (KNN) in degrees.}
+\item{search_radius}{positive numeric vector of length one, at most 180,
+or \code{NULL}. Maximum angular distance in degrees. With \code{NULL}, only \code{k}
+limits the selection.}
 
 \item{laxity}{numeric vector of length one. Positive multiplier applied to
 MAD to set classification thresholds. Default is \code{2}.}
@@ -38,81 +42,90 @@ MAD to set classification thresholds. Default is \code{2}.}
 \item{cutoff_side}{character vector of length one. One of \code{"both"},
 \code{"left"}, or \code{"right"}. Default is \code{"both"}.}
 
-\item{detrend}{logical vector of length one. When \code{TRUE}, a detrending is
-attempted with \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}} with \code{method = zenith_n_azimuth}. If
-this attempt fails, the function reverts to \code{detrend = FALSE} and searches
-for outliers in the untransformed values. Detrending fails systematically
-when \code{k < 20}.}
+\item{detrend}{logical vector of length one. Whether to remove a local
+cone-shaped trend before testing. A failed local trend stops the calculation;
+see Details.}
 
-\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
-executed in parallel.}
+\item{parallel}{logical vector of length one. If \code{TRUE}, evaluate queries
+in parallel. Result order follows \code{query_data} in either mode.}
 
-\item{cores}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available
-cores detected internally. Values greater than the number of available
-cores are silently reduced to the maximum allowed. If the resulting number
-of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
 
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
 
-\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to leave
-free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
-greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
-\code{parallel} is silently set to \code{FALSE}.}
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
+
+\item{angle_columns}{character vector of length two. Names of the polar
+and azimuthal angle columns, in that order. Defaults to
+\code{c("zenith", "azimuth")}. Polar angles must lie in \verb{[0, pi]} and
+azimuthal angles in \verb{[0, 2 * pi)}.}
 }
 \value{
-The retained points represented as a \link{data.frame}, same as
-\code{sampling_points}.
+Data frame containing the retained rows of \code{sampling_directions},
+preserving their columns, row names, and original order. An empty input
+returns an empty table with the same columns.
 }
 \description{
-Remove sky points considered outliers relative to their local
-neighbors in a user-specified variable.
+Remove observations whose values are outlying relative to nearby samples
+on the sphere, optionally after removing a local sky-brightness trend.
 }
 \details{
-Based on the Statistical Outlier Removal (SOR) filter from the
-\href{https://pointclouds.org/}{PCL library}. Distances are computed on a spherical
-surface. The number of neighbors is controlled by \code{k}, and \code{search_radius}
-sets the maximum search radius (deg). If fewer than \code{k} neighbors are found
-within that radius, the point is retained due to insufficient evidence for
-removal. The decision criterion is from \code{\link[=is_outlier]{is_outlier()}}.
+Each row is evaluated against its \code{k} nearest other observations within
+\code{search_radius}. The query is excluded by its row position, not by assuming
+that it is the first neighbor. Repeated directions remain distinct
+observations and can contribute to one another's neighborhoods. Distance
+ties follow the ordering used by \code{\link[=nn_spherical]{nn_spherical()}}.
+
+The decision uses \code{\link[=is_outlier]{is_outlier()}}: compare the query value with the median and
+scaled median absolute deviation (MAD) of its neighbors. Angular distance
+selects the neighborhood; it is not itself the variable being tested.
+Every neighbor contributes one observation, without distance or area weights.
+If fewer than \code{k} other observations are available, retain the query.
+A zero neighbor MAD also retains the query, following \code{\link[=is_outlier]{is_outlier()}}.
+
+All decisions use the original table. Removing one observation does not
+change the neighborhoods or decisions for others; the filter is not iterative.
+Missing directions provide no neighborhood and are retained. They do not
+contribute as neighbors. At a pole, azimuth may be missing for the angular
+search, as described in \code{\link[=nn_spherical]{nn_spherical()}}. Values selected by \code{col_id} must
+be finite, including rows with missing directions.
+
+With \code{detrend = TRUE}, fit \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}} using
+\code{method = "zenith_n_azimuth"} to the neighbors, excluding the query. Compare
+the query's observed-minus-predicted value with the neighbor residuals using
+the same MAD rule. The fit uses the variable selected by \code{col_id} and external
+\code{zenith} and \code{azimuth} in radians. These external columns are required even
+if internal directions are chosen for the neighbor search.
+
+Detrending requires \code{k >= 20}. If a full-rank fit cannot be obtained,
+required external angles are missing, or fitting/prediction fails, the
+calculation stops with the input row and cause. It never substitutes a test
+on the original values: \code{cutoff_side} applies to residuals when detrending
+is requested. Warnings from usable fits are reported with their input rows,
+including in parallel execution. A missing azimuth at zenith permits the
+neighbor search but not evaluation of the azimuth-dependent trend there.
+Queries with fewer than \code{k} neighbors are still retained without testing.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-gspec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), gspec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(gspec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-plot(r)
-points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-
-foo <- rem_outliers(sky_points, col_id = 5, k = 5, laxity = 2)
-
-plot(r)
-points(sky_points$col, nrow(z) - sky_points$row, col = 2, pch = 20, cex = 1)
-points(foo$col, nrow(z) - foo$row, col = 5, pch = 0)
+# In an image workflow, obtain these angular columns with add_directions()
+# and the sampled band with extract_dn(). Here the data are synthetic.
+samples <- external_directions_from_internal(fibonacci_directions(10))
+samples$id <- seq_len(nrow(samples))
+samples$Blue <- with(samples,
+  100 + 40 * zenith^2 + 5 * cos(azimuth) + sin(id))
+samples$Blue[120] <- samples$Blue[120] + 100
+retained <- rem_outliers(samples, "Blue", k = 20, search_radius = 30,
+                         detrend = TRUE)
+setdiff(samples$id, retained$id)
+plot(samples$id, samples$Blue, col = "red", pch = 16)
+points(retained$id, retained$Blue, col = "black", pch = 16)
 }
+\seealso{
+\code{\link[=add_directions]{add_directions()}}, \code{\link[=is_outlier]{is_outlier()}}, \code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}},
+\code{\link[=apply_locally]{apply_locally()}}
 }

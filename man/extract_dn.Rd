@@ -48,5 +48,5 @@ sampling_indices <- data.frame(
 extract_dn(r, sampling_indices, use_window = FALSE)
 }
 \seealso{
-\code{\link[=sample_sky_points]{sample_sky_points()}} for automatically sampling sky points.
+\code{\link[=compute_features]{compute_features()}}, \code{\link[=rem_nearby_indices]{rem_nearby_indices()}}, \code{\link[=add_directions]{add_directions()}}.
 }

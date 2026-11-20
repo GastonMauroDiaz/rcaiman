@@ -36,9 +36,11 @@
 #' object.
 #'
 #' Unlike classical raster-based implementations where each pixel contributes
-#' equally, this implementation supports weighted radiometric statistics via
-#' an area-weight image (`w`). This enables segmentation directly in any known
-#' hemispherical projection.
+#' equally, this implementation supports weighted radiometric statistics via an
+#' area-weight image (`w`). This enables segmentation directly in any known
+#' radial projection supported by [area_weight_image()] without the need of
+#' reprojecting to a given standard projection. Rectangular grids
+#' and partial sky coverage are supported.
 #'
 #' @section Multiresolution merging strategy:
 #' The algorithm follows the general principles of classical multiresolution
@@ -171,16 +173,22 @@
 #' \itemize{
 #' \item image dynamic range;
 #' \item lens projection;
-#' \item spatial resolution;
-#' \item spherical weighting schemes.
+#' \item spatial resolution.
 #' }
 #'
 #' @param r numeric [terra::SpatRaster-class] with one layer. Pixel values used
-#'   to compute object statistics.
-#' @param w [terra::SpatRaster-class] generated with [area_weight_image()].
+#'   to compute object statistics. Values must be finite in included segments;
+#'   missing values outside them are ignored.
+#' @param w [terra::SpatRaster-class] generated with [area_weight_image()],
+#'   on the same grid as `r` and `seg`. Weights must be finite and strictly
+#'   positive in included segments. Missing weights outside them are ignored.
 #' @param seg numeric [terra::SpatRaster-class] with one layer and values
-#'   interpreted as positive integers. Segmentation map where each pixel stores
-#'   a segment identifier.
+#'   interpreted as nonnegative integers. Each pixel stores a segment ID.
+#'   Missing labels are excluded. Zero is excluded when `ignore_label_0 = TRUE`.
+#'   A logical mask (see [direction_image()] for examples) is also accepted:
+#'   `TRUE` is label 1 and `FALSE` is label 0. All selected pixels belong to
+#'   one segment, even when disconnected. Use [label_components()] if connected
+#'   regions should have separate labels.
 #' @param scale_parameter numeric vector of length one. Maximum admissible merge
 #'   cost relative to the initial segmentation scale.
 #' @param boundary_weight numeric vector of length one. Controlls the influence
@@ -190,69 +198,32 @@
 #' @param ignore_label_0 logical of length one. If `TRUE`, the segment labeled
 #'   `0` is ignored.
 #' @param max_iterations numeric vector of length one. Maximum number of merge
-#'   iterations.
+#'   iterations, a nonnegative integer or `Inf` (the default).
 #'
 #' @return Numeric [terra::SpatRaster-class] of one layer and values
 #'   interpreted as positive integer and of same geometry as `seg`. Number of
-#'   unique values cannot be higher than in `seg`.
-#'
-#' @note
-#' Region statistics are updated incrementally after each merge.
-#'
-#' Unlike naive implementations, the algorithm does not recompute region
-#' statistics from raw pixels after every iteration.
-#'
-#' Adjacency relationships are also updated incrementally through a dynamic
-#' neighborhood graph representation.
-#'
-#' Multiple non-conflicting merges are executed during each iteration,
-#' substantially reducing the total number of global iterations required for
-#' convergence compared to purely sequential single-merge strategies.
-#'
-#' Region membership is also updated incrementally using cached pixel indices,
-#' avoiding repeated full-image relabeling operations.
-#'
-#' The implementation therefore combines conceptual transparency with
-#' substantially improved computational efficiency relative to naive
-#' bottom-up region-merging implementations.
+#'   unique values cannot be higher than in `seg`. Missing input labels become
+#'   zero. If no adjacent segments can be merged, labels are preserved.
 #'
 #' @seealso [adaptive_healpix_segmentation()]
 #'
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' # Initial oversegmentation
-#' seg0 <- healpix_segmentation(z, a, 32)
-#'
-#' # Spherical pixel weights
-#' w <- area_weight_image(z)
-#'
-#' # Multiresolution merging
-#' seg <- merge_segments(
-#'   r = r,
-#'   w = w,
-#'   seg = seg0,
-#'   scale_parameter = 50
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
 #' )
-#'
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g, elevation = 32.5)
+#' r <- g$off_axis
+#' seg0 <- healpix_segmentation(d, nside = 4)
+#' w <- area_weight_image(g, geometry)
+#' seg <- merge_segments(r, w, seg0, scale_parameter = 1)
 #' plot(seg)
-#' plot(compute_mean(r, seg))
-#'
-#' }
 #'
 #' @export
 merge_segments <- function(r,
@@ -271,47 +242,47 @@ merge_segments <- function(r,
   .check_vector(scale_parameter, "numeric", 1, sign = "nonnegative")
   .check_vector(boundary_weight, "numeric", 1, sign = "nonnegative")
   .check_vector(ignore_label_0, "logical", 1)
-  .check_vector(max_iterations, "numeric", 1, sign = "nonnegative")
-
-  x_r <- terra::as.matrix(r, wide = TRUE)
-  x_w <- terra::as.matrix(w, wide = TRUE)
-  x_seg <- terra::as.matrix(seg, wide = TRUE)
-
-  if (ignore_label_0) {
-    x_seg[x_seg == 0] <- NA_integer_
+  .check_vector(max_iterations, "numeric", 1, sign = "nonnegative",
+                allow_inf = TRUE)
+  if (is.finite(max_iterations)) {
+    .check_vector(max_iterations, "integerish", 1, sign = "nonnegative")
   }
 
-  adj <- .compute_adjacency(
-    seg,
-    w,
-    directed = FALSE,
-    ignore_label_0 = ignore_label_0,
-    return_border_length = TRUE
-  )
+  labels <- .segment_values(seg)
+  selected <- !is.na(labels) & (!ignore_label_0 | labels != 0)
+  values <- terra::values(r, mat = FALSE)
+  weights <- terra::values(w, mat = FALSE)
+  .check_vector(values[selected], "numeric", name = "r in included segments")
+  .check_vector(weights[selected], "numeric", sign = "positive",
+                name = "w in included segments")
 
-  if (!is.finite(max_iterations)) {
-    max_iterations <- .Machine$integer.max
-  } else {
-    max_iterations <- as.integer(max_iterations)
-  }
+  seg_out <- terra::deepcopy(seg)
+  labels[is.na(labels)] <- 0
+  terra::values(seg_out) <- labels
+  if (!any(selected) || max_iterations == 0) return(seg_out)
+
+  # Compact potentially sparse HEALPix IDs for the native region arrays.
+  # Restore the original IDs after merging; zero can be an included region.
+  ids <- sort(unique(labels[selected]))
+  compact <- integer(length(labels))
+  compact[selected] <- match(labels[selected], ids)
+  working_seg <- terra::rast(seg)
+  terra::values(working_seg) <- compact
+  adj <- .compute_adjacency(working_seg, w, directed = FALSE,
+    ignore_label_0 = TRUE, return_border_length = TRUE)
+  if (!nrow(adj)) return(seg_out)
 
   result <- merge_segments_cpp(
-    x_r = x_r,
-    x_w = x_w,
-    x_seg = x_seg,
+    x_r = terra::as.matrix(r, wide = TRUE),
+    x_w = terra::as.matrix(w, wide = TRUE),
+    x_seg = terra::as.matrix(working_seg, wide = TRUE),
     adj = adj,
     scale_parameter = scale_parameter,
     boundary_weight = boundary_weight,
-    max_iterations = max_iterations
+    max_iterations = as.integer(min(max_iterations, .Machine$integer.max))
   )
-
-  seg_out <- terra::deepcopy(seg)
-
-  seg_out[] <- as.vector(t(result))
-  seg_out[is.na(seg_out)] <- 0
-
+  merged <- as.vector(t(result))
+  labels[selected] <- ids[merged[selected]]
+  terra::values(seg_out) <- labels
   seg_out
 }
-
-
-

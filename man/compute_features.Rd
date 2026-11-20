@@ -5,28 +5,39 @@
 \alias{feature_image}
 \title{Compute object features}
 \usage{
-compute_features(r, seg, z, a, w, ignore_label_0 = TRUE)
+compute_features(r, seg, d, w, ignore_label_0 = TRUE)
 
 feature_image(seg, features, field, ignore_label_0 = TRUE)
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Pixel values used
-to compute object statistics.}
+\item{r}{single-layer numeric or logical \link[terra:SpatRaster-class]{terra::SpatRaster}.
+Measurements on the grid of \code{seg}. Missing values are omitted from
+radiometric statistics; other values must be finite in included segments.}
 
-\item{seg}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and values
-interpreted as positive integers. Segmentation map where each pixel stores
-a segment identifier.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}. Segmentation map
+of \code{r}, typically created with functions such as \code{\link[=healpix_segmentation]{healpix_segmentation()}},
+\code{\link[=beckers_segmentation]{beckers_segmentation()}} or \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, but any raster with
+nonnegative integer segment labels is accepted. Missing labels are excluded.
+A logical mask (see \code{\link[=direction_image]{direction_image()}} for examples) is also accepted:
+\code{TRUE} is label 1 and \code{FALSE} is label 0. All selected pixels belong to
+one segment, even when disconnected. Use \code{\link[=label_components]{label_components()}} if connected
+regions should have separate labels.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, on the same grid as \code{r}. Zenith angles
+may span \verb{[0, 180]}; the function does not restrict segments to the sky.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
-
-\item{w}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=area_weight_image]{area_weight_image()}}.}
+\item{w}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} of area weights, typically
+from \code{\link[=area_weight_image]{area_weight_image()}}, on the same grid as \code{r}. Included weights must
+be finite and nonnegative, or missing. Zero and missing weights contribute
+no area. Relative weights suffice for means and spherical centroids.}
 
 \item{ignore_label_0}{logical of length one. If \code{TRUE}, the segment labeled
 \code{0} is ignored.}
 
-\item{features}{data frame returned by \code{\link[=compute_features]{compute_features()}}.}
+\item{features}{data frame returned by \code{\link[=compute_features]{compute_features()}}, or a user-created
+table with unique nonnegative integer \code{id} values and numeric or logical
+feature columns. Rows are matched by \code{id}, not by position.}
 
 \item{field}{character vector. Names of columns in \code{features} to reconstruct
 as raster layers.}
@@ -39,7 +50,18 @@ Compute object-level attributes from a labeled segmentation and reconstruct
 raster layers from those attributes.
 }
 \details{
+\code{compute_features()} returns one row per included label, ordered by \code{id}.
+Geometry describes every pixel of the segment, independently of missing
+measurements in \code{r}. Radiometric means and standard deviations use \code{w};
+\code{\link[=compute_mean]{compute_mean()}} instead gives every nonmissing pixel equal weight.
+
+\code{feature_image()} paints each selected column over its segment. Missing
+labels, excluded zero labels, and labels absent from \code{features} become \code{NA}.
+Columns become layers named by \code{field}; unused table rows are ignored.
+
 Features returned by \code{compute_features()}:
+
+\code{id} is the original segment label.
 
 \describe{
 \item{\code{pixel_count}}{Number of pixels belonging to the segment.}
@@ -66,7 +88,8 @@ Segment area computed as:
         }
 where \eqn{w_i} is the area weight associated with pixel \eqn{i}. Equal
 weighted areas therefore represent approximate equal portions of
-hemispherical space regardless of image position.
+angular space regardless of image position. Its units follow \code{w}:
+relative weights give relative area, not steradians.
 }
 
 \item{\code{shape_complexity}}{Dimensionless shape descriptor computed as
@@ -88,10 +111,12 @@ Effective sample size induced by area weighting:
         \sum_i w_i^2
       }
     }
-This quantity represents the number of equally weighted observations
-providing the same statistical information as the weighted sample.
-It equals \code{valid_count} when all pixels have identical weights and
-decreases as weight inequality increases.
+Used internally in the correction factor for \code{sd}. With equal positive
+weights, it equals \code{valid_count}; it decreases as the weighted mean
+becomes dominated by fewer pixels. Weighting accounts for the area
+represented by each pixel, but a larger weight does not supply additional
+measurements. A low value therefore helps identify means that depend
+heavily on a few pixel values, even when the segment contains many pixels.
 }
 
 \item{\code{mean}}{
@@ -122,6 +147,8 @@ Area-weighted sample standard deviation:
         }
       }
     }
+Here \eqn{n_{\mathrm{eff}}} is \code{effective_sample_size}. The correction
+factor is applied automatically; it requires no separate user input.
 This estimator reduces to the ordinary sample standard deviation when
 all pixels have equal weight.
 }
@@ -133,13 +160,21 @@ all pixels have equal weight.
 \item{\code{row}, \code{col}}{Coordinates in raster
 space of the pixel with the maximum value.}
 
-\item{\code{zen}, \code{azi}}{Direction of the maximum value as in \code{\link[=add_directions]{add_directions()}}.}
+\item{\code{zenith}, \code{azimuth}}{External direction of the maximum in radians,
+as in \code{\link[=add_directions]{add_directions()}}. Ties select the first pixel in raster cell order.}
 
 \item{\code{spherical_centroid_zenith}, \code{spherical_centroid_azimuth}}{
-Geometric centroid of the segment on the unit hemisphere. The centroid is
-obtained by averaging the three-dimensional unit vectors associated with all
-segment pixels and converting the resulting mean direction back to zenith and
-azimuth angles (radian).}
+Direction of the area-weighted centroid on the unit sphere, in radians.
+The three-dimensional unit vectors are averaged using \code{w}, and the mean
+vector is normalized to unit length. Area weights account for differences
+in the solid angle represented by pixels under the image projection;
+expressing directions as unit vectors alone does not correct this effect.
+Relative area weights suffice: multiplying all weights by the same positive
+constant leaves the direction unchanged. Missing values in \code{r} do not
+affect this geometric descriptor. Zero or missing weights do not contribute;
+a missing direction with positive weight makes the centroid undefined.
+Both angles are \code{NA} when total weight is zero or the mean vector has
+numerically zero length.}
 
 \item{\code{planar_centroid_row}, \code{planar_centroid_col}}{
 Geometric centroid of the segment in the image plane. The centroid is
@@ -158,24 +193,22 @@ pixel values are reconstructed from object attributes.}
 }
 
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-g <- sky_grid_segmentation(z, a, 10)
-print(compute_mean(r$Cyan, g, return = "vector"))
-plot(compute_mean(r$Cyan, g, return = "raster"))
-}
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+w <- area_weight_image(g, geometry)
+seg <- sky_grid_segmentation(d, 15)
+# Illustrative measurements; supply an image band in a real analysis.
+r <- cos(d$zenith * pi / 180)
+features <- compute_features(r, seg, d, w)
+head(features)
+plot(feature_image(seg, features, c("mean", "area")))
 }
 \seealso{
 \code{\link[=compute_mean]{compute_mean()}}

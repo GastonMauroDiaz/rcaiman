@@ -2,63 +2,74 @@
 % Please edit documentation in R/validate_projection_function.R
 \name{validate_projection_function}
 \alias{validate_projection_function}
-\title{Validate radial polynomial projection function}
+\title{Validate a radial projection model}
 \usage{
-validate_projection_function(projection_coef, tol = 0.001)
+validate_projection_function(
+  projection_coef,
+  tol = 0.001,
+  normalization_angle = 90,
+  max_off_axis_angle = 90
+)
 }
 \arguments{
-\item{projection_coef}{numeric vector. Polynomial coefficients defining
-\eqn{r(\theta) = \sum a_p \theta^p}, where \eqn{\theta} is expressed in
-radians.}
+\item{projection_coef}{numeric vector of coefficients for the radial model
+described in \code{\link[=set_internal_geometry]{set_internal_geometry()}}. The polynomial uses off-axis angles
+in radians and has no constant term.}
 
-\item{tol}{numeric vector of length one. Maximum absolute deviation allowed
-at the boundaries before the model is considered structurally invalid.}
+\item{tol}{positive numeric value, at most 0.01. Maximum absolute deviation
+from one at \code{normalization_angle}. Defaults to 0.001.}
+
+\item{normalization_angle}{positive numeric value, at most 180. Off-axis
+angle in degrees at which the relative radius should equal one. Defaults
+to 90, independently of the inversion limit.}
+
+\item{max_off_axis_angle}{positive numeric value, at most 180. Upper limit
+in degrees of the interval checked for invertibility. Defaults to 90.}
 }
 \value{
-A named list with elements:
-\describe{
-\item{status}{Character string taking one of
-\code{"valid"}, \code{"structural_invalid"}, or \code{"underestimation"}.}
-\item{val_0}{Value of the projection function at 0 deg.}
-\item{val_90}{Value of the projection function at 90 deg.}
-\item{err_90}{Deviation from 1 at 90 deg.}
-}
+Named list with \code{status} (\code{"valid"}, \code{"structural_invalid"}, or
+\code{"underestimation"}), \code{val_0}, \code{val_reference} (radius at
+\code{normalization_angle}), \code{err_reference} (that radius minus one), and
+\code{reason} (a diagnostic string, or \code{NULL} for a valid model). Malformed
+arguments raise errors; model failures are reported through this list.
 }
 \description{
-Validation refers to compliance with the normalization constraints
-required by the package for radial polynomial projection models.
-It does not assess physical calibration correctness.
+Check normalization and invertibility of a radial projection model. These
+checks assess mathematical consistency, not experimental calibration accuracy.
 }
 \details{
-The public interface evaluates the model at 0 and 90 deg,
-but the polynomial itself is defined in radians. Internally,
-angles are converted to radians before evaluating the projection
-function (see \code{\link[=calc_relative_radius]{calc_relative_radius()}}).
+The model must be finite and strictly increasing from zero to
+\code{max_off_axis_angle}. The derivative is checked between its real roots,
+using the same check as \code{\link[=calc_off_axis_angle]{calc_off_axis_angle()}}. This check also applies
+when the normalization radius is underestimated. The absent constant term
+ensures a relative radius of zero on the optical axis.
 
-The validation distinguishes between structural validity and
-operational safety:
+A reference radius within \code{tol} but below one is classified as
+\code{"underestimation"}. When normalization and inversion angles coincide,
+radii between that value and one have no inverse within the allowed interval.
+Accepting an absolute normalization error alone would not prevent unexpected
+missing directions near the nominal circle boundary. \code{\link[=fix_projection_coef]{fix_projection_coef()}}
+adjusts the last coefficient to resolve this small deficit.
 
-\enumerate{
-\item Structural validity:
-\itemize{
-\item The projection model must satisfy the theoretical boundary conditions:
-relative radius (R) at 0 deg equal to cero and R at 90 deg equal to one. Large
-deviations (greater than \code{tol}) indicate an invalid calibration and require
-recalibration.
-\item The projection function must be monotonically increasing over the
-interval \verb{[0, 90 deg]}, i.e., the relative radius must not decrease as the
-zenith angle increases. Violations of this condition indicate a geometrically
-inconsistent model (e.g., radial folding), where multiple zenith angles map
-to the same radius. Such models are considered structurally invalid and
-require recalibration.
-}
-\item Operational safety: If R(90 deg) < 1 but the deviation is within
-\code{tol}, the model is considered structurally valid but operationally unsafe
-for segmentation algorithms that do not contemplate values above 90 deg. In
-this case, \code{\link[=fix_projection_coef]{fix_projection_coef()}} is recommended.
-}
+Differences within eight machine epsilons relative to the reference radius
+are treated as floating-point roundoff, consistently with the radial inverse.
+This is distinct from \code{tol}, which accommodates rounded model coefficients.
+\code{\link[=set_internal_geometry]{set_internal_geometry()}} uses this validation with \code{tol = 0.01} and rejects
+both invalid and underestimated models without changing their coefficients.
+A calculation limit below the normalization angle still limits coverage:
+validation does not extend the requested angular domain.
 }
 \examples{
-validate_projection_function(c(0.6890,  0.0131, -0.0297), tol = 1e-3)
-validate_projection_function(c(0.6890,  0.0131, -0.02), tol = 1e-3)
+# Rounded coefficients from a lens calibration.
+projection_coef <- c(0.702, 0.0434, -0.0543)
+validate_projection_function(projection_coef)
+corrected <- fix_projection_coef(projection_coef)
+validate_projection_function(corrected)
+
+# Normalization and calculation limit need not coincide.
+validate_projection_function(3 / pi, normalization_angle = 60,
+                             max_off_axis_angle = 120)
+}
+\seealso{
+\code{\link[=fix_projection_coef]{fix_projection_coef()}}, \code{\link[=normalize_projection_coef]{normalize_projection_coef()}}
 }

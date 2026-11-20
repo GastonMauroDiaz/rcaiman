@@ -2,48 +2,61 @@
 % Please edit documentation in R/fix_projection_coef.R
 \name{fix_projection_coef}
 \alias{fix_projection_coef}
-\title{Fix lens projection coefficients}
+\title{Adjust the last radial projection coefficient}
 \usage{
-fix_projection_coef(projection_coef, tol = 0.001)
+fix_projection_coef(
+  projection_coef,
+  tol = 0.001,
+  normalization_angle = 90,
+  max_off_axis_angle = 90
+)
 }
 \arguments{
-\item{projection_coef}{numeric vector. Polynomial coefficients defining
-\eqn{r(\theta) = \sum a_p \theta^p}, where \eqn{\theta} is expressed in
-radians.}
+\item{projection_coef}{numeric vector of coefficients for the radial model
+described in \code{\link[=set_internal_geometry]{set_internal_geometry()}}. The polynomial uses off-axis angles
+in radians and has no constant term.}
 
-\item{tol}{numeric vector of length one. Structural tolerance passed to
-\code{\link[=validate_projection_function]{validate_projection_function()}}.}
+\item{tol}{positive numeric value, at most 0.01. Maximum absolute deviation
+from one at \code{normalization_angle}. Defaults to 0.001.}
+
+\item{normalization_angle}{positive numeric value, at most 180. Off-axis
+angle in degrees at which the relative radius should equal one. Defaults
+to 90, independently of the inversion limit.}
+
+\item{max_off_axis_angle}{positive numeric value, at most 180. Upper limit
+in degrees of the interval checked for invertibility. Defaults to 90.}
 }
 \value{
-A numeric vector of projection coefficients. The input vector is
-returned unchanged if no correction is required.
+Numeric vector of coefficients. A valid input is returned unchanged,
+including its names. An underestimated model is returned only after the
+corrected coefficients pass validation.
 }
 \description{
-Adjust the last coefficient of a radial polynomial projection model to
-enforce the normalization constraint at 90 degrees (i.e., r(90°) >= 1). The
-adjustment addresses operational boundary compliance required by the package.
-It does not correct physical calibration errors.
+Correct a small deficit of relative radius at the normalization angle by
+incrementing the last polynomial coefficient. Other coefficients stay fixed.
 }
 \details{
-This function applies exclusively to radial projection models of the form
-\eqn{r(\theta) = \sum a_p \theta^p}, where \eqn{\theta} is expressed in
-radians.
+\code{\link[=validate_projection_function]{validate_projection_function()}} must classify the input as valid or as an
+underestimation within \code{tol}. Structurally invalid models are rejected with
+the corresponding diagnostic; this function does not repair radial folding.
 
-This function relies on \code{\link[=validate_projection_function]{validate_projection_function()}} to classify
-the projection model:
+The last coefficient is increased iteratively until the reference radius
+reaches one, within floating-point precision. Each increment targets a change
+of \code{tol / 100} in relative radius at \code{normalization_angle}, so the step remains
+useful when that angle or the polynomial degree changes. The complete model
+is validated after each increment, including invertibility up to
+\code{max_off_axis_angle}. Failure to obtain a valid result raises an error.
 
-\itemize{
-\item If the model is structurally invalid (large boundary deviation),
-an error is raised and recalibration is required.
-\item If the model is structurally valid but predicts a value below 1
-at 90 deg, the last coefficient is increased incrementally
-until validation succeeds.
+This preserves the existing correction mechanism for rounded coefficients.
+It changes the curve through its highest-order term; it does not improve the
+experimental fit. \code{\link[=normalize_projection_coef]{normalize_projection_coef()}} is a separate operation that
+rescales all coefficients to change the normalization reference.
 }
-
-The function determines the correction direction empirically by
-probing the local effect of the last coefficient on the predicted
-value at 90 deg. It assumes a locally monotonic relationship
-between the last coefficient and the boundary value.
+\examples{
+projection_coef <- c(0.702, 0.0434, -0.0543)
+corrected <- fix_projection_coef(projection_coef)
+rbind(original = projection_coef, corrected = corrected)
+calc_relative_radius(90, corrected)
 }
 \seealso{
 \code{\link[=validate_projection_function]{validate_projection_function()}}

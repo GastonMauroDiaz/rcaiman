@@ -24,7 +24,9 @@ interpolate_planar(
 \code{"y_down"} containing continuous image coordinates, and a numeric column
 with values to interpolate. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}. Convert
 cell indices explicitly with \code{\link[=coord_from_indices]{coord_from_indices()}} when sampling cell
-centers. Subpixel positions are used without snapping to cells.}
+centers. Subpixel positions are used without snapping to cells. Rows with
+missing or nonfinite coordinates or values are omitted. With no available
+samples, the result contains only \code{NA}.}
 
 \item{col_id}{numeric or character vector of length one. The name or position
 of the column in \code{sampling_coord} containing the values to interpolate.}
@@ -55,25 +57,19 @@ and when \code{rigorous = TRUE}, changes from \code{minPoints = 1} (default) to
 \code{logical} and \code{leave_free} are ignored. Both engines use continuous input
 positions.}
 
-\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
-executed in parallel.}
+\item{parallel}{logical vector of length one. If \code{TRUE}, evaluate queries
+in parallel. Result order follows \code{query_data} in either mode.}
 
-\item{cores}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available
-cores detected internally. Values greater than the number of available
-cores are silently reduced to the maximum allowed. If the resulting number
-of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
 
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
 
-\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to leave
-free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
-greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
-\code{parallel} is silently set to \code{FALSE}.}
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
 }
 \value{
 Numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same geometry

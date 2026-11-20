@@ -1,192 +1,101 @@
-.crop_offset_coord <- function(
-    upper_left_indices = NULL,
-    snapped_zenith_coord = NULL,
-    horizon_radius = NULL,
-    allow_null = FALSE
-) {
-  .check_vector(
-    upper_left_indices,
-    "integerish",
-    2,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
-    snapped_zenith_coord,
-    "integerish",
-    2,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
-    horizon_radius,
-    "integerish",
-    1,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-
-  free_supplied <- !is.null(upper_left_indices)
-  centered_supplied <- c(
-    !is.null(snapped_zenith_coord),
-    !is.null(horizon_radius)
-  )
-
-  if (free_supplied && any(centered_supplied)) {
-    stop(
-      "Supply either `upper_left_indices` or the centered specification, ",
-      "not both.",
-      call. = FALSE
-    )
-  }
-  if (any(centered_supplied) && !all(centered_supplied)) {
-    stop(
-      "`snapped_zenith_coord` and `horizon_radius` must be supplied together.",
-      call. = FALSE
-    )
-  }
-  if (!free_supplied && !any(centered_supplied)) {
-    if (allow_null) {
-      return(NULL)
-    }
-    stop(
-      "Supply `upper_left_indices` or both `snapped_zenith_coord` and ",
-      "`horizon_radius`.",
-      call. = FALSE
-    )
-  }
-
-  if (free_supplied) {
-    return(upper_left_indices - 1)
-  }
-  snapped_zenith_coord - horizon_radius
-}
-
-
-#' Crop a canopy image
+#' Crop and reposition a canopy image
 #'
 #' @description
-#' Extract an exact region of cells from a canopy image. Define either a free
-#' rectangular crop or a square crop centered on a snapped zenith.
+#' Extract a rectangular region of cells from an image or its angular geometry,
+#' or reposition retained cells in their original grid.
 #'
-#' @param r [terra::SpatRaster-class].
-#' @param upper_left_indices integer-like numeric vector of length two. Cell
-#'   indices of the upper-left cell included in the crop, in the order
-#'   `c(col, row)`. Cell indices are numbered from 1. If `NULL`, `width` and
-#'   `height` must also be `NULL`.
+#' @param r numeric [terra::SpatRaster-class] with one or more layers.
+#' @param upper_left_indices positive integer-like numeric vector of length two.
+#'   Cell indices of the upper-left cell included in the crop, in the order
+#'   `c(col, row)`. See [y_down_from_y()].
 #' @param width,height positive integer-like numeric vectors of length one.
-#'   Number of columns and rows included in the crop. If `NULL`,
-#'   `upper_left_indices` must also be `NULL`.
-#' @param snapped_zenith_coord integer-like numeric vector of length two.
-#'   Continuous image coordinates of the optical center in the input image
-#'   frame, in the order `c(x, y_down)`. The coordinates identify the center of
-#'   the nearest 2 x 2 cell window. If `NULL`, `horizon_radius` must also be
-#'   `NULL`.
-#' @param horizon_radius positive integer-like numeric vector of length one.
-#'   Radius of the declared processing geometry in cell units. If `NULL`,
-#'   `snapped_zenith_coord` must also be `NULL`.
+#'   Number of columns and rows included in the crop.
+#' @param original_dim positive integer-like numeric vector of length two.
+#'   Original grid dimensions in the order `c(width, height)`.
 #'
 #' @details
 #' Crops are aligned with cell boundaries and never divide or resample a cell.
-#' Supply either `upper_left_indices`, `width`, and `height`, or
-#' `snapped_zenith_coord` and `horizon_radius`. The two specifications are
-#' mutually exclusive. If all five arguments are `NULL`, no crop is applied.
+#' The requested rectangle must lie entirely within the input image. For
+#' [uncrop_caim()], supply the same `upper_left_indices` and the original grid
+#' dimensions. The retained cells must fit entirely within that grid.
 #'
-#' For a free crop, `upper_left_indices = c(4, 3)`, `width = 2`, and
-#' `height = 3` retain columns 4--5 and rows 3--5. For a centered crop, the
-#' first retained cell is identified by
-#' `snapped_zenith_coord - horizon_radius + 1`, and both sides have length
-#' `2 * horizon_radius`.
+#' Apply the same selection to an image and its internal geometry to keep their
+#' cells aligned. Angular values remain valid after cropping and repositioning.
 #'
 #' The result is assigned the standardized raster geometry described in
-#' [set_rcaiman_geometry()].
+#' [set_rcaiman_geometry()]. Continuous image coordinates change with this new
+#' frame; use [crop_points()] to translate marks accordingly. [uncrop_caim()]
+#' places retained cells back in the original frame, filling the remaining cells
+#' with `NA`; use [uncrop_points()] to translate marks accordingly. Values
+#' discarded by cropping are not recovered.
 #'
-#' @return [terra::SpatRaster-class] containing the selected cells, with the
-#'   same layers and values as `r`.
+#' @return
+#' - `crop_caim()` returns a [terra::SpatRaster-class] containing the selected
+#'   cells, with the same layers and values as `r`.
+#' - `uncrop_caim()` returns a [terra::SpatRaster-class] with the original grid
+#'   dimensions and the same layers as `r`. Retained cells preserve their
+#'   values; all other cells contain `NA`.
+#'
+#' @seealso [read_caim()], [set_internal_geometry()], [crop_points()],
+#'   [uncrop_points()]
 #'
 #' @export
 #'
 #' @examples
-#' caim <- read_caim()
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(30, 20),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(60, 40), geometry)
+#'
+#' caim <- g$off_axis + 20
+#' original_dim <- c(ncol(caim), nrow(caim))
+#' upper_left_indices <- c(2, 3)
 #' cropped_caim <- crop_caim(
 #'   caim,
-#'   upper_left_indices = c(2, 3),
-#'   width = 5,
-#'   height = 4
+#'   upper_left_indices = upper_left_indices,
+#'   width = 10,
+#'   height = 10
 #' )
+#' plot(cropped_caim)
 #' dim(cropped_caim)
+#' restored_caim <- uncrop_caim(cropped_caim, upper_left_indices, original_dim)
+#' dim(restored_caim)
+#' plot(restored_caim) # only the frame is restored
 #'
-#' centered_caim <- crop_caim(
-#'   caim,
-#'   snapped_zenith_coord = c(5, 6),
-#'   horizon_radius = 2
+#' # Use the same frame for the internal geometry.
+#' geometry <- list(
+#'   center_of_vision = floor(original_dim / 2),
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   normalization_radius = min(original_dim) / 2,
+#'   normalization_angle = 90
 #' )
-crop_caim <- function(r,
-                      upper_left_indices = NULL,
-                      width = NULL,
-                      height = NULL,
-                      snapped_zenith_coord = NULL,
-                      horizon_radius = NULL) {
+#' g <- set_internal_geometry(original_dim, geometry)
+#' g_crop <- crop_caim(g, upper_left_indices, width = 5, height = 4)
+#' g_back <- uncrop_caim(g_crop, upper_left_indices, original_dim)
+#'
+#' # Define a square around the center of vision.
+#' center_of_vision <- c(5, 6)
+#' crop_radius <- 2
+#' # The center uses boundary coordinates; cell indices start at 1.
+#' upper_left_indices <- center_of_vision - crop_radius + 1
+#' side <- 2 * crop_radius
+#' centered_caim <- crop_caim(caim, upper_left_indices, side, side)
+#' plot(centered_caim)
+crop_caim <- function(r, upper_left_indices, width, height) {
   .assert_spatraster(r)
-  .check_vector(
-    width,
-    "integerish",
-    1,
-    allow_null = TRUE,
-    sign = "positive"
-  )
-  .check_vector(
-    height,
-    "integerish",
-    1,
-    allow_null = TRUE,
-    sign = "positive"
-  )
+  .check_vector(upper_left_indices, "integerish", 2, sign = "positive")
+  .check_vector(width, "integerish", 1, sign = "positive")
+  .check_vector(height, "integerish", 1, sign = "positive")
 
-  rectangle_supplied <- !vapply(
-    list(upper_left_indices, width, height),
-    is.null,
-    logical(1)
-  )
-  centered_supplied <- !vapply(
-    list(snapped_zenith_coord, horizon_radius),
-    is.null,
-    logical(1)
-  )
-
-  if (any(rectangle_supplied) && any(centered_supplied)) {
-    stop(
-      "Supply either the free or centered crop specification, not both.",
-      call. = FALSE
-    )
-  }
-  if (any(rectangle_supplied) && !all(rectangle_supplied)) {
-    stop(
-      "`upper_left_indices`, `width`, and `height` must be supplied together.",
-      call. = FALSE
-    )
-  }
-
-  offset_coord <- .crop_offset_coord(
-    upper_left_indices,
-    snapped_zenith_coord,
-    horizon_radius,
-    allow_null = TRUE
-  )
-
-  r <- set_rcaiman_geometry(r)
-  if (is.null(offset_coord)) {
-    return(r)
-  }
-
-  if (all(centered_supplied)) {
-    width <- height <- horizon_radius * 2
-  }
-
-  first_col <- as.integer(offset_coord[1] + 1)
-  first_row <- as.integer(offset_coord[2] + 1)
-  last_col <- first_col + as.integer(width) - 1L
-  last_row <- first_row + as.integer(height) - 1L
+  first_col <- upper_left_indices[1]
+  first_row <- upper_left_indices[2]
+  last_col <- first_col + width - 1
+  last_row <- first_row + height - 1
 
   outside_r <- first_col < 1L || first_row < 1L ||
     last_col > terra::ncol(r) || last_row > terra::nrow(r)
@@ -203,6 +112,6 @@ crop_caim <- function(r,
   y_min <- terra::nrow(r) - last_row
   crop_extent <- terra::ext(x_min, x_max, y_min, y_max)
 
-  r <- terra::crop(r, crop_extent)
+  r <- terra::crop(set_rcaiman_geometry(r), crop_extent)
   set_rcaiman_geometry(r)
 }

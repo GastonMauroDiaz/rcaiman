@@ -2,44 +2,67 @@
 % Please edit documentation in R/area_weight_image.R
 \name{area_weight_image}
 \alias{area_weight_image}
-\title{Build area weight image}
+\title{Build a relative solid-angle weight image}
 \usage{
-area_weight_image(z)
+area_weight_image(g, geometry)
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{g}{\link[terra:SpatRaster-class]{terra::SpatRaster} from
+\code{\link[=set_internal_geometry]{set_internal_geometry()}}, with \code{off_axis} and \code{internal_azimuth} layers
+in degrees. Only \code{off_axis} is used; missing azimuths do not affect weights.}
+
+\item{geometry}{named list following \code{\link[=set_internal_geometry]{set_internal_geometry()}}, with
+\code{model = "radial_projection"}. Supply the geometry used to construct
+\code{g}, including its normalization reference. Anisotropic
+models are not supported by this analytical calculation.}
 }
 \value{
-A \code{SpatRaster} of relative solid angle weights of same dimensions as \code{z}.
+Single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as
+\code{g}, with relative solid-angle weights and \code{NA} where
+off-axis angle is missing. No calibration attributes are attached.
 }
 \description{
-Build a single-layer image with relative solid angle weights.
+Calculate relative pixel solid-angle weights analytically from a radial
+projection model and the internal off-axis angles.
 }
 \details{
-In an ideal equal-area projection, every pixel represents the same solid
-angle of the hemisphere. Real lenses deviate from this behavior due to
-geometric distortion. This function computes relative solid angle weights
-analytically from the lens projection model.
+Inclining the optical system changes the external direction of each pixel
+but not the solid angle it represents. Weights therefore use off-axis
+angle, not external zenith angle, and can be reused with different
+acquisition orientations.
 
-The relative solid angle weight \eqn{W} is calculated analytically as:
-\deqn{
-W(\theta) = \frac{\sin(\theta)}{f(\theta) \cdot f'(\theta)}
-}
-where \eqn{f(\theta)} is the lens projection polynomial and
-\eqn{f'(\theta)} is its first derivative.
+For the radial polynomial \eqn{f} defined in \code{\link[=set_internal_geometry]{set_internal_geometry()}},
+evaluated with off-axis angle \eqn{\theta'} in radians, the weight is
+\deqn{W(\theta') = \frac{\sin(\theta')}{f(\theta') f'(\theta')}.}
+At the optical axis the limit is \eqn{W(0) = 1/a_1^2}, where \eqn{a_1}
+is the first polynomial coefficient. The model must have a positive
+derivative at the evaluated directions to give finite weights.
 
-At the zenith (\eqn{\theta = 0}), the analytical limit converges to:
-\deqn{W(0) = \frac{1}{a^2}}
-Where \eqn{a} is the first coefficient of the lens polynomial.
-}
-\note{
-To obtain pixel solid angles in steradians, divide the resulting raster by
-the squared radius in pixels at 90 deg:
-\code{(ncol(z) / 2)^2}.
+These are relative weights. Divide by \code{geometry$normalization_radius^2}
+to obtain the local solid angle per unit pixel area in steradians. This
+is a differential approximation evaluated at pixel centers, not an
+integration over each pixel boundary. The normalization angle need not
+be 90 deg. Changing that reference rescales the relative weights; dividing
+by the corresponding squared radius gives the same physical result.
+
+Cropping or masking the internal geometry preserves the weights at the
+remaining pixels. Resampling to a different image scale requires the
+geometry of that new representation.
 }
 \examples{
-z <- zenith_image(100, equidistant_coef)
-summary(pixel_area_weight(z))
-z <- zenith_image(100, equal_area_coef)
-summary(pixel_area_weight(z))
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+w <- area_weight_image(g, geometry)
+plot(w)
+solid_angle <- w / geometry$normalization_radius^2
+}
+\seealso{
+\code{\link[=thr_isodata]{thr_isodata()}}, \code{\link[=apply_by_direction]{apply_by_direction()}}, \code{\link[=merge_segments]{merge_segments()}},
+\code{\link[=normalize_projection_coef]{normalize_projection_coef()}}
 }

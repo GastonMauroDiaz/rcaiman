@@ -17,23 +17,17 @@ Replace single black pixels (\code{FALSE}) that are fully surrounded by white
 pixels (\code{TRUE}). Uses 8-connectivity.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
+bin <- matrix(TRUE, nrow = 8, ncol = 10)
+bin[3, 3] <- FALSE           # One isolated black pixel.
+bin[3, 7] <- FALSE           # Two black pixels touching diagonally.
+bin[4, 8] <- FALSE
+bin[6:7, 3:4] <- FALSE       # A larger black patch.
+bin <- set_rcaiman_geometry(rast(bin)) > 0
 
-bin <- binarize_by_region(r, ring_segmentation(z, 15), "thr_isodata")
+cleaned <- rem_isolated_black_pixels(bin)
+plot(c(bin, cleaned), col = c("black", "white"),
+     main = c("Original", "Isolated pixel removed"))
 
-plot(bin)
-plot(rem_isolated_black_pixels(bin))
-}
+# Only the isolated pixel changes; the diagonal pair and larger patch remain.
+sum(cleaned[] != bin[])
 }

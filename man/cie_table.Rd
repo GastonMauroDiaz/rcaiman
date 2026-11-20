@@ -45,11 +45,13 @@ direction \eqn{(\theta, \phi)} as:
 \deqn{
 \hat{\rho_R}^{\circ}(\theta, \phi) =
 \frac{\Phi(\theta) \cdot f(\chi(\theta, \phi; \theta_\odot, \phi_\odot))}
-{\Phi(0) \cdot f(\chi(\theta, \phi; 0, 0))}
+{\Phi(0) \cdot f(\theta_\odot)}
 }
 
 where \eqn{\theta} is the zenith angle, \eqn{\phi} is the azimuth angle,
 and \eqn{\theta_\odot, \phi_\odot} are the zenith and azimuth of the sun disk.
+The angular distance between zenith and the sun is \eqn{\theta_\odot},
+which determines the indicatrix value in the normalization denominator.
 }
 \references{
 \insertAllCited{}

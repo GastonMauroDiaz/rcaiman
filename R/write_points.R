@@ -55,7 +55,7 @@
 read_points <- function(path) {
   .check_vector(path, "character", 1)
   .assert_file_exists(path)
-  sampling_coord <- read.csv(path)
+  sampling_coord <- utils::read.csv(path)
   .check_columns(
     sampling_coord,
     required_columns = c("x", "y_down")
@@ -79,7 +79,7 @@ write_points <- function(sampling_coord, path) {
   other_columns <- setdiff(nms, c("x", "y_down"))
   sampling_coord <- sampling_coord[, c("x", "y_down", other_columns)]
 
-  write.csv(
+  utils::write.csv(
     sampling_coord,
     file.path(dirname(path), file_name),
     row.names = FALSE

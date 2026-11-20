@@ -2,72 +2,90 @@
 % Please edit documentation in R/reproject_points.R
 \name{reproject_points}
 \alias{reproject_points}
-\title{Reproject points to continuous image coordinates}
+\title{Reproject directions to a radial destination}
 \usage{
-reproject_points(sampling_points, projection_coef, diameter, orientation = 0)
+reproject_points(
+  sampling_points,
+  geometry,
+  sensor_rotation = 0,
+  azimuth_rotation = 0,
+  elevation = 90
+)
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"} in
-radians. Existing \code{"x"} and \code{"y_down"} columns are replaced by the target
-coordinates. Columns \code{"col"}, \code{"row"}, \code{"y"}, \code{"relative_radius"}, and
-\code{"image_angle"} are removed. All other columns are preserved.}
+\item{sampling_points}{\code{data.frame} from \code{\link[=add_directions]{add_directions()}}, with numeric
+columns \code{"zenith"} and \code{"azimuth"} in radians. Zenith is in \verb{[0, pi]}
+and azimuth in \verb{[0, 2 * pi)}. Missing angles may be \code{NA}.}
 
-\item{projection_coef}{numeric vector. Polynomial coefficients defining
-the radial projection model evaluated in radians.}
+\item{geometry}{named list following \code{\link[=set_internal_geometry]{set_internal_geometry()}}, with
+\code{model = "radial_projection"}. Describes the destination, including its
+center of vision, projection coefficients, normalization radius and angle,
+and optional \code{max_off_axis_angle} (90 deg when absent). Additional fields
+and list classes are accepted.}
 
-\item{diameter}{numeric vector of length one. Diameter in pixels
-expressed as an even integer.}
+\item{sensor_rotation}{numeric vector of length one. Clockwise rotation of
+the destination sensor in degrees, using the convention of
+\code{\link[=direction_image]{direction_image()}}. Defaults to zero (landscape).}
 
-\item{orientation}{numeric vector of length one. Orientation of the target
-image (deg), using the convention of \code{\link[=azimuth_image]{azimuth_image()}}. The default is zero
-for a North-up target.}
+\item{azimuth_rotation}{numeric vector of length one. Horizontal turn of
+the destination to the right from south, in degrees, as in
+\code{\link[=direction_image]{direction_image()}}. Defaults to zero.}
+
+\item{elevation}{numeric vector of length one. Elevation of the destination
+optical axis above the horizontal in degrees, in \verb{[-90, 90]}, as in
+\code{\link[=direction_image]{direction_image()}}. Defaults to 90 (zenith).}
 }
 \value{
-\code{data.frame} with columns \code{"x"} and \code{"y_down"} followed by preserved
-angular directions and other frame-independent columns from
-\code{sampling_points}. Coordinates refer to the target image and use the
-convention described in \code{\link[=y_down_from_y]{y_down_from_y()}}.
+\code{data.frame} with \code{"x"} and \code{"y_down"} followed by the preserved
+columns. Coordinates follow \code{\link[=y_down_from_y]{y_down_from_y()}}.
 }
 \description{
-Recompute continuous image coordinates after changing the radial projection
-model or orientation that defines a target image geometry.
+Map viewing directions to continuous image coordinates in a radial
+representation with a specified orientation.
 }
 \details{
-\pkg{rcaiman} represents hemispherical images using a radial projection
-system, where each point is defined by its angular coordinates (zenith and
-azimuth).
+The orientation arguments describe the destination; source orientation is
+already expressed by \code{zenith} and \code{azimuth}. Their defaults place zenith at
+the center and North at the top, with East to the left and West to the right.
 
-The radial projection model defines how zenith angles are transformed into
-normalized radial distances (see \code{\link[=calc_relative_radius]{calc_relative_radius()}}). These distances
-are then scaled to the continuous image coordinates of a square target with
-the requested \code{diameter}.
+Directions are first expressed in the destination's internal frame with
+\code{\link[=internal_directions_from_external]{internal_directions_from_external()}}, then mapped to image coordinates by
+\code{\link[=coord_from_internal_directions]{coord_from_internal_directions()}}. The radial polynomial
+converts the resulting off-axis angle to relative radius. Multiplication
+by \code{normalization_radius} and the internal azimuth then locate the point
+around \code{center_of_vision}.
 
-Reprojection preserves angular coordinates. By default, the target geometry
-has North at the top. A nonzero \code{orientation} can restore the orientation of
-a geometry that was previously standardized.
+No interpolation or snapping is applied. Existing \code{x} and \code{y_down} are
+replaced; derived columns tied to the previous frame are removed with
+\code{\link[=keep_coord]{keep_coord()}}. Angular coordinates, other values, and row order are
+preserved, including rows without a position in the destination.
 
-Existing continuous image coordinates are replaced. Derived columns tied to
-the source image frame are removed with \code{\link[=keep_coord]{keep_coord()}}. Angular
-directions and other columns are preserved.
+Directions beyond \code{max_off_axis_angle}, measured from the destination's
+optical axis, have \code{NA} target coordinates. Missing directions also have
+\code{NA} coordinates, except that zenith and nadir are defined even when their
+geographic azimuth is \code{NA}. The destination's optical-axis direction maps
+to \code{center_of_vision}; the opposite direction has no unique radial position and
+receives \code{NA} coordinates, even when the angular limit is 180 deg.
+No image dimensions are needed, so coordinates are not clipped to a frame.
 }
 \examples{
-z <- zenith_image(1000, equal_area_coef)
-a <- azimuth_image(z)
-sampling_indices <- fibonacci_indices(z, a, 10)
-reprojected_points <- reproject_points(
-  sampling_indices,
-  equidistant_coef,
-  ncol(z)
+geometry <- list(
+  model = "radial_projection",
+  center_of_vision = c(50, 50),
+  parameters = equidistant_coef,
+  normalization_radius = 50,
+  normalization_angle = 90
 )
-
-plot(!is.na(z))
-points(xy_from_indices(
-         sampling_indices$col,
-         sampling_indices$row,
-         nrow(z)
-       ),
-       col = "blue", pch = 10)
-points(reprojected_points$x,
-       y_from_y_down(reprojected_points$y_down, nrow(z)),
-       col = "darkgreen", pch = 10)
+g <- set_internal_geometry(c(100, 100), geometry)
+d <- direction_image(g, elevation = 32.5)
+sampling_indices <- data.frame(col = c(40, 50, 60), row = c(45, 50, 55))
+sampling_indices <- rem_unselected(sampling_indices, !is.na(d[["zenith"]]))
+points <- add_directions(sampling_indices, d = d)
+reproject_points(points, geometry)
+# The same geographic directions in a destination inclined toward west.
+reproject_points(points, geometry, sensor_rotation = 90,
+                 azimuth_rotation = 90, elevation = 32.5)
+}
+\seealso{
+\code{\link[=add_directions]{add_directions()}}, \code{\link[=reproject_image]{reproject_image()}}, \code{\link[=set_internal_geometry]{set_internal_geometry()}}
 }

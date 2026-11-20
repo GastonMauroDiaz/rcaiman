@@ -4,126 +4,278 @@
 \alias{optimize_sky_mask}
 \title{Optimize sky mask selection}
 \usage{
-optimize_sky_mask(cv, z, a, equal_area_seg, bin_list, w = 0.5)
+optimize_sky_mask(
+  cv,
+  sampling_indices,
+  seg,
+  w,
+  bin_list,
+  coverage_weight = 0.5,
+  return = "mask",
+  m = NULL
+)
 }
 \arguments{
-\item{cv}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=cv_image]{cv_image()}}.}
+\item{cv}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster}, typically from \code{\link[=cv_image]{cv_image()}}.
+Values at selected indices must be finite and nonnegative.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{sampling_indices}{\code{data.frame} with positive integer-like \code{col} and
+\code{row} columns. Other columns are ignored. At least one row is required, but
+dense sampling is expected. All indices must lie within the reference
+domain defined by \code{seg}, \code{w}, and optional \code{m}. Repeated indices can be avoided via
+\code{\link[=rem_nearby_indices]{rem_nearby_indices()}}, when provided are preserved  and contribute
+repeatedly to the median without, of course, increasing the number of
+covered cells.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} of nonnegative integer-like
+labels. Positive labels identify segments; zero and \code{NA} are excluded.
+IDs need not be consecutive. No constructor-specific attributes are needed.}
 
-\item{equal_area_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}.}
+\item{w}{single-layer numeric \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as
+\code{seg}, with nonnegative finite solid-angle weights, for example from
+\code{\link[=area_weight_image]{area_weight_image()}}. Relative weights are sufficient. Missing and zero
+weights are excluded. The reference must contain positive weight.}
 
-\item{bin_list}{list of logical \link[terra:SpatRaster-class]{terra::SpatRaster} objects of one
-layer.}
+\item{bin_list}{nonempty list of single-layer logical, NA-free
+\link[terra:SpatRaster-class]{terra::SpatRaster} objects. \code{TRUE} selects candidate sky pixels.
+List names identify candidates in the returned metrics.}
 
-\item{w}{numeric vector of length one. Weight controlling the balance between
-coverage and consistency (see \emph{Details}).}
+\item{coverage_weight}{numeric vector of length one in \verb{[0, 1]}. Relative
+importance of coverage: zero selects by consistency alone, one by coverage
+alone.}
+
+\item{return}{character vector of length one. \code{"mask"} returns the selected
+mask; \code{"all"} also returns its index and the metrics for every candidate.}
+
+\item{m}{optional single-layer logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster}
+on the same grid as \code{seg}. \code{TRUE} retains directions in the reference
+domain. With \code{NULL}, all positive labels with positive weights are used.
+This is a restriction of the domain to reconstruct, not a sky-gap mask.}
 }
 \value{
-Logical \link[terra:SpatRaster-class]{terra::SpatRaster}. Optimal sky mask selected from \code{bin_list}.
+With \code{return = "mask"}, the selected element of \code{bin_list}, unchanged.
+With \code{return = "all"}, a list containing \code{mask}, \code{index} (its position in
+\code{bin_list}), and \code{data}, a data frame with:
+\describe{
+\item{\code{index}, \code{name}}{Candidate position and optional list name.}
+\item{\code{n_samples}}{Number of selected sampling rows.}
+\item{\code{consistency_raw}, \code{coverage_raw}}{Median CV and angular-area coverage
+before normalization.}
+\item{\code{consistency}, \code{coverage}}{Normalized criteria, or \code{NA} for masks
+without samples. Constant criteria are represented by zero.}
+\item{\code{ccm}}{Combined score; lower values are preferred.}
+}
 }
 \description{
-Select the binarized image that provides the best trade-off between
-radiometric consistency of sky pixels and spatial coverage.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Select a candidate sky mask by balancing local radiometric variability and
+angular-area coverage of a segmented field of view.
 }
 \details{
-Each element in \code{bin_list} is evaluated as a candidate sky mask. For each
-mask, sampling indices are generated using \code{\link[=fibonacci_indices]{fibonacci_indices()}} at a fixed
-angular resolution of 1 deg, ensuring high density sampling.
+Every mask selects rows from the same \code{sampling_indices} table. Radiometric
+variability is the median of \code{cv} at its selected indices, extracted without
+window averaging. Coverage is the fraction of reference angular area in
+segments containing at least one selected sample, as in
+\code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}. The domain defined by \code{seg}, \code{w}, and optional
+\code{m} is fixed across candidates. \code{bin_list} selects sky samples within that
+domain; it does not change the reference areas. Areas are calculated once.
 
-Two criteria are computed:
-\itemize{
-\item \emph{radiometric consistency}, estimated from the local variability provided by \code{cv};
-\item \emph{coverage}, the fraction of equal-area cells containing at least one
-sampled sky point.
+Both criteria are independently min-max scaled across masks with at least
+one sample. The Coverage-Consistency Metric is
+\deqn{\mathrm{CCM}_i = (1 - \mathrm{coverage}_i)\,w +
+  \mathrm{consistency}_i\,(1-w),}
+where the two criteria are normalized and \eqn{w} is \code{coverage_weight}.
+
+The function selects the mask with the lowest CCM after ranking.
+A constant criterion adds
+the same contribution for every candidate and does not affect their ranking.
+If all evaluable masks have the same score, the first is returned with a
+warning. A single evaluable mask is returned without a warning.
+
+Masks selecting no samples have zero coverage, missing consistency and
+missing CCM. They are reported with a warning and excluded from selection
+and normalization. If none selects samples, the function stops. Nonfinite
+CV values at selected indices cause an error.
+}
+\note{
+Shrinking sky gaps can remove mixed pixels near their boundaries, reducing
+local variability at the cost of losing samples and coverage. Low CV is the
+chosen indicator of radiometric consistency; uniform non-sky regions can also
+have low CV, but most binarization techniques classify them correctly so this
+is not considered a design flaw.
+
+The candidate set determines the extrema used for normalization. Adding or
+removing a candidate can change the selected mask even when the original
+masks and their measurements remain unchanged. Inspect the original metrics
+with \code{return = "all"} when comparing candidate sets.
+}
+\section{From gap boundaries to separated samples}{
+
+Use \code{\link[=distance_to_black]{distance_to_black()}} to construct masks with progressively smaller sky
+gaps. For an integer \code{k}, \code{distance_to_black(bin) > k} removes sky pixels
+within Chebyshev distance \code{k} of black pixels; \code{k = 0} preserves the mask.
+Candidates may originate from more than one initial binarization.
+
+Supply a common sampling table to evaluate the masks. Approximately uniform
+angular sampling can be prepared with \code{\link[=fibonacci_directions]{fibonacci_directions()}}, followed by
+\code{\link[=coord_from_internal_directions]{coord_from_internal_directions()}} and \code{\link[=indices_from_coord]{indices_from_coord()}} for a radial geometry.
+The sampling density and distribution affect both coverage and consistency.
+
+Once a mask is selected, calculate its distance to black and extract it at
+the retained sampling indices. Pass that column to
+\code{\link[=optimize_sampling_distance]{optimize_sampling_distance()}} with \code{prioritize = "higher"}, then use the
+same ranking in \code{\link[=rem_nearby_indices]{rem_nearby_indices()}}. This favors pixels deeper inside gaps
+throughout the distance search and final selection. Distance to the boundary
+is in pixels; separation between samples is angular. The resulting samples
+can then be used to fit a sky radiance model.
 }
 
-Radiometric consistency final value for each mask is the median of CV values
-across sampled points. Lower values indicate more homogeneous (and thus more
-reliable) sky samples. This assumes that true sky regions exhibit
-smoother radiance patterns than canopy elements. Uniform non-sky regions
-(e.g., deep shadows) may also produce low variability, but such cases are
-typically associated with poor binarizations and are not expected to be even
-considered in the candidate set.
-
-Coverage is computed with \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}.
-
-Both components are scaled to \eqn{[0,1]} using \code{\link[=normalize_min_max]{normalize_min_max()}}.
-
-After normalization, the Coverage-Consistency Metric is defined as:
-
-\deqn{
-\mathrm{CCM} =
-(1 - \mathrm{coverage}_n) \cdot w +
-\mathrm{consistency}_n \cdot (1 - w)
-}
-
-where \eqn{n} is the nth binary mask being tested. Lower values indicate
-better trade-offs between high coverage and low radiometric variability.
-Restrictive masks may improve consistency but reduce coverage, whereas
-permissive masks increase coverage at the cost of including mixed or
-non-sky pixels. The maximum achievable coverage (before normalization)
-depends on canopy openness (see \code{\link[=compute_canopy_openness]{compute_canopy_openness()}}), as sampling
-becomes more efficient under less obstructed sky conditions.
-}
 \examples{
+# Synthetic image with two sky gaps and a smooth radiance gradient.
+geometry <- list(model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+seg <- beckers_segmentation(d, 40)
+w <- area_weight_image(g, geometry)
+r <- terra::rast(g$off_axis)
+xy <- terra::xyFromCell(r, seq_len(terra::ncell(r)))
+gaps <- (xy[, 1] - 35)^2 + (xy[, 2] - 35)^2 < 18^2 |
+        (xy[, 1] - 52)^2 + (xy[, 2] - 17)^2 < 9^2
+r[] <- ifelse(gaps, 100 + xy[, 1] / 5 + sin(xy[, 2] / 5), 10)
+names(r) <- "Blue"
+bin <- r > 50 & seg > 0
+cv <- cv_image(r)
+
+distance <- distance_to_black(bin)
+bin_list <- lapply(0:3, function(k) distance > k)
+names(bin_list) <- paste0("shrink_", 0:3)
+directions <- fibonacci_directions(3)
+coord <- coord_from_internal_directions(directions, geometry)
+sampling_indices <- indices_from_coord(coord$x, coord$y_down)
+sampling_indices <- rem_unselected(sampling_indices, seg > 0)
+sampling_indices <- rem_nearby_indices(sampling_indices, 1, space = "planar")
+
+choice <- optimize_sky_mask(cv, sampling_indices, seg, w, bin_list,
+                            return = "all")
+choice$data
+plot(choice$mask)
+
+# Use the selected mask's boundary distance throughout angular thinning.
+distance <- distance_to_black(choice$mask)
+sampling_indices <- rem_unselected(sampling_indices, choice$mask)
+sampling_indices <- add_directions(sampling_indices, d = d)
+sampling_indices <- extract_dn(distance, sampling_indices, use_window = FALSE)
+result <- optimize_sampling_distance(sampling_indices, seg, w,
+  distances = seq(1, 45, 2), window_length = 3,
+  col_id = "distance_to_black", prioritize = "higher")
+if (!is.na(result$optimum)) {
+  sky_indices <- rem_nearby_indices(sampling_indices, result$optimum,
+    space = "spherical", col_id = "distance_to_black", prioritize = "higher")
+  sky_samples <- extract_dn(r, sky_indices, use_window = FALSE)
+  xy <- xy_from_indices(sky_samples$col, sky_samples$row, nrow(r))
+  points(xy$x, xy$y, col = "violet", pch = 10)
+}
+
 \dontrun{
 require(rcaiman.registry)
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+metadata <- read.delim(gsub("tif", "tsv", path))
+sensor_data <- read_caim(path)
+
+# Get specs
 path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
+raw_geometry <- get_geometry_spec(cygm, "simple_method")
+raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
+
+# Represent image geometry
+g <- set_internal_geometry(raw$dim, raw_geometry)
+d <- direction_image(g)
+m <- !is.na(g$off_axis)
+w <- area_weight_image(g, raw_geometry)
+
+# Read and preprocess the image
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
 r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan, m = m)
 r <- apply_flat_field(r, ff)
-m <- !is.na(z)
 
-thr <- apply_by_direction(r, z, a, m)
+# Binarize the image
+query_directions <- fibonacci_directions(20)
+thr <- apply_by_direction(r, g, query_directions, m, w = w,
+                          fun = thr_isodata)
 bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
 
-seg <- equal_area_segmentation(z, a, 1000)
-sky_points <- sample_sky_points(r, bin, seg, dist_to_black = 1)
-sky_points <- add_directions(sky_points, z, a)
-sky_points <- extract_dn(r, sky_points)
-sky_points <- rem_outliers(
-  sky_points,
-  col_id = "Cyan",
-  k = 20,
-  search_radius = 20,
-  laxity = 2,
-  cutoff_side = "left"
-)
+# Prepare input arguments
+seg <- beckers_segmentation(d, 200)
+bin <- bin & seg > 0
 cv <- cv_image(r)
-sky_points <- extract_dn(cv, sky_points, use_window = FALSE)
-i <- is_outlier(sky_points$cv, sky_points$cv, laxity = 1, cutoff_side = "right")
-sky_points <- sky_points[!i,]
+distance <- distance_to_black(bin)
+bin_list <- lapply(0:5, function(k) distance > k)
+names(bin_list) <- paste0("shrink_", 0:5)
 
-sky <- sky_via_local_models(z, a, sky_points, col_id = "Cyan")
-plot(sky)
-plot(r/sky)
+directions <- fibonacci_directions(1/3)
+directions <- select_directions_in_fov(directions, extract_fov(g))
+sampling_indices <- coord_from_internal_directions(directions, raw_geometry) \%>\%
+  add_indices()
+sampling_indices <- rem_unselected(sampling_indices, seg > 0)
+sampling_indices <- rem_nearby_indices(sampling_indices, 1, space = "planar")
 
-bin_list <- lapply(list(0.5, 0.7, 0.9), function(w) {
-  bin <- binarize_with_thr(r/sky, w)
-  bin <- rem_isolated_black_pixels(bin)
-  lapply(1:9, function(x) {
-    bin <- grow_black(bin, x)
-    names(bin) <- paste0("w_", w, "_grow_", x)
-    bin
-  })
-})
-bin_list <- (unlist(bin_list, recursive = FALSE))
+# Run the function and get the best sky mask
+choice <- optimize_sky_mask(cv,
+                            sampling_indices,
+                            seg,
+                            w,
+                            bin_list,
+                            coverage_weight = 0.5,
+                            return = "all")
+choice$data
+bin <- choice$mask
 
-equal_area_seg <- equal_area_segmentation(z, a, 200)
+# Use the sky mask to sample
+distance <- distance_to_black(bin)
+sampling_indices <- rem_unselected(sampling_indices, bin)
+sampling_indices <- add_directions(sampling_indices, d = d)
+sampling_indices <- extract_dn(distance, sampling_indices, use_window = FALSE)
 
-bin <- optimize_sky_mask(cv, z, a, equal_area_seg, bin_list, w = 0.5)
-bin
-plot(bin)
+result <- optimize_sampling_distance(
+  sampling_indices,
+  seg,
+  w,
+  distances = seq(1, 20, 0.5),
+  window_length = 5,
+  col_id = "distance_to_black",
+  prioritize = "higher"
+)
+
+if (!is.na(result$optimum)) {
+  sky_indices <- rem_nearby_indices(
+    sampling_indices,
+    result$optimum,
+    space = "spherical",
+    col_id = "distance_to_black",
+    prioritize = "higher"
+  )
+  sky_samples <- extract_dn(r, sky_indices, use_window = FALSE)
 }
+head(sky_samples)
+xy <- sky_samples \%>\% add_coord() \%>\% add_xy(., nrow(r))
+
+# Visualize
+plot(bin)
+points(xy$x, xy$y, col = "violet", pch = 10)
+}
+}
+\seealso{
+\code{\link[=distance_to_black]{distance_to_black()}}, \code{\link[=optimize_sampling_distance]{optimize_sampling_distance()}},
+\code{\link[=rem_nearby_indices]{rem_nearby_indices()}}, \code{\link[=cv_image]{cv_image()}}
 }

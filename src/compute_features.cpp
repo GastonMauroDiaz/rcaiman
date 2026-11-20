@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace Rcpp;
 
@@ -255,9 +256,13 @@ DataFrame compute_features_cpp(
     a.sum_weighted_row += row * weight;
     a.sum_weighted_col += col * weight;
 
-    a.sum_x += x;
-    a.sum_y += y;
-    a.sum_z += z;
+    // Unit vectors describe directions; weights account for pixel solid angle.
+    // A zero-area pixel contributes nothing, even if its direction is missing.
+    if (weight > 0.0) {
+      a.sum_x += weight * x;
+      a.sum_y += weight * y;
+      a.sum_z += weight * z;
+    }
 
     a.sum_xx += x * x;
     a.sum_yy += y * y;
@@ -373,11 +378,11 @@ DataFrame compute_features_cpp(
 
     perimeter[i] = a.perimeter;
 
-    if (a.pixel_count > 0) {
+    if (a.area > 0.0) {
 
-      double mx = a.sum_x / a.pixel_count;
-      double my = a.sum_y / a.pixel_count;
-      double mz = a.sum_z / a.pixel_count;
+      double mx = a.sum_x / a.area;
+      double my = a.sum_y / a.area;
+      double mz = a.sum_z / a.area;
 
       double norm =
         std::sqrt(
@@ -386,14 +391,14 @@ DataFrame compute_features_cpp(
             mz * mz
         );
 
-      if (norm > 0.0) {
+      if (norm > 64.0 * std::numeric_limits<double>::epsilon()) {
 
         mx /= norm;
         my /= norm;
         mz /= norm;
 
         centroid_zenith[i] =
-          std::acos(mz);
+          std::acos(std::max(-1.0, std::min(1.0, mz)));
 
         double az =
           std::atan2(my, mx);
@@ -414,6 +419,9 @@ DataFrame compute_features_cpp(
       centroid_zenith[i] = NA_REAL;
       centroid_azimuth[i] = NA_REAL;
     }
+
+    min_value[i] = a.valid_count > 0 ? a.min_value : NA_REAL;
+    max_value[i] = a.valid_count > 0 ? a.max_value : NA_REAL;
 
     if (a.valid_count > 0 &&
         a.valid_weight > 0.0) {
@@ -462,8 +470,7 @@ DataFrame compute_features_cpp(
 
       effective_sample_size[i] = NA_REAL;
 
-      min_value[i] = NA_REAL;
-      max_value[i] = NA_REAL;
+
     }
   }
 
@@ -480,8 +487,8 @@ DataFrame compute_features_cpp(
     _["max"] = max_value,
     _["row"] = max_row,
     _["col"] = max_col,
-    _["zen"] = max_zenith,
-    _["azi"] = max_azimuth,
+    _["zenith"] = max_zenith,
+    _["azimuth"] = max_azimuth,
     _["planar_centroid_row"] = centroid_row,
     _["planar_centroid_col"] = centroid_col,
     // _["weighted_centroid_row"] = weighted_centroid_row,

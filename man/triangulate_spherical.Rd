@@ -4,110 +4,205 @@
 \alias{triangulate_spherical}
 \title{Triangulation-based interpolation in spherical space}
 \usage{
-triangulate_spherical(sky_points, query_points, col_id)
+triangulate_spherical(
+  sampling_directions,
+  query_directions,
+  col_id,
+  angle_columns = c("zenith", "azimuth")
+)
 }
 \arguments{
-\item{sky_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"} (see
-\code{\link[=add_directions]{add_directions()}}), and one additional numeric column with values to
-interpolate, identified by argument \code{col_id}. Additional columns are ignored.}
+\item{sampling_directions}{data frame with numeric angular columns selected
+by \code{angle_columns} and a numeric value column selected by \code{col_id}. Samples
+with missing values or directions are excluded before triangulation.
+Infinite values are not allowed. Additional columns are ignored.}
 
-\item{query_points}{\code{data.frame} defining locations where interpolation is
-evaluated. Must contain columns \verb{""zen""} and \verb{""azi""} (see
-\code{\link[=add_directions]{add_directions()}}). Cannot contain a column named as \code{col_id} (by name).
-Additional columns are ignored.}
+\item{query_directions}{data frame with the same angular columns. All rows
+and additional columns are preserved. Must not already contain the
+sampled-value column or \code{triangle_id}.}
 
-\item{col_id}{numeric or character vector of length one. The name or position
-of the column in \code{sampling_coord} containing the values to interpolate.}
+\item{col_id}{character or integer vector of length one. Name or position
+of the sampled-value column in \code{sampling_directions}. Its name must differ
+from the angular columns and \code{triangle_id}.}
+
+\item{angle_columns}{character vector of length two, naming the polar and
+azimuthal columns in that order. Defaults to \code{c("zenith", "azimuth")};
+for internal directions, use \code{c("off_axis", "internal_azimuth")}.
+Polar angles must lie in \eqn{[0, \pi]} and azimuths in
+\eqn{[0, 2\pi)}. A missing azimuth at polar angle zero or \eqn{\pi}
+still defines a valid direction. Other missing directions cannot be used.}
 }
 \value{
-\code{data.frame} equal to \code{query_points} with added columns \code{col_id} (by name) and
-\code{"triangle_id"}, and without points outside the interpolation domian, i.e.,
-for which \code{"triangle_id"} equals to \code{NA}.
+Data frame with the same rows, order, and columns as
+\code{query_directions}, plus the sampled-value column and integer
+\code{triangle_id}. Both added columns are \code{NA} for queries without an eligible
+triangle or with missing directions. With fewer than three usable samples,
+or no retained triangles, all estimates are \code{NA}.
 }
 \description{
-Generate values at query locations using interpolation based on a
-spherical Delaunay triangulation constructed from sampling directions.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Interpolate sampled values at query directions using a triangulation on
+the unit sphere and weights based on spherical triangle areas.
 }
 \details{
-The method operates on the unit sphere by converting zenith–azimuth
-coordinates into 3D Cartesian vectors and constructing a triangulation
-from those directions. The triangulation is obtained by computing the
-convex hull of the augmented point set formed by the original directions
-and their antipodal counterparts, and retaining only faces composed of
-original points. This establishes a spherical Delaunay triangulation through the
-convex-hull duality of points on the unit sphere.
+Both tables must use the same reference frame. Select external or internal
+directions with \code{angle_columns}; angles are in radians, following
+\code{\link[=add_directions]{add_directions()}}. Cell indices and image coordinates are not needed.
 
-For each query direction, the enclosing spherical triangle is identified
-using oriented edge tests. In boundary cases where multiple triangles are
-valid due to numerical tolerance, the triangle whose normal vector is most
-aligned with the query direction is selected, ensuring deterministic
-behavior under rotation of the hemispherical domain.
+Directions are converted to 3D unit vectors. \code{\link[geometry:convhulln]{geometry::convhulln()}} with
+option \code{"Qt"} constructs the convex hull of the observations and their
+antipodal counterparts. Only triangular faces composed entirely of original
+observations are retained. Their spherical triangles define the interpolation
+domain. The augmented point set must support a three-dimensional convex hull;
+errors from a degenerate configuration are passed through without perturbing
+the directions.
 
-Interpolation is performed using barycentric weights derived from spherical
-triangle areas (solid angles), yielding a continuous interpolated field over
-the triangulated sphere.
+Oriented edge tests identify candidate triangles for each query, with a
+numerical tolerance of \eqn{10^{-12}}. When several candidates are found,
+the function chooses the triangle whose computed unit normal has the largest
+dot product with the query direction. An exact tie selects the first candidate
+in the returned triangulation order. Repeating the calculation with the same
+input tables, row order, and software configuration gives the same result.
+Triangle numbering is local to that triangulation, not a persistent spatial
+identifier.
+
+For a query \eqn{p} in a triangle with vertices \eqn{a, b, c}, weights are
+\eqn{A(p,b,c)/A(a,b,c)}, \eqn{A(a,p,c)/A(a,b,c)}, and
+\eqn{A(a,b,p)/A(a,b,c)}, where \eqn{A} is spherical area in steradians.
+The prediction is the weighted sum of the three observed values. Triangles
+with area below \eqn{10^{-14}} steradians do not supply an estimate. Values
+are not normalized or clipped. These area ratios do not in general give
+identical edge values from adjacent triangles; continuity across their
+boundaries is not guaranteed.
+
+Queries outside the triangulation are retained with \code{NA}. No extrapolation
+or background filling is performed. For a separate interpolation or blending
+step, see \code{\link[=interpolate_spherical]{interpolate_spherical()}}. Use \code{\link[=add_coord]{add_coord()}} when retained cell
+indices need to supply \code{\link[=interpolate_planar]{interpolate_planar()}}.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-rspec <- get_radiometry_spec(spec, "simple_method")
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 60)
+m <- !is.na(d$zenith) & !is.na(d$azimuth) & d$zenith <= 90
 
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-m <- !is.na(z)
+# Illustrative values; with measurements, select suitable sky observations.
+r <- 1000 + 200 * (d$zenith * pi / 180)^2 +
+  80 * sin(d$azimuth * pi / 180)
+names(r) <- "Blue"
+sampling_indices <- expand.grid(col = seq(1, 80, 5), row = seq(1, 60, 5))
+sampling_indices <- rem_unselected(sampling_indices, m)
+samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+samples <- add_directions(samples, d = d)
 
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
+query_indices <- expand.grid(col = seq(1, 80, 3), row = seq(1, 60, 3))
+query_indices <- rem_unselected(query_indices, m)
+queries <- add_directions(query_indices, d = d)
+interpolated <- triangulate_spherical(samples, queries, "Blue")
+head(interpolated)
 
-# See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-
-query_indices <- fibonacci_indices(z, a, 1)
-pts <- triangulate_spherical(sky_points, query_indices, "Cyan")
-
-sky <- interpolate_planar(pts, "Cyan", r,
-                          k = 3, p = 2, search_radius = 6, rigorous = TRUE)
+# The planar interpolation is a separate step on the image grid.
+sky <- interpolate_planar(add_coord(interpolated), "Blue", r,
+                          search_radius = 6, parallel = FALSE)
+sky[!m] <- NA
 plot(sky)
 
-# Extrapolate and merge
-# x11()
-# plot(r)
-# sun_angles <- click(c(z, a), 1) \%>\% as.numeric()
-sun_angles <- c(zen_deg = 49.5, azi_deg = 27.4) #taken with above lines then hardcoded
+\dontrun{
+require(rcaiman.registry)
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+metadata <- read.delim(gsub("tif", "tsv", path))
+sensor_data <- read_caim(path)
 
-rr <- calc_relative_radiance(sky_points, 3)
+# Get specs
+path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
+raw_geometry <- get_geometry_spec(cygm, "simple_method")
+raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
 
-set.seed(7)
-model <- fit_cie_model(rr, sun_angles,
-                       general_sky_type = "Clear")
+# Represent image geometry
+g <- set_internal_geometry(raw$dim, raw_geometry)
+d <- direction_image(g)
+m <- !is.na(g$off_axis)
+w <- area_weight_image(g, raw_geometry)
 
-sky_cie <- cie_image(z, a, model$sun_angles, model$coef)
-sky_cie <- sky_cie * rr$zenith_dn
-names(sky_cie) <- "dn_cie"
+# Read and preprocess the image
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
+r <- caim$Cyan
+ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan, m = m)
+r <- apply_flat_field(r, ff)
 
-query_points <- raster_grid_in_circle(z, a, 5)
-query_points <- extract_dn(sky_cie, query_points, use_window = FALSE)
-head(query_points)
+# Read cie model
+path <- system.file("external/cie_model.RDS", package = "rcaiman")
+model <- readRDS(path)
 
-pts2 <- interpolate_spherical(pts, query_points, "Cyan", "dn_cie")
+sky_cie <- cie_image(d, model$sun_angles, model$coef) * model$relative_radiance$zenith_dn
+names(sky_cie) <- "above-canopy dn"
+plot(sky_cie)
 
-sky <- interpolate_planar(pts2, "Cyan", r, k = 3, p = 2,
-                          search_radius = 6, rigorous = TRUE)
+# Binarize
+bin <- binarize_with_thr(r/sky_cie, 0.5)
+bin <- distance_to_black(bin) > 2
+plot(bin)
+
+# Dense sampling of the sky DN
+seg <- healpix_segmentation(d, 32)
+seg[!bin] <- 0
+features <- compute_features(r, seg, d, w)
+sky_points <- features[features$effective_pixel_area > 3, ]
+sky_points <- internal_directions_from_external(sky_points) \%>\%
+  coord_from_internal_directions(., raw_geometry) \%>\% add_indices()
+head(sky_points)
+nrow(sky_points)
+
+# Prepare interpolation
+fov <- extract_fov(g)
+query_directions <- fibonacci_directions(1)
+query_directions <- select_directions_in_fov(query_directions, fov)
+query_directions <- external_directions_from_internal(query_directions)
+
+# Interpolate without blending
+interpolated <- triangulate_spherical(
+  sky_points,
+  query_directions,
+  col_id = "max"
+)
+head(interpolated)
+interpolated <- coord_from_internal_directions(interpolated, raw_geometry)
+plot(interpolate_planar(interpolated, "max", r,  search_radius = 10))
+
+# Get complementary values for blending
+query_directions <- coord_from_internal_directions(query_directions, raw_geometry) \%>\%
+  add_indices()
+query_directions <- extract_dn(sky_cie, query_directions, use_window = FALSE)
+
+# Interpolate and blend
+blended <- interpolate_spherical(
+  interpolated,
+  query_directions,
+  col_id = "max",
+  filling_source = "above-canopy dn",
+  filling_weight = 0.01,
+  min_dist = 1,
+  rule = "all",
+  search_radius = 20
+)
+head(blended)
+
+sky <- interpolate_planar(blended, "max", r,  search_radius = 10)
 plot(sky)
 plot(r/sky)
 }
+}
+\seealso{
+\code{\link[=add_directions]{add_directions()}}, \code{\link[=interpolate_spherical]{interpolate_spherical()}}, \code{\link[=interpolate_planar]{interpolate_planar()}}
 }

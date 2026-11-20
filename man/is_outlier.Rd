@@ -7,10 +7,10 @@
 is_outlier(x, y = NULL, laxity = 2, cutoff_side = "both")
 }
 \arguments{
-\item{x}{numeric vector. Values to evaluate.}
+\item{x}{finite numeric vector. Values to evaluate.}
 
-\item{y}{optinal numeric vector. Values from which median and MAD are
-calculated. If \code{NUll} (default) median and MAD will be calculated from \code{x}.}
+\item{y}{optional finite numeric vector. Reference values from which median
+and MAD are calculated. With \code{NULL} (default), use \code{x}.}
 
 \item{laxity}{numeric vector of length one. Positive multiplier applied to
 MAD to set classification thresholds. Default is \code{2}.}
@@ -30,21 +30,21 @@ Apply the robust criterion from \insertCite{Leys2013;textual}{rcaiman} to
 detect statistical outliers. The function returns a logical vector of the
 same length as \code{x} with \code{TRUE} for detected outliers.
 
-An observation \eqn{x_i} is considered outlying if it satisfies:
+For the two-sided test, an observation \eqn{x_i} is outlying when:
 
-\deqn{M - \mathrm{laxity} \times \mathrm{MAD} < x_i <
-      M + \mathrm{laxity} \times \mathrm{MAD}}
+\deqn{|x_i - M| > \mathrm{laxity} \times \mathrm{MAD},}
 
-where \eqn{M} is the median of \code{x} and \eqn{MAD} is its median absolute
-deviation. The \code{laxity} parameter multiplies MAD to set the classification
-threshold.
+where \eqn{M} is the median of the reference values \code{y} (or \code{x} when \code{y}
+is \code{NULL}), and MAD is their median absolute deviation multiplied by
+\code{1.4826}, as in \code{\link[stats:mad]{stats::mad()}} by default. Values exactly on the threshold
+are retained.
 
 The \code{cutoff_side} argument controls which tail(s) are evaluated:
 \code{"both"} (default) applies a two-sided test, \code{"left"} applies the left-tail
 test only, and \code{"right"} applies the right-tail test only.
 
-If the MAD is zero (no dispersion), all values are flagged as non-outliers. \code{NA}
-values in \code{x} are treated as non-outliers.
+If MAD is zero or unavailable (an empty reference), all values are flagged
+as non-outliers. Inputs must be finite; missing values are not accepted.
 }
 \examples{
 x <- c(rnorm(100), 10, 12)

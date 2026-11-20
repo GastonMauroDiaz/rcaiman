@@ -34,19 +34,44 @@
 #' @export
 #'
 #' @examples
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(30, 20),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#'  )
+#' g <- set_internal_geometry(c(60, 40), geometry)
+#' r <- g$off_axis
+#' ff <- g$off_axis
+#' corrected_r <- apply_flat_field(r, ff)
+#' plot(corrected_r)
+#'
 #' \dontrun{
 #' require(rcaiman.registry)
+#' path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+#' metadata <- read.delim(gsub("tif", "tsv", path))
+#' sensor_data <- read_caim(path)
+#'
 #' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
+#'
 #' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
+#' raw <- get_signature(my_entry, "raw")
+#' cygm <- get_band_spec(raw, "cygm")
+#'
+#' caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+#' caim
 #' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' plot(r)
+#'
+#' raw_geometry <- get_geometry_spec(cygm, "simple_method")
+#' g <- set_internal_geometry(raw$dim, raw_geometry)
+#'
+#' raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
+#'
+#' ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan,
+#'                           m = !is.na(g$off_axis))
+#' corrected_r <- apply_flat_field(r, ff)
+#' plot(corrected_r)
 #' }
 apply_flat_field <- function(r, flat_field) {
 
@@ -61,8 +86,8 @@ apply_flat_field <- function(r, flat_field) {
 
   vals <- terra::values(flat_field, mat = FALSE)
 
-  if (any(vals[!is.na(vals)] <= 0)) {
-    stop("`flat_field` must contain strictly positive values.",
+  if (any(!is.finite(vals[!is.na(vals)]) | vals[!is.na(vals)] <= 0)) {
+    stop("`flat_field` must contain finite, strictly positive values.",
          call. = FALSE)
   }
 

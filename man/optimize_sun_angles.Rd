@@ -6,7 +6,7 @@
 \usage{
 optimize_sun_angles(
   model,
-  method_sun = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+  method_sun = "Nelder-Mead",
   max_iter = 20,
   tol_angle = 0.1,
   max_no_improve = 5,
@@ -15,174 +15,236 @@ optimize_sun_angles(
   custom_sky_coef = NULL,
   std_sky_no = NULL,
   general_sky_type = NULL,
-  optim_zenith_dn = FALSE
+  optim_zenith_dn = FALSE,
+  method_sky = "Nelder-Mead",
+  max_sun_evaluations = 60,
+  method = c("Nelder-Mead", "BFGS", "CG", "SANN"),
+  parallel = FALSE,
+  cores = NULL,
+  logical = TRUE,
+  leave_free = 1
 )
 }
 \arguments{
-\item{model}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}}.}
+\item{model}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}}. Solar and sample directions
+use the external reference frame and are in radians.}
 
-\item{method_sun}{character vector. Optimization methods supported by
-\code{\link[stats:optim]{stats::optim()}}. Used only in the final refinement step.}
+\item{method_sun}{character vector or \code{NULL}. Optimization methods for continuous
+solar refinement using the two offset components explained in \emph{Details}.
+Defaults to \code{"Nelder-Mead"}, to limit the number of nested sky fits. Supports
+the multivariate methods of \code{\link[stats:optim]{stats::optim()}}. Use \code{NULL} to skip
+local refinement. Methods run in order, each from the best result so far.}
 
-\item{max_iter}{integer of length one. Maximum number of outer iterations.}
+\item{max_iter}{nonnegative integer-like numeric vector of length one.
+Maximum number of exploration iterations; zero skips exploration.}
 
-\item{tol_angle}{numeric of length one. Angular tolerance in degrees.}
+\item{tol_angle}{positive numeric vector of length one. Final exploration
+radius in degrees, no greater than \code{start_radius}.}
 
-\item{max_no_improve}{integer of length one. Maximum number of consecutive
-iterations without improvement.}
+\item{max_no_improve}{positive integer-like numeric vector of length one.
+Maximum consecutive exploration iterations without improvement.}
 
-\item{n_starts}{integer of length one. Number of candidate sun positions
-evaluated per iteration. Must be >= 1.}
+\item{n_starts}{positive integer-like numeric vector of length one. Maximum
+positions per exploration iteration, including the current sun.}
 
-\item{start_radius}{numeric of length one. Angular radius (deg) defining the
-neighborhood used to generate candidate positions.}
+\item{start_radius}{positive numeric vector of length one, at most 180.
+Initial exploration radius in degrees.}
 
-\item{custom_sky_coef}{numeric vector of length five, or numeric matrix
-with five columns. Custom starting coefficients for optimization.
-If not provided, coefficients are initialized from standard skies.}
+\item{custom_sky_coef}{finite numeric vector of length five or nonempty numeric
+matrix with five columns, in the order \code{a}, \code{b}, \code{c}, \code{d}, \code{e}. Custom starting
+coefficients, used instead of standard skies. Do not combine with standard
+sky selectors.}
 
-\item{std_sky_no}{numeric vector. Standard sky numbers as in \link{cie_table}.
-If not provided, all are used.}
+\item{std_sky_no}{integer vector with standard sky numbers from 1 to 15; see
+\link{cie_table}. Takes precedence over \code{general_sky_type}. With neither selector,
+all standard skies are used.}
 
-\item{general_sky_type}{character vector of length one. Must be \code{"Overcast"},
-\code{"Clear"}, or \code{"Partly cloudy"}. See column \code{general_sky_type} in
-\link{cie_table} for details. If not provided, all sky types are used.}
+\item{general_sky_type}{character vector of length one or two, containing
+\code{"Overcast"}, \code{"Partly cloudy"}, or \code{"Clear"}. Selects initial skies from
+either supplied type in \link{cie_table}, for example
+\code{c("Overcast", "Partly cloudy")} when the type is uncertain. Does not
+constrain the optimized coefficients to those types. With \code{NULL} and
+no \code{std_sky_no}, all standard skies are used.}
 
-\item{optim_zenith_dn}{logical vector of length one. Whether \code{zenith_dn} value
-provided via \code{rr} should be optimized.}
+\item{optim_zenith_dn}{logical vector of length one. Optimize the zenith DN
+reference only in the final sky comparison; keep it fixed during the solar
+search. See \code{\link[=fit_cie_model]{fit_cie_model()}} for the reference-adjustment penalty.}
+
+\item{method_sky}{character vector. Coefficient-fitting methods used at every
+trial solar position, starting from the current coefficients. Defaults to
+\code{"Nelder-Mead"}. Supports \code{"Nelder-Mead"}, \code{"BFGS"}, \code{"CG"}, and
+\code{"L-BFGS-B"}. SANN is excluded here to keep repeated cost evaluations
+deterministic. Independent of the winning \code{model$method}.}
+
+\item{max_sun_evaluations}{positive integer-like numeric vector of length one.
+Maximum distinct admissible solar positions fitted per local refinement
+method, including its center. Defaults to 60. Exploration and the final
+sky comparison are outside this budget.}
+
+\item{method}{character vector. Coefficient-fitting methods for the final
+sky comparison, as in \code{\link[=fit_cie_model]{fit_cie_model()}}.}
+
+\item{parallel, cores, logical, leave_free}{Controls passed to \code{\link[=fit_cie_model]{fit_cie_model()}}
+for the final sky comparison only. The nested solar search is sequential.}
 }
 \value{
-List like \code{model} with updated components and an additional element:
+A model with the same components as \code{\link[=fit_cie_model]{fit_cie_model()}}, plus:
 \describe{
-\item{\code{method_sun}}{character string indicating the selected optimization
-method in the final refinement step, or \code{NULL} if no improvement was found.}
+\item{\code{method_sun}}{The last local-refinement method that improved the solar
+search, or \code{NULL} if none did.}
+\item{\code{sun_search}}{A list with \code{history}, \code{stop_reason}, and \code{refinements}.
+\code{history} records evaluated positions (\code{zenith} and \code{azimuth} in radians),
+stage, iteration, method, MSD (\code{metric}), penalized cost (\code{score}),
+acceptance, and diagnostic messages. \code{stop_reason} describes the end of
+exploration. \code{refinements} records each local optimizer's convergence,
+number of evaluated positions, budget exhaustion, and messages.
+Failed candidate fits have infinite cost. \code{accepted} marks successive
+retained models, not only the final result.}
 }
 }
 \description{
-Refine sun zenith and azimuth angles to minimize mismatch between observed
-and predicted relative radiance under a CIE sky model.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Refine a solar direction by repeatedly fitting the CIE sky coefficients at
+candidate positions. Use the relative-radiance samples of an existing model.
 }
 \details{
-The procedure combines an iterative heuristic search with a final local
-optimization step. The heuristic stage explores the parameter space to avoid
-poor local minima, while the final step refines the best solution found.
+A change in solar position generally requires a change in sky coefficients.
+Each candidate is therefore evaluated with \code{\link[=fit_cie_model]{fit_cie_model()}}, starting from
+the coefficients of the current model. This is a search for a solar direction
+supported by the sampled sky radiance, rather than a detection of the disk
+in the image. The distribution and purity of sky samples affect the result.
+
+The solar search combines discrete exploration and continuous refinement
+on the same spherical geometry. Exploration compares a finite set of
+positions distributed around the current estimate. Refinement then lets
+\code{\link[stats:optim]{stats::optim()}} propose positions between and beyond those candidates.
+Both stages refit the sky coefficients at every new position. A final
+comparison broadens the choice of sky models at the resulting solar position.
+
+To describe a trial position, the search uses an \emph{offset}: an angular
+displacement from a reference solar direction, called the search center.
+Imagine a plane touching the unit sphere at that direction. Two signed
+components, in degrees along perpendicular directions in this tangent
+plane, specify the displacement. Their combined length gives the angular
+distance to travel on the sphere, and their orientation gives the direction
+of travel along a great circle. Thus, offset \verb{(0, 0)} is the center, and
+offset \verb{(3, 4)} reaches a position 5 deg away because
+\eqn{\sqrt{3^2 + 4^2} = 5}.
+
+These components are not increments added to solar azimuth and zenith.
+They are converted together into a new direction on the sphere. This
+representation accommodates travel across azimuth zero and near the zenith,
+where a change in azimuth alone is a poor measure of angular displacement.
+Offsets are internal search variables; input and output solar positions
+remain tables of \code{zenith} and \code{azimuth} in radians.
 \enumerate{
-\item \strong{Heuristic candidate generation}
-A spherical Fibonacci lattice is generated at each iteration with angular
-spacing adapted to the current search radius. The radius decreases
-monotonically across iterations, while the sampling density increases
-accordingly. This defines a coarse-to-fine exploration of the parameter
-space with approximately constant sampling effort.
-
-The angular domain extends beyond the horizon (up to ~96 deg zenith
-angle), allowing the method to operate under crepuscular illumination
-conditions. The upper bound (~96 deg) corresponds to civil twilight.
-Beyond this range, image acquisition is not feasible due to insufficient
-illumination, and therefore such conditions are not considered.
-\item \strong{Heuristic model evaluation}
-Each candidate position is evaluated by fitting a CIE sky model using
-\code{\link[=fit_cie_model]{fit_cie_model()}} with fixed coefficients as starting values
-(\code{custom_sky_coef = model$coef}). The candidate yielding the lowest model
-metric is selected.
-\item \strong{Iterative update}
-If an improved solution is found, the model is updated and used as the
-reference for the next iteration. This defines an iterative search process
-guided by local exploration of the angular neighborhood.
-\item \strong{Convergence criteria}
-Iteration stops when any of the following conditions is met:
-\itemize{
-\item angular change between successive estimates is below \code{tol_angle},
-\item no improvement is observed for \code{max_no_improve} iterations,
-\item the number of iterations reaches \code{max_iter}.
+\item \strong{Discrete exploration.} Generate Fibonacci candidates directly within a
+spherical cap around the current sun. Include its current position, and
+shrink the cap from \code{start_radius} to \code{tol_angle} over \code{max_iter}
+iterations. This stage chooses a finite set of offsets within each cap.
+Refit the sky with \code{method_sky} at each position. All candidates
+within an iteration start from the same coefficients. Accept an improvement
+and use it as the center of the next cap. A stationary estimate alone does
+not establish convergence: stop at the final cap radius, after
+\code{max_no_improve} consecutive iterations without improvement, or at
+\code{max_iter}. With \code{max_iter = 1}, evaluate the initial cap only.
+\item \strong{Continuous local refinement.} Starting at offset \verb{(0, 0)}, each method
+in \code{method_sun} varies the two offset components through \code{\link[stats:optim]{stats::optim()}}.
+The components are continuous variables: trial positions need not belong
+to the Fibonacci pattern or remain within the last exploration cap.
+The same geometric conversion maps each offset to a solar direction,
+and another fit with \code{method_sky} supplies its cost. The optimizer
+therefore evaluates a position together with its refitted sky, rather
+than moving the sun under fixed sky coefficients. Offsets may reach
+at most 180 deg from the center; the solar domain and displacement
+penalty described below also apply. Repeated positions within a
+refinement reuse their evaluations. Each method has a budget of
+\code{max_sun_evaluations} distinct, admissible positions. Retain the best
+evaluated candidate, even if the optimizer fails or exhausts its budget.
+\item \strong{Final sky comparison.} At the resulting solar position, fit the 15
+standard skies again, or the starts selected by \code{custom_sky_coef},
+\code{std_sky_no}, or \code{general_sky_type}. These selectors and \code{method} apply
+only to this stage. Retain the preceding model if the comparison does not
+improve its mean squared deviation. This wider comparison is performed
+once, rather than at every trial solar position.
 }
 
-Iteration may also stop when the angular resolution becomes finer than
-required by \code{tol_angle}, or when the implied sampling density would lead
-to excessive computational cost.
-\item \strong{Final local refinement}
-After convergence, a local optimization is performed from the final
-estimate using each method in \code{method_sun} via \code{\link[stats:optim]{stats::optim()}}. The
-resulting candidates are evaluated with \code{\link[=fit_cie_model]{fit_cie_model()}}, and the best
-solution is retained.
-}
+During exploration and local refinement, rank candidates by
+\deqn{\frac{\sqrt{\mathrm{MSD}}}{\overline{L_r}}
+       \max\left(1, \frac{\delta}{10\ \mathrm{deg}}\right),}
+where MSD is the refitted model's mean squared deviation, \eqn{\overline{L_r}}
+is mean observed relative radiance, and \eqn{\delta} is angular distance from
+the current search center. This is a soft penalty: displacements beyond
+10 deg are allowed when their improvement compensates for the distance.
+The center moves after each accepted exploration step or refinement method;
+it is not tied to the initial solar detection. Within one refinement, both
+the center and the initial coefficients remain fixed, so evaluation order
+does not change the cost assigned to a position.
 
-This strategy separates global exploration (heuristic stage) from local
-exploitation (final refinement), improving robustness against local minima.
+The zenith DN reference is held fixed throughout the solar search.
+\code{optim_zenith_dn} applies only to the final sky comparison; see
+\code{\link[=fit_cie_model]{fit_cie_model()}} for its interpretation and effect on the comparison scale.
+The coefficient fits use that function's existing physical penalties and
+selection rule, including the horizon reference for the brightness penalty
+when the sun is below the horizon. No additional constraints on sky
+coefficients are introduced.
+
+Search positions are restricted to solar zenith angles from 0 to 96 deg,
+including the civil-twilight range. This is the search domain, not a claim
+that photographs beyond it are impossible. An initial position outside the
+domain is rejected rather than silently changed. Candidates outside it are
+excluded, so a cap near the boundary can contain fewer than \code{n_starts} rows.
 }
 \note{
-The heuristic stage is deterministic given \code{n_starts} and \code{start_radius},
-as it relies on a fixed spherical Fibonacci lattice and nearest-neighbor
-selection in angular space.
+The search is local and does not guarantee a global optimum. Some skies
+provide little information about solar position; for example, a CIE model
+with both indicatrix coefficients \code{c} and \code{e} equal to zero is independent
+of the sun. Equal-cost candidates retain the existing position.
 
-Sun angles are internally normalized to enforce \code{zen_deg >= 0} and
-\code{azi_deg} in [0, 360).
-
-In contrast to \code{\link[=estimate_sun_angles]{estimate_sun_angles()}}, this function allows zenith angles
-greater than 90 deg to support crepuscular conditions.
+Candidate generation and \code{method_sky} are deterministic. SANN in
+\code{method_sun} or the final \code{method} uses randomness; set a seed in the calling
+script for repeatability. This function does not set a seed or change the
+caller's random-number generator configuration. Finite nonconverged sky
+fits may be used, as in \code{\link[=fit_cie_model]{fit_cie_model()}}; inspect the search diagnostics.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-plot(r)
-
-# See fit_cie_model() for details on below file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-sun_angles <- c(zen_deg = 49.5, azi_deg = 33.4)
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-rr <- calc_relative_radiance(sky_points, col_id = names(r))
-
-set.seed(7)
-model <- fit_cie_model(rr, sun_angles, general_sky_type = "Clear")
-
-print(model$sun_angles)
-print(model$metric)
-
-plot(model$rr$sky_points$rr, model$rr$sky_points$pred)
-abline(0,1)
-lm(model$rr$sky_points$pred~model$rr$sky_points$rr) \%>\% summary()
-
-model2 <- optimize_sun_angles(model,
-                              max_iter = 30,
-                              tol_angle = 0.1,
-                              max_no_improve = 20,
-                              n_starts = 30,
-                              start_radius = 10
+# Known synthetic sky, with a displaced initial solar position.
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(20, 15),
+  normalization_radius = 18,
+  normalization_angle = 90
 )
+g <- set_internal_geometry(c(40, 30), geometry)
+d <- direction_image(g)
+sun <- data.frame(zenith = 45 * pi/180, azimuth = 30 * pi/180)
+sky <- cie_image(d, sun, as.numeric(cie_table[12, 1:5])) * 1000
+names(sky) <- "Blue"
+indices <- expand.grid(col = seq(2, 40, 4), row = seq(2, 30, 4))
+indices <- rem_unselected(indices, !is.na(sky))
+samples <- add_directions(extract_dn(sky, indices, use_window = FALSE), d = d)
+rr <- calc_relative_radiance(samples, "Blue", zenith_dn = 1000)
+initial_sun <- sun
+initial_sun$zenith <- 48 * pi/180
+fit <- fit_cie_model(rr, initial_sun, std_sky_no = 12, method = "Nelder-Mead")
+refined <- optimize_sun_angles(fit, max_iter = 2, n_starts = 5,
+  max_sun_evaluations = 12, std_sky_no = 12, method = "Nelder-Mead")
+rbind(initial = fit$sun_angles, refined = refined$sun_angles, known = sun)
+c(initial = fit$metric, refined = refined$metric)
+refined$sun_search$history
 
-plot(model2$rr$sky_points$rr, model2$rr$sky_points$pred)
-abline(0,1)
-
-print(model$sun_angles)
-print(model2$sun_angles)
-print(model$metric)
-print(model2$metric)
-model2$method_sun
-
-plot(r)
-.add_sun_disk <- function(sun_angles,  col) {
-  sun_row_col <- row_col_from_zen_azi(z, a,
-                                      sun_angles["zen_deg"] * pi/180,
-                                      sun_angles["azi_deg"] * pi/180)
-  points(sun_row_col[2], nrow(r) - sun_row_col[1],
-         col = col, pch = 8, cex = 3)
+\dontrun{
+# Broader final comparison, with all 15 skies and the default fit methods.
+set.seed(7)
+refined <- optimize_sun_angles(fit, parallel = TRUE, cores = 4)
+fitted_sky <- cie_image(d, refined$sun_angles, refined$coef) *
+  refined$relative_radiance$zenith_dn
+plot(fitted_sky)
 }
-.add_sun_disk(sun_angles, col = "yellow")
-.add_sun_disk(model2$sun_angles, col = "orange")
 }
+\seealso{
+\code{\link[=fit_cie_model]{fit_cie_model()}}, \code{\link[=calc_relative_radiance]{calc_relative_radiance()}},
+\code{\link[=optimize_sky_mask]{optimize_sky_mask()}}, \code{\link[=optimize_sampling_distance]{optimize_sampling_distance()}}
 }

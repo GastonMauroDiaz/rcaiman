@@ -6,8 +6,7 @@
 \usage{
 adaptive_healpix_segmentation(
   r,
-  z,
-  a,
+  d,
   scale_parameter = 0,
   max_splittings = 7,
   min_size_px = 1
@@ -16,9 +15,8 @@ adaptive_healpix_segmentation(
 \arguments{
 \item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order. Both layers are used.}
 
 \item{scale_parameter}{numeric vector of length one. Minimum increase in
 summed within-child standard deviation required to accept a subdivision.
@@ -26,7 +24,8 @@ Larger values reduce splitting.}
 
 \item{max_splittings}{numeric vector of length one. Must be positive and interpreted as
 integer. Maximum number of
-recursive subdivisions allowed.}
+recursive subdivisions allowed, at most 13 to keep HEALPix IDs within
+the integer range used by the implementation.}
 
 \item{min_size_px}{numeric vector of length one. Must be positive and interpreted as
 integer. Minimum number of pixels
@@ -34,7 +33,7 @@ required in child regions for subdivision to be considered valid.}
 }
 \value{
 Integer \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same
-geometry as \code{r}.
+geometry as \code{r}, with zero outside the segmentation.
 }
 \description{
 Segment a hemispherical image into adaptive spherical regions by recursively
@@ -45,7 +44,13 @@ The procedure starts from an initial HEALPix tessellation
 (\code{\link[=healpix_segmentation]{healpix_segmentation()}}) and recursively subdivides regions according to
 local radiometric variability. Regions with high variability tend to be
 represented at finer spatial scales, whereas homogeneous regions remain
-larger.
+larger. The partition is defined in external directions from \code{d}, using
+the same orientation as \code{\link[=healpix_segmentation]{healpix_segmentation()}}. The split decisions and
+returned labels depend on the observed data; labels are not fixed HEALPix IDs.
+
+Missing image values or directions, and directions below the horizon, are
+excluded before fitting the tree and receive zero. An undefined azimuth
+at the exact zenith is also excluded.
 
 HEALPix provides an equal-area spherical tessellation, reducing the
 geometric distortions introduced by image-space partitioning when working
@@ -88,30 +93,39 @@ effective depth may be lower if regions become too small according to
 \code{min_size_px}.
 }
 \examples{
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+r <- g$off_axis
+seg <- adaptive_healpix_segmentation(r, d, scale_parameter = 0.1)
+plot(seg)
 
 \dontrun{
 require(rcaiman.registry)
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+sensor_data <- read_caim(path)
+
 path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
 
-seg_tree <- adaptive_healpix_segmentation(
-  r,
-  z,
-  a,
-  scale_parameter = 5,
-  max_splittings = 10,
-  min_size_px = 5
-)
-plot(seg_tree)
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
+r <- caim$Cyan
+
+raw_geometry <- get_geometry_spec(cygm, "simple_method")
+g <- set_internal_geometry(raw$dim, raw_geometry)
+d <- direction_image(g)
+seg <- adaptive_healpix_segmentation(r, d, scale_parameter = 25)
+plot(seg)
+plot(compute_mean(r, seg))
 }
 }
 \references{

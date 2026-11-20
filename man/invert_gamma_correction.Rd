@@ -36,24 +36,11 @@ numbers and that this alteration would be difficult to back-correct to truly
 linear values.”
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/iPhone6plus.Olloclip_jpeg.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_jpeg", "simple_method_rescaled")
-
-path <- system.file("external/APC_0836.jpg", package = "rcaiman")
-caim <- read_caim(path)
-z <- zenith_image(spec$horizon_radius * 2,  spec$parameters)
-a <- azimuth_image(z)
-caim <- expand_non_circular(caim, z, spec$snapped_zenith_coord)
-m <- !is.na(caim$Red) & !is.na(z)
-caim[!m] <- 0
-plot(caim$Blue)
-caim <- invert_gamma_correction(caim, 2.2)
-plot(caim$Blue)
-}
+ invert_gamma_correction(125)
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=thr_mblt]{thr_mblt()}}
 }

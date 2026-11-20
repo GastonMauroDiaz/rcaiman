@@ -2,75 +2,98 @@
 % Please edit documentation in R/compute_canopy_openness.R
 \name{compute_canopy_openness}
 \alias{compute_canopy_openness}
-\title{Calculate canopy openness}
+\title{Calculate canopy openness over a selected region}
 \usage{
-compute_canopy_openness(bin, z, a, m = NULL, angle_width = 10)
+compute_canopy_openness(bin, d, w, m = NULL)
 }
 \arguments{
-\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
-hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
+\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. \code{TRUE} denotes
+a gap and \code{FALSE} vegetation. Missing values are excluded from the
+calculation. See \code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees and on the same grid as \code{bin}. Only
+\code{zenith} is used: angles from 0 to 90 deg select the upper hemisphere.
+Missing azimuths do not affect the calculation.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{w}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and on the same grid
+as \code{bin}. Nonnegative, finite solid-angle weights, such as those returned
+by \code{\link[=area_weight_image]{area_weight_image()}}. Relative weights are sufficient. Missing weights
+are excluded from the calculation.}
 
-\item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
-\code{TRUE} for selected pixels.}
+\item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer, on the
+same grid as \code{bin}, and without missing values. \code{TRUE} selects pixels within
+the upper hemisphere. When \code{NULL}, all observed upper-hemisphere pixels
+with available \code{bin} and \code{w} values are used.}
 }
 \value{
-Numeric vector of length one, constrained to the range \eqn{[0, 1]}.
+Numeric vector of length one in \eqn{[0,1]}: the proportion of
+selected valid angular coverage occupied by gaps.
 }
 \description{
-Calculate canopy openness from a binarized hemispherical image with angular
-coordinates.
+Calculate the solid-angle-weighted proportion of canopy gaps within the
+selected observed coverage of the upper hemisphere.
 }
 \details{
-Canopy openness is computed following the equation from
-\insertCite{Gonsamo2011;textual}{rcaiman}:
+The solid-angle weighting approach follows the formulation implemented in
+CIMES by Jean-Michel Walter \insertCite{Gonsamo2011}{rcaiman}. Here, weights
+are assigned to individual pixels rather than angular segments and
+normalized over the selected region, allowing canopy openness to be
+estimated within partial hemispherical coverage.
 
-\deqn{
-CO = \sum_{i = 1}^{N} GF(\phi_i, \theta_i) \cdot \frac{\cos(\theta_{1,i}) -
- \cos(\theta_{2,i})}{n_i}
-}
+For the selected pixels \eqn{M}, openness is
+\deqn{CO_M = \frac{\sum_{i \in M} b_i w_i}{\sum_{i \in M} w_i},}
+where \eqn{b_i} is 1 for a gap and 0 for vegetation, and \eqn{w_i} is
+proportional to the solid angle represented by that pixel. Multiplying all
+weights by the same positive constant leaves the result unchanged. With
+equal weights, the result is the ordinary gap fraction of the selected pixels.
 
-where \eqn{GF(\phi_i, \theta_i)} is the gap fraction in cell \eqn{i},
-\eqn{\theta_{1,i}} and \eqn{\theta_{2,i}} are the lower and upper zenith
-angles of the cell, \eqn{n_i} is the number of cells in the corresponding
-zenith ring, and \eqn{N} is the total number of cells.
+The denominator always refers to the selected valid coverage, whether or
+not \code{m} is supplied. Missing observations are excluded from both sums;
+the function does not estimate openness in unobserved directions. It stops
+if the selection contains no positive weight.
 
-When a mask is provided via the \code{m} argument, the equation is adjusted to
-compensate for the reduced area of the sky vault:
+External directions in \code{d} delimit the upper hemisphere, independently of
+acquisition orientation. Directions below the horizon or with missing
+zenith angles are excluded, even when \code{m} selects them. In particular,
+\code{!is.na(d$zenith)} alone does not identify the upper hemisphere.
+Use \code{m} to further restrict the region, for example to zenith angles
+from 0 to 70 deg.
 
-\deqn{
-CO = \frac{\sum_{i=1}^{N} GF(\phi_i, \theta_i) \cdot w_i}
-{\sum_{i=1}^{N} w_i}
-\quad \text{with} \quad
-w_i = \frac{\cos(\theta_{1,i}) - \cos(\theta_{2,i})}{n_i}
-}
+Weights describe internal geometry and do not change with acquisition
+orientation. If inclining the system changes the observed portion of
+the canopy, its openness can differ; unobserved directions are not
+reconstructed or included in the denominator.
 
-The denominator ensures that the resulting openness value remains
-scale-independent. Without this normalization, masking would lead to
-underestimation, as the numerator alone assumes full hemispherical coverage.
+No segmentation or reprojection is performed. With weights from
+\code{\link[=area_weight_image]{area_weight_image()}}, the calculation uses the local solid-angle
+approximation documented there and currently supports radial models.
+Other valid solid-angle weights can also be supplied.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+w <- area_weight_image(g, geometry)
 
-z <- zenith_image(ncol(caim), spec$parameters)
-a <- azimuth_image(z)
-m <- !is.na(z)
+# Illustrative binary pattern; in practice, classify the observed image.
+bin <- g$internal_azimuth < 180
+# The horizon is applied automatically, including in inclined acquisitions.
+compute_canopy_openness(bin, d, w)
 
-bin <- binarize_with_thr(caim$Cyan, thr_isodata(caim$Cyan[]))
-plot(bin)
-
-m <- select_sky_region(z, 0, 70)
-compute_canopy_openness(bin, z, a, m, 10)
-}
+# Restrict the calculation to a smaller external angular region.
+m <- !is.na(d$zenith) & d$zenith <= 70
+compute_canopy_openness(bin, d, w, m)
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=area_weight_image]{area_weight_image()}}, \code{\link[=direction_image]{direction_image()}}
 }

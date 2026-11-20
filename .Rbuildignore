@@ -1,6 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^data-raw$
+^design$
 ^README\.Rmd$
 README.md
 README.Rmd

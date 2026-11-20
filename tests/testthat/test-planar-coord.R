@@ -60,6 +60,21 @@ test_that("IDW uses subpixel positions without collapsing a shared cell", {
   }
 })
 
+test_that("IDW omits missing samples and returns NA for an empty sample set", {
+  r <- set_rcaiman_geometry(terra::rast(nrows = 2, ncols = 3))
+  points <- data.frame(x = c(0.5, 1.5, NA, Inf),
+                       y_down = c(0.5, 0.5, 1, 1), dn = c(7, NA, 20, 30))
+  for (engine in c("cpp", "terra")) {
+    actual <- interpolate_planar(points, r = r, engine = engine,
+                                  search_radius = 10, parallel = FALSE)
+    expect_equal(as.vector(terra::values(actual)), rep(7, 6))
+    empty <- interpolate_planar(points[FALSE, ], r = r, engine = engine,
+                                 parallel = FALSE)
+    expect_true(all(is.na(terra::values(empty))))
+    expect_true(terra::compareGeom(empty, r))
+  }
+})
+
 test_that("triangulation retains the rasterized-plane reference", {
   fixture <- planar_coord_reference()
   observed <- triangulate_planar(fixture$sampling_coord, r = fixture$r)
@@ -102,50 +117,13 @@ test_that("triangulation keeps continuous vertex positions", {
   expect_true(any(is.finite(terra::values(observed$raster))))
 })
 
-test_that("trend fitting retains its evaluation grid and raster reference", {
-  fixture <- planar_coord_reference()
-  observed <- fit_trend_surface(
-    fixture$sampling_coord, r = fixture$r, np = 2,
-    extrapolate = TRUE, return = "all"
-  )
-  expected <- c(
-    1.191231608391, 5.079617023468, 7.815563201904, 9.399070739746,
-    9.830139160156, 9.108768463135, 7.234959602356, -0.901720225811,
-    3.099466562271, 5.948214530945, 7.644523143768, 8.188393592834,
-    7.579824447632, 5.818816661835, -1.408477067947, 2.709767818451,
-    5.675573825836, 7.48894071579, 8.149868965149, 7.658358573914,
-    6.014408588409, -0.120232656598, 4.115070343018, 7.197934627533,
-    9.128359794617, 9.906346321106, 9.531893730164, 8.00500202179,
-    2.725789070129, 7.073893547058, 10.269558906555, 12.312786102295,
-    13.203573226929, 12.941922187805, 11.527832984924
-  )
-  expect_equal(as.vector(terra::values(observed$raster)), expected,
-               tolerance = 1e-6)
-  expect_equal(observed$r2, 0.935786615245605)
-  expect_true(terra::compareGeom(observed$raster, fixture$r))
-})
-
-test_that("trend fitting passes subpixel coordinates to the fitting model", {
-  fixture <- planar_coord_reference()
-  sampling_coord <- fixture$sampling_coord
-  sampling_coord$x <- sampling_coord$x + seq(0.05, 0.4, by = 0.05)
-  sampling_coord$y_down <- sampling_coord$y_down + 0.1
-  observed <- fit_trend_surface(
-    sampling_coord, col_id = 3, r = fixture$r, np = 2, return = "all"
-  )
-  expect_equal(observed$model$x, sampling_coord$x)
-  expect_equal(observed$model$y,
-               y_from_y_down(sampling_coord$y_down, nrow(fixture$r)))
-  expect_true(any(is.finite(terra::values(observed$raster))))
-})
-
 test_that("planar interfaces do not silently reinterpret indices as coord", {
   fixture <- planar_coord_reference()
   sampling_indices <- data.frame(col = 1:3, row = 1:3, dn = 1:3)
-  for (interpolator in list(interpolate_planar, triangulate_planar,
-                            fit_trend_surface)) {
+  for (interpolator in list(interpolate_planar, triangulate_planar)) {
     expect_error(interpolator(sampling_indices, r = fixture$r), "y_down")
   }
+  expect_error(fit_trend_surface(sampling_indices), "y_down")
 })
 
 test_that("modeled directions compose with reprojection and interpolation", {
@@ -153,18 +131,21 @@ test_that("modeled directions compose with reprojection and interpolation", {
     col = c(1, 4, 8, 2, 6, 7, 3, 5), row = c(1, 1, 2, 3, 4, 5, 6, 6)
   )
   source_coord$dn <- rep(7, nrow(source_coord))
-  source_coord <- add_image_polar(source_coord, width = 8, height = 6)
   parameters <- list(
-    zen_coef = 1,
-    azi_sin_coef = c(0, -1),
-    azi_cos_coef = c(-1, 0),
+    off_axis_coef = 1,
+    sin_internal_azimuth_coef = c(0, 1),
+    cos_internal_azimuth_coef = c(-1, 0),
     atan_scale = 0.6
   )
-  source_coord <- add_directions_from_model(
-    source_coord, parameters
-  )
-  target_coord <- reproject_points(source_coord, equidistant_coef, 10)
-  z <- zenith_image(10, equidistant_coef)
+  source_coord <- internal_directions_from_coord(source_coord,
+    list(model = "anisotropic_projection", center_of_vision = c(4, 3),
+         parameters = parameters), dim = c(8, 6))
+  target_coord <- coord_from_internal_directions(source_coord, list(
+    model = "radial_projection", center_of_vision = c(5, 5),
+    parameters = equidistant_coef, normalization_radius = 5,
+    normalization_angle = 90
+  ))
+  z <- set_rcaiman_geometry(terra::rast(nrows = 10, ncols = 10))
 
   expect_identical(target_coord$dn, source_coord$dn)
   for (engine in c("cpp", "terra")) {

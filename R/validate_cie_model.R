@@ -1,127 +1,217 @@
 #' Validate CIE sky models
 #'
 #' @description
-#' Validate CIE sky models fitted with [fit_cie_model()]
-#' using k-fold cross-validation on relative radiance.
+#' `r lifecycle::badge("experimental")`
+#'
+#' Evaluate CIE sky coefficients by k-fold cross-validation of relative
+#' radiance, keeping the supplied solar direction and zenith reference fixed.
 #'
 #' @details
-#' Validation uses k-fold cross-validation with `k = 10` by default
-#' \insertCite{Kohavi1995}{rcaiman}. For each fold, predictions are
-#' compared against observed relative radiance and a simple linear regression
-#' of predicted vs. observed is fitted, following
-#' \insertCite{Pineiro2008;textual}{rcaiman}. Outliers are detected with a
-#' median–MAD rule (see [rem_outliers()]) using a threshold of 3
-#' and removed before fitting the regression.
+#' Each fold is predicted by a model fitted without its observations
+#' \insertCite{Kohavi1995}{rcaiman}. The solar direction and `zenith_dn` are
+#' taken from `model` and kept fixed in every fit. If the original fit optimized
+#' the zenith reference, its resulting value is used. This evaluates coefficient
+#' fitting conditional on those two decisions, not the complete procedure used
+#' to estimate the solar direction, reference, or sky samples.
 #'
-#' @param model list. Output of [fit_cie_model()].
-#' @param k numeric vector of length one. Number of folds.
+#' By default, rows are assigned successively to folds `1, 2, ..., k`, repeating
+#' until every row has an assignment. No shuffling is performed. The original
+#' row order therefore determines which observations are withheld together.
+#' Supply `fold_id` to use spatial groups or a randomized partition defined in
+#' the calling script. Interleaved and spatially separated folds test different
+#' sampling situations; neither compensates for unobserved parts of the sky.
 #'
-#' @return A list with:
+#' The initial skies and optimization methods are supplied explicitly, rather
+#' than recovered from the winning model. By default, every standard sky is
+#' tried with `"Nelder-Mead"`. Use the same fitting controls as in the original
+#' analysis when evaluating that procedure. The coefficients learned from the
+#' full sample are not used as starting values. Custom starts should likewise
+#' be chosen independently of the withheld observations.
+#'
+#' Each fit retains the initial-model fallback of [fit_cie_model()]. A failure
+#' to obtain a usable fold model, or non-finite predictions for withheld rows,
+#' stops validation and identifies that fold. With `parallel = TRUE`, fitting
+#' attempts within a fold run in parallel; folds are processed sequentially.
+#' Only `"SANN"` uses randomness; set a seed in the calling script if needed.
+#'
+#' Residuals are observed minus predicted relative radiance. For evaluation,
+#' [is_outlier()] flags residuals more than `laxity` scaled MAD from their
+#' median, using [stats::mad()] with its default scaling constant. This allows
+#' large departures, such as cloud features to be represented by interpolation,
+#' to be excluded from the regression and summary metrics. This filtering does
+#' not change the samples used to fit each fold. With zero MAD or `laxity = NULL`,
+#' no observations are flagged. All predictions and observations are returned
+#' in their original order, including those flagged by `is_outlier`.
+#'
+#' The regression uses observations as the response and predictions as the
+#' explanatory variable, following \insertCite{Pineiro2008;textual}{rcaiman}.
+#' MSD and its components are calculated with [calc_msd()]. R-squared describes
+#' association, whereas MSD and the absolute-error measures compare predictions
+#' directly with observations, without correcting their slope or intercept.
+#'
+#' @param model list returned by [fit_cie_model()] or [optimize_sun_angles()].
+#'   Its `relative_radiance` and `sun_angles` supply the observations and fixed
+#'   references. Sky directions use `zenith` and `azimuth` in radians; pixel
+#'   indices are not required.
+#' @param k integer of length one. Number of folds, from 2 to the number of
+#'   observations. Ignored when `fold_id` is supplied.
+#' @param fold_id optional positive integer vector, one value per original
+#'   sky-point row. Rows sharing an identifier are withheld together. At least
+#'   two identifiers are required; they need not be consecutive.
+#' @param laxity optional positive numeric vector of length one. Multiplier of
+#'   the scaled MAD used to flag validation residuals. Default is `3`; larger
+#'   values retain more observations. Use `NULL` to evaluate all observations.
+#' @inheritParams fit_cie_model
+#'
+#' @return Plain list with:
 #' \describe{
-#'   \item{lm}{An object of class `lm` (see [stats::lm()]) for predicted vs. observed.}
-#'   \item{pred}{Numeric vector of predicted relative radiance used in `lm`.}
-#'   \item{obs}{Numeric vector of observed relative radiance used in `lm`.}
-#'   \item{r_squared}{Coefficient of determination (\eqn{R^2}).}
-#'   \item{rmse}{Root mean squared error (RMSE).}
-#'   \item{mae}{Median absolute error (MAE).}
-#'   \item{is_outlier}{Logical vector marking outliers (MAD > 3) in the original sky-point set.}
-#'   \item{metric}{Numeric value. Mean squared deviation as in \insertCite{Gauch2003;textual}{rcaiman}.}
+#'   \item{lm}{Observations regressed on predictions, as an [stats::lm()] object.}
+#'   \item{pred, obs}{Predicted and observed relative radiance, respectively,
+#'     in the original sky-point row order. Predictions are from held-out folds.}
+#'   \item{r_squared}{Regression R-squared, or `NA` if predictions or observations
+#'     used for evaluation are constant.}
+#'   \item{rmse}{Root mean squared error.}
+#'   \item{mae, medae}{Mean and median absolute error, respectively.}
+#'   \item{is_outlier}{Logical vector in original row order. Flagged rows are
+#'     excluded from the regression and summary metrics, but retained in
+#'     `pred` and `obs`.}
+#'   \item{metric}{Mean squared deviation (MSD).}
+#'   \item{components}{Named vector with `SB`, `NU`, and `LC`; see [calc_msd()].}
+#'   \item{fold_id}{Fold assignment of each original row.}
+#'   \item{fold_models}{Fitted models, named by fold identifier and ordered by
+#'     its first occurrence in `fold_id`. Each model contains its training
+#'     observations, coefficients, and fitting diagnostics.}
 #' }
 #'
+#' @seealso [fit_cie_model()], [calc_msd()]
 #' @references \insertAllCited{}
 #' @export
-#'
 #' @examples
-#' \dontrun{
-#' caim <- read_caim()
-#' z <- zenith_image(ncol(caim), lens())
-#' a <- azimuth_image(z)
-#' path <- system.file("external/sky_points.csv", package = "rcaiman")
-#' sky_points <- read.csv(path)[c("Y", "X")]
-#' names(sky_points) <- c("row", "col")
-#' rr <- extract_rr(caim$Blue, z, a, sky_points)
+#' geometry <- list(model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g)
+#' sun_angles <- data.frame(zenith = pi/4, azimuth = .3)
+#' sky_coef <- as.numeric(cie_table[4, 1:5])
+#' r <- cie_image(d, sun_angles, sky_coef) * 1000
+#' names(r) <- "Blue"
+#' sampling_indices <- expand.grid(col = seq(15, 65, 5), row = seq(5, 55, 5))
+#' sampling_indices <- rem_unselected(sampling_indices, !is.na(r))
+#' samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+#' samples <- add_directions(samples, d = d)
+#' rr <- calc_relative_radiance(samples, "Blue", zenith_dn = 1000)
+#' fit <- fit_cie_model(rr, sun_angles, std_sky_no = c(3, 4),
+#'   method = "Nelder-Mead")
+#' validation <- validate_cie_model(fit, k = 3, std_sky_no = c(3, 4))
+#' validation$rmse
+#' plot(validation$pred, validation$obs,
+#'   xlab = "Predicted relative radiance", ylab = "Observed relative radiance")
+#' abline(0, 1)
 #'
-#' set.seed(7)
-#' model <- fit_cie_model(rr, sun_angles = c(z = 49.5, a = 27.4),
-#'                        general_sky_type = "Clear", method = "CG")
-#' val <- validate_cie_model(model, k = 10)
-#' val$r_squared
-#' val$rmse
+#' \dontrun{
+#' # Withhold azimuth sectors together instead of interleaving individual rows.
+#' folds <- floor(fit$relative_radiance$sky_points$azimuth / (pi/2)) + 1L
+#' validation <- validate_cie_model(fit, fold_id = folds,
+#'   std_sky_no = c(3, 4), method = "Nelder-Mead")
+#' validation$components
+#' validation$fold_models[[1]]$attempts
 #' }
-validate_cie_model <- function(model, k = 10) {
-  if (!is.list(model)) {
-    stop("`model` must be a list returned by `fit_cie_model()`. ")
-  }
-  required_names <- c("rr", "opt_result", "coef", "sun_angles",
-                      "method", "start" , "metric")
-  if (!all(required_names %in% names(model))) {
-    stop(sprintf("`model` must contain %s.",
-                 paste(sprintf('"%s"', required_names), collapse = ", ")))
-  }
-  .check_vector(k, "integerish", 1, sign = "positive")
+validate_cie_model <- function(model, k = 10, fold_id = NULL,
+                               custom_sky_coef = NULL, std_sky_no = NULL,
+                               general_sky_type = NULL,
+                               method = "Nelder-Mead", parallel = FALSE,
+                               cores = NULL, logical = TRUE, leave_free = 1,
+                               laxity = 3) {
+  .check_vector(laxity, "numeric", 1, sign = "positive", allow_null = TRUE)
+  result <- .cie_validation_predictions(model, k, fold_id,
+    custom_sky_coef, std_sky_no, general_sky_type, method,
+    parallel, cores, logical, leave_free)
+  error <- result$obs - result$pred
+  outlier <- if (is.null(laxity)) rep(FALSE, length(error)) else
+    is_outlier(error, laxity = laxity)
+  pred <- result$pred[!outlier]
+  obs <- result$obs[!outlier]
+  reg <- stats::lm(obs ~ pred)
+  comparison <- calc_msd(pred, obs)
+  r_squared <- if (length(unique(pred)) < 2L || length(unique(obs)) < 2L)
+    NA_real_ else stats::cor(pred, obs)^2
+  list(lm = reg, pred = result$pred, obs = result$obs,
+    r_squared = r_squared, rmse = sqrt(unname(comparison["MSD"])),
+    mae = mean(abs(obs - pred)), medae = stats::median(abs(obs - pred)),
+    is_outlier = outlier, metric = unname(comparison["MSD"]),
+    components = comparison[c("SB", "NU", "LC")],
+    fold_id = result$fold_id, fold_models = result$fold_models)
+}
 
-  .get_metric <- function(x, y) {
-    #10.2134/agronj2003.1442
-    reg <- tryCatch(lm(x~y),
-                    error = function(e) NULL,
-                    warning = function(w) NULL)
-    if (is.null(reg)) {
-      MSE <- 1e10
-    } else {
-      m <- stats::coef(reg)[2]
-      r_squared <- summary(reg) %>% .$r.squared
-      SB <- (mean(x) - mean(y))^2
-      NU <- (1 - m)^2 * mean(x^2)
-      LC <- (1 - r_squared) * mean(y^2)
-      MSE <- SB + NU + LC
+# Refit each training set without using coefficients learned from held-out rows.
+.cie_validation_predictions <- function(model, k, fold_id,
+                                        custom_sky_coef, std_sky_no,
+                                        general_sky_type, method,
+                                        parallel, cores, logical, leave_free) {
+  .assert_cie_model(model)
+  relative_radiance <- model$relative_radiance
+  if (!is.list(relative_radiance) ||
+      !all(c("sky_points", "zenith_dn") %in% names(relative_radiance))) {
+    stop("`model$relative_radiance` must contain `sky_points` and `zenith_dn`.",
+         call. = FALSE)
+  }
+  samples <- relative_radiance$sky_points
+  if (!is.data.frame(samples) || nrow(samples) < 2L) {
+    stop("Validation requires at least two sky samples.", call. = FALSE)
+  }
+  .check_columns(samples, c("zenith", "azimuth", "relative_radiance"))
+  for (column in c("zenith", "azimuth", "relative_radiance")) {
+    .check_vector(samples[[column]], "numeric", name = column)
+  }
+  .check_vector(relative_radiance$zenith_dn, "numeric", 1, sign = "positive")
+  .check_cie_sun_angles(model$sun_angles)
+  if (any(samples$zenith < 0 | samples$zenith > pi/2) ||
+      any(samples$azimuth < 0 | samples$azimuth >= 2*pi)) {
+    stop("Sky directions must be in radians: zenith in [0, pi/2], azimuth in [0, 2*pi).",
+         call. = FALSE)
+  }
+  n <- nrow(samples)
+  if (is.null(fold_id)) {
+    .check_vector(k, "integerish", 1, sign = "positive")
+    if (k < 2L || k > n) {
+      stop("`k` must be between 2 and the number of sky samples.", call. = FALSE)
+    }
+    fold_id <- rep(seq_len(k), length.out = n)
+  } else {
+    .check_vector(fold_id, "integerish", n, sign = "positive")
+    if (length(unique(fold_id)) < 2L) {
+      stop("`fold_id` must identify at least two folds.", call. = FALSE)
     }
   }
-
-  .noise <- function(w = 1) {
-    coef_sd <- apply((rcaiman::cie_table[, 1:5]), 2, sd) * w
-    Map(function(i) stats::rnorm(1, 0, coef_sd[i]), 1:5) %>% unlist()
+  groups <- unique(fold_id)
+  fits <- stats::setNames(vector("list", length(groups)), as.character(groups))
+  predicted <- numeric(n)
+  for (j in seq_along(groups)) {
+    held_out <- which(fold_id == groups[j])
+    training <- relative_radiance
+    training$sky_points <- samples[-held_out, , drop = FALSE]
+    training$sky_points$pred <- NULL
+    fits[[j]] <- tryCatch(
+      fit_cie_model(training, model$sun_angles,
+        custom_sky_coef = custom_sky_coef, std_sky_no = std_sky_no,
+        general_sky_type = general_sky_type, optim_zenith_dn = FALSE,
+        method = method, parallel = parallel, cores = cores,
+        logical = logical, leave_free = leave_free),
+      error = function(e) stop("Fold ", groups[j], ": ", conditionMessage(e),
+                               call. = FALSE))
+    predict <- .cie_cached_predictor(samples$zenith[held_out],
+      samples$azimuth[held_out], model$sun_angles)
+    values <- predict(fits[[j]]$coef)
+    if (any(!is.finite(values))) {
+      stop("Fold ", groups[j], " produced non-finite held-out predictions.",
+           call. = FALSE)
+    }
+    predicted[held_out] <- values
   }
-
-  # k=10 based on https://dl.acm.org/doi/10.5555/1643031.1643047
-  folds <- seq_along(model$rr$sky_points$row)
-  folds <- split(folds, 1:k) %>% suppressWarnings()
-  x <- c()
-  y <- c()
-  for (i in 1:k) {
-    rr.2 <- model$rr
-    rr.2$sky_points <- model$rr$sky_points[-folds[[i]],]
-    model.2 <- fit_cie_model(rr.2,  model$sun_angles,
-                                 custom_sky_coef = model$coef + .noise(0.1),
-                                 method = model$method)
-
-    x <- c(x, .cie_sky_model(AzP = model$rr$sky_points[folds[[i]], "a"] %>%
-                               .degree2radian(),
-                             Zp = model$rr$sky_points[folds[[i]], "z"] %>%
-                               .degree2radian(),
-                             AzS = model$sun_angles["a"] %>%
-                               .degree2radian(),
-                             Zs =  model$sun_angles["z"] %>%
-                               .degree2radian(),
-                             model$coef[1], model$coef[2], model$coef[3],
-                             model$coef[4], model$coef[5]))
-    y <- c(y, model$rr$sky_points[folds[[i]], "rr"])
-  }
-
-  # Following Leys2013 10.1016/j.jesp.2013.03.013
-  error <- y - x
-  u <- abs((error - stats::median(error)) / stats::mad(error)) < 3
-  x <- x[u]
-  y <- y[u]
-
-  reg <- lm(x~y) #following Pineiro2008 10.1016/j.ecolmodel.2008.05.006
-
-  list(lm = reg,
-       pred = reg$model$x,
-       obs = reg$model$y,
-       r_squared = summary(reg) %>% .$r.squared,
-       rmse = .calc_rmse(reg$model$y - reg$model$x),
-       mae = stats::median(abs(reg$model$y - reg$model$x)),
-       is_outlier = !u,
-       metric = .get_metric(reg$model$x, reg$model$y) %>% unname()
-       )
+  list(pred = predicted, obs = samples$relative_radiance,
+       fold_id = fold_id, fold_models = fits)
 }

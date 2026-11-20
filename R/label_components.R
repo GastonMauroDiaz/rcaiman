@@ -17,29 +17,23 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40)
-#' plot(thr$v1)
-#' plot(thr$n)
-#' bin <- binarize_with_thr(r, thr$v1)
-#' plot(bin)
+#' # Two square patches touch only at a corner; a third patch is separate.
+#' bin <- matrix(c(
+#'   0, 0, 0, 0, 0, 0, 0, 0,
+#'   0, 1, 1, 0, 0, 0, 1, 0,
+#'   0, 1, 1, 0, 0, 0, 1, 0,
+#'   0, 0, 0, 1, 1, 0, 1, 0,
+#'   0, 0, 0, 1, 1, 0, 0, 0,
+#'   0, 0, 0, 0, 0, 0, 0, 0
+#' ), nrow = 6, byrow = TRUE)
+#' bin <- set_rcaiman_geometry(rast(bin)) > 0
 #'
 #' seg <- label_components(bin)
-#' plot(seg)
-#' }
+#' plot(c(bin, seg), main = c("Binary image", "Connected components"))
+#'
+#' # Four-neighbour connectivity keeps diagonally touching patches separate.
+#' # Labels 1--3 identify the components; label 0 is the background.
+#' table(seg[])
 label_components <- function(bin) {
   .assert_logical_mask(bin)
 

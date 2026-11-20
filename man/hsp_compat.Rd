@@ -4,17 +4,17 @@
 \alias{hsp_compat}
 \alias{hsp_read_manual_input}
 \alias{hsp_read_opt_sky_coef}
-\alias{hsp_write_sky_points}
-\alias{hsp_write_sun_coord}
+\alias{hsp_write_sky_indices}
+\alias{hsp_write_sun_indices}
 \title{HSP compatibility functions}
 \usage{
 hsp_read_manual_input(path_to_HSP_project, img_name)
 
 hsp_read_opt_sky_coef(path_to_HSP_project, img_name)
 
-hsp_write_sky_points(sky_points, path_to_HSP_project, img_name)
+hsp_write_sky_indices(sky_indices, path_to_HSP_project, img_name)
 
-hsp_write_sun_coord(sun_row_col, path_to_HSP_project, img_name)
+hsp_write_sun_indices(sun_indices, path_to_HSP_project, img_name)
 }
 \arguments{
 \item{path_to_HSP_project}{character vector of length one. Path to the HSP
@@ -23,17 +23,21 @@ project folder (e.g., \code{"C:/Users/johndoe/Documents/HSP/projects/my_prj/"}).
 \item{img_name}{character vector of length one (e.g., \code{"DSCN6342.pgm"} or
 \code{"DSCN6342"}). See \emph{About HSP software}.}
 
-\item{sky_points}{\code{data.frame} with columns \code{"col"} and \code{"row"}, representing
-cell indices numbered from 1.}
+\item{sky_indices}{\code{data.frame} with numeric columns \code{"col"} and \code{"row"}
+containing positive, integer-valued cell indices numbered from 1, without
+missing values. Additional columns are ignored, including \code{type}.}
 
-\item{sun_row_col}{numeric vector of length two. Cell indices of the solar
-disk in \code{row}, \code{col} order. The argument name and order follow the legacy
-HSP format. See \code{\link[=y_down_from_y]{y_down_from_y()}} for spatial conventions.}
+\item{sun_indices}{one-row \code{data.frame} with numeric columns \code{"col"} and
+\code{"row"} containing positive, integer-valued cell indices of the solar
+disk, numbered from 1, without missing values. Additional columns are
+ignored. Columns are identified by name; their order does not matter.}
 }
 \value{
 See \emph{Functions}
 }
 \description{
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
 Read and write legacy files from HSP (HemiSPherical Project Manager) projects
 to interoperate with existing workflows. Intended for legacy support; not
 required when working fully within \code{rcaiman}.
@@ -42,7 +46,7 @@ required when working fully within \code{rcaiman}.
 
 
 HSP was introduced in \insertCite{Lang2013}{rcaiman} and is based on the
-method presented in \insertCite{Lang2010;textual}{rcaiman}). It runs
+method presented in \insertCite{Lang2010;textual}{rcaiman}. It runs
 exclusively on Windows. HSP stores pre-processed images as PGM files in the
 \code{manipulate} subfolder of each project (itself inside the \code{projects} folder).
 }
@@ -54,78 +58,93 @@ exclusively on Windows. HSP stores pre-processed images as PGM files in the
 \item{\code{hsp_read_manual_input()}}{read sky marks and sun position
 defined manually within an HSP project; returns a named list with
 components \code{weight}, \code{max_points}, \code{angle},
-\code{point_radius}, \code{sun_row_col}, \code{sky_points},
-\code{zenith_dn}, \code{masks}, and \code{marked_areas}.}
+\code{point_radius}, \code{sun_indices}, \code{sky_indices},
+\code{zenith_dn}, \code{masks}, and \code{marked_areas}.
+The first four components and \code{zenith_dn} are numeric scalars read from
+HSP settings and statistics. \code{sun_indices} is a one-row \code{data.frame} with
+numeric \code{row} and \code{col} columns. \code{sky_indices} is a \code{data.frame} with
+numeric \code{col}, \code{row}, and \code{type} columns; \code{type} retains the HSP mark code.
+Both tables use cell indices numbered from 1 and can be passed to
+\code{\link[=add_directions]{add_directions()}}. \code{masks} and \code{marked_areas} are polygon
+\link[terra:SpatVector-class]{terra::SpatVector} objects on the image grid from \code{\link[=read_caim]{read_caim()}},
+or \code{NULL} when the corresponding HSP file contains no polygons.}
 
 \item{\code{hsp_read_opt_sky_coef()}}{read optimized CIE sky coefficients
-from an HSP project; returns a numeric vector of length five.}
+from an HSP project; returns a numeric vector of length five, in CIE
+coefficient order \code{a}, \code{b}, \code{c}, \code{d}, \code{e}.}
 
-\item{\code{hsp_write_sky_points()}}{write a file with sky point
-coordinates compatible with HSP; creates a file on disk.}
+\item{\code{hsp_write_sky_indices()}}{write sky cell indices to
+\verb{<img_name>_points.conf} in \code{manipulate}, replacing an existing file.
+Each mark is written with HSP type code 3. Returns \code{NULL} invisibly.}
 
-\item{\code{hsp_write_sun_coord()}}{write a file with solar disk
-coordinates compatible with HSP; creates a file on disk.}
+\item{\code{hsp_write_sun_indices()}}{write solar disk cell indices to
+\verb{<img_name>_sun.conf} in \code{manipulate}, replacing an existing file.
+Returns \code{NULL} invisibly.}
 }
 }
 
 \examples{
 \dontrun{
-# NOTE: assumes the working directory is the HSP project folder (e.g., an RStudio project).
+setwd("~/HSP/Projects/KS_2021_11_18")
+
+r <- read_caim("manipulate/DSCN6269.pgm")
+
+rho <- ncol(r) / 2
+hsp_geometry <- list(
+  model = "radial_projection",
+  center_of_vision = c(rho, rho),
+  parameters = equidistant_coef,
+  normalization_radius = rho,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(rho, rho) * 2, hsp_geometry)
+d <- direction_image(g)
 
 # From HSP to R in order to compare ---------------------------------------
-r <- read_caim("manipulate/IMG_1013.pgm")
-z <- zenith_image(ncol(r), equidistant_coef)
-a <- azimuth_image(z)
-manual_input <- read_manual_input(".", "IMG_1013")
-sun_row_col <- manual_input$sun_row_col
-sun_angles <- zen_azi_from_row_col(
-  z, a,
-  sun_row_col[1],
-  sun_row_col[2]
-)
-sun_angles <- as.vector(sun_angles) * 180/pi
-names(sun_angles) <- c("zen_deg", "azi_deg")
 
-sky_points <- manual_input$sky_points
+manual_input <- hsp_read_manual_input(".", "DSCN6269")
+sun_angles <- manual_input$sun_indices \%>\% add_directions(., d = d)
+
+sky_points <- manual_input$sky_indices \%>\% add_directions(., d = d)
 sky_points <- extract_dn(r, sky_points)
-sky_poinst <- add_directions(sky_points, z, a)
+head(sky_points)
 
-rr <- calc_relative_radiance(sky_points, cold_id = 3, zenith_dn = manual_input$zenith_dn)
-model <- fit_cie_model(rr, sun_angles)
-sky <- cie_image(
-  z, a,
-  model$sun_angles,
-  model$coef
-) * model$rr$zenith_dn
-names(sky) <- "DN"
+rr <- calc_relative_radiance(sky_points, col_id = 3, zenith_dn = manual_input$zenith_dn)
+head(rr)
+model <- fit_cie_model(rr, sun_angles, parallel = TRUE)
+sky <- cie_image(d, model$sun_angles, model$coef) * model$relative_radiance$zenith_dn
+plot(sky)
+names(sky) <- "above-canopy dn"
 plot(r / sky)
 
-r <- read_caim("manipulate/IMG_1013.pgm")
-sky_coef <- read_opt_sky_coef(".", "IMG_1013")
-sky_m <- cie_image(z, a, sun_angles, sky_coef)
-sky_m <- cie_sky_manual * manual_input$zenith_dn
-names(sky_m) <- "DN"
+r <- read_caim("manipulate/DSCN6269.pgm")
+sky_coef <- hsp_read_opt_sky_coef(".", "DSCN6269")
+sky_m <- cie_image(d, sun_angles, sky_coef) * manual_input$zenith_dn
+names(sky_m) <- "above-canopy dn"
+plot(sky_m)
 plot(r / sky_m)
 
 # From R to HSP  ----------------------------------------------------------
-r <- read_caim("manipulate/IMG_1014.pgm")
-z <- zenith_image(ncol(r), equidistant_coef)
-a <- azimuth_image(z)
-m <- !is.na(z)
-g <- sky_grid_segmentation(z, a, 10)
-bin <- binarize_with_thr(r, thr_isodata(r[m]))
-bin <- select_sky_region(z, 0, 85) & bin
 
-sun_angles <- estimate_sun_angles(r, z, a, bin, g)
-sun_row_col <- row_col_from_zen_azi(
-  z, a,
-  sun_angles["zen_deg"] * pi/180,
-  sun_angles["azi_deg"] * pi/180
-) \%>\% as.numeric()
-write_sun_coord(sun_row_col, ".", "IMG_1014")
+w <- area_weight_image(g, hsp_geometry)
+m <- !is.na(g$off_axis)
 
-sky_points <- sample_sky_points(r, bin, g)
-write_sky_points(sky_points, ".", "IMG_1014")
+bin <- binarize_with_thr(r, thr_isodata(r[m], w[m]))
+seg <- beckers_segmentation(d, 500)
+
+sun_indices <- estimate_sun_angles(r, d, bin, seg, w) \%>\%
+  internal_directions_from_external() \%>\%
+  coord_from_internal_directions(., hsp_geometry) \%>\% add_indices()
+
+hsp_write_sun_indices(sun_indices, ".", "DSCN6269")
+
+sky_indices <- compute_features(distance_to_black(bin), seg, d, w) \%>\%
+  internal_directions_from_external \%>\%
+  coord_from_internal_directions(., hsp_geometry) \%>\% add_indices()
+head(sky_indices)
+
+hsp_write_sky_indices(sky_indices, ".", "DSCN6269")
+
 }
 }
 \references{

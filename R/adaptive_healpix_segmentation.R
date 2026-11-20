@@ -9,7 +9,13 @@
 #' ([healpix_segmentation()]) and recursively subdivides regions according to
 #' local radiometric variability. Regions with high variability tend to be
 #' represented at finer spatial scales, whereas homogeneous regions remain
-#' larger.
+#' larger. The partition is defined in external directions from `d`, using
+#' the same orientation as [healpix_segmentation()]. The split decisions and
+#' returned labels depend on the observed data; labels are not fixed HEALPix IDs.
+#'
+#' Missing image values or directions, and directions below the horizon, are
+#' excluded before fitting the tree and receive zero. An undefined azimuth
+#' at the exact zenith is also excluded.
 #'
 #' HEALPix provides an equal-area spherical tessellation, reducing the
 #' geometric distortions introduced by image-space partitioning when working
@@ -57,15 +63,16 @@
 #'   Larger values reduce splitting.
 #' @param max_splittings numeric vector of length one. Must be positive and interpreted as
 #'   integer. Maximum number of
-#'   recursive subdivisions allowed.
+#'   recursive subdivisions allowed, at most 13 to keep HEALPix IDs within
+#'   the integer range used by the implementation.
 #' @param min_size_px numeric vector of length one. Must be positive and interpreted as
 #'   integer. Minimum number of pixels
 #'   required in child regions for subdivision to be considered valid.
 #'
-#' @inheritParams add_directions
+#' @inheritParams sky_grid_segmentation
 #'
 #' @return Integer [terra::SpatRaster-class] with one layer and the same
-#'   geometry as `r`.
+#'   geometry as `r`, with zero outside the segmentation.
 #'
 #' @export
 #'
@@ -74,63 +81,67 @@
 #' @references \insertAllCited{}
 #'
 #' @examples
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g, elevation = 32.5)
+#' r <- g$off_axis
+#' seg <- adaptive_healpix_segmentation(r, d, scale_parameter = 0.1)
+#' plot(seg)
 #'
 #' \dontrun{
 #' require(rcaiman.registry)
+#' path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+#' sensor_data <- read_caim(path)
+#'
 #' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 #' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
+#' raw <- get_signature(my_entry, "raw")
+#' cygm <- get_band_spec(raw, "cygm")
 #'
-#' seg_tree <- adaptive_healpix_segmentation(
-#'   r,
-#'   z,
-#'   a,
-#'   scale_parameter = 5,
-#'   max_splittings = 10,
-#'   min_size_px = 5
-#' )
-#' plot(seg_tree)
+#' caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+#' caim
+#' r <- caim$Cyan
+#'
+#' raw_geometry <- get_geometry_spec(cygm, "simple_method")
+#' g <- set_internal_geometry(raw$dim, raw_geometry)
+#' d <- direction_image(g)
+#' seg <- adaptive_healpix_segmentation(r, d, scale_parameter = 25)
+#' plot(seg)
+#' plot(compute_mean(r, seg))
 #' }
-adaptive_healpix_segmentation <- function(r, z, a,
+adaptive_healpix_segmentation <- function(r, d,
                         scale_parameter = 0,
                         max_splittings = 7,
                         min_size_px = 1) {
-
-  .assert_single_layer(r, allow_na = FALSE)
-  .assert_zenith_image(z)
-  .assert_same_geom(z, r)
-  .assert_azimuth_image(a)
-  .assert_same_geom(z, a)
+  .assert_single_layer(r)
+  z <- .sky_segmentation_layer(d, "zenith")
+  a <- .sky_segmentation_layer(d, "azimuth")
+  .assert_same_geom(d, r)
   .check_vector(scale_parameter, "numeric", 1, sign = "nonnegative")
   .check_vector(max_splittings, "integerish", 1, sign = "positive")
   .check_vector(min_size_px, "integerish", 1, sign = "positive")
-
-  # Las funciones C++ de HEALPix esperan radianes
-  z_rad <- terra::values(z) * pi / 180
-  a_rad <- terra::values(a) * pi / 180
-  r_val <- terra::values(r)
-
-  labels <- healpixtree_cpp(
-    z = z_rad,
-    a = a_rad,
-    values = r_val,
-    scale_parameter = scale_parameter,
-    max_splittings = max_splittings,
-    min_size_px = min_size_px
-  )
-
-  seg <- r
+  if (max_splittings > 13) {
+    stop("`max_splittings` must not exceed 13.", call. = FALSE)
+  }
+  zenith <- terra::values(z, mat = FALSE)
+  azimuth <- terra::values(a, mat = FALSE)
+  values <- terra::values(as.numeric(r), mat = FALSE)
+  valid <- !is.na(zenith) & zenith <= 90 & !is.na(azimuth) & !is.na(values)
+  .check_vector(values[valid], "numeric", name = "r at selected cells")
+  zenith[!valid] <- NA_real_
+  # The fixed HEALPix wrapper makes this same geographic-to-mathematical turn.
+  longitude <- (pi / 2 - azimuth * pi / 180) %% (2 * pi)
+  labels <- healpixtree_cpp(zenith * pi / 180, longitude, values,
+    scale_parameter, max_splittings, min_size_px)
+  labels[is.na(labels)] <- 0L
+  seg <- terra::rast(r)
   terra::values(seg) <- labels
   names(seg) <- "healpix tree"
-  seg[is.na(seg)] <- 0
-
-  return(seg)
+  seg
 }

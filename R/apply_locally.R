@@ -1,215 +1,150 @@
-#' Apply a function locally using sampled points on the hemispherical domain
+#' Apply a function to predefined neighborhoods
 #'
 #' @description
-#' Evaluate a user-supplied function locally using neighboring points
-#' defined on the hemispherical domain.
+#' Evaluate a function on the neighboring samples associated with each query.
 #'
 #' @details
-#' The `query_points` argument lets the user evaluate `fun` at a custom set of
-#' locations. For each point in `query_points`, neighbors are searched within
-#' `sampling_points`. Neighbor selection is based on
-#' spherical distance, see [nn_spherical()]. The function `fun` is
-#' then applied to the corresponding subset of neighboring sampling points.
+#' Neighbor selection is performed before calling this function, for example
+#' with [nn_spherical()]. This function uses the supplied row positions and
+#' distances without searching for neighbors or interpreting coordinates.
+#' Neither input table needs angular columns or image indices.
 #'
-#' The input passed to `fun` is a **subset of rows of `sampling_points`**,
-#' therefore, `fun` must extract and process the column(s) of interest, e.g.:
-#' `function(df) mean(df$dn)`.
+#' For each query row `i`, the function calls `fun(data, distance, i)`.
+#' `data` contains the selected rows of `sampling_data`, in the order given
+#' by `neighbors[[i]]$index`. `distance` contains the corresponding distances,
+#' in their original units. For neighbors from [nn_spherical()], these are
+#' angular distances in radians. Additional columns and missing values in
+#' the tables are passed unchanged for `fun` to interpret.
 #'
-#' The angular neighborhood is defined by two parameters:
-#' \itemize{
-#'   \item `k`: number of nearest neighbors used by `fun`.
-#'   \item `search_radius`: maximum allowed spherical distance (deg).
-#' }
+#' Empty neighborhoods also call `fun`, with a zero-row data frame and
+#' `numeric(0)` distances. The supplied function decides whether to return
+#' `NA`, use a fallback value, or perform another calculation. It can use `i`
+#' to retrieve information from the corresponding row of `query_data`.
+#' Use `...` to accept arguments that a particular calculation does not need.
+#' Errors stop processing and identify the query row.
 #'
-#' Argument `rule` controls how neighbor availability is interpreted:
-#' \itemize{
-#'   \item `"any"`: all neighbors found within `search_radius` are passed to `fun`
-#'                 (even if fewer than `k`).
-#'   \item `"all"`: if fewer than `k` neighbors lie within the radius, the query
-#'                 point is assigned `NA`.
-#' }
+#' Tables and neighbor lists must retain the row order used to construct
+#' `neighbors`. Row positions and list lengths are checked, but these checks
+#' cannot detect reordered tables or geometrically unrelated data.
 #'
-#' @param query_points `data.frame` with columns `"zen"` and `"azi"`, as in the
-#'   output of [add_directions]. Points at which `fun` should be evaluated.
-#' @param neighbors a list where each element corresponds to one query point and contains :
-#' \describe{
-#'   \item{index}{
-#'   indices of neighboring sampling points
+#' @param sampling_data data frame containing the sampled values and any other
+#'   columns needed by `fun`.
+#' @param query_data data frame with one row per query. Its columns are retained
+#'   when results are scalar. A column named `output` is reserved.
+#' @param neighbors list with one element per row of `query_data`. Each element
+#'   is a list containing:
+#'   \describe{
+#'     \item{`index`}{Positive integer-like row positions in `sampling_data`.}
+#'     \item{`distance`}{Finite, nonnegative numeric distances of the same length
+#'       as `index`. Units are defined by the neighbor search.}
 #'   }
-#'   \item{distance}{
-#'   angular distances in radians
-#'   }
-#' }
-#' Tipically the output of [nn_spherical()].
-#' @param fun function. It receives a data frame, an integer vector of length
-#'   equal to the number of rows in the data frame, and an integer vector of
-#'   length one. The first object is a subset of sampling_points, the second is the
-#'   angular distance of each point to the query point, and the third is the
-#'   query-point row index. When the search retrieves no points, the data frame
-#'   is empty. Users should include the ellipsis (...) in their function
-#'   signature to gracefully handle any of these arguments that are not required
-#'   for their specific calculation. See *Examples*.
-#' @param parallel logical vector of length one. If `TRUE`, operations are
-#'   executed in parallel.
-#' @param cores numeric vector of length one. Must be positive and interpreted as
-#'   integer. Number of CPU cores to use when
-#'   `parallel = TRUE`. If `NULL`, the function uses all available
-#'   cores detected internally. Values greater than the number of available
-#'   cores are silently reduced to the maximum allowed. If the resulting number
-#'   of cores is less than 2, `parallel` is silently set to `FALSE`.
-#' @param leave_free numeric vector of length one. Must be positive and interpreted as
-#'   integer. Number of CPU cores to leave
-#'   free when `parallel = TRUE`. Ignored when `cores` is not `NULL`. Must be
-#'   greater than or equal to 0. If `total_cores - leave_free` is less than 2,
-#'   `parallel` is silently set to `FALSE`.
-#' @param logical logical vector of length one. Internally it is passed unchanged
-#'   to the argument `logical` in [parallel::detectCores()]. Ignored when
-#'   `parallel = FALSE`.
+#'   Empty neighborhoods contain `integer(0)` and `numeric(0)`. Repeated indices
+#'   are passed to `fun` as repeated rows.
+#' @param fun function receiving three positional arguments: a data frame of
+#'   neighboring samples, their numeric distances, and the query row number.
+#'   Any R object can be returned; see *Value* for how results are collected.
+#' @param parallel logical vector of length one. If `TRUE`, evaluate queries
+#'   in parallel. Result order follows `query_data` in either mode.
+#' @param cores positive integer-like numeric vector of length one, or `NULL`.
+#'   Number of CPU cores when `parallel = TRUE`, capped at the number detected.
+#'   With `NULL`, use the detected number minus `leave_free`. Fewer than two
+#'   available cores results in sequential evaluation.
+#' @param logical logical vector of length one. Passed to
+#'   [parallel::detectCores()] when `parallel = TRUE`.
+#' @param leave_free nonnegative integer-like numeric vector of length one.
+#'   Number of cores to leave free when `parallel = TRUE` and `cores = NULL`.
 #'
-#' @inheritParams nn_spherical
+#' @return When every result is an atomic vector of length one without a class
+#'   or dimensions, a data frame equal to `query_data` with the added column
+#'   `output`. Scalar names are ignored and mixed atomic types follow R's usual
+#'   coercion rules. Missing scalar values are retained.
 #'
-#' @note
-#' This function assumes that `sky_points`, `query_points`, and `neighbors`
-#' share the same geometry. No checks are performed to enforce this.
+#'   Otherwise, a list with one element per query, preserving each returned
+#'   object, including `NULL`, empty vectors, and fitted models. Results are
+#'   never flattened to decide whether they are scalar.
 #'
-#' @seealso
-#' [sky_grid_centers()], [fibonacci_indices()], and [raster_grid_in_circle()] for
-#' producing `query_points`.
-#'
-#' @return
-#' If `fun` returns a vector of length one, a `data.frame` equal to
-#' `query_points` with one additional column, named `"output"`, containing the
-#' result of applying `fun` at each query point.
-#'
-#' If `fun` returns any other object, it returns a list with as many components
-#' as rows in `query_points`.
-#'
+#'   With no queries, return `query_data` with a zero-length numeric `output`
+#'   column, without calling `fun`.
+#' @seealso [nn_spherical()], [add_directions()], [apply_by_direction()]
 #' @export
-#'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' # neighbors
-#' sampling_indices <- fibonacci_indices(z, a, 1)
-#' query_indices <- fibonacci_indices(z, a, 10)
-#' neighbors <- nn_spherical(sampling_indices, query_indices,
-#'                           k = nrow(sampling_indices),
-#'                           search_radius = 30)
-#'
-#' thr <- apply_by_direction(r, z, a, m)
-#' bin <- binarize_with_thr(r, thr$v1)
-#' plot(bin)
-#'
-#' # Inverse distance weighted interpolation ------------------------------
-#'
-#' ## See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#' sky_points <- add_directions(sky_points, z, a)
-#'
-#' query_points <- raster_grid_in_circle(z, a, 10)
-#'
-#' neighbors <- nn_spherical(sky_points, query_points,
-#'                           k = 10,
-#'                           search_radius = 20,
-#'                           rule = "any")
-#'
-#' eval_points <- apply_locally(
-#'   sky_points,
-#'   query_points,
-#'   neighbors,
-#'   fun = function(df, chi, ...) {
-#'     b_k <- df$Cyan
-#'     w_k <- 1 / chi^2
-#'     sum(w_k * b_k) / sum(w_k)
-#'   },
-#'   parallel = FALSE
-#' )
-#'
-#' head(eval_points)
-#' summary(eval_points)
-#' i <- !is.na(eval_points$output)
-#' sky <- interpolate_planar(eval_points[i,],  "output", r,
-#'                           k = 3,
-#'                           p = 2,
-#'                           search_radius = 20,
-#'                           rigorous = TRUE)
-#' plot(sky)
-#' plot(r/sky)
+#' sampling_directions <- sky_grid_centers(15)
+#' sampling_directions$dn <- 100 + 20 * sampling_directions$zenith
+#' query_directions <- sky_grid_centers(30)
+#' neighbors <- nn_spherical(sampling_directions, query_directions,
+#'                           k = 3, search_radius = 20, parallel = FALSE)
+#' local_mean <- function(data, ...) {
+#'   if (!nrow(data)) return(NA_real_)
+#'   mean(data$dn)
 #' }
-apply_locally <- function(sampling_points,
-                          query_points,
+#' result <- apply_locally(sampling_directions, query_directions,
+#'                         neighbors, fun = local_mean)
+#' head(result)
+#'
+#' # A fallback is also evaluated for queries without neighbors.
+#' query_directions$fallback <- 100 + 20 * query_directions$zenith
+#' neighbors <- nn_spherical(sampling_directions, query_directions,
+#'                           k = 3, search_radius = 5, parallel = FALSE)
+#' local_or_fallback <- function(data, distance, i) {
+#'   if (!nrow(data)) return(query_directions$fallback[i])
+#'   mean(data$dn)
+#' }
+#' result <- apply_locally(sampling_directions, query_directions,
+#'                         neighbors, fun = local_or_fallback)
+#' head(result)
+apply_locally <- function(sampling_data,
+                          query_data,
                           neighbors,
                           fun,
                           parallel = FALSE,
                           cores = NULL,
                           logical = TRUE,
-                          leave_free = 1
-) {
-
-  .check_columns(sampling_points,
-                 required_columns = c("zen", "azi"),
-                 reserved_columns = NULL)
-  .check_columns(query_points,
-                 required_columns = c("zen", "azi"),
-                 reserved_columns = "output")
-  .assert_neighbors(neighbors)
-  if (!is.function(fun))
-    stop("`fun` must be a function.")
+                          leave_free = 1) {
+  .check_columns(sampling_data)
+  .check_columns(query_data, reserved_columns = "output")
+  .assert_neighbors(neighbors, n_samples = nrow(sampling_data),
+                     n_queries = nrow(query_data))
+  if (!is.function(fun)) stop("`fun` must be a function.", call. = FALSE)
   .check_vector(parallel, "logical", 1)
   .check_vector(cores, "integerish", 1, allow_null = TRUE, sign = "positive")
   .check_vector(logical, "logical", 1)
   .check_vector(leave_free, "integerish", 1, sign = "nonnegative")
 
+  n <- nrow(query_data)
+  if (n == 0L) {
+    query_data$output <- numeric(0)
+    return(query_data)
+  }
   if (parallel) {
     cores <- .cores(cores, logical, leave_free)
     if (cores < 2) parallel <- FALSE
   }
-
-  n <- nrow(query_points)
-
   .process_one <- function(i) {
-    neighbors_of_i <- neighbors[[i]]
-    if (length(neighbors_of_i$index) == 0) return(NA)
-    fun(sampling_points[neighbors_of_i$index,], neighbors_of_i$distance, i)
+    hit <- neighbors[[i]]
+    tryCatch(
+      fun(sampling_data[hit$index, , drop = FALSE], hit$distance, i),
+      error = function(e) {
+        stop("`fun` failed at query_data row ", i, ": ", conditionMessage(e),
+             call. = FALSE)
+      }
+    )
   }
-
   output <- if (parallel) {
     .with_cluster(cores, {
-      # Only to avoid note from check, code is OK without this line.
-      i <- NA
-
-      foreach::foreach(i = seq_len(n), .combine = c) %dopar% {
+      i <- NULL
+      foreach::foreach(i = seq_len(n), .combine = c, .inorder = TRUE) %dopar% {
         list(.process_one(i))
       }
     })
   } else {
     lapply(seq_len(n), .process_one)
   }
-
-  foo <- unlist(output)
-  output <- if (length(foo) == nrow(query_points)) {
-    cbind(query_points, output = foo)
-  } else {
-    output
+  scalar <- vapply(output, function(x) {
+    is.atomic(x) && length(x) == 1L && !is.object(x) && is.null(dim(x))
+  }, logical(1))
+  if (all(scalar)) {
+    query_data$output <- unlist(output, use.names = FALSE)
+    return(query_data)
   }
   output
 }

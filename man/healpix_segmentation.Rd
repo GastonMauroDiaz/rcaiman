@@ -4,26 +4,27 @@
 \alias{healpix_segmentation}
 \title{HEALPix segmentation}
 \usage{
-healpix_segmentation(z, a, nside = 1)
+healpix_segmentation(d, nside = 1)
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
-
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order. Both layers are used.}
 
 \item{nside}{integer vector of length one. Resolution parameter controlling
 the number of spherical regions. Larger values increase spatial
 subdivision. Powers of two (\code{1}, \code{2}, \code{4}, \code{8}, ...) follow the standard
-HEALPix NESTED indexing scheme.}
+HEALPix NESTED indexing scheme. At most 8192, to keep cell IDs within
+the integer range used by the implementation.}
 }
 \value{
 Integer \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer and the same
-geometry as \code{z}. The object carries attribute \code{"cell_resolution_deg"},
-calculated as \code{4 * pi / (12 * nside^2) * 180 / pi}.
+geometry as \code{d}, with zero outside the segmentation. The attribute
+\code{cell_solid_angle} is \code{4 * pi / (12 * nside^2)}, in steradians, for a
+complete HEALPix cell. Observed portions of cells may cover less area.
 }
 \description{
-Partition a hemispherical image into equal-area spherical regions using the
-HEALPix tessellation.
+Assign observed external directions to cells of the HEALPix tessellation
+on the sky hemisphere.
 }
 \details{
 HEALPix (Hierarchical Equal Area isoLatitude Pixelization) partitions the
@@ -37,45 +38,42 @@ informed by the open-source Healpix.jl project
 
 This function assigns each pixel to a HEALPix cell according to its zenith
 and azimuth coordinates and returns the corresponding cell identifiers using
-the standard NESTED indexing scheme.
+the NESTED indexing scheme, numbered from 1. Both this function and
+\code{\link[=adaptive_healpix_segmentation]{adaptive_healpix_segmentation()}} convert geographic azimuth to the
+mathematical longitude used by the tessellation: \code{pi / 2 - azimuth}
+in radians. This preserves the existing orientation of HEALPix cells.
+Cell IDs do not depend on the image extent or acquisition orientation.
 
-Cells belonging to the equatorial belt are intersected by the horizon and
-contribute only half of their spherical area to the visible domain.
-Consequently, regions close to the horizon have half the expected area within
-the hemispherical image.
+Missing zenith or azimuth angles and directions below the horizon receive
+zero. This includes the exact zenith when its azimuth is undefined; no
+arbitrary polar cell is chosen.
+
+The horizon intersects some cells, so their upper-hemisphere portions have
+less area than complete cells. The field of view and deliberate masks can
+further restrict the represented portions, which need not have equal areas.
 }
 \note{
 The proportion of horizon-intersected cells decreases as \code{nside}
-increases.
+increases. As with \code{\link[=beckers_segmentation]{beckers_segmentation()}}, use \code{\link[=area_weight_image]{area_weight_image()}}
+to account for the represented portions. \code{\link[=assess_sampling_uniformity]{assess_sampling_uniformity()}}
+accepts both constructors and uses these areas as its sampling reference.
 }
 \examples{
-\dontrun{
-
-z <- zenith_image(600, equal_area_coef)
-a <- azimuth_image(z)
-
-seg <- healpix_segmentation(
-  z = z,
-  a = a,
-  nside = 1
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
 )
-
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+seg <- healpix_segmentation(d, nside = 4)
 plot(seg)
-
-seg2 <- healpix_segmentation(
-  z = z,
-  a = a,
-  nside = 2^6
-)
-
-plot(seg2)
-
-}
-
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}
+\code{\link[=beckers_segmentation]{beckers_segmentation()}}
 }

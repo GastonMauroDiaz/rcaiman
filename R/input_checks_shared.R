@@ -2,11 +2,15 @@
 #'
 #' @description
 #' These functions perform type and structure checks across related packages.
-#' They are exported for use in Package rcaiman.registry but are not intended
+#' They are exported for use in Package \pkg{rcaiman.registry} but are not intended
 #' for general use.
 #'
-#' @param x,path,allowed,type,length,allow_null,allow_na,allow_inf,multiple,case_sensitive,sign,name,x_name,y_name,spectral_mapping,cfa_pattern,data,min_allowed,max_allowed,open_upper,label,required_columns,reserved_columns,parameters
+#' @param x,y,m,path,allowed,type,length,allow_null,allow_na,allow_inf,multiple,case_sensitive,sign,name,x_name,y_name,mapping,cfa_pattern,min_allowed,max_allowed,open_upper,label,required_columns,reserved_columns,arg_name,parameters,projection_coef,radius,angle,max_angle,max_off_axis_angle,squared
 #' Parameters used across various validation helpers.
+#' @param geometry named list following the contract of
+#'   [set_internal_geometry()]. Additional fields and list classes are accepted.
+#'   `.check_internal_geometry()` checks the model without constructing a raster
+#'   or modifying the supplied list.
 #'
 #' @return
 #' Returns `invisible(TRUE)` on success. Raises an error otherwise.
@@ -220,60 +224,6 @@ NULL
 
 #' @rdname internal-validation
 #' @export
-.assert_anisotropic_projection_parameters <- function(parameters) {
-  required_names <- c(
-    "zen_coef", "azi_sin_coef", "azi_cos_coef", "atan_scale"
-  )
-  valid_names <- is.list(parameters) &&
-    !is.null(names(parameters)) &&
-    !anyNA(names(parameters)) &&
-    !any(names(parameters) == "") &&
-    !anyDuplicated(names(parameters)) &&
-    length(parameters) == length(required_names) &&
-    setequal(names(parameters), required_names)
-
-  if (!valid_names) {
-    stop(
-      "`parameters` must be a named list containing exactly ",
-      paste(sprintf('"%s"', required_names), collapse = ", "),
-      ".",
-      call. = FALSE
-    )
-  }
-
-  .check_vector(
-    parameters$zen_coef,
-    "numeric",
-    name = "parameters$zen_coef"
-  )
-  if (length(parameters$zen_coef) == 0) {
-    stop("`parameters$zen_coef` cannot be empty.", call. = FALSE)
-  }
-  .check_vector(
-    parameters$azi_sin_coef,
-    "numeric",
-    length = 2,
-    name = "parameters$azi_sin_coef"
-  )
-  .check_vector(
-    parameters$azi_cos_coef,
-    "numeric",
-    length = 2,
-    name = "parameters$azi_cos_coef"
-  )
-  .check_vector(
-    parameters$atan_scale,
-    "numeric",
-    length = 1,
-    sign = "positive",
-    name = "parameters$atan_scale"
-  )
-
-  invisible(TRUE)
-}
-
-#' @rdname internal-validation
-#' @export
 .assert_spatraster <- function(x, squared = FALSE, allow_na = TRUE, name = deparse(substitute(x))) {
   if (!inherits(x, "SpatRaster"))
     stop(sprintf("`%s` must be a SpatRaster class.", name), call. = FALSE)
@@ -354,47 +304,6 @@ NULL
   invisible(TRUE)
 }
 
-#' @rdname internal-validation
-#' @export
-.assert_zenith_image <- function(z) {
-
-  .assert_single_layer(z, squared = TRUE)
-  .assert_raster_range(z, 0, 91, open_upper = FALSE, label = "Zenith values")
-
-  projection_coef <- attr(z, "projection_coef")
-  if (is.null(projection_coef) || !is.numeric(projection_coef)) {
-    stop("`projection_coef` attribute is missing or not numeric.", call. = FALSE)
-  }
-
-  nr <- terra::nrow(z)
-  nc <- terra::ncol(z)
-
-  if (nr != nc)
-    stop("zenith image does not have equal number of rows and columns.", call. = FALSE)
-
-  # center and theoretical radius
-  c0 <- r0 <- nr/2
-
-  # distance from center (vector form, minimal)
-  i <- rep(seq_len(nr), times = nc)
-  j <- rep(seq_len(nc), each = nr)
-  r <- sqrt((i - c0)^2 + (j - c0)^2)
-
-  vals <- terra::values(z, mat = FALSE)
-
-  r_valid <- r[!is.na(vals)]
-  r_na <- r[is.na(vals)]
-
-  if (length(r_na) > 0) {
-    if (abs(max(r_valid) - r0) > 1.5 ||
-        abs(min(r_na) - r0) > 1.5) {
-      stop("The NA boundary is not approximately circular or ",
-           "NA values found inside the circular mask.", call. = FALSE)
-    }
-  }
-
-  invisible(z)
-}
 
 #' @rdname internal-validation
 #' @export
@@ -518,86 +427,105 @@ NULL
 
 #' @rdname internal-validation
 #' @export
-.validate_flat_field_data <- function(data) {
-
-  # --- basic structure ---
-  if (!is.list(data))
-    stop("`data` must be a list.", call. = FALSE)
-
-  if (!all(c("direction", "relative_radiance") %in% names(data)))
-    stop("`data` must contain components `direction` and `relative_radiance`.",
+.check_internal_geometry <- function(geometry) {
+  nms <- names(geometry)
+  if (!is.list(geometry) || is.null(nms) || anyNA(nms) ||
+      any(nms == "") || anyDuplicated(nms)) {
+    stop("`geometry` must be a list with unique, nonempty field names.",
          call. = FALSE)
-
-  if (length(data) != 2)
-    stop("`data` must contain only `direction` and `relative_radiance`.",
-         call. = FALSE)
-
-  # --- direction ---
-  direction <- data$direction
-
-  if (!is.data.frame(direction))
-    stop("`data$direction` must be a data.frame.", call. = FALSE)
-
-  if (!all(c("zen", "azi") %in% names(direction)))
-    stop("`data$direction` must contain `zen` and `azi` columns.",
-         call. = FALSE)
-
-  n <- nrow(direction)
-
-  if (n < 100)
-    stop("`data$direction` must contain at least 100 rows.", call. = FALSE)
-
-  if (!is.numeric(direction$zen) ||
-      !is.numeric(direction$azi))
-    stop("`zen` and `azi` must be numeric.", call. = FALSE)
-
-  if (any(!is.finite(direction$zen)) ||
-      any(!is.finite(direction$azi)))
-    stop("Angular values must be finite.", call. = FALSE)
-
-  if (any(direction$zen < 0) ||
-      any(direction$azi < 0))
-    stop("Angular values must be non-negative.", call. = FALSE)
-
-
-  # --- radiance ---
-  radiance <- data$relative_radiance
-
-  if (!is.list(radiance) || length(radiance) == 0)
-    stop("`data$relative_radiance` must be a non-empty named list.",
-         call. = FALSE)
-
-  nms <- names(radiance)
-
-  if (is.null(nms) || any(nms == ""))
-    stop("`data$relative_radiance` must be a named list with aperture values.",
-         call. = FALSE)
-
-  apertures <- suppressWarnings(as.numeric(nms))
-
-  if (any(is.na(apertures)) || any(apertures <= 0))
-    stop("Aperture names must be coercible to positive numeric values.",
-         call. = FALSE)
-
-  ok <- vapply(
-    radiance,
-    function(x) {
-      is.data.frame(x) &&
-        is.numeric(unlist(x)) &&
-        nrow(x) == n &&
-        all(is.finite(unlist(x))) &&
-        all(unlist(x) >= 0)
-    },
-    logical(1)
-  )
-
-  if (!all(ok))
-    stop(
-      "Each relative radiance entry must be a data.frame with numeric columns ",
-      "matching the number of rows in `direction`. ",
-      "Values must be finite and non-negative.",
-      call. = FALSE
+  }
+  .check_vector(geometry[["center_of_vision"]], "integerish", 2,
+                name = "geometry$center_of_vision")
+  .check_vector(geometry[["model"]], "character", 1, name = "geometry$model")
+  .assert_choice(geometry[["model"]],
+                 c("radial_projection", "anisotropic_projection"))
+  if (geometry[["model"]] == "radial_projection") {
+    max_angle <- if ("max_off_axis_angle" %in% nms)
+      geometry[["max_off_axis_angle"]] else 90
+    .check_internal_radial_model(
+      geometry[["parameters"]], geometry[["normalization_radius"]],
+      geometry[["normalization_angle"]], max_angle
     )
+  } else {
+    .check_internal_anisotropic_parameters(geometry[["parameters"]])
+  }
+  invisible(TRUE)
+}
 
+#' @rdname internal-validation
+#' @export
+.check_internal_radial_model <- function(parameters, radius, angle, max_angle) {
+  .check_vector(parameters, "numeric")
+  if (!length(parameters)) stop("`parameters` cannot be empty.", call. = FALSE)
+  .check_vector(radius, "numeric", 1, sign = "positive",
+                name = "normalization_radius")
+  .check_vector(angle, "numeric", 1, sign = "positive",
+                name = "normalization_angle")
+  if (angle > 180) {
+    stop("`normalization_angle` must not exceed 180 degrees.", call. = FALSE)
+  }
+  result <- validate_projection_function(parameters, tol = 0.01,
+                                         normalization_angle = angle,
+                                         max_off_axis_angle = max_angle)
+  if (result$status != "valid") stop(result$reason, call. = FALSE)
+  invisible(TRUE)
+}
+
+#' @rdname internal-validation
+#' @export
+.check_radial_inversion <- function(projection_coef, max_off_axis_angle) {
+  .check_vector(projection_coef, "numeric")
+  if (!length(projection_coef)) {
+    stop("`projection_coef` cannot be empty.", call. = FALSE)
+  }
+  .check_vector(max_off_axis_angle, "numeric", 1, sign = "positive")
+  if (max_off_axis_angle > 180) {
+    stop("`max_off_axis_angle` must not exceed 180 degrees.", call. = FALSE)
+  }
+  upper <- max_off_axis_angle * pi / 180
+  derivative <- projection_coef * seq_along(projection_coef)
+  roots <- polyroot(derivative)
+  critical <- Re(roots)[abs(Im(roots)) < 1e-7 &
+                          Re(roots) > 0 & Re(roots) < upper]
+  breaks <- sort(unique(c(0, critical, upper)))
+  midpoints <- (head(breaks, -1) + tail(breaks, -1)) / 2
+  # Evaluate the derivative on every interval between its real roots.
+  slopes <- rep(0, length(midpoints))
+  for (i in rev(seq_along(derivative))) {
+    slopes <- slopes * midpoints + derivative[i]
+  }
+  if (any(!is.finite(slopes)) || any(slopes <= 0)) {
+    stop("The radial polynomial must be strictly increasing on ",
+         "[0, max_off_axis_angle].", call. = FALSE)
+  }
+  boundary <- .calc_relative_radius(upper, projection_coef)
+  if (!is.finite(boundary) || boundary <= 0) {
+    stop("The radial polynomial has no finite positive radius at the limit.",
+         call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+#' @rdname internal-validation
+#' @export
+.check_internal_anisotropic_parameters <- function(parameters) {
+  required <- c("off_axis_coef", "sin_internal_azimuth_coef",
+                "cos_internal_azimuth_coef", "atan_scale")
+  if (!is.list(parameters) || length(parameters) != length(required) ||
+      is.null(names(parameters)) || anyDuplicated(names(parameters)) ||
+      !setequal(names(parameters), required)) {
+    stop("`parameters` must contain exactly: ", paste(required, collapse = ", "),
+         ".", call. = FALSE)
+  }
+  for (name in required) {
+    .check_vector(parameters[[name]], "numeric",
+                  length = switch(name, off_axis_coef = NULL,
+                                  atan_scale = 1, 2),
+                  sign = if (name == "atan_scale") "positive" else "any",
+                  name = paste0("parameters$", name))
+  }
+  if (!length(parameters$off_axis_coef)) {
+    stop("`parameters$off_axis_coef` cannot be empty.", call. = FALSE)
+  }
   invisible(TRUE)
 }

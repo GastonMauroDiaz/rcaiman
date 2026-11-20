@@ -30,15 +30,17 @@ value.
 
 This is useful after estimating thresholds using \code{\link[=thr_two_corner]{thr_two_corner()}},
 \code{\link[=thr_isodata]{thr_isodata()}}, or
-\code{apply_by_direction(method = "thr_isodata")}, among other posibilities.
+\code{\link[=apply_by_direction]{apply_by_direction()}} with \code{fun = thr_isodata}, among other possibilities.
 }
 \note{
 For global thresholding, \code{thr} must be greater than or equal to the minimum
 value of \code{r} and lower than its maximum value.
 }
 \examples{
-r <- read_caim()
-r <- r$Cyan
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+r <- read_caim(path, fill_na = "none")$Blue
+# Use a small crop to illustrate thresholding.
+r <- crop_caim(r, c(600, 800), 200, 200)
 bin <- binarize_with_thr(r, thr_isodata(r[]))
 plot(bin)
 

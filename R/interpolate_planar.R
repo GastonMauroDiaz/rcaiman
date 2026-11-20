@@ -19,7 +19,9 @@
 #'   `"y_down"` containing continuous image coordinates, and a numeric column
 #'   with values to interpolate. Coordinates follow [y_down_from_y()]. Convert
 #'   cell indices explicitly with [coord_from_indices()] when sampling cell
-#'   centers. Subpixel positions are used without snapping to cells.
+#'   centers. Subpixel positions are used without snapping to cells. Rows with
+#'   missing or nonfinite coordinates or values are omitted. With no available
+#'   samples, the result contains only `NA`.
 #' @param col_id numeric or character vector of length one. The name or position
 #'   of the column in `sampling_coord` containing the values to interpolate.
 #' @param r numeric [terra::SpatRaster-class] with one layer. Image frame to
@@ -98,12 +100,22 @@ interpolate_planar <- function(sampling_coord,
   col_id <- .resolve_required_column(col_id, sampling_coord)
   .check_columns(sampling_coord,
                  required_columns = c("x", "y_down", col_id))
-  .assert_single_layer(r)
+  # Only the template grid is needed; do not read its cell values.
+  if (!inherits(r, "SpatRaster") || terra::nlyr(r) != 1) {
+    stop("`r` must be a single-layer SpatRaster.", call. = FALSE)
+  }
   .check_vector(k, "integerish", 1, sign = "positive")
   .check_vector(p, "numeric", 1, sign = "positive")
   .check_vector(search_radius, "numeric", 1, sign = "positive")
   .check_vector(rigorous, "logical", 1)
   .assert_choice(engine, c("terra", "cpp"))
+  for (column in unique(c("x", "y_down", col_id))) {
+    .check_vector(sampling_coord[[column]], "numeric", allow_na = TRUE,
+                  allow_inf = TRUE, name = column)
+  }
+  available <- is.finite(sampling_coord$x) &
+    is.finite(sampling_coord$y_down) & is.finite(sampling_coord[[col_id]])
+  sampling_coord <- sampling_coord[available, , drop = FALSE]
 
   if (engine == "cpp") {
     .check_vector(parallel, "logical", 1)
@@ -116,6 +128,10 @@ interpolate_planar <- function(sampling_coord,
     } else {
       cores <- 1
     }
+  }
+
+  if (nrow(sampling_coord) == 0) {
+    return(terra::setValues(r, NA_real_))
   }
 
   if (engine == "terra") {

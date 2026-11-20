@@ -2,116 +2,151 @@
 % Please edit documentation in R/estimate_sun_angles.R
 \name{estimate_sun_angles}
 \alias{estimate_sun_angles}
-\title{Estimate sun angular coordinates}
+\title{Estimate the solar direction from sky brightness}
 \usage{
 estimate_sun_angles(
   r,
-  z,
-  a,
+  d,
   bin,
   seg,
+  w,
   circumsolar_angle = 30,
-  mode = "obscured"
+  mode = "obscured",
+  m = NULL,
+  return = "sun_angles"
 )
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Typically the blue
-band of a canopy image.}
+\item{r}{single-layer numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of image brightness,
+after the appropriate radiometric preprocessing. Missing measurements are
+omitted. Measurements used as sky samples must otherwise be finite.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{external directions from \code{\link[=direction_image]{direction_image()}}, with \code{zenith} and
+\code{azimuth} in degrees, on the grid of \code{r}.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{bin}{single-layer logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster} on the
+same grid. \code{TRUE} identifies sky samples; \code{FALSE} does not exclude a
+direction from the domain used to calculate cell areas and centers.}
 
-\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer. Binary image where
-\code{TRUE} marks candidate sky pixels. Typically the output of
-\code{\link[=binarize_with_thr]{binarize_with_thr()}}.}
+\item{seg}{single-layer segmentation on the same grid, for example from
+\code{\link[=beckers_segmentation]{beckers_segmentation()}} or \code{\link[=healpix_segmentation]{healpix_segmentation()}}. Positive integer-like
+labels identify cells; zero and \code{NA} are excluded. IDs need not be
+consecutive. Use angularly compact cells; their resolution determines the
+spatial detail available to the estimator. Both modes use this argument.}
 
-\item{seg}{Segmentation map of r, typically created with functions such as
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}, \code{\link[=sky_grid_segmentation]{sky_grid_segmentation()}}, \code{\link[=ring_segmentation]{ring_segmentation()}}
-or \code{\link[=sector_segmentation]{sector_segmentation()}}, but any raster with integer segment labels is
-accepted.}
+\item{w}{single-layer raster of nonnegative finite solid-angle weights,
+typically from \code{\link[=area_weight_image]{area_weight_image()}}. Relative weights suffice. Zero and
+missing weights are excluded. All input rasters must share the same grid.}
 
-\item{circumsolar_angle}{numeric vector of length one. Maximum angular
-radius (in degrees) used to define the circumsolar region.}
+\item{circumsolar_angle}{positive numeric vector of length one, at most
+180 deg. Search radius around the seed grouping in obscured mode. Groupings
+whose centers fall within this distance are retained. Ignored in veiled
+mode.}
 
-\item{mode}{character vector of length one. Estimation mode:
-\code{"obscured"} (default) or \code{"veiled"}. See \emph{Details}.}
+\item{mode}{character vector of length one: \code{"obscured"} (default) or
+\code{"veiled"}.}
+
+\item{m}{optional single-layer logical, NA-free raster restricting the domain
+to inspect. It is independent of \code{bin}. With \code{NULL}, use positive segment
+labels with available directions and positive weights above the horizon.}
+
+\item{return}{character vector of length one. \code{"sun_angles"} returns the
+estimated direction; \code{"all"} also returns cell and grouping summaries.}
 }
 \value{
-Named numeric vector of length two, with names \code{z} and \code{a},
-representing the sun’s zenith and azimuth angles (in degrees).
+With \code{return = "sun_angles"}, a one-row data frame with \code{zenith} and
+\code{azimuth} in radians, as required by \code{\link[=cie_image]{cie_image()}} and \code{\link[=fit_cie_model]{fit_cie_model()}}.
+With \code{return = "all"}, a list with:
+\describe{
+\item{\code{sun_angles}, \code{method}}{Direction and method used: \code{brightest_cell}
+or \code{spherical_centroid}.}
+\item{\code{centroid}}{Area-weighted direction of the selected region.}
+\item{\code{cells}}{Table of cell IDs, relative areas, centroid directions in
+radians, sky-sample counts, brightness, grouping IDs, and flags
+\code{bright} and \code{selected}. Cells without sky samples have missing
+brightness.}
+\item{\code{groups}}{Obscured-mode grouping areas, brightness, centroid
+directions in radians, scores, and seed/selection flags; \code{NULL} in
+veiled mode.}
+}
 }
 \description{
-Estimates the sun’s zenith and azimuth angles (deg) from a canopy
-hemispherical photograph, using either direct detection of the solar disk or
-indirect cues from the circumsolar region.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Estimate an initial solar direction from bright sky seen through canopy gaps.
+Use localized brightness in veiled mode, or the spatial distribution of
+bright segments in obscured mode.
 }
 \details{
-This function can operate under two alternative assumptions for
-estimating the sun position:
+Each cell's brightness is the 99th percentile of its available sky samples.
+Vegetation pixels are omitted, not replaced by zero. The cell's area and
+spherical centroid instead use its entire represented portion in the domain,
+including directions hidden by vegetation. Cells without sky samples supply
+no brightness evidence. A cell's centroid is not the centroid of its gaps.
 
-\describe{
-\item{Veiled sun}{The solar disk is visible or partially obscured; the
-position is inferred from localized brightness peaks. It is also useful
-when a sunscreen is used, as in \insertCite{Kuusk2007;textual}{rcaiman}.}
-\item{Obscured sun}{The solar disk is not visible; the position is inferred
-from radiometric and spatial cues aggregated over the circumsolar region.}
-}
+In \strong{veiled mode}, the cell with the highest brightness supplies the solar
+direction through its area-weighted spherical centroid. Ties select the
+smallest cell ID. A fine segmentation permits a localized estimate when the
+disk is visible, veiled, or covered by a sunscreen
+\insertCite{Kuusk2007}{rcaiman}.
 
-When \code{mode = "veiled"}, \code{seg} and \code{circumsolar_angle} are ignored.
+In \strong{obscured mode}, cells at or above the 90th percentile of cell brightness
+are selected (one brightness value per sampled cell, including ties).
+Adjacent bright cells form groupings using four-neighbor raster adjacency.
+Each grouping is scored by \code{0.25 * area + 0.75 * brightness}, with both
+criteria independently min-max scaled; a constant criterion contributes
+equally to every grouping. Area is the sum of represented cell areas.
+Grouping brightness is the area-weighted median of cell brightness values.
+The highest-scoring grouping is the seed; ties select the grouping containing
+the smallest cell ID. Retain groupings whose area-weighted spherical centers
+are within \code{circumsolar_angle} of the seed center.
 
-Estimates refer to positions above the horizon; therefore, estimated angles
-may require further manipulation if the photograph was acquired under
-crepuscular light.
+The retained groupings are then separated into their constituent cells.
+The estimate is the area-weighted spherical centroid of their represented
+domain, including directions hidden by vegetation within those cells.
+Uniform brightness provides no contrast for locating the sun: the result
+then reflects the represented domain and the availability of sky samples.
 }
 \note{
-A scientific article presenting and validating this method is currently
-under preparation.
+This is an initial estimate for subsequent inspection and refinement with
+\code{\link[=optimize_sun_angles]{optimize_sun_angles()}}. Bright cloud structures and incomplete sampling can
+shift the selected region away from the sun. Its centroid describes the
+observed bright region; it does not extrapolate a solar center below the
+horizon. The example illustrates this limitation with a CIE sky whose solar
+zenith angle is 92 deg.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(160, 160),
+  normalization_radius = 158,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(320, 320), geometry)
+d <- direction_image(g)
+w <- area_weight_image(g, geometry)
+seg <- beckers_segmentation(d, 2400)
+sun_angles <- data.frame(zenith = 92 * pi/180, azimuth = 0)
+r <- cie_image(d, sun_angles, sky_coef = as.numeric(cie_table[10, 1:5]))
+plot(r)
 
-thr <- apply_by_direction(r, z, a, m)
-bin <- binarize_with_thr(r, thr$v1)
+# Synthetic gaps: retain randomly selected chessboard regions as sky.
+# Angular cells retain their represented area behind vegetation.
+cb <- chessboard(r, 10)
+bin <- cb \%in\% sample(unique(cb[]), 300)
 plot(bin)
 
-seg <- sky_grid_segmentation(z, a, 10)
-sun_angles <- estimate_sun_angles(r, z, a, bin, seg,
-                                  circumsolar_angle = 30,
-                                  mode = "obscured")
-row_col <- row_col_from_zen_azi(z, a,
-                                sun_angles["zen_deg"] * pi/180,
-                                sun_angles["azi_deg"] * pi/180)
-plot(caim$Cyan)
-points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
-       pch = 8, cex = 3)
-
-
-sun_angles <- estimate_sun_angles(r, z, a, bin,
-                                  mode = "veiled")
-row_col <- row_col_from_zen_azi(z, a,
-                                sun_angles["zen_deg"] * pi/180,
-                                sun_angles["azi_deg"] * pi/180)
-plot(caim$Cyan)
-points(row_col[1,2], nrow(caim) - row_col[1,1], col = "yellow",
-       pch = 8, cex = 3)
-}
+result <- estimate_sun_angles(r, d, bin, seg, w, return = "all")
+result$sun_angles * 180 / pi
+result$method
+# This centroid is above the horizon, even though the modeled sun is below it.
+# Changing the sampled gaps or segmentation can change the initial estimate.
 }
 \references{
 \insertAllCited{}
 }
 \seealso{
-\code{\link[=optimize_sun_angles]{optimize_sun_angles()}}
+\code{\link[=beckers_segmentation]{beckers_segmentation()}}, \code{\link[=healpix_segmentation]{healpix_segmentation()}},
+\code{\link[=area_weight_image]{area_weight_image()}}, \code{\link[=optimize_sun_angles]{optimize_sun_angles()}}
 }

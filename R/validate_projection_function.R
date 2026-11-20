@@ -1,159 +1,92 @@
-#' Validate radial polynomial projection function
+#' Validate a radial projection model
 #'
 #' @description
-#' Validation refers to compliance with the normalization constraints
-#' required by the package for radial polynomial projection models.
-#' It does not assess physical calibration correctness.
+#' Check normalization and invertibility of a radial projection model. These
+#' checks assess mathematical consistency, not experimental calibration accuracy.
+#'
+#' @param projection_coef numeric vector of coefficients for the radial model
+#'   described in [set_internal_geometry()]. The polynomial uses off-axis angles
+#'   in radians and has no constant term.
+#' @param tol positive numeric value, at most 0.01. Maximum absolute deviation
+#'   from one at `normalization_angle`. Defaults to 0.001.
+#' @param normalization_angle positive numeric value, at most 180. Off-axis
+#'   angle in degrees at which the relative radius should equal one. Defaults
+#'   to 90, independently of the inversion limit.
+#' @param max_off_axis_angle positive numeric value, at most 180. Upper limit
+#'   in degrees of the interval checked for invertibility. Defaults to 90.
 #'
 #' @details
-#' The public interface evaluates the model at 0 and 90 deg,
-#' but the polynomial itself is defined in radians. Internally,
-#' angles are converted to radians before evaluating the projection
-#' function (see [calc_relative_radius()]).
+#' The model must be finite and strictly increasing from zero to
+#' `max_off_axis_angle`. The derivative is checked between its real roots,
+#' using the same check as [calc_off_axis_angle()]. This check also applies
+#' when the normalization radius is underestimated. The absent constant term
+#' ensures a relative radius of zero on the optical axis.
 #'
-#' The validation distinguishes between structural validity and
-#' operational safety:
+#' A reference radius within `tol` but below one is classified as
+#' `"underestimation"`. When normalization and inversion angles coincide,
+#' radii between that value and one have no inverse within the allowed interval.
+#' Accepting an absolute normalization error alone would not prevent unexpected
+#' missing directions near the nominal circle boundary. [fix_projection_coef()]
+#' adjusts the last coefficient to resolve this small deficit.
 #'
-#' \enumerate{
-#' \item Structural validity:
-#' \itemize{
-#' \item The projection model must satisfy the theoretical boundary conditions:
-#' relative radius (R) at 0 deg equal to cero and R at 90 deg equal to one. Large
-#' deviations (greater than `tol`) indicate an invalid calibration and require
-#' recalibration.
-#' \item The projection function must be monotonically increasing over the
-#' interval `[0, 90 deg]`, i.e., the relative radius must not decrease as the
-#' zenith angle increases. Violations of this condition indicate a geometrically
-#' inconsistent model (e.g., radial folding), where multiple zenith angles map
-#' to the same radius. Such models are considered structurally invalid and
-#' require recalibration.
-#' }
-#' \item Operational safety: If R(90 deg) < 1 but the deviation is within
-#' `tol`, the model is considered structurally valid but operationally unsafe
-#' for segmentation algorithms that do not contemplate values above 90 deg. In
-#' this case, [fix_projection_coef()] is recommended.
-#' }
+#' Differences within eight machine epsilons relative to the reference radius
+#' are treated as floating-point roundoff, consistently with the radial inverse.
+#' This is distinct from `tol`, which accommodates rounded model coefficients.
+#' [set_internal_geometry()] uses this validation with `tol = 0.01` and rejects
+#' both invalid and underestimated models without changing their coefficients.
+#' A calculation limit below the normalization angle still limits coverage:
+#' validation does not extend the requested angular domain.
 #'
-#' @param projection_coef numeric vector. Polynomial coefficients defining
-#'   \eqn{r(\theta) = \sum a_p \theta^p}, where \eqn{\theta} is expressed in
-#'   radians.
-#' @param tol numeric vector of length one. Maximum absolute deviation allowed
-#'   at the boundaries before the model is considered structurally invalid.
-#'
-#' @return
-#' A named list with elements:
-#' \describe{
-#'   \item{status}{Character string taking one of
-#'     `"valid"`, `"structural_invalid"`, or `"underestimation"`.}
-#'   \item{val_0}{Value of the projection function at 0 deg.}
-#'   \item{val_90}{Value of the projection function at 90 deg.}
-#'   \item{err_90}{Deviation from 1 at 90 deg.}
-#' }
-#'
+#' @return Named list with `status` (`"valid"`, `"structural_invalid"`, or
+#'   `"underestimation"`), `val_0`, `val_reference` (radius at
+#'   `normalization_angle`), `err_reference` (that radius minus one), and
+#'   `reason` (a diagnostic string, or `NULL` for a valid model). Malformed
+#'   arguments raise errors; model failures are reported through this list.
+#' @seealso [fix_projection_coef()], [normalize_projection_coef()]
 #' @export
-#'
 #' @examples
-#' validate_projection_function(c(0.6890,  0.0131, -0.0297), tol = 1e-3)
-#' validate_projection_function(c(0.6890,  0.0131, -0.02), tol = 1e-3)
-validate_projection_function <- function(projection_coef, tol = 1e-3) {
-
-    .check_vector(tol, "numeric", 1, sign = "positive")
-    if (tol > 1e-2) stop( "`tol` cannot be greather than 0.01.")
-
-    val_0  <- calc_relative_radius(0,  projection_coef)
-    val_90 <- calc_relative_radius(90, projection_coef)
-    err_90 <- val_90 - 1
-
-    # Structural invalid at 0 deg
-    if (abs(val_0) > tol) {
-      message(
-        sprintf(
-          paste0(
-            "Projection function is structurally invalid at 0 deg.\n",
-            "  f(0) = %.10f\n",
-            "  Allowed deviation = +/- %.10f.\n",
-            "Recalibration is required."
-          ),
-          val_0,
-          tol
-        )
-      )
-      return(list(
-        status = "structural_invalid",
-        val_0  = val_0,
-        val_90 = val_90,
-        err_90 = err_90
-      ))
-    }
-
-    # Structural invalid at 90 deg
-    if (abs(err_90) > tol) {
-      message(
-        sprintf(
-          paste0(
-            "Projection function is structurally invalid at 90 deg.\n",
-            "  f(90 deg) = %.10f\n",
-            "  Allowed deviation = +/- %.10f.\n",
-            "Recalibration is required."
-          ),
-          val_90,
-          tol
-        )
-      )
-      return(list(
-        status = "structural_invalid",
-        val_0  = val_0,
-        val_90 = val_90,
-        err_90 = err_90
-      ))
-    }
-
-    # Underestimation (operational issue only)
-    if (err_90 < 0) {
-      message(
-        sprintf(
-          paste0(
-            "Projection function underestimates relative radius at 90 deg.\n",
-            "  f(90 deg) = %.10f\n",
-            "This may trigger hard-to-trace errors in downstream functions.\n",
-            "Consider using 'fix_projection_coef()'."
-          ),
-          val_90
-        )
-      )
-      return(list(
-        status = "underestimation",
-        val_0  = val_0,
-        val_90 = val_90,
-        err_90 = err_90
-      ))
-    }
-
-    # Monotonicity check
-    theta_seq <- seq(0, 90, length.out = 1000)
-    r_vals <- calc_relative_radius(theta_seq, projection_coef)
-
-    if (any(diff(r_vals) < 0)) {
-      message(
-        paste0(
-          "Projection function is not monotonic increasing.\n",
-          "This indicates a structurally invalid geometric model.\n",
-          "Recalibration is required."
-        )
-      )
-      return(list(
-        status = "structural_invalid",
-        val_0  = val_0,
-        val_90 = val_90,
-        err_90 = err_90
-      ))
-    }
-
-    # Fully valid
-    list(
-      status = "valid",
-      val_0  = val_0,
-      val_90 = val_90,
-      err_90 = err_90
-    )
+#' # Rounded coefficients from a lens calibration.
+#' projection_coef <- c(0.702, 0.0434, -0.0543)
+#' validate_projection_function(projection_coef)
+#' corrected <- fix_projection_coef(projection_coef)
+#' validate_projection_function(corrected)
+#'
+#' # Normalization and calculation limit need not coincide.
+#' validate_projection_function(3 / pi, normalization_angle = 60,
+#'                              max_off_axis_angle = 120)
+validate_projection_function <- function(projection_coef, tol = 1e-3,
+                                          normalization_angle = 90,
+                                          max_off_axis_angle = 90) {
+  .check_vector(projection_coef, "numeric")
+  if (!length(projection_coef)) stop("`projection_coef` cannot be empty.", call. = FALSE)
+  .check_vector(tol, "numeric", 1, sign = "positive")
+  if (tol > 0.01) stop("`tol` must not exceed 0.01.", call. = FALSE)
+  for (name in c("normalization_angle", "max_off_axis_angle")) {
+    value <- get(name)
+    .check_vector(value, "numeric", 1, sign = "positive", name = name)
+    if (value > 180) stop("`", name, "` must not exceed 180 degrees.", call. = FALSE)
+  }
+  reference <- unname(.calc_relative_radius(normalization_angle * pi / 180, projection_coef))
+  error <- reference - 1
+  inversion_error <- tryCatch({
+    .check_radial_inversion(projection_coef, max_off_axis_angle)
+    NULL
+  }, error = function(e) conditionMessage(e))
+  status <- "valid"
+  reason <- NULL
+  if (!is.null(inversion_error)) {
+    status <- "structural_invalid"
+    reason <- inversion_error
+  } else if (!is.finite(reference) || abs(error) > tol) {
+    status <- "structural_invalid"
+    reason <- paste0("The radial polynomial must equal one at `normalization_angle` ",
+                     "within tolerance ", tol, "; obtained ", format(reference, digits = 12), ".")
+  } else if (error < -8 * .Machine$double.eps * abs(reference)) {
+    status <- "underestimation"
+    reason <- paste0("The relative radius at `normalization_angle` is below one (",
+                     format(reference, digits = 12), "). Use `fix_projection_coef()` ",
+                     "with tol = ", tol, " and the same normalization and calculation angles.")
+  }
+  list(status = status, val_0 = 0, val_reference = reference,
+       err_reference = error, reason = reason)
 }

@@ -25,15 +25,6 @@
 #'
 #' @seealso [read_caim()], [write_caim()].
 #'
-#' @examples
-#' \dontrun{
-#' z <- zenith_image(1000, equidistant_coef)
-#' m <- !is.na(z)
-#' my_file <- file.path(tempdir(), "mask.tif")
-#' write_bin(m, my_file)
-#' m_from_disk <- read_bin(my_file)
-#' plot(m - m_from_disk)
-#' }
 read_bin <- function(path) {
   .check_vector(path, "character", 1)
   .assert_file_exists(path)

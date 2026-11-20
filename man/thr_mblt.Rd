@@ -4,12 +4,11 @@
 \alias{thr_mblt}
 \title{Compute model-based thresholds}
 \usage{
-thr_mblt(dn, intercept, slope)
+thr_mblt(dn, intercept = -7.8/255, slope = 0.98 * 0.5)
 }
 \arguments{
 \item{dn}{numeric vector or \link[terra:SpatRaster-class]{terra::SpatRaster}. Background digital
-number. Values must be normalized; if taken from JPEG, apply gamma back
-correction.}
+number. Values must be gamma back corrected with \link{invert_gamma_correction}.}
 
 \item{intercept, slope}{numeric vectors of length one. Linear coefficients.}
 }
@@ -22,29 +21,73 @@ Equation 1 in \insertCite{Diaz2018;textual}{rcaiman}, a linear function
 whose slope can be weighted.
 }
 \details{
+For a Nikon Coolpix 5700 in JPEG mode the optimal threshold value is
+\eqn{\mathrm{OTV} = a + b \times W},
+with \eqn{a = -7.8 / 255}, \eqn{b = 0.98},
+and \eqn{W = 0.5}.
+
 The model was derived from canopy targets (perforated, rigid, dark
-surfaces) backlit under homogeneous illumination, photographed with a
+surfaces) backlit under homogeneous illumination and photographed with a
 Nikon Coolpix 5700 in JPEG mode. Images were gamma-back-corrected with
 a default gamma of 2.2 (see \code{\link[=invert_gamma_correction]{invert_gamma_correction()}}). Results showed that the optimal
 threshold is linearly related to the background DN (see Figures 1 and 7
 in \insertCite{Diaz2018;textual}{rcaiman}). This shifted the goal from
 estimating an optimal threshold \insertCite{Song2014;textual}{rcaiman} to
 estimating the background DN as if the canopy were absent, as proposed by
-\insertCite{Lang2010;textual}{rcaiman}.
+\insertCite{Lang2010;textual}{rcaiman}. Currect versions of the method
+developed with that intend can be found in \link{fit_trend_surface},
+\code{\link[=fit_cone_shaped_model]{fit_cone_shaped_model()}}, and \code{\link[=sky_via_local_models]{sky_via_local_models()}}.
 
-To apply the weighting parameter (w) from Equation 1, supply \code{slope} as
+To apply the weighting parameter (W) from the equation, supply \code{slope} as
 \eqn{slope \times w}.
-
-Equation 1 was developed with 8-bit images. New coefficients should be
-calibrated in the 0–255 domain, which is what \code{\link[=thr_mblt]{thr_mblt()}} expects, even
-though the \code{dn} argument must be normalized. This design choice harmonizes
-behavior across the package.
 }
 \note{
-Users are encouraged to acquire raw files instead of JPEG.
+Users can find all the details needed to calibrate their own cameras in
+\insertCite{Diaz2018;textual}{rcaiman}, but they should acquire raw files
+instead of JPEG, in such case this calibration is not required.
 }
 \examples{
-thr_mblt(invert_gamma_correction(125), -7.8, 0.95 * 0.5)
+thr_mblt(invert_gamma_correction(125))
+
+\dontrun{
+require(rcaiman.registry)
+path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
+my_entry <- read_registry_snapshot(path)
+summary(my_entry)
+jpeg_geometry <- get_geometry_spec(my_entry,  "jpeg", "rgb", "simple_method_rescaled")
+jpeg_radiometry <- get_radiometry_spec(jpeg_geometry, "wagner2001_method")
+
+path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
+caim <- read_caim(path)
+g <- set_internal_geometry(my_entry$jpeg$dim, jpeg_geometry)
+ff <- flat_field_image(g$off_axis,
+                       "simple_polynomial",
+                       jpeg_radiometry$parameters$`0`$Blue)
+plot(ff)
+r <- apply_flat_field(caim$Blue, ff)
+plot(r)
+r <- invert_gamma_correction(r, 2.2)
+plot(r)
+
+d <- direction_image(g)
+seg <- beckers_segmentation(d, 20)
+bin <- binarize_by_region(r, seg, "thr_two_corner")
+plot(bin)
+seg <- healpix_segmentation(d, 32)
+seg[!bin] <- 0
+w <- area_weight_image(g, jpeg_geometry)
+features <- compute_features(distance_to_black(bin), seg, d, w)
+sky_points <- features[features$effective_pixel_area > 3, ]
+sky_points <- internal_directions_from_external(sky_points) \%>\%
+  coord_from_internal_directions(., jpeg_geometry) \%>\% add_indices()
+sky_points <- extract_dn(r, sky_points)
+names(sky_points)
+sky <- sky_via_local_models(d, sky_points, spacing_deg = 20, "Blue", conicity = 0.1)
+plot(sky)
+
+thr <- thr_mblt(sky)
+plot(binarize_with_thr(r, thr))
+}
 }
 \references{
 \insertAllCited{}

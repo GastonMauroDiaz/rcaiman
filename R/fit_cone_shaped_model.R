@@ -1,134 +1,123 @@
-#' Fit cone-shaped model
+#' Fit a cone-shaped sky model
 #'
 #' @description
-#' Fit a polynomial model to predict sky digital numbers from directions (see
-#' [add_directions()]) using data sampled from a canopy photograph.
+#' Fit sky digital numbers as a function of external viewing directions and
+#' return parameters for [cone_shaped_image()].
 #'
 #' @details
-#' Depending on `method`, it can fit:
+#' Both models are fitted by ordinary least squares with [stats::lm()].
+#' For zenith angle \eqn{\theta} and azimuth \eqn{\phi}, in radians:
 #' \describe{
-#'   \item{*A zenith-only quadratic model*}{\deqn{sDN = a + b\theta + c\theta^2}}
-#'   \item{*A zenith-plus-azimuth model, adding sinusoidal terms*}{\deqn{sDN = a + b\theta + c\theta^2 + d\sin(\phi) + e\cos(\phi)}}
+#'   \item{`"zenith_only"`}{\deqn{sDN = a + b\theta + c\theta^2}}
+#'   \item{`"zenith_n_azimuth"`}{\deqn{sDN = a + b\theta + c\theta^2 + d\sin(\phi) + e\cos(\phi)}}
 #' }
+#' These are external angles, relative to the upward vertical and geographic
+#' north. Supply the acquisition orientation to [direction_image()] and use
+#' [add_directions()] to associate sampled values with these directions.
+#' The model is independent of the image projection and optical-axis direction.
 #'
-#' See \insertCite{Diaz2018;textual}{rcaiman} for additional details.
+#' Select suitable sky observations before fitting. Required columns must have
+#' finite values; rows are not removed automatically. At least 20 observations
+#' are required, and their directions must allow all coefficients to be
+#' estimated. An insufficient or rank-deficient sample returns `NULL` with a
+#' warning. No normalization or constraint on predicted values is imposed.
 #'
-#' See [sky_via_local_models()] for an extension of this approach that fits
-#' multiple local cone-shaped models across hemispherical space.  By combining
-#' local predictions, that approach can capture complex sky radiance patterns
-#' without restricting the reconstructed sky surface to a single cone-shaped
-#' structure.
+#' In the model with azimuth, the sinusoidal terms do not vanish at zenith.
+#' Consequently, the prediction there depends on the supplied azimuth convention.
+#' A missing azimuth cannot be inferred from a zero zenith angle. The zenith-only
+#' model does not use azimuth.
 #'
-#' @param col_id character or integer vector of length one. Name or position of
-#'   the column in `sky_points` containing the values sampled from the image.
-#' @param method character. Model type to fit:
-#'   \describe{
-#'     \item{`"zenith_only"`}{Quadratic polynomial in zenith angle.}
-#'     \item{`"zenith_n_azimuth"`}{Quadratic polynomial in zenith plus
-#'       sinusoidal terms in azimuth.}
-#'   }
+#' See \insertCite{Diaz2018;textual}{rcaiman} for the approach underlying these
+#' models. [cone_shaped_image()] evaluates the fitted parameters on an
+#' image grid; [stats::predict()] applied to the returned `lm` object evaluates
+#' them at directions supplied as a table.
 #'
-#' @inheritParams calc_relative_radiance
+#' @param sampling_directions data frame with a numeric column `zenith` in
+#'   radians and the values selected by `col_id`. For `"zenith_n_azimuth"`,
+#'   a numeric column `azimuth` in radians is also required. Zenith angles must
+#'   lie in \eqn{[0, \pi]} and azimuths in \eqn{[0, 2\pi)}. Additional columns,
+#'   including cell indices, are ignored.
+#' @param col_id character or integer vector of length one. Name or position
+#'   of the column containing sampled values in `sampling_directions`.
+#' @param method character vector of length one. Either `"zenith_n_azimuth"`
+#'   (default), adding sinusoidal azimuth terms to a quadratic zenith model,
+#'   or `"zenith_only"`, using only the quadratic zenith model.
+#' @param return character vector of length one. Either `"parameters"`
+#'   (default) or `"all"`.
 #'
-#' @return List with the following components:
-#' \describe{
-#'   \item{`fun`}{Function taking `zen` and `azi` (angle units can be declared
-#'     via the argument `units`) and returning predicted values.}
-#'   \item{`model`}{`lm` object fitted by [stats::lm()].}
-#' }
-#' Returns `NULL` (with a warning) if the number of input points is fewer than 20.
+#' @return With `return = "parameters"`, a plain named list containing `method`
+#'   and `coefficients`, the named coefficient vector from [stats::coef()].
+#'   With `return = "all"`, a list containing `parameters` and `model`, the
+#'   complete `lm` object. Use [stats::fitted()] and [stats::residuals()] for
+#'   values in input row order, and `predict(model, newdata = query_directions)`
+#'   for predictions from `zenith` and, when used, `azimuth` in radians.
+#'   Returns `NULL` with a warning for fewer than 20 observations or a
+#'   rank-deficient fit.
 #'
+#' @seealso [cone_shaped_image()], [extract_dn()], [add_directions()]
 #' @export
-#'
 #' @references \insertAllCited{}
-#'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-#' caim <- read_caim()
-#' r <- caim$Cyan
-#' z <- zenith_image(ncol(r), spec$parameters)
-#' a <- azimuth_image(z)
-#' rspec <- get_radiometry_spec(spec, "simple_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-#' r <- apply_flat_field(r, ff)
-#' m <- !is.na(z)
-#'
-#' # See fit_cie_model() for details on the CSV file
-#' path <- system.file("external/sky_points.csv",
-#'                     package = "rcaiman")
-#' sky_points <- read.csv(path)
-#' sky_points <- sky_points[c("Y", "X")]
-#' colnames(sky_points) <- c("row", "col")
-#' head(sky_points)
-#'
-#' plot(r)
-#' points(sky_points$col, nrow(caim) - sky_points$row, col = 2, pch = 10)
-#'
-#' sky_points <- extract_dn(r, sky_points)
-#' sky_points <- add_directions(sky_points, z, a)
-#'
-#' model <- fit_cone_shaped_model(sky_points, col_id = "Cyan")
-#' summary(model$model)
-#' sky_cs <- model$fun(z, a)
-#' sky_cs
-#' plot(sky_cs)
-#'
-#' z_mini <- zenith_image(50, equidistant_coef)
-#' sky_cs <- model$fun(z_mini, azimuth_image(z_mini))
-#' persp(sky_cs, theta = 90, phi = 20)
-#'
-#' }
-fit_cone_shaped_model <- function(sky_points,
+#' # Illustrative sky image. With measured data, use a sky mask to select samples.
+#' geometry <- list(model = "radial_projection", parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30), normalization_radius = 30,
+#'   normalization_angle = 90)
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g, elevation = 60)
+#' r <- 1000 + 200 * (d$zenith * pi / 180)^2 +
+#'   50 * sin(d$azimuth * pi / 180) + 10 * cos(2 * d$azimuth * pi / 180)
+#' names(r) <- "Blue"
+#' m <- !is.na(d$zenith) & !is.na(d$azimuth) & d$zenith < 90
+#' sampling_indices <- expand.grid(col = seq(5, 75, 5), row = seq(5, 55, 5))
+#' sampling_indices <- rem_unselected(sampling_indices, m)
+#' samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+#' samples <- add_directions(samples, d = d)
+#' fit <- fit_cone_shaped_model(samples, col_id = "Blue", return = "all")
+#' summary(fit$model)
+#' sky <- cone_shaped_image(d, fit$parameters, m = m)
+#' plot(sky)
+#' query_directions <- sky_grid_centers(15)
+#' head(predict(fit$model, newdata = query_directions))
+fit_cone_shaped_model <- function(sampling_directions,
                                   col_id,
-                                  method = "zenith_n_azimuth") {
-  col_id <- .resolve_required_column(col_id, sky_points)
-  .check_columns(sky_points,
-                 required_columns = c("col", "row", "zen", "azi", col_id),
-                 reserved_columns = NULL)
+                                  method = "zenith_n_azimuth",
+                                  return = "parameters") {
   .assert_choice(method, c("zenith_only", "zenith_n_azimuth"))
-
-  Blue <- sky_points[, col_id]
-  Zenith <- sky_points$zen
-  Azimuth <- sky_points$azi
-
-  if (length(Blue) >= 20) {
-    if (method == "zenith_n_azimuth") {
-      model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE) +
-        sin(Azimuth) + cos(Azimuth))
-
-      # Only to avoid note from check, code is OK without this line.
-      a <- b <- d <- e <- NA
-
-      .sky_fun <- function(zen, azi, units = "degree") {
-        .assert_choice(units, c("degree", "radian"))
-        if (units == "degree") {
-          zen <- .degree2radian(zen)
-          azi <- .degree2radian(azi)
-        }
-        x <- coefficients(model)
-        x[is.na(x)] <- 0
-        for (i in 1:5) assign(letters[i], x[i])
-        a + b * zen + c * zen^2 +
-          d * sin(azi) + e * cos(azi)
-      }
-    } else {
-      model <- lm(Blue ~ poly(Zenith, 2, raw = TRUE))
-      .sky_fun <- function(zenith, azimuth) {
-        zenith <- .degree2radian(zenith)
-        azimuth <- .degree2radian(azimuth)
-        x <- coefficients(model)
-        x[is.na(x)] <- 0
-        for (i in 1:5) assign(letters[i], x[i])
-        a + b * zenith + c * zenith^2
-      }
+  .assert_choice(return, c("parameters", "all"))
+  columns <- if (method == "zenith_only") "zenith" else c("zenith", "azimuth")
+  .check_columns(sampling_directions, columns)
+  if (is.numeric(col_id)) .check_vector(col_id, "integerish", 1, sign = "positive")
+  col_id <- .resolve_required_column(col_id, sampling_directions)
+  data <- sampling_directions[columns]
+  for (column in columns) {
+    angle <- data[[column]]
+    .check_vector(angle, "numeric", name = column)
+    invalid <- if (column == "zenith") angle < 0 | angle > pi else
+      angle < 0 | angle >= 2 * pi
+    if (any(invalid)) {
+      stop("`", column, "` must be in ",
+           if (column == "zenith") "[0, pi]" else "[0, 2*pi)",
+           " radians.", call. = FALSE)
     }
-    return(list(fun = .sky_fun, model = model))
-  } else {
-    warning("Insufficient number of points to attempt model fitting")
+  }
+  data$observed <- sampling_directions[[col_id]]
+  .check_vector(data$observed, "numeric", name = col_id)
+  if (nrow(data) < 20) {
+    warning("At least 20 observations are required to fit the model.", call. = FALSE)
     return(NULL)
   }
+  formula <- if (method == "zenith_only") {
+    observed ~ zenith + I(zenith^2)
+  } else {
+    observed ~ zenith + I(zenith^2) + sin(azimuth) + cos(azimuth)
+  }
+  model <- stats::lm(formula, data = data, na.action = stats::na.fail)
+  coefficients <- stats::coef(model)
+  if (model$rank < length(coefficients) || any(!is.finite(coefficients))) {
+    warning("Sample directions do not support a full-rank model.", call. = FALSE)
+    return(NULL)
+  }
+  parameters <- list(method = method, coefficients = coefficients)
+  if (return == "parameters") return(parameters)
+  list(parameters = parameters, model = model)
 }

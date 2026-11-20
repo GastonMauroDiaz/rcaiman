@@ -1,93 +1,92 @@
-#' Reproject points to continuous image coordinates
+#' Reproject directions to a radial destination
 #'
 #' @description
-#' Recompute continuous image coordinates after changing the radial projection
-#' model or orientation that defines a target image geometry.
+#' Map viewing directions to continuous image coordinates in a radial
+#' representation with a specified orientation.
+#'
+#' @param sampling_points `data.frame` from [add_directions()], with numeric
+#'   columns `"zenith"` and `"azimuth"` in radians. Zenith is in `[0, pi]`
+#'   and azimuth in `[0, 2 * pi)`. Missing angles may be `NA`.
+#' @param geometry named list following [set_internal_geometry()], with
+#'   `model = "radial_projection"`. Describes the destination, including its
+#'   center of vision, projection coefficients, normalization radius and angle,
+#'   and optional `max_off_axis_angle` (90 deg when absent). Additional fields
+#'   and list classes are accepted.
+#' @param sensor_rotation numeric vector of length one. Clockwise rotation of
+#'   the destination sensor in degrees, using the convention of
+#'   [direction_image()]. Defaults to zero (landscape).
+#' @param azimuth_rotation numeric vector of length one. Horizontal turn of
+#'   the destination to the right from south, in degrees, as in
+#'   [direction_image()]. Defaults to zero.
+#' @param elevation numeric vector of length one. Elevation of the destination
+#'   optical axis above the horizontal in degrees, in `[-90, 90]`, as in
+#'   [direction_image()]. Defaults to 90 (zenith).
 #'
 #' @details
-#' \pkg{rcaiman} represents hemispherical images using a radial projection
-#' system, where each point is defined by its angular coordinates (zenith and
-#' azimuth).
+#' The orientation arguments describe the destination; source orientation is
+#' already expressed by `zenith` and `azimuth`. Their defaults place zenith at
+#' the center and North at the top, with East to the left and West to the right.
 #'
-#' The radial projection model defines how zenith angles are transformed into
-#' normalized radial distances (see [calc_relative_radius()]). These distances
-#' are then scaled to the continuous image coordinates of a square target with
-#' the requested `diameter`.
+#' Directions are first expressed in the destination's internal frame with
+#' [internal_directions_from_external()], then mapped to image coordinates by
+#' [coord_from_internal_directions()]. The radial polynomial
+#' converts the resulting off-axis angle to relative radius. Multiplication
+#' by `normalization_radius` and the internal azimuth then locate the point
+#' around `center_of_vision`.
 #'
-#' Reprojection preserves angular coordinates. By default, the target geometry
-#' has North at the top. A nonzero `orientation` can restore the orientation of
-#' a geometry that was previously standardized.
+#' No interpolation or snapping is applied. Existing `x` and `y_down` are
+#' replaced; derived columns tied to the previous frame are removed with
+#' [keep_coord()]. Angular coordinates, other values, and row order are
+#' preserved, including rows without a position in the destination.
 #'
-#' Existing continuous image coordinates are replaced. Derived columns tied to
-#' the source image frame are removed with [keep_coord()]. Angular
-#' directions and other columns are preserved.
+#' Directions beyond `max_off_axis_angle`, measured from the destination's
+#' optical axis, have `NA` target coordinates. Missing directions also have
+#' `NA` coordinates, except that zenith and nadir are defined even when their
+#' geographic azimuth is `NA`. The destination's optical-axis direction maps
+#' to `center_of_vision`; the opposite direction has no unique radial position and
+#' receives `NA` coordinates, even when the angular limit is 180 deg.
+#' No image dimensions are needed, so coordinates are not clipped to a frame.
 #'
-#' @param sampling_points `data.frame` with columns `"zen"` and `"azi"` in
-#'   radians. Existing `"x"` and `"y_down"` columns are replaced by the target
-#'   coordinates. Columns `"col"`, `"row"`, `"y"`, `"relative_radius"`, and
-#'   `"image_angle"` are removed. All other columns are preserved.
-#' @param orientation numeric vector of length one. Orientation of the target
-#'   image (deg), using the convention of [azimuth_image()]. The default is zero
-#'   for a North-up target.
+#' @return `data.frame` with `"x"` and `"y_down"` followed by the preserved
+#'   columns. Coordinates follow [y_down_from_y()].
 #'
-#' @inheritParams calc_relative_radius
-#' @inheritParams zenith_image
-#'
-#' @return `data.frame` with columns `"x"` and `"y_down"` followed by preserved
-#'   angular directions and other frame-independent columns from
-#'   `sampling_points`. Coordinates refer to the target image and use the
-#'   convention described in [y_down_from_y()].
+#' @seealso [add_directions()], [reproject_image()], [set_internal_geometry()]
 #'
 #' @export
 #' @examples
-#' z <- zenith_image(1000, equal_area_coef)
-#' a <- azimuth_image(z)
-#' sampling_indices <- fibonacci_indices(z, a, 10)
-#' reprojected_points <- reproject_points(
-#'   sampling_indices,
-#'   equidistant_coef,
-#'   ncol(z)
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   center_of_vision = c(50, 50),
+#'   parameters = equidistant_coef,
+#'   normalization_radius = 50,
+#'   normalization_angle = 90
 #' )
-#'
-#' plot(!is.na(z))
-#' points(xy_from_indices(
-#'          sampling_indices$col,
-#'          sampling_indices$row,
-#'          nrow(z)
-#'        ),
-#'        col = "blue", pch = 10)
-#' points(reprojected_points$x,
-#'        y_from_y_down(reprojected_points$y_down, nrow(z)),
-#'        col = "darkgreen", pch = 10)
-reproject_points <- function(sampling_points,
-                             projection_coef,
-                             diameter,
-                             orientation = 0) {
-
-  .check_columns(sampling_points,
-                 required_columns = c("zen", "azi"))
-  .check_vector(diameter, "even_integerish", 1, sign = "positive")
-  .check_vector(orientation, "numeric", 1)
-
-  zen <- sampling_points$zen
-  azi <- sampling_points$azi
-
-  R <- .calc_relative_radius(zen, projection_coef)
-
-  orientation <- orientation * pi / 180
-  theta <- azi + orientation + pi/2
-  r <- R * (pi/2)
-
-  x <- r * cos(theta)
-  y <- r * sin(theta)
-
-  n <- diameter
-  res <- pi / n
-
-  x <- (x + pi/2) / res
-  y_down <- (pi/2 - y) / res
-
-  sampling_points$x <- x
-  sampling_points$y_down <- y_down
+#' g <- set_internal_geometry(c(100, 100), geometry)
+#' d <- direction_image(g, elevation = 32.5)
+#' sampling_indices <- data.frame(col = c(40, 50, 60), row = c(45, 50, 55))
+#' sampling_indices <- rem_unselected(sampling_indices, !is.na(d[["zenith"]]))
+#' points <- add_directions(sampling_indices, d = d)
+#' reproject_points(points, geometry)
+#' # The same geographic directions in a destination inclined toward west.
+#' reproject_points(points, geometry, sensor_rotation = 90,
+#'                  azimuth_rotation = 90, elevation = 32.5)
+reproject_points <- function(sampling_points, geometry,
+                             sensor_rotation = 0, azimuth_rotation = 0,
+                             elevation = 90) {
+  .check_radial_destination(geometry)
+  internal <- internal_directions_from_external(
+    sampling_points, sensor_rotation, azimuth_rotation, elevation)
+  coord <- coord_from_internal_directions(internal, geometry)
+  sampling_points$x <- coord$x
+  sampling_points$y_down <- coord$y_down
   keep_coord(sampling_points)
+}
+
+.check_radial_destination <- function(geometry) {
+  .check_internal_geometry(geometry)
+  if (geometry[["model"]] != "radial_projection") {
+    stop("The destination `geometry` must use `radial_projection`.",
+         call. = FALSE)
+  }
+  invisible(TRUE)
 }

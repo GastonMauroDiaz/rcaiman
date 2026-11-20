@@ -9,25 +9,25 @@
 #' detect statistical outliers. The function returns a logical vector of the
 #' same length as `x` with `TRUE` for detected outliers.
 #'
-#' An observation \eqn{x_i} is considered outlying if it satisfies:
+#' For the two-sided test, an observation \eqn{x_i} is outlying when:
 #'
-#' \deqn{M - \mathrm{laxity} \times \mathrm{MAD} < x_i <
-#'       M + \mathrm{laxity} \times \mathrm{MAD}}
+#' \deqn{|x_i - M| > \mathrm{laxity} \times \mathrm{MAD},}
 #'
-#' where \eqn{M} is the median of `x` and \eqn{MAD} is its median absolute
-#' deviation. The `laxity` parameter multiplies MAD to set the classification
-#' threshold.
+#' where \eqn{M} is the median of the reference values `y` (or `x` when `y`
+#' is `NULL`), and MAD is their median absolute deviation multiplied by
+#' `1.4826`, as in [stats::mad()] by default. Values exactly on the threshold
+#' are retained.
 #'
 #' The `cutoff_side` argument controls which tail(s) are evaluated:
 #' `"both"` (default) applies a two-sided test, `"left"` applies the left-tail
 #' test only, and `"right"` applies the right-tail test only.
 #'
-#' If the MAD is zero (no dispersion), all values are flagged as non-outliers. `NA`
-#' values in `x` are treated as non-outliers.
+#' If MAD is zero or unavailable (an empty reference), all values are flagged
+#' as non-outliers. Inputs must be finite; missing values are not accepted.
 #'
-#' @param x numeric vector. Values to evaluate.
-#' @param y optinal numeric vector. Values from which median and MAD are
-#'   calculated. If `NUll` (default) median and MAD will be calculated from `x`.
+#' @param x finite numeric vector. Values to evaluate.
+#' @param y optional finite numeric vector. Reference values from which median
+#'   and MAD are calculated. With `NULL` (default), use `x`.
 #' @param laxity numeric vector of length one. Positive multiplier applied to
 #'   MAD to set classification thresholds. Default is `2`.
 #' @param cutoff_side character vector of length one. One of `"both"`,
@@ -54,7 +54,7 @@ is_outlier <- function(x, y = NULL, laxity = 2, cutoff_side = "both") {
   if (is.null(y)) y <- x
 
   med <- stats::median(y, na.rm = TRUE)
-  mad_val <- stats::mad(y, constant = 1, na.rm = TRUE)
+  mad_val <- stats::mad(y, na.rm = TRUE)
 
   # If dispersion is zero or NA, retain non-missing values (no evidence to remove)
   if (is.na(mad_val) || mad_val == 0) {

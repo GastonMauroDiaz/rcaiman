@@ -32,16 +32,6 @@ produced by \code{write_bin} (see \emph{Details}), and return a logical
 }
 }
 
-\examples{
-\dontrun{
-z <- zenith_image(1000, equidistant_coef)
-m <- !is.na(z)
-my_file <- file.path(tempdir(), "mask.tif")
-write_bin(m, my_file)
-m_from_disk <- read_bin(my_file)
-plot(m - m_from_disk)
-}
-}
 \seealso{
 \code{\link[=read_caim]{read_caim()}}, \code{\link[=write_caim]{write_caim()}}.
 }

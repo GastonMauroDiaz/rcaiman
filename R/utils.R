@@ -142,3 +142,37 @@
   coef_sd <- apply((rcaiman::cie_table[, 1:5]), 2, sd) * w
   Map(function(i) stats::rnorm(1, 0, coef_sd[i]), 1:5) %>% unlist()
 }
+
+.segment_values <- function(seg) {
+  .assert_single_layer(seg)
+  if (!terra::hasValues(seg)) stop("`seg` must contain labels.", call. = FALSE)
+  values <- terra::values(seg, mat = FALSE)
+  if (is.logical(values)) values <- as.integer(values)
+  .check_vector(values, "integerish", allow_na = TRUE,
+                sign = "nonnegative", name = "seg")
+  values
+}
+
+#' Internal inverse-distance weights
+#'
+#' @description
+#' Calculate normalized inverse-square distance weights shared by radiometric
+#' reference estimators in rcaiman and rcaiman.registry. This helper is exported
+#' for use across the suite and is not intended for general use.
+#'
+#' @param distance nonempty finite numeric vector of nonnegative distances,
+#'   all in the same units. If any distance is zero, weight is distributed
+#'   equally among the zero-distance observations; other weights are zero.
+#'
+#' @return Numeric vector of weights summing to one, in input order.
+#' @keywords internal
+#' @export
+.inverse_distance_weights <- function(distance) {
+  .check_vector(distance, "numeric", sign = "nonnegative")
+  if (!length(distance)) stop("`distance` must not be empty.", call. = FALSE)
+  zero <- distance == 0
+  if (any(zero)) return(as.numeric(zero) / sum(zero))
+  # Scaling before squaring avoids overflow close to the reference direction.
+  weights <- (min(distance) / distance)^2
+  weights / sum(weights)
+}

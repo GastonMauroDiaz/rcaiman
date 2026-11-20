@@ -47,14 +47,18 @@ sunlit elements, or abrupt local changes.
 Computation uses \code{\link[terra:focalCpp]{terra::focalCpp()}} with a C++ implementation optimized for
 fixed \eqn{3 \times 3} windows.
 
-When CV values are required for many locations, rather than use \code{\link[=calc_cv]{calc_cv()}},
-it is generally more efficient to compute the image once and then sample it:
+To obtain CV values at selected cells, compute the image and sample it
+without applying another averaging window:
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{cv <- cv_image(r)
-extract_dn(cv, sampling_points, use_window = FALSE)
+extract_dn(cv, sampling_indices, use_window = FALSE)
 }\if{html}{\out{</div>}}
 }
 \examples{
+r <- set_rcaiman_geometry(terra::rast(nrows = 10, ncols = 10, nlyrs = 1))
+values(r) <- runif(ncell(r))
+cv_image(r)
+
 \dontrun{
 require(rcaiman.registry)
 path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
@@ -65,7 +69,7 @@ r <- caim$Cyan
 z <- zenith_image(ncol(r), spec$parameters)
 a <- azimuth_image(z)
 rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+ff <- flat_field_image(z, "simple_polynomial", rspec$parameters$`5.0`)
 r <- apply_flat_field(r, ff)
 plot(r)
 

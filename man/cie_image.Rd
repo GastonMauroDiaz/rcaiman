@@ -4,38 +4,92 @@
 \alias{cie_image}
 \title{CIE sky image}
 \usage{
-cie_image(z, a, sun_angles, sky_coef)
+cie_image(d, sun_angles, sky_coef, m = NULL)
 }
 \arguments{
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{\link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with layers
+\code{zenith} and \code{azimuth} in degrees, in that order.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{sun_angles}{data frame of one row with finite numeric columns
+\code{zenith} and \code{azimuth} in radians, as returned by \code{\link[=add_directions]{add_directions()}} for
+external directions. Column order is arbitrary and additional columns
+are ignored. The solar direction
+must use the same external reference as \code{d}. Zenith must be nonnegative;
+values greater than \code{96 * pi / 180} produce a warning. Azimuth must be
+in \verb{[0, 2 * pi)}.}
 
-\item{sun_angles}{named numeric vector of length two, with components
-\code{"zen_deg"} and \code{"azi_deg"} in degrees, e.g., \code{c(zen_deg = 49.3, azi_deg = 123.1)}. See \code{\link[=estimate_sun_angles]{estimate_sun_angles()}} for details.}
+\item{sky_coef}{finite numeric vector of length five. CIE model coefficients
+in the order \code{a}, \code{b}, \code{c}, \code{d}, \code{e}, from \link{cie_table} or \code{\link[=fit_cie_model]{fit_cie_model()}}.}
 
-\item{sky_coef}{numeric vector of length five. Parameters of the CIE sky model.}
+\item{m}{optional single-layer logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster}
+on the same grid as \code{d}. Only cells marked \code{TRUE} are evaluated. With
+\code{NULL}, all available sky directions are evaluated.}
 }
 \value{
-\link[terra:SpatRaster-class]{terra::SpatRaster} with one layer whose pixel values
-represent relative luminance or radiance across the sky hemisphere,
-depending on whether the data used to obtain \code{sky_coef} was luminance
-or radiance.
+Single-layer numeric \link[terra:SpatRaster-class]{terra::SpatRaster} on the grid of \code{d},
+named \verb{Relative radiance or luminance}. Values are relative luminance for
+the standard sky coefficients, or relative radiance or luminance according
+to the data used to fit \code{sky_coef}. Directions below the horizon, outside
+the mask, or missing a required angle receive \code{NA}.
 }
 \description{
-Generate an image of relative radiance or luminance based on the CIE
-General Sky model.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Evaluate the CIE General Sky model at the external viewing direction of
+each pixel, producing relative radiance or luminance.
 }
 \details{
-Coefficient sets and formulation are available in \link{cie_table}.
+Coefficient sets and the formulation are available in \link{cie_table}. The
+angles in \code{d} are converted from degrees to radians before evaluation.
+Directions are external: the acquisition orientation is already represented
+in \code{d}, independently of the lens projection and the image grid.
+
+The model is normalized by its value at zenith, not at the optical axis or
+the brightest pixel. This reference is defined by the model even if the
+image does not include zenith. For a model with a defined, nonzero zenith
+reference, its relative value at zenith is one. Multiply the output by a
+separately obtained zenith radiance, luminance, or radiometrically corrected
+DN to express predictions on that scale. The function does not estimate
+this reference from the image.
+
+Only sky directions with zenith angles from 0 to 90 deg are evaluated.
+At zenith, azimuth is unnecessary and may be \code{NA}; elsewhere both angles
+are required. \code{m} can further restrict evaluation without changing the
+model normalization.
 }
 \note{
-Model output below zero or \code{Inf} is turned to \code{NA}.
+Negative and nonfinite model predictions are returned as \code{NA}. Supplying
+custom coefficients does not trigger fitting or coefficient adjustment.
 }
 \examples{
-z <- zenith_image(50, equidistant_coef)
-a <- azimuth_image(z)
-sky_coef <- cie_table[4,1:5] \%>\% as.numeric()
-sun_angles <- c(zen_deg = 45, azi_deg = 0)
-plot(cie_image(z, a, sun_angles, sky_coef))
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+sky_coef <- as.numeric(cie_table[4, 1:5])
+# Cell containing the marked solar disc; extracted angles are in radians.
+sun_angles <- add_directions(data.frame(col = 40, row = 30), d = d)
+# Alternatively: data.frame(zenith = 45 * pi/180, azimuth = 10 * pi/180)
+sky <- cie_image(d, sun_angles, sky_coef)
+plot(sky)
+
+m <- !is.na(d$zenith) & d$zenith < 80
+sky <- cie_image(d, sun_angles, sky_coef, m = m)
+plot(sky)
+
+# A partial field of view need not include the normalization direction.
+side_geometry <- geometry
+side_geometry$normalization_radius <- 100
+side_g <- set_internal_geometry(c(80, 60), side_geometry)
+side_d <- direction_image(side_g, elevation = 32.5)
+side_sky <- cie_image(side_d, sun_angles, sky_coef)
+plot(side_sky)
+}
+\seealso{
+\link{cie_table}, \code{\link[=fit_cie_model]{fit_cie_model()}}, \code{\link[=direction_image]{direction_image()}}
 }

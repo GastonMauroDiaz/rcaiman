@@ -33,7 +33,7 @@ defines the point-data interoperability contract between \pkg{rcaiman} and
 \href{https://github.com/GastonMauroDiaz/rcaiman-projects}{rcaiman-projects}.
 }
 \note{
-File extensions are recognized using \code{\link[tools:fileutils]{tools::file_ext()}}.
+File extensions are recognized using \code{\link[tools:file_ext]{tools::file_ext()}}.
 }
 \section{Functions}{
 

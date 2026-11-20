@@ -2,11 +2,11 @@
 % Please edit documentation in R/apply_locally.R
 \name{apply_locally}
 \alias{apply_locally}
-\title{Apply a function locally using sampled points on the hemispherical domain}
+\title{Apply a function to predefined neighborhoods}
 \usage{
 apply_locally(
-  sampling_points,
-  query_points,
+  sampling_data,
+  query_data,
   neighbors,
   fun,
   parallel = FALSE,
@@ -16,165 +16,106 @@ apply_locally(
 )
 }
 \arguments{
-\item{sampling_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in
-the output of \code{\link[=add_directions]{add_directions()}}. Candidate neighbors of \code{query_points}.
-Additional columns are ignored.}
+\item{sampling_data}{data frame containing the sampled values and any other
+columns needed by \code{fun}.}
 
-\item{query_points}{\code{data.frame} with columns \code{"zen"} and \code{"azi"}, as in the
-output of \link{add_directions}. Points at which \code{fun} should be evaluated.}
+\item{query_data}{data frame with one row per query. Its columns are retained
+when results are scalar. A column named \code{output} is reserved.}
 
-\item{neighbors}{a list where each element corresponds to one query point and contains :
+\item{neighbors}{list with one element per row of \code{query_data}. Each element
+is a list containing:
 \describe{
-\item{index}{
-indices of neighboring sampling points
+\item{\code{index}}{Positive integer-like row positions in \code{sampling_data}.}
+\item{\code{distance}}{Finite, nonnegative numeric distances of the same length
+as \code{index}. Units are defined by the neighbor search.}
 }
-\item{distance}{
-angular distances in radians
-}
-}
-Tipically the output of \code{\link[=nn_spherical]{nn_spherical()}}.}
+Empty neighborhoods contain \code{integer(0)} and \code{numeric(0)}. Repeated indices
+are passed to \code{fun} as repeated rows.}
 
-\item{fun}{function. It receives a data frame, an integer vector of length
-equal to the number of rows in the data frame, and an integer vector of
-length one. The first object is a subset of sampling_points, the second is the
-angular distance of each point to the query point, and the third is the
-query-point row index. When the search retrieves no points, the data frame
-is empty. Users should include the ellipsis (...) in their function
-signature to gracefully handle any of these arguments that are not required
-for their specific calculation. See \emph{Examples}.}
+\item{fun}{function receiving three positional arguments: a data frame of
+neighboring samples, their numeric distances, and the query row number.
+Any R object can be returned; see \emph{Value} for how results are collected.}
 
-\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
-executed in parallel.}
+\item{parallel}{logical vector of length one. If \code{TRUE}, evaluate queries
+in parallel. Result order follows \code{query_data} in either mode.}
 
-\item{cores}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available
-cores detected internally. Values greater than the number of available
-cores are silently reduced to the maximum allowed. If the resulting number
-of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
 
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
 
-\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to leave
-free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
-greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
-\code{parallel} is silently set to \code{FALSE}.}
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
 }
 \value{
-If \code{fun} returns a vector of length one, a \code{data.frame} equal to
-\code{query_points} with one additional column, named \code{"output"}, containing the
-result of applying \code{fun} at each query point.
+When every result is an atomic vector of length one without a class
+or dimensions, a data frame equal to \code{query_data} with the added column
+\code{output}. Scalar names are ignored and mixed atomic types follow R's usual
+coercion rules. Missing scalar values are retained.
 
-If \code{fun} returns any other object, it returns a list with as many components
-as rows in \code{query_points}.
+Otherwise, a list with one element per query, preserving each returned
+object, including \code{NULL}, empty vectors, and fitted models. Results are
+never flattened to decide whether they are scalar.
+
+With no queries, return \code{query_data} with a zero-length numeric \code{output}
+column, without calling \code{fun}.
 }
 \description{
-Evaluate a user-supplied function locally using neighboring points
-defined on the hemispherical domain.
+Evaluate a function on the neighboring samples associated with each query.
 }
 \details{
-The \code{query_points} argument lets the user evaluate \code{fun} at a custom set of
-locations. For each point in \code{query_points}, neighbors are searched within
-\code{sampling_points}. Neighbor selection is based on
-spherical distance, see \code{\link[=nn_spherical]{nn_spherical()}}. The function \code{fun} is
-then applied to the corresponding subset of neighboring sampling points.
+Neighbor selection is performed before calling this function, for example
+with \code{\link[=nn_spherical]{nn_spherical()}}. This function uses the supplied row positions and
+distances without searching for neighbors or interpreting coordinates.
+Neither input table needs angular columns or image indices.
 
-The input passed to \code{fun} is a \strong{subset of rows of \code{sampling_points}},
-therefore, \code{fun} must extract and process the column(s) of interest, e.g.:
-\code{function(df) mean(df$dn)}.
+For each query row \code{i}, the function calls \code{fun(data, distance, i)}.
+\code{data} contains the selected rows of \code{sampling_data}, in the order given
+by \code{neighbors[[i]]$index}. \code{distance} contains the corresponding distances,
+in their original units. For neighbors from \code{\link[=nn_spherical]{nn_spherical()}}, these are
+angular distances in radians. Additional columns and missing values in
+the tables are passed unchanged for \code{fun} to interpret.
 
-The angular neighborhood is defined by two parameters:
-\itemize{
-\item \code{k}: number of nearest neighbors used by \code{fun}.
-\item \code{search_radius}: maximum allowed spherical distance (deg).
-}
+Empty neighborhoods also call \code{fun}, with a zero-row data frame and
+\code{numeric(0)} distances. The supplied function decides whether to return
+\code{NA}, use a fallback value, or perform another calculation. It can use \code{i}
+to retrieve information from the corresponding row of \code{query_data}.
+Use \code{...} to accept arguments that a particular calculation does not need.
+Errors stop processing and identify the query row.
 
-Argument \code{rule} controls how neighbor availability is interpreted:
-\itemize{
-\item \code{"any"}: all neighbors found within \code{search_radius} are passed to \code{fun}
-(even if fewer than \code{k}).
-\item \code{"all"}: if fewer than \code{k} neighbors lie within the radius, the query
-point is assigned \code{NA}.
-}
-}
-\note{
-This function assumes that \code{sky_points}, \code{query_points}, and \code{neighbors}
-share the same geometry. No checks are performed to enforce this.
+Tables and neighbor lists must retain the row order used to construct
+\code{neighbors}. Row positions and list lengths are checked, but these checks
+cannot detect reordered tables or geometrically unrelated data.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-# neighbors
-sampling_indices <- fibonacci_indices(z, a, 1)
-query_indices <- fibonacci_indices(z, a, 10)
-neighbors <- nn_spherical(sampling_indices, query_indices,
-                          k = nrow(sampling_indices),
-                          search_radius = 30)
-
-thr <- apply_by_direction(r, z, a, m)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-# Inverse distance weighted interpolation ------------------------------
-
-## See fit_cie_model() for details on the CSV file
-path <- system.file("external/sky_points.csv",
-                    package = "rcaiman")
-sky_points <- read.csv(path)
-sky_points <- sky_points[c("Y", "X")]
-colnames(sky_points) <- c("row", "col")
-head(sky_points)
-
-sky_points <- extract_dn(r, sky_points)
-sky_points <- add_directions(sky_points, z, a)
-
-query_points <- raster_grid_in_circle(z, a, 10)
-
-neighbors <- nn_spherical(sky_points, query_points,
-                          k = 10,
-                          search_radius = 20,
-                          rule = "any")
-
-eval_points <- apply_locally(
-  sky_points,
-  query_points,
-  neighbors,
-  fun = function(df, chi, ...) {
-    b_k <- df$Cyan
-    w_k <- 1 / chi^2
-    sum(w_k * b_k) / sum(w_k)
-  },
-  parallel = FALSE
-)
-
-head(eval_points)
-summary(eval_points)
-i <- !is.na(eval_points$output)
-sky <- interpolate_planar(eval_points[i,],  "output", r,
-                          k = 3,
-                          p = 2,
-                          search_radius = 20,
-                          rigorous = TRUE)
-plot(sky)
-plot(r/sky)
+sampling_directions <- sky_grid_centers(15)
+sampling_directions$dn <- 100 + 20 * sampling_directions$zenith
+query_directions <- sky_grid_centers(30)
+neighbors <- nn_spherical(sampling_directions, query_directions,
+                          k = 3, search_radius = 20, parallel = FALSE)
+local_mean <- function(data, ...) {
+  if (!nrow(data)) return(NA_real_)
+  mean(data$dn)
 }
+result <- apply_locally(sampling_directions, query_directions,
+                        neighbors, fun = local_mean)
+head(result)
+
+# A fallback is also evaluated for queries without neighbors.
+query_directions$fallback <- 100 + 20 * query_directions$zenith
+neighbors <- nn_spherical(sampling_directions, query_directions,
+                          k = 3, search_radius = 5, parallel = FALSE)
+local_or_fallback <- function(data, distance, i) {
+  if (!nrow(data)) return(query_directions$fallback[i])
+  mean(data$dn)
+}
+result <- apply_locally(sampling_directions, query_directions,
+                        neighbors, fun = local_or_fallback)
+head(result)
 }
 \seealso{
-\code{\link[=sky_grid_centers]{sky_grid_centers()}}, \code{\link[=fibonacci_indices]{fibonacci_indices()}}, and \code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}} for
-producing \code{query_points}.
+\code{\link[=nn_spherical]{nn_spherical()}}, \code{\link[=add_directions]{add_directions()}}, \code{\link[=apply_by_direction]{apply_by_direction()}}
 }

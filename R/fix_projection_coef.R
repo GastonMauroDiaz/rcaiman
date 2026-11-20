@@ -1,114 +1,64 @@
-#' Fix lens projection coefficients
+#' Adjust the last radial projection coefficient
 #'
 #' @description
-#' Adjust the last coefficient of a radial polynomial projection model to
-#' enforce the normalization constraint at 90 degrees (i.e., r(90°) >= 1). The
-#' adjustment addresses operational boundary compliance required by the package.
-#' It does not correct physical calibration errors.
-#'
-#' @details
-#' This function applies exclusively to radial projection models of the form
-#' \eqn{r(\theta) = \sum a_p \theta^p}, where \eqn{\theta} is expressed in
-#' radians.
-#'
-#' This function relies on [validate_projection_function()] to classify
-#' the projection model:
-#'
-#' \itemize{
-#'  \item If the model is structurally invalid (large boundary deviation),
-#'    an error is raised and recalibration is required.
-#'  \item If the model is structurally valid but predicts a value below 1
-#'    at 90 deg, the last coefficient is increased incrementally
-#'    until validation succeeds.
-#' }
-#'
-#' The function determines the correction direction empirically by
-#' probing the local effect of the last coefficient on the predicted
-#' value at 90 deg. It assumes a locally monotonic relationship
-#' between the last coefficient and the boundary value.
+#' Correct a small deficit of relative radius at the normalization angle by
+#' incrementing the last polynomial coefficient. Other coefficients stay fixed.
 #'
 #' @inheritParams validate_projection_function
 #'
-#' @param tol numeric vector of length one. Structural tolerance passed to
-#'   [validate_projection_function()].
+#' @details
+#' [validate_projection_function()] must classify the input as valid or as an
+#' underestimation within `tol`. Structurally invalid models are rejected with
+#' the corresponding diagnostic; this function does not repair radial folding.
 #'
-#' @return
-#' A numeric vector of projection coefficients. The input vector is
-#' returned unchanged if no correction is required.
+#' The last coefficient is increased iteratively until the reference radius
+#' reaches one, within floating-point precision. Each increment targets a change
+#' of `tol / 100` in relative radius at `normalization_angle`, so the step remains
+#' useful when that angle or the polynomial degree changes. The complete model
+#' is validated after each increment, including invertibility up to
+#' `max_off_axis_angle`. Failure to obtain a valid result raises an error.
 #'
+#' This preserves the existing correction mechanism for rounded coefficients.
+#' It changes the curve through its highest-order term; it does not improve the
+#' experimental fit. [normalize_projection_coef()] is a separate operation that
+#' rescales all coefficients to change the normalization reference.
+#'
+#' @return Numeric vector of coefficients. A valid input is returned unchanged,
+#'   including its names. An underestimated model is returned only after the
+#'   corrected coefficients pass validation.
 #' @seealso [validate_projection_function()]
-#'
 #' @export
-fix_projection_coef <- function(projection_coef, tol = 1e-3) {
-
-  res <- suppressMessages(validate_projection_function(projection_coef, tol))
-
-  if (res$status == "structural_invalid") {
-    stop(
-      sprintf(
-        paste0(
-          "Projection model is structurally invalid under tolerance %.1e.\n",
-          "Recalibration is required."
-        ),
-        tol
-      ),
-      call. = FALSE
-    )
-  }
-
-  if (res$status == "valid") {
-    message("Nothing to fix")
-    return(projection_coef)
-  }
-
-  # Only remaining case: underestimation
-  message(
-    paste0(
-      "Projection function underestimates relative radius at 90 deg.\n",
-      "This may trigger hard-to-trace errors in downstream functions.\n",
-      "Returning fixed coeficients."
-    )
-  )
+#' @examples
+#' projection_coef <- c(0.702, 0.0434, -0.0543)
+#' corrected <- fix_projection_coef(projection_coef)
+#' rbind(original = projection_coef, corrected = corrected)
+#' calc_relative_radius(90, corrected)
+fix_projection_coef <- function(projection_coef, tol = 1e-3,
+                                 normalization_angle = 90,
+                                 max_off_axis_angle = 90) {
+  validate <- function(x) validate_projection_function(
+    x, tol, normalization_angle, max_off_axis_angle)
+  result <- validate(projection_coef)
+  if (result$status == "structural_invalid") stop(result$reason, call. = FALSE)
+  if (result$status == "valid") return(projection_coef)
 
   last <- length(projection_coef)
-  step <- tol / 100
-
-  val_base <- calc_relative_radius(90, projection_coef)
-
-  # Probe direction
-  coef_test <- projection_coef
-  coef_test[last] <- coef_test[last] + step
-  val_test <- calc_relative_radius(90, coef_test)
-
-  direction <- sign(val_test - val_base)
-
-  if (direction == 0) {
-    stop("Last coefficient does not affect value at 90 deg.")
+  step <- (tol / 100) / (normalization_angle * pi / 180)^last
+  if (!is.finite(step) || step <= 0) {
+    stop("Cannot represent a finite correction step for the last coefficient.", call. = FALSE)
   }
-  max_iter <- 50L
-  iter <- 0L
-
-  repeat {
-
-    iter <- iter + 1L
-
-    projection_coef[last] <-
-      projection_coef[last] + direction * step
-
-    res <- suppressMessages(validate_projection_function(projection_coef, tol))
-
-    if (res$status == "valid") break
-
-    if (iter >= max_iter) {
-      stop(
-        paste0(
-          "Failed to fix projection coefficients after ", max_iter, " iterations.\n",
-          "Consider relaxing the tolerance (tol)."
-        ),
-        call. = FALSE
-      )
+  for (iteration in seq_len(200)) {
+    previous <- projection_coef[last]
+    projection_coef[last] <- previous + step
+    if (!is.finite(projection_coef[last]) || projection_coef[last] == previous) {
+      stop("The correction step cannot change the last coefficient at this precision.", call. = FALSE)
+    }
+    result <- validate(projection_coef)
+    if (result$status == "valid") return(projection_coef)
+    if (result$status == "structural_invalid") {
+      stop("The last-coefficient adjustment did not preserve model validity: ",
+           result$reason, call. = FALSE)
     }
   }
-
-  projection_coef
+  stop("No valid correction was found after 200 increments.", call. = FALSE)
 }

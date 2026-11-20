@@ -1,13 +1,13 @@
-schema_version: 1
+schema_version: 4
 created_with:
   package: rcaiman.registry
-  version: 0.1.3.9000
-  date: '2026-07-06'
+  version: 0.2.1.9000
+  date: '2026-11-18'
 configuration:
-  embedded_metadata_sig: exif_jpeg
-  geometry_spec: delta_t
-  interpretive_constraint: ~
-  flat_field_correction: wagner2001_method
+  signature: jpeg
+  band_spec: rgb
+  geometry_spec: simple_method_rescaled
+  radiometry_spec: wagner2001_method
 registry_entry:
   instrument_metadata:
     id: Nikon_Coolpix5700.FCE9.CIEFAP
@@ -25,15 +25,30 @@ registry_entry:
       manufacturer: NIKON CORP
       serial: ~
     institution: CIEFAP
-  embedded_metadata_sig:
-    id: exif_jpeg
+  signature:
+    id: jpeg
     dim:
-      - 2560
-      - 1920
+      - 2560.0
+      - 1920.0
     validated_with_libraw: .na
     validated_with_exiftool: '13.59'
     metadata_profile: exiftool_g1_short_v1
     rules:
+      auto_focus:
+        group: Composite
+        tag: AutoFocus
+        label: AutoFocus
+        expected: 'On'
+      focal_length35efl:
+        group: Composite
+        tag: FocalLength35efl
+        label: FocalLength35efl
+        expected: '8.9 mm (35 mm equivalent: 35.0 mm)'
+      image_size:
+        group: Composite
+        tag: ImageSize
+        label: ImageSize
+        expected: 2560x1920
       color_space:
         group: ExifIFD
         tag: ColorSpace
@@ -54,21 +69,21 @@ registry_entry:
         tag: DigitalZoomRatio
         label: DigitalZoomRatio
         expected: '0'
-      exif_image_height:
+      exif_version:
         group: ExifIFD
-        tag: ExifImageHeight
-        label: ExifImageHeight
-        expected: '1920'
-      exif_image_width:
-        group: ExifIFD
-        tag: ExifImageWidth
-        label: ExifImageWidth
-        expected: '2560'
+        tag: ExifVersion
+        label: ExifVersion
+        expected: '0220'
       file_source:
         group: ExifIFD
         tag: FileSource
         label: FileSource
         expected: Digital Camera
+      flash:
+        group: ExifIFD
+        tag: Flash
+        label: Flash
+        expected: Off, Did not fire
       gain_control:
         group: ExifIFD
         tag: GainControl
@@ -84,11 +99,6 @@ registry_entry:
         tag: LightSource
         label: LightSource
         expected: Unknown
-      metering_mode:
-        group: ExifIFD
-        tag: MeteringMode
-        label: MeteringMode
-        expected: Multi-segment
       saturation:
         group: ExifIFD
         tag: Saturation
@@ -119,11 +129,26 @@ registry_entry:
         tag: WhiteBalance
         label: WhiteBalance
         expected: Auto
+      exif_tool_version:
+        group: ExifTool
+        tag: ExifToolVersion
+        label: ExifToolVersion
+        expected: '13.59'
       bits_per_sample:
         group: File
         tag: BitsPerSample
         label: BitsPerSample
         expected: '8'
+      color_components:
+        group: File
+        tag: ColorComponents
+        label: ColorComponents
+        expected: '3'
+      file_type:
+        group: File
+        tag: FileType
+        label: FileType
+        expected: JPEG
       file_type_extension:
         group: File
         tag: FileTypeExtension
@@ -159,57 +184,81 @@ registry_entry:
         tag: Software
         label: Software
         expected: E5700v1.1
-      compression:
-        group: IFD1
-        tag: Compression
-        label: Compression
-        expected: JPEG (old-style)
+      afarea_mode:
+        group: Nikon
+        tag: AFAreaMode
+        label: AFAreaMode
+        expected: Single Area
+      afpoints_in_focus:
+        group: Nikon
+        tag: AFPointsInFocus
+        label: AFPointsInFocus
+        expected: (none)
       auxiliary_lens:
         group: Nikon
         tag: AuxiliaryLens
         label: AuxiliaryLens
         expected: 'Off'
+      color_mode:
+        group: Nikon
+        tag: ColorMode
+        label: ColorMode
+        expected: Color
       digital_zoom:
         group: Nikon
         tag: DigitalZoom
         label: DigitalZoom
         expected: '1'
+      focus_mode:
+        group: Nikon
+        tag: FocusMode
+        label: FocusMode
+        expected: AF-S
+      noise_reduction:
+        group: Nikon
+        tag: NoiseReduction
+        label: NoiseReduction
+        expected: 'Off'
       quality:
         group: Nikon
         tag: Quality
         label: Quality
         expected: Fine
-    date: '2026-07-06'
-  geometry_spec:
-    id: delta_t
-    parameters:
-      - 0.6427
-      - 0.0346
-      - -0.024491
-    zenith_col_row:
-      - 1286
-      - 986
-    horizon_radius: 742
-    is_horizon_circle_clipped: no
-    max_zenith_angle: 95
-    date: '2026-07-06'
-    notes: Validation of lens coefficients by Delta-T in doi:10.1139/cjfr-2018-0006
-      (supplementary material)
-    contact_information: gastonmaurodiaz@gmail.com
-  interpretive_constraint: ~
-  flat_field_correction:
-    id: wagner2001_method
-    type: flat_field_correction
-    model: ff_simple_polynomial
-    rcaiman_version: 2.6.3.9000
-    parameters:
-      '0':
-        - 0.0147
-        - 0.0254
-        - -0.0425
-    data: ~
+    date: '2026-11-18'
+  band_spec:
+    id: rgb
     cfa_pattern: ~
     spectral_mapping: ~
-    date: '2026-07-06'
-    notes: Details in doi:10.1139/cjfr-2018-0006 (supplementary material)
+    date: '2026-11-18'
+    notes: ~
+    contact_information: ~
+  geometry_spec:
+    id: simple_method_rescaled
+    model: radial_projection
+    parameters:
+      - 0.63723885783445289
+      - 0.03455757757992257
+      - -0.02225094306162213
+    center_of_vision:
+      - 1283.0
+      - 986.0
+    normalization_radius: 755.20949922412967226
+    normalization_angle: 90.0
+    max_off_axis_angle: 90.0
+    max_observed_off_axis_angle: ~
+    date: '2026-11-18'
+    notes: Documented in rcaiman.registry.data source code, folder data-raw
+    contact_information: gastonmaurodiaz@gmail.com
+  radiometry_spec:
+    id: wagner2001_method
+    model: simple_polynomial
+    rcaiman_version: 3.0.0.9000
+    parameters:
+      '0':
+        Blue:
+          - -0.5184241193814888
+          - 0.21438664144183589
+    white_balance: ~
+    date: '2026-11-18'
+    notes: Documented in rcaiman.registry.data source code, folder data-raw
     contact_information: gastonmaurodiaz@gmail.com

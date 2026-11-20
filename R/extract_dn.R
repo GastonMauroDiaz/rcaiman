@@ -27,7 +27,7 @@
 #'   column per layer in `r`, named after the layers.
 #'
 #' @seealso
-#' [sample_sky_points()] for automatically sampling sky points.
+#' [compute_features()], [rem_nearby_indices()], [add_directions()].
 #'
 #' @export
 #'

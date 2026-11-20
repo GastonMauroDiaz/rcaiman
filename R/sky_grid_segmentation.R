@@ -1,80 +1,68 @@
 #' Assign sky-grid labels
 #'
 #' @description
-#' Segment a hemispherical view into equal-angle bins in both zenith and azimuth
-#' angles, assigning each pixel a grid-cell ID.
+#' Divide the sky into zenith rings and geographic-azimuth sectors of equal
+#' angular width, and label the observed directions on the image grid.
+#'
+#' @param d [terra::SpatRaster-class] from [direction_image()], with layers
+#'   `zenith` and `azimuth` in degrees, in that order. Both layers are used.
+#' @param angle_width positive numeric vector of length one. Width of both
+#'   angular intervals in degrees. Must divide 90 into a whole number of
+#'   rings (and consequently 360 into a whole number of sectors). Fewer than
+#'   1000 rings are supported by the label encoding.
+#' @param first_ring_different logical vector of length one. If `TRUE`, do not
+#'   subdivide the first ring into sectors.
 #'
 #' @details
-#' The intersection of zenith rings and azimuth sectors forms a grid whose cells
-#' are circular trapezoids. By default, IDs encode both components as
-#' `sectorID * 1000 + ringID`.
+#' Rings extend from zenith to the horizon, and sectors cover a full turn
+#' from north toward east. The acquisition orientation is already expressed
+#' in `d`; it does not change the boundaries or IDs of this sky partition.
+#' Partial coverage produces partial segments, without renumbering them.
 #'
-#' The code below outputs a comprehensive list of valid values for `angle_width`.
-#' For convenience, the column `radians_denom` can be used to provide
-#' `angle_width` as `180 / radians_denom_i`, where `radians_denom_i` is a value
-#' taken from `radians_denom`.
+#' IDs encode both components as `sectorID * 1000 + ringID`. Ring and sector
+#' IDs start at 1. Intervals include their upper boundary, and the first
+#' interval on each axis also includes zero. See [ring_segmentation()] and
+#' [sector_segmentation()].
 #'
-#' ```
-#' df <- data.frame(degrees = 90 / 1:180)
+#' A cell receives zero if either required angle is missing or its zenith
+#' angle exceeds 90 deg. When `first_ring_different = TRUE`, the entire first
+#' ring receives ID 1000 and does not require azimuth. This includes a
+#' direction exactly at zenith, whose azimuth is undefined.
 #'
-#' deg_to_pi_expr <- function(deg) {
-#'   frac <- MASS::fractions(deg / 180)
-#'   strsplit(as.character(frac), "/")[[1]][2] %>% as.numeric()
-#' }
+#' With the default subdivision, [sky_grid_centers()] supplies the angular
+#' midpoint of each grid cell in radians, independently of image coverage.
 #'
-#' df$radians_denom <- sapply(df$degrees, function(deg) deg_to_pi_expr(deg))
-#'
-#' z <- zenith_image(10, equidistant_coef)
-#' a <- azimuth_image(z)
-#' u <- c()
-#' for (i in 1:nrow(df)) {
-#'   u <- c(u, tryCatch(is((sky_grid_segmentation(z, a,
-#'                             180/df$radians_denom[i])), "SpatRaster"),
-#'                      error = function(e) FALSE))
-#' }
-#' df <- df[u, ]
-#' df
-#' ```
-#'
-#' @param angle_width numeric vector of length one. Angle in deg that must
-#'   divide both 0–360 and 0–90 into an integer number of segments. Retrieve a
-#'   set of valid values by running
-#'   `lapply(c(45, 30, 18, 10), function(a) vapply(0:6, function(x) a/2^x, 1))`.
-#' @param first_ring_different logical vector of length one. If `TRUE`, do not
-#'   subdivide the first ring.
-#'
-#' @return Single-layer [terra::SpatRaster-class] with integer labels. The
+#' @return Single-layer [terra::SpatRaster-class] on the same grid as `d`,
+#'   with integer segment labels and zero outside the segmentation. The
 #'   object carries attributes `angle_width` and `first_ring_different`.
-#'
-#' @inheritParams add_directions
-#'
-#' @seealso [equal_area_segmentation()]
-#'
+#' @seealso [sky_grid_centers()], [beckers_segmentation()]
 #' @export
-#'
 #' @examples
-#' z <- zenith_image(1000, equidistant_coef)
-#' a <- azimuth_image(z)
-#' g <- sky_grid_segmentation(z, a, 15)
-#' plot(g == 24005)
-sky_grid_segmentation <- function(z, a, angle_width,
+#' geometry <- list(
+#'   model = "radial_projection",
+#'   parameters = equidistant_coef,
+#'   center_of_vision = c(40, 30),
+#'   normalization_radius = 30,
+#'   normalization_angle = 90
+#' )
+#' g <- set_internal_geometry(c(80, 60), geometry)
+#' d <- direction_image(g, elevation = 32.5)
+#' seg <- sky_grid_segmentation(d, 15)
+#' plot(seg)
+#' centers <- sky_grid_centers(15)
+sky_grid_segmentation <- function(d, angle_width,
                                   first_ring_different = FALSE) {
-  .assert_zenith_image(z)
-  .assert_azimuth_image(a)
-  .assert_same_geom(z, a)
-  .check_vector(angle_width, "numeric", 1, sign = "positive")
   .check_vector(first_ring_different, "logical", 1)
-
-  fun <- function(s, r) s * 1000 + r
-  g <- fun(sector_segmentation(a, angle_width),
-           ring_segmentation(z, angle_width))
-
-  if (first_ring_different) {
-    for (i in seq(1, 360/angle_width)*1000 + 1) {
-      g[g == i] <- 1000
-    }
+  n <- .sky_interval_count(angle_width, 90)
+  if (n >= 1000) {
+    stop("The sky-grid label encoding requires fewer than 1000 rings.",
+         call. = FALSE)
   }
-
+  rings <- ring_segmentation(d, angle_width)
+  sectors <- sector_segmentation(d, angle_width)
+  g <- sectors * 1000 + rings
+  g[rings == 0 | sectors == 0] <- 0
+  if (first_ring_different) g[rings == 1] <- 1000
   names(g) <- paste0("Sky grid, ", angle_width, " degrees")
   attr(g, "angle_width") <- angle_width
   attr(g, "first_ring_different") <- first_ring_different

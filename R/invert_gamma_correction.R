@@ -28,26 +28,12 @@
 #'
 #' @export
 #'
+#' @seealso [thr_mblt()]
+#'
 #' @references \insertAllCited{}
 #'
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/iPhone6plus.Olloclip_jpeg.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry,  "exif_jpeg", "simple_method_rescaled")
-#'
-#' path <- system.file("external/APC_0836.jpg", package = "rcaiman")
-#' caim <- read_caim(path)
-#' z <- zenith_image(spec$horizon_radius * 2,  spec$parameters)
-#' a <- azimuth_image(z)
-#' caim <- expand_non_circular(caim, z, spec$snapped_zenith_coord)
-#' m <- !is.na(caim$Red) & !is.na(z)
-#' caim[!m] <- 0
-#' plot(caim$Blue)
-#' caim <- invert_gamma_correction(caim, 2.2)
-#' plot(caim$Blue)
-#' }
+#'  invert_gamma_correction(125)
 invert_gamma_correction <- function(dn, gamma = 2.2) {
   .check_vector(gamma, "numeric", 1, sign = "positive")
   handling_dn <- c(

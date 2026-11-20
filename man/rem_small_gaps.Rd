@@ -4,65 +4,44 @@
 \alias{rem_small_gaps}
 \title{Remove small gaps}
 \usage{
-rem_small_gaps(bin, size = 9, method = "pixel-based")
+rem_small_gaps(bin, size = 9)
 }
 \arguments{
-\item{bin}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binarized
-hemispherical image. See \code{\link[=binarize_with_thr]{binarize_with_thr()}} for details.}
+\item{bin}{logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.}
 
-\item{size}{numeric vector of length one. See \emph{Details}.}
-
-\item{method}{character vector of length one. See \emph{Details}.}
+\item{size}{positive odd integer of length one. Width and height of the
+diamond's bounding square, in pixels.}
 }
 \value{
-Logical \link[terra:SpatRaster-class]{terra::SpatRaster} with the same dimensions as \code{bin}.
+Logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as \code{bin}.
 }
 \description{
-Remove patches of connected \code{TRUE} pixels based on a white top-hat pixel-based
-morphological filter or an object-based fixed area/size threshold.
+Remove small canopy gaps by applying a binary morphological opening with a
+diamond-shaped structuring element. The operation can also remove narrow
+parts and protrusions from larger gaps.
 }
 \details{
-Methods provided:
-\describe{
-\item{pixel-based:}{Internally runs \code{\link[EBImage:morphology]{EBImage::whiteTopHat()}} with a kernel
-of size equal to \code{size} and diamond shape.}
-\item{object-based:}{
-Patches of connected \code{TRUE} pixes (canopy gaps) are turn \code{FALSE} if they are
-rounded but too small, or if they are of a shape and size unlikely for a
-real canopy gap. The function internally uses \emph{EBImage} for calculates the
-area (\eqn{A}) and radii standard deviation (\eqn{\text{SD}_r}) of canopy gaps. While \eqn{A}
-is simply the total number of pixels of the segment, \eqn{\text{SD}_r} is the standard
-deviation of the Euclidean distance between the gap center and the pixels
-that are in the gap contour. The center is computed as the average of the
-coordinates of the contour pixels. The effective circular area equation is
-\eqn{\text{ECA} = A / SD_r}, providing a size metric that accounts for deviations from
-circularity. With this method, argument \code{size} is a threshold of ECA for
-recognizing small gaps.
-}
-}
+Opening is an erosion followed by a dilation with the same structuring
+element. Both steps use \code{\link[terra:focal]{terra::focal()}} on the pixel grid. The diamond
+includes offsets whose absolute row and column displacements sum to at most
+\code{(size - 1) / 2} pixels.
+
+At image edges, only pixels within the image participate. Outside positions
+are neutral: TRUE for erosion and FALSE for dilation. The output retains
+the original grid, including when the structuring element exceeds the image
+dimensions. With \code{size = 1}, the input is returned unchanged.
+
+For selection of whole components by size or shape, use \code{\link[=label_components]{label_components()}}
+and the descriptors provided by \code{\link[=compute_features]{compute_features()}}.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
-r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-thr <- apply_by_direction(r, z, a, m)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-bin <- rem_small_gaps(bin, 5, method = "pixel-based")
-plot(bin)
-bin <- rem_small_gaps(bin, 11, method = "object-based")
-plot(bin)
+bin <- set_rcaiman_geometry(terra::rast(nrows = 12, ncols = 16))
+bin[] <- FALSE
+bin[3:10, 7:14] <- TRUE
+bin[3, 3] <- TRUE
+cleaned <- rem_small_gaps(bin, size = 3)
+plot(c(bin, cleaned))
 }
+\seealso{
+\code{\link[=distance_to_black]{distance_to_black()}}, \code{\link[=rem_isolated_black_pixels]{rem_isolated_black_pixels()}}
 }

@@ -106,27 +106,13 @@
 #'
 #' @export
 #' @examples
-#' \dontrun{
-#' require(rcaiman.registry)
-#' path <- system.file("external/Nikon_Coolpix5700.FCE9_jpeg.yaml", package = "rcaiman")
-#' my_entry <- read_registry_snapshot(path)
-#' spec <- get_geometry_spec(my_entry, "exif_jpeg", "delta_t")
 #' path <- system.file("external/DSCN4500.JPG", package = "rcaiman")
-#' caim <- read_caim(path, zenith_col_row = spec$zenith_col_row ,
-#'                   horizon_radius = spec$horizon_radius)
-#' z <- zenith_image(ncol(caim), spec$parameters)
-#' rspec <- get_radiometry_spec(spec, "wagner2001_method")
-#' ff <- ff_simple_polynomial(z, rspec$parameters$`0`)
-#' r <- apply_flat_field(caim$Blue, ff)
-#' r <- caim$Blue
-#' plot(r)
+#' r <- read_caim(path, fill_na = "none")$Blue
+#' r <- crop_caim(r, c(600, 800), 200, 200)
 #'
-#' thr <- thr_nbhu(r, support_weight = 0)
-#' plot(binarize_with_thr(r, thr)) #it fails because of the strong gradient in the sky
-#'
-#' thr2 <- thr_nbhu(r, support_weight = 1)
-#' plot(binarize_with_thr(r, thr2)) #OK
-#' }
+#' thr <- thr_nbhu(r)
+#' plot(binarize_with_thr(r, thr))
+#' # See apply_by_direction() for thresholds in angular windows.
 thr_nbhu <- function(
     r,
     min_thresh = 1,

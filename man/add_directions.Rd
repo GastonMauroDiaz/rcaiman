@@ -2,47 +2,77 @@
 % Please edit documentation in R/add_directions.R
 \name{add_directions}
 \alias{add_directions}
-\title{Add angular directions to the data frame}
+\title{Add viewing directions to sampling indices}
 \usage{
-add_directions(sampling_indices, z, a)
+add_directions(sampling_indices, g = NULL, d = NULL)
 }
 \arguments{
-\item{sampling_indices}{\code{data.frame} with columns \code{"col"} and \code{"row"},
-representing cell indices numbered from 1. It may contain additional
-columns.}
+\item{sampling_indices}{data frame with positive integer-like columns
+\code{col} and \code{row}, numbered from 1. Additional columns are preserved.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{g}{optional \link[terra:SpatRaster-class]{terra::SpatRaster} from
+\code{\link[=set_internal_geometry]{set_internal_geometry()}}, with layers \code{off_axis} and \code{internal_azimuth}
+in degrees, in that order.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{d}{optional \link[terra:SpatRaster-class]{terra::SpatRaster} from \code{\link[=direction_image]{direction_image()}}, with
+layers \code{zenith} and \code{azimuth} in degrees, in that order. At least one of
+\code{g} and \code{d} must be supplied. When both are supplied,
+they must share the same grid.}
 }
 \value{
-\code{data.frame} equal to \code{sampling_indices} with added columns \code{"zen"}
-(zenith angle, radians) and \code{"azi"} (azimuth angle, radians).
+data frame containing the original rows and columns, with
+\code{off_axis} and \code{internal_azimuth} when internal geometry is supplied,
+and \code{zenith} and \code{azimuth} when external geometry is supplied.
+All added angles are in radians. Row order and repeated indices are
+preserved.
 }
 \description{
-Enrich a data frame containing cell indices (\code{"col"}, \code{"row"}) with zenith
-and azimuth angles (\code{"zen"}, \code{"azi"}) corresponding to those cells,
-preserving any additional columns.
+Add internal or external viewing directions in radians to a table of cell
+indices.
 }
 \details{
-In \pkg{rcaiman}, a direction refers to a viewing direction defined
-by zenith and azimuth angles in radians. These angles describe the
-orientation of a unit vector ray originating at the camera.
+Directions are read from the indexed cells without interpolation or local
+averaging. The rasters store degrees for visual inspection; this function
+converts the extracted angles to radians for numerical analysis.
 
-Cell indices are passed to \code{\link[=extract_dn]{extract_dn()}} for direct lookup in \code{z} and \code{a}.
+Supply either geometry or both. Internal and external directions can also
+be added in successive calls. Existing columns are preserved; columns that
+would be added must not already exist.
+
+The function stops when a requested direction is missing, including cells
+outside the raster. Use \code{\link[=rem_unselected]{rem_unselected()}} to select points before adding
+directions. At zenith and nadir, external azimuth may be \code{NA} because the
+direction is defined by its zenith angle alone. This \code{NA} is retained. Filtering
+with \code{!is.na(d$zenith)} preserves these vertical directions.
 }
 \note{
-This function assumes that \code{z}, \code{a}, and \code{sampling_indices} are tied
-to the same underlying raster geometry.
+Use \code{add_directions()} when observations refer to image cells: the raster
+supplies the direction stored at each selected cell center. If continuous
+coordinates are first converted to indices, different positions within the
+same cell receive the same direction.
 
-If any extracted zenith value is \code{NA}, the function stops with an error.
+Use \code{\link[=internal_directions_from_coord]{internal_directions_from_coord()}} to evaluate the geometry model directly at
+continuous \code{x} and \code{y_down} positions, preserving subpixel differences and
+avoiding the construction of a raster. It returns internal directions only.
 }
 \examples{
-z <- zenith_image(10, equidistant_coef)
-a <- azimuth_image(z)
-sampling_indices <- data.frame(
-  col = c(5, 6, 8),
-  row = c(5, 5, 6)
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(5, 3),
+  normalization_radius = 3,
+  normalization_angle = 90
 )
-add_directions(sampling_indices, z, a)
+g <- set_internal_geometry(c(10, 6), geometry)
+d <- direction_image(g, elevation = 32.5)
+sampling_indices <- data.frame(col = c(1, 5, 6, 7), row = c(1, 3, 3, 4))
+m <- !is.na(g$off_axis) & !is.na(g$internal_azimuth)
+sampling_indices <- rem_unselected(sampling_indices, m)
+points <- add_directions(sampling_indices, g = g)
+points <- add_directions(points, d = d)
+points
+}
+\seealso{
+\code{\link[=internal_directions_from_coord]{internal_directions_from_coord()}}, \code{\link[=rem_unselected]{rem_unselected()}}, \code{\link[=extract_dn]{extract_dn()}},
+\code{\link[=indices_from_coord]{indices_from_coord()}}
 }

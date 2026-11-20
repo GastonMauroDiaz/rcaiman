@@ -4,57 +4,181 @@
 \alias{validate_cie_model}
 \title{Validate CIE sky models}
 \usage{
-validate_cie_model(model, k = 10)
+validate_cie_model(
+  model,
+  k = 10,
+  fold_id = NULL,
+  custom_sky_coef = NULL,
+  std_sky_no = NULL,
+  general_sky_type = NULL,
+  method = "Nelder-Mead",
+  parallel = FALSE,
+  cores = NULL,
+  logical = TRUE,
+  leave_free = 1,
+  laxity = 3
+)
 }
 \arguments{
-\item{model}{list. Output of \code{\link[=fit_cie_model]{fit_cie_model()}}.}
+\item{model}{list returned by \code{\link[=fit_cie_model]{fit_cie_model()}} or \code{\link[=optimize_sun_angles]{optimize_sun_angles()}}.
+Its \code{relative_radiance} and \code{sun_angles} supply the observations and fixed
+references. Sky directions use \code{zenith} and \code{azimuth} in radians; pixel
+indices are not required.}
 
-\item{k}{numeric vector of length one. Number of folds.}
+\item{k}{integer of length one. Number of folds, from 2 to the number of
+observations. Ignored when \code{fold_id} is supplied.}
+
+\item{fold_id}{optional positive integer vector, one value per original
+sky-point row. Rows sharing an identifier are withheld together. At least
+two identifiers are required; they need not be consecutive.}
+
+\item{custom_sky_coef}{finite numeric vector of length five or nonempty numeric
+matrix with five columns, in the order \code{a}, \code{b}, \code{c}, \code{d}, \code{e}. Custom starting
+coefficients, used instead of standard skies. Do not combine with standard
+sky selectors.}
+
+\item{std_sky_no}{integer vector with standard sky numbers from 1 to 15; see
+\link{cie_table}. Takes precedence over \code{general_sky_type}. With neither selector,
+all standard skies are used.}
+
+\item{general_sky_type}{character vector of length one or two, containing
+\code{"Overcast"}, \code{"Partly cloudy"}, or \code{"Clear"}. Selects initial skies from
+either supplied type in \link{cie_table}, for example
+\code{c("Overcast", "Partly cloudy")} when the type is uncertain. Does not
+constrain the optimized coefficients to those types. With \code{NULL} and
+no \code{std_sky_no}, all standard skies are used.}
+
+\item{method}{character vector of optimization methods passed to \code{\link[stats:optim]{stats::optim()}}.
+Supports \code{"Nelder-Mead"}, \code{"BFGS"}, \code{"CG"}, \code{"SANN"}, and \code{"L-BFGS-B"}.}
+
+\item{parallel}{logical of length one. If \code{TRUE}, distribute optimization
+attempts among worker processes. With \code{FALSE} (default), run attempts
+sequentially. SANN uses an isolated process even in sequential mode; see
+\emph{Details}. The number of workers is capped at the number of attempts.}
+
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
+
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
+
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
+
+\item{laxity}{optional positive numeric vector of length one. Multiplier of
+the scaled MAD used to flag validation residuals. Default is \code{3}; larger
+values retain more observations. Use \code{NULL} to evaluate all observations.}
 }
 \value{
-A list with:
+Plain list with:
 \describe{
-\item{lm}{An object of class \code{lm} (see \code{\link[stats:lm]{stats::lm()}}) for predicted vs. observed.}
-\item{pred}{Numeric vector of predicted relative radiance used in \code{lm}.}
-\item{obs}{Numeric vector of observed relative radiance used in \code{lm}.}
-\item{r_squared}{Coefficient of determination (\eqn{R^2}).}
-\item{rmse}{Root mean squared error (RMSE).}
-\item{mae}{Median absolute error (MAE).}
-\item{is_outlier}{Logical vector marking outliers (MAD > 3) in the original sky-point set.}
-\item{metric}{Numeric value. Mean squared deviation as in \insertCite{Gauch2003;textual}{rcaiman}.}
+\item{lm}{Observations regressed on predictions, as an \code{\link[stats:lm]{stats::lm()}} object.}
+\item{pred, obs}{Predicted and observed relative radiance, respectively,
+in the original sky-point row order. Predictions are from held-out folds.}
+\item{r_squared}{Regression R-squared, or \code{NA} if predictions or observations
+used for evaluation are constant.}
+\item{rmse}{Root mean squared error.}
+\item{mae, medae}{Mean and median absolute error, respectively.}
+\item{is_outlier}{Logical vector in original row order. Flagged rows are
+excluded from the regression and summary metrics, but retained in
+\code{pred} and \code{obs}.}
+\item{metric}{Mean squared deviation (MSD).}
+\item{components}{Named vector with \code{SB}, \code{NU}, and \code{LC}; see \code{\link[=calc_msd]{calc_msd()}}.}
+\item{fold_id}{Fold assignment of each original row.}
+\item{fold_models}{Fitted models, named by fold identifier and ordered by
+its first occurrence in \code{fold_id}. Each model contains its training
+observations, coefficients, and fitting diagnostics.}
 }
 }
 \description{
-Validate CIE sky models fitted with \code{\link[=fit_cie_model]{fit_cie_model()}}
-using k-fold cross-validation on relative radiance.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Evaluate CIE sky coefficients by k-fold cross-validation of relative
+radiance, keeping the supplied solar direction and zenith reference fixed.
 }
 \details{
-Validation uses k-fold cross-validation with \code{k = 10} by default
-\insertCite{Kohavi1995}{rcaiman}. For each fold, predictions are
-compared against observed relative radiance and a simple linear regression
-of predicted vs. observed is fitted, following
-\insertCite{Pineiro2008;textual}{rcaiman}. Outliers are detected with a
-median–MAD rule (see \code{\link[=rem_outliers]{rem_outliers()}}) using a threshold of 3
-and removed before fitting the regression.
+Each fold is predicted by a model fitted without its observations
+\insertCite{Kohavi1995}{rcaiman}. The solar direction and \code{zenith_dn} are
+taken from \code{model} and kept fixed in every fit. If the original fit optimized
+the zenith reference, its resulting value is used. This evaluates coefficient
+fitting conditional on those two decisions, not the complete procedure used
+to estimate the solar direction, reference, or sky samples.
+
+By default, rows are assigned successively to folds \verb{1, 2, ..., k}, repeating
+until every row has an assignment. No shuffling is performed. The original
+row order therefore determines which observations are withheld together.
+Supply \code{fold_id} to use spatial groups or a randomized partition defined in
+the calling script. Interleaved and spatially separated folds test different
+sampling situations; neither compensates for unobserved parts of the sky.
+
+The initial skies and optimization methods are supplied explicitly, rather
+than recovered from the winning model. By default, every standard sky is
+tried with \code{"Nelder-Mead"}. Use the same fitting controls as in the original
+analysis when evaluating that procedure. The coefficients learned from the
+full sample are not used as starting values. Custom starts should likewise
+be chosen independently of the withheld observations.
+
+Each fit retains the initial-model fallback of \code{\link[=fit_cie_model]{fit_cie_model()}}. A failure
+to obtain a usable fold model, or non-finite predictions for withheld rows,
+stops validation and identifies that fold. With \code{parallel = TRUE}, fitting
+attempts within a fold run in parallel; folds are processed sequentially.
+Only \code{"SANN"} uses randomness; set a seed in the calling script if needed.
+
+Residuals are observed minus predicted relative radiance. For evaluation,
+\code{\link[=is_outlier]{is_outlier()}} flags residuals more than \code{laxity} scaled MAD from their
+median, using \code{\link[stats:mad]{stats::mad()}} with its default scaling constant. This allows
+large departures, such as cloud features to be represented by interpolation,
+to be excluded from the regression and summary metrics. This filtering does
+not change the samples used to fit each fold. With zero MAD or \code{laxity = NULL},
+no observations are flagged. All predictions and observations are returned
+in their original order, including those flagged by \code{is_outlier}.
+
+The regression uses observations as the response and predictions as the
+explanatory variable, following \insertCite{Pineiro2008;textual}{rcaiman}.
+MSD and its components are calculated with \code{\link[=calc_msd]{calc_msd()}}. R-squared describes
+association, whereas MSD and the absolute-error measures compare predictions
+directly with observations, without correcting their slope or intercept.
 }
 \examples{
-\dontrun{
-caim <- read_caim()
-z <- zenith_image(ncol(caim), lens())
-a <- azimuth_image(z)
-path <- system.file("external/sky_points.csv", package = "rcaiman")
-sky_points <- read.csv(path)[c("Y", "X")]
-names(sky_points) <- c("row", "col")
-rr <- extract_rr(caim$Blue, z, a, sky_points)
+geometry <- list(model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g)
+sun_angles <- data.frame(zenith = pi/4, azimuth = .3)
+sky_coef <- as.numeric(cie_table[4, 1:5])
+r <- cie_image(d, sun_angles, sky_coef) * 1000
+names(r) <- "Blue"
+sampling_indices <- expand.grid(col = seq(15, 65, 5), row = seq(5, 55, 5))
+sampling_indices <- rem_unselected(sampling_indices, !is.na(r))
+samples <- extract_dn(r, sampling_indices, use_window = FALSE)
+samples <- add_directions(samples, d = d)
+rr <- calc_relative_radiance(samples, "Blue", zenith_dn = 1000)
+fit <- fit_cie_model(rr, sun_angles, std_sky_no = c(3, 4),
+  method = "Nelder-Mead")
+validation <- validate_cie_model(fit, k = 3, std_sky_no = c(3, 4))
+validation$rmse
+plot(validation$pred, validation$obs,
+  xlab = "Predicted relative radiance", ylab = "Observed relative radiance")
+abline(0, 1)
 
-set.seed(7)
-model <- fit_cie_model(rr, sun_angles = c(z = 49.5, a = 27.4),
-                       general_sky_type = "Clear", method = "CG")
-val <- validate_cie_model(model, k = 10)
-val$r_squared
-val$rmse
+\dontrun{
+# Withhold azimuth sectors together instead of interleaving individual rows.
+folds <- floor(fit$relative_radiance$sky_points$azimuth / (pi/2)) + 1L
+validation <- validate_cie_model(fit, fold_id = folds,
+  std_sky_no = c(3, 4), method = "Nelder-Mead")
+validation$components
+validation$fold_models[[1]]$attempts
 }
 }
 \references{
 \insertAllCited{}
+}
+\seealso{
+\code{\link[=fit_cie_model]{fit_cie_model()}}, \code{\link[=calc_msd]{calc_msd()}}
 }

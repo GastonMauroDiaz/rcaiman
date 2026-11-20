@@ -4,58 +4,94 @@
 \alias{assess_sampling_uniformity}
 \title{Assess sampling uniformity}
 \usage{
-assess_sampling_uniformity(sampling_points, equal_area_seg)
+assess_sampling_uniformity(sampling_indices, seg, w, m = NULL)
 }
 \arguments{
-\item{equal_area_seg}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with
-\code{\link[=equal_area_segmentation]{equal_area_segmentation()}}.}
+\item{sampling_indices}{\code{data.frame} with positive integer-like \code{col} and
+\code{row} columns on the grid of \code{seg}. Every row must select a pixel within
+the reference domain. Other columns are ignored. Use \code{\link[=rem_unselected]{rem_unselected()}}
+to filter indices beforehand when needed.}
+
+\item{seg}{single-layer \link[terra:SpatRaster-class]{terra::SpatRaster} of nonnegative integer-like
+labels. Positive labels identify segments; zero and \code{NA} are excluded.
+IDs need not be consecutive. No constructor-specific attributes are needed.}
+
+\item{w}{single-layer numeric \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as
+\code{seg}, with nonnegative finite solid-angle weights, for example from
+\code{\link[=area_weight_image]{area_weight_image()}}. Relative weights are sufficient. Missing and zero
+weights are excluded. The reference must contain positive weight.}
+
+\item{m}{optional single-layer logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster}
+on the same grid as \code{seg}. \code{TRUE} retains directions in the reference
+domain. With \code{NULL}, all positive labels with positive weights are used.
+This is a restriction of the domain to reconstruct, not a sky-gap mask.}
 }
 \value{
-List with two components:
-\describe{
-\item{\code{kl}}{numeric value. Kullback–Leibler divergence from uniformity.}
-\item{\code{coverage}}{numeric value in \eqn{[0,1]}. Fraction of cells with at
-least one point.}
-}
+List with \code{kl}, the Kullback--Leibler divergence from angular-area
+proportions, and \code{coverage}, the fraction of reference area in segments
+receiving at least one sample. With no samples, \code{kl} is \code{NA} and coverage
+is zero.
 }
 \description{
-Quantify how a set of sky sampling points covers an equal-area hemispherical
-segmentation using (i) Kullback–Leibler divergence from a uniform
-distribution and (ii) the fraction of cells receiving at
-least one point, hereafter referred to as coverage.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Quantify the distribution of sky samples within a segmented field of view
+using Kullback--Leibler divergence and angular-area coverage.
 }
 \details{
-Points are projected onto an equal-area segmentation (\code{equal_area_seg}), and
-cell-wise counts are computed.
+The reference domain is the field of view of the oriented acquisition,
+represented by positive labels in \code{seg} with positive, available \code{w} values.
+An optional \code{m} further restricts this domain. For sky reconstruction, use
+a segmentation of external directions, such as \code{\link[=beckers_segmentation]{beckers_segmentation()}} or
+\code{\link[=healpix_segmentation]{healpix_segmentation()}}, which exclude directions below the horizon.
 
-Let be \eqn{N_{\text{points}}} the total number of points, \eqn{N_{\text{cells}}}
-the total number of cells, and \eqn{c_i} the point count in cell \eqn{i}
-(\eqn{i = 1,\dots,N_{\text{cells}}}). The empirical distribution for cell
-\eqn{i} is:
+The sky gaps supply samples within this domain; they do not define it.
+Keep \code{seg}, \code{w}, and \code{m} fixed when comparing sampling alternatives. In
+particular, do not use each candidate sky mask as \code{m}: regions obscured by
+vegetation still belong to the domain to be reconstructed.
 
-\deqn{p_i = \frac{c_i}{N_{\text{points}}}, \quad \text{with} \quad
-  \sum_{i=1}^{N_{\text{cells}}} p_i = 1.}
+For each segment, sum the pixel weights within the reference domain to obtain
+its relative angular area \eqn{A_i}. Let \eqn{c_i} be its number of samples.
+The empirical and reference proportions are
+\deqn{p_i = c_i / \sum_j c_j, \qquad q_i = A_i / \sum_j A_j.}
+Each sampling row contributes one count, including repeated indices. Weights
+describe the reference areas; they do not weight the sample counts.
 
-The uniform reference is \deqn{u_i = 1 / N_{\text{cells}}.}
-
-Kullback–Leibler divergence is computed excluding zero-probability terms:
-\deqn{\mathrm{KL}(p\|u) = \sum_{i: p_i > 0}^{N_{\text{cells}}} p_i \cdot \log(p_i \cdot N_{\text{cells}}).}
-
-Coverage is defined as:
-\deqn{\text{coverage} = \frac{\text{Count}(\{i : c_i > 0\})}{N_{\text{cells}}}.}
+Kullback--Leibler divergence is
+\deqn{\mathrm{KL}(p\|q) = \sum_{i:p_i>0} p_i \log(p_i/q_i).}
+Coverage is the proportion of reference area in segments receiving samples:
+\deqn{\mathrm{coverage} = \sum_{i:c_i>0} q_i.}
+Thus, coverage depends on segmentation resolution; it is not the area of
+the sampled pixels themselves. When reference segments have equal areas,
+these expressions reduce to equal expected counts and a fraction of cells.
+}
+\note{
+Equal-area constructors define equal complete cells, but the FOV, horizon,
+or a deliberate restriction can cut those cells. Summing \code{w} accounts for
+their represented portions, including rasterization. Unobserved cells are
+not part of the reference. A represented segment without samples remains
+part of it. Compare alternatives using the same domain and segmentation;
+the measures do not guarantee the accuracy of a subsequent sky model.
 }
 \examples{
-\dontrun{
-z <- zenith_image(1000, equidistant_coef)
-a <- azimuth_image(z)
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(40, 30),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(80, 60), geometry)
+d <- direction_image(g, elevation = 32.5)
+w <- area_weight_image(g, geometry)
+seg <- beckers_segmentation(d, 20)
+# Alternatively: seg <- healpix_segmentation(d, nside = 2)
+sampling_indices <- expand.grid(col = seq(1, 80, 4), row = seq(1, 60, 4))
+sampling_indices <- rem_unselected(sampling_indices, seg > 0)
+assess_sampling_uniformity(sampling_indices, seg, w)
 
-row <- col <- sample(1:1000, 100)
-pts <- data.frame(row, col)
-i <- !is.na(extract_dn(z, pts)[,3])
-pts <- add_directions(pts[i,], z, a)
-
-seg <- equal_area_segmentation(z, a, 200)
-
-assess_sampling_uniformity(pts, seg)
-}
+# Restrict the reconstruction domain, keeping it fixed across comparisons.
+m <- !is.na(d$zenith) & d$zenith <= 70
+sampling_indices <- rem_unselected(sampling_indices, m)
+assess_sampling_uniformity(sampling_indices, seg, w, m)
 }

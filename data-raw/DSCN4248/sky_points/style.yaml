@@ -1,0 +1,8 @@
+schema_version: 1
+layer: point
+color: #ff00ff
+size: 10
+symbol: cross
+label:
+  field: none
+  label_size: 10

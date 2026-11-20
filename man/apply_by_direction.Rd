@@ -2,196 +2,293 @@
 % Please edit documentation in R/apply_by_direction.R
 \name{apply_by_direction}
 \alias{apply_by_direction}
-\title{Apply methods by direction using a constant field of view}
+\title{Apply methods within angular windows}
 \usage{
 apply_by_direction(
   r,
-  z,
-  a,
+  g,
+  query_directions,
   m,
-  spacing = 20,
-  laxity = 2.5,
+  fun,
+  w = NULL,
   fov = 40,
-  method = "vector",
-  fun = thr_isodata
+  laxity = 2.5,
+  method = "vector"
 )
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} of one layer.}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. Missing image
+values do not supply samples.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{g}{\link[terra:SpatRaster-class]{terra::SpatRaster} from
+\code{\link[=set_internal_geometry]{set_internal_geometry()}}, with layers \code{off_axis} and \code{internal_azimuth}
+in degrees, on the same grid as \code{r}.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{query_directions}{data frame with \code{off_axis} and \code{internal_azimuth}
+in radians, following \code{\link[=add_directions]{add_directions()}}. Each row is the center of an
+angular window. For example, use \code{\link[=fibonacci_directions]{fibonacci_directions()}} to generate them.}
 
-\item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
-\code{TRUE} for selected pixels.}
+\item{m}{logical, NA-free \link[terra:SpatRaster-class]{terra::SpatRaster} on the same grid as \code{r}.
+Only pixels selected by this mask supply samples and receive estimates.}
 
-\item{spacing}{numeric vector of length one. Angular spacing (in degrees)
-between directions to process.}
+\item{fun}{function computing one or more estimates. With \code{method = "vector"},
+it receives values and their corresponding weights as \verb{function(x, w)}.
+With \code{method = "single_layer_image"}, it receives a local image, a logical
+mask, and a weight raster on the same local grid, as \verb{function(r, m, w)}.
+Return a numeric scalar or vector, optionally named. Use \code{NA} for an
+unavailable estimate, or \code{NULL} to skip the window.}
 
-\item{laxity}{numeric vector of length one. Positive multiplier applied to
-MAD to set classification thresholds. Default is \code{2}.}
+\item{w}{optional single-layer raster of nonnegative, finite weights, or
+\code{NA}, on the same grid as \code{r}. For solid-angle weights, use
+\code{\link[=area_weight_image]{area_weight_image()}}. Missing weights exclude the corresponding pixels;
+zero weights are passed to \code{fun}. With \code{NULL}, every supplied pixel has
+weight one.}
 
-\item{fov}{numeric vector of length one. Field of view in degrees.}
+\item{fov}{positive numeric vector of length one, at most 360. Angular
+diameter of each window, in degrees. Its search radius is \code{fov / 2}.}
 
-\item{method}{character vector of length one. Evaluation framework used to
-apply \code{fun}. Must be \code{"vector"} or \code{"single_layer_image"}.}
+\item{laxity}{positive numeric vector of length one. Maximum deviation from
+the median, in scaled median absolute deviations, retained when combining
+estimates. Defaults to 2.5.}
 
-\item{fun}{function used to compute one or more directional estimators.
-For \code{method = "vector"}, the expected signature is \verb{function(x)}; for
-\code{method = "single_layer_image"}, \verb{function(r, m)}.}
+\item{method}{character vector of length one. Either \code{"vector"} or
+\code{"single_layer_image"}.}
 }
 \value{
-Numeric \link[terra:SpatRaster-class]{terra::SpatRaster}.
-
-Output layers correspond to the directional estimators returned by \code{fun}.
-An additional layer named \code{"n"} contains the number of valid directional
-estimates contributing to each pixel.
+A numeric \link[terra:SpatRaster-class]{terra::SpatRaster} on the grid of \code{r}. Estimate
+layers retain the order of the first result, followed by count layers.
+A single estimator has a count layer named \code{n}; multiple estimators each
+have a count layer named \verb{n_<estimator>}. Estimator names must not collide
+with count names. Pixels without estimates have \code{NA} values and zero
+counts, except that counts remain positive if MAD filtering rejects all
+their contributions. If no window returns a result defining the output
+variables, the output contains \code{v1} filled with \code{NA} and \code{n} with zeros.
 }
 \description{
-Apply methods to each set of pixels defined by a direction and a constant
-field of view (FOV).
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+
+Evaluate a function within overlapping angular windows and combine their
+estimates on the original image grid.
 }
 \details{
-Neighboring pixels are selected around a set of query directions distributed
-over the hemispherical domain. For each directional neighborhood, \code{fun} is
-evaluated using either:
+Each angular window is a spherical cap (see \code{\link[=nn_spherical]{nn_spherical()}}) centered on
+its query direction, with angular radius \code{fov / 2}. Its projection onto the
+image need not be circular. The image coverage and \code{m} determine which
+pixels are available within the cap.
 
-\describe{
-\item{\code{method = "vector"}}{
-argument \code{fun} receives a numeric vector extracted from neighboring pixels.
-}
+All image pixels with values, weights, and internal directions selected by \code{m} are
+considered. \code{\link[=nn_spherical]{nn_spherical()}} finds those within \code{fov / 2} degrees of each
+query, with no limit on the number of neighbors. Missing directions are
+excluded. Query directions remain continuous: they are not snapped to image
+cells. A center outside the observed field of view can still define a window
+containing selected pixels. Empty windows are skipped without calling \code{fun}.
 
-\item{\code{method = "single_layer_image"}}{
-\code{fun} receives a temporary single-layer raster and its corresponding
-logical mask identifying valid pixels.
-}
-}
+Selection uses angular distances in the internal frame; acquisition
+orientation is not needed. Window centers and image directions must share
+that frame. Partial windows use the available pixels without extrapolation
+or a minimum coverage requirement. Weights are passed unchanged: \code{fun}
+determines whether and how to use them. The function does not multiply
+image values by weights or normalize weights within a window.
 
-The function supplied to \code{fun} must return either a single numeric value or
-a named numeric vector. When multiple values are returned, each element is
-processed independently and stored as a separate raster layer in the output.
+In vector mode, values and weights are supplied in matching image cell
+order. In image mode,
+the local raster is the smallest rectangle containing the selected pixels,
+with the image-coordinate convention of \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}. Values
+outside the window or mask are \code{NA}; the local mask selects the supplied
+pixels. The weight raster has the same \code{NA} pattern as the local image.
+The original pixel arrangement is preserved without reprojection.
 
-Multiple directional estimates may contribute to the same raster cell.
-Contributions are grouped by cell, filtered using a robust MAD-based outlier
-criterion, and averaged to obtain the final pixel value. An additional layer
-named \code{"n"} stores the number of directional estimates associated with each
-cell prior to outlier removal.
+Each estimate is assigned to every sampled pixel in its window. Where
+windows overlap, estimates are combined separately for each output variable.
+Their median and median absolute deviation (MAD, scaled by 1.4826) define
+the retained values, which are averaged. If MAD is zero, all values are
+averaged. Weights supplied through \code{w} do not change this combination.
+Counts record nonmissing contributions before filtering, not sums of weights.
 
-To calculates sphercial distances, directions are first mapped to unit
-Cartesian vectors and distances are computed as the arc-cosine of the
-dot-product. For details, see \code{\link[=calc_spherical_distance]{calc_spherical_distance()}}.
+Returned vectors must have consistent lengths and names across windows;
+unnamed elements receive names \code{v1}, \code{v2}, and so on. An unnamed scalar \code{NA},
+\code{NULL}, or an empty vector skips the whole window. A named or multivalue
+result can contain \code{NA} for individual estimators. Errors in \code{fun} stop the
+calculation with the query row number and the original error message.
 }
 \note{
 This function is part of a manuscript currently under preparation.
 }
+\section{Methods that can fail in individual windows}{
+
+A method may not produce an estimate for every angular window. To skip
+windows where the chosen method raises an error, handle that error inside
+\code{fun}. For example, extract the middle threshold from \code{\link[=thr_two_corner]{thr_two_corner()}}
+and return \code{NA} when it fails.:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{.fun <- function(x, w) \{
+  tryCatch(\{
+    h <- build_histogram(x, w, n_bins = 256)
+    peaks <- find_macfarlane_peaks(h)
+    thr_two_corner(smooth_histogram(h), peaks)$tm
+  \}, error = function(e) NA)
+\}
+thr <- apply_by_direction(
+  r,
+  g,
+  fibonacci_directions(20),
+  !is.na(g$off_axis),
+  fun = .fun,
+  w = w,
+  fov = 40
+)
+}\if{html}{\out{</div>}}
+
+Other overlapping windows can still supply estimates to those pixels.
+The layer \code{n} records the nonmissing contributions before MAD filtering.
+
+The \emph{Examples} section shows the use of fallback methods.
+}
+
 \examples{
+geometry <- list(
+  model = "radial_projection",
+  parameters = equidistant_coef,
+  center_of_vision = c(30, 20),
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+g <- set_internal_geometry(c(60, 40), geometry)
+w <- area_weight_image(g, geometry)
+r <- g$off_axis + 20
+names(r) <- "dn"
+m <- !is.na(g$off_axis)
+query_directions <- fibonacci_directions(40)
+
+estimates <- apply_by_direction(
+  r, g, query_directions, m,
+  fun = function(x, w) c(mean = mean(x), area_mean = weighted.mean(x, w)),
+  w = w,
+  method = "vector"
+)
+estimates
+local_mean <- function(r, m, w) {
+  selected <- terra::values(m, mat = FALSE)
+  weighted.mean(terra::values(r, mat = FALSE)[selected],
+                terra::values(w, mat = FALSE)[selected])
+}
+
+estimates <- apply_by_direction(
+  r, g, query_directions, m,
+  fun = local_mean,
+  w = w,
+  method = "single_layer_image"
+)
+estimates
+
 \dontrun{
 require(rcaiman.registry)
+path <- system.file("external/DSCN4248.tif", package = "rcaiman")
+metadata <- read.delim(gsub("tif", "tsv", path))
+sensor_data <- read_caim(path)
+
+# Get specs
 path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
 my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
+raw <- get_signature(my_entry, "raw")
+cygm <- get_band_spec(raw, "cygm")
+raw_geometry <- get_geometry_spec(cygm, "simple_method")
+raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
+
+# Represent image geometry
+g <- set_internal_geometry(raw$dim, raw_geometry)
+d <- direction_image(g)
+w <- area_weight_image(g, raw_geometry)
+
+# Read and preprocess the image
+caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
+caim
 r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-rspec <- get_radiometry_spec(spec, "simple_method")
-ff <- ff_simple_polynomial(z, rspec$parameters$`5.0`)
+ff <- trend_surface_image(r,
+                          raw_radiometry$parameters[[metadata$aperture]]$Cyan,
+                          m = !is.na(g$off_axis))
 r <- apply_flat_field(r, ff)
-m <- !is.na(z)
-
-thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40)
-plot(thr$v1)
-plot(thr$n)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40,
-                          method = "vector",
-                          fun = function(x) {
-                            thr_two_corner(x)$tm
-                          })
-plot(thr$v1)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-my_fun <- function(x) {
-  m <- !is.na(x)
-  autothresholdr::auto_thresh(x[m], "Otsu")[1]
-}
-nr <- normalize_min_max(r) \%>\% multiply_by(255) \%>\% round()
-my_fun(nr)
-thr <- apply_by_direction(nr, z, a, m, spacing = 10, fov = 40,
-                          method = "vector",
-                          fun = my_fun)
-plot(thr$v1)
-bin <- binarize_with_thr(r, thr$v1)
-plot(bin)
-
-# Severals at once
-my_fun <- function(x) {
-  m <- !is.na(x)
-  c(Huang = autothresholdr::auto_thresh(x[m], "Huang")[1],
-    Moments = autothresholdr::auto_thresh(x[m], "Moments")[1],
-    Otsu = autothresholdr::auto_thresh(x[m], "Otsu")[1])
-}
-nr <- normalize_min_max(r) \%>\% multiply_by(255) \%>\% round()
-thr <- apply_by_direction(nr, z, a, m, spacing = 10, fov = 40,
-                          method = "vector",
-                          fun = my_fun)
-plot(thr)
-bin <- lapply(seq(1, nlyr(thr) - 1), function(i) {
-  bin <- binarize_with_thr(r, thr[[i]])
-  names(bin) <- names(thr)[i]
-  bin
-})
-plot(rast(bin))
 
 
-# A method that requires images
-my_fun <- function(r, m, ...) {
+.fun <- function(r, m, ...) {
+  r <- normalize_min_max(r) * 255
   r[!m] <- 0
-  c(
-    sw0.1 = thr_nbhu(
-      r,
-      max(round(min(r[m])), 10),
-      round(max(r[m])),
-      support_weight = 0.1,
-      smooth_curve = TRUE
-    ),
-    sw0.2 = thr_nbhu(
-      r,
-      max(round(min(r[m])), 10),
-      round(max(r[m])),
-      support_weight = 0.2,
-      smooth_curve = TRUE
-    ),
-    sw0.3 = thr_nbhu(
-      r,
-      max(round(min(r[m])), 10),
-      round(max(r[m])),
-      support_weight = 0.3,
-      smooth_curve = TRUE
-    ),
-    sw0.4 = thr_nbhu(
-      r,
-      max(round(min(r[m])), 10),
-      round(max(r[m])),
-      support_weight = 0.4,
-      smooth_curve = TRUE
-    )
-  )
-}
-thr <- apply_by_direction(r, z, a, m, spacing = 10, fov = 40,
-                          method = "single_layer_image",
-                          fun = my_fun)
-plot(thr)
-bin <- lapply(seq(1, nlyr(thr) - 1), function(i) {
-  bin <- binarize_with_thr(r, thr[[i]])
-  names(bin) <- names(thr)[i]
-  bin
-})
-plot(rast(bin))
+  tryCatch(thr_nbhu(r,
+                    support_weight = 1,
+                    smooth_curve = TRUE, smooth_width = 7),
+           error = function(e) NA)
 
 }
+thr <- apply_by_direction(
+  r,
+  g,
+  fibonacci_directions(20),
+  !is.na(g$off_axis),
+  fun = .fun,
+  w = NULL,
+  fov = 60,
+  method = "single_layer_image"
+)
+plot(binarize_with_thr(r, thr$v1))
+
+# Weights should be used with radiometrically corrected images, otherwise
+# the link between solid angle and response will produce uncertaining results.
+
+thr <- apply_by_direction(
+  r,
+  g,
+  fibonacci_directions(20),
+  !is.na(g$off_axis),
+  fun = thr_isodata,
+  w = w,
+  fov = 60
+)
+plot(binarize_with_thr(r, thr$v1))
+
+.fun <- function(x, w) {
+  tryCatch({
+    h <- build_histogram(x, w, n_bins = 256)
+    sigma <- 0
+    repeat {
+      sigma <- sigma + 1
+      h <- smooth_histogram(h, sigma)
+      peaks <- find_histogram_peaks(h)
+      if (length(peaks) <= 2)
+        break
+    }
+    thr_two_corner(h, peaks, diagnose = FALSE)$ts
+  }, error = function(e) {
+    if (length(peaks) != 2)
+      return(NA)
+    if (which.max(h$density[peaks]) == 1) {
+      # thr <- h$mids[which.min(h$density[peaks[1]:peaks[2]])]
+      tryCatch({
+        h$density[1:which.min(h$density[peaks[1]:peaks[2]])] <- 0
+        thr_rosin(h, peaks[1], tail = "right", diagnose = FALSE)
+      }, error = function(e) NA
+      )
+    } else {
+      # thr <- h$mids[which.min(h$density[peaks[1]:peaks[2]])]
+      tryCatch({
+        thr_rosin(h, peaks[2], tail = "right", diagnose = FALSE)
+      }, error = function(e)
+        NA)
+    }
+  })
+}
+
+thr <- apply_by_direction(
+  r,
+  g,
+  fibonacci_directions(5),
+  !is.na(g$off_axis),
+  fun = .fun,
+  w = w,
+  fov = 20
+)
+plot(binarize_with_thr(r, thr$v1))
+}
+}
+\seealso{
+\code{\link[=fibonacci_directions]{fibonacci_directions()}}, \code{\link[=nn_spherical]{nn_spherical()}}, \code{\link[=binarize_with_thr]{binarize_with_thr()}}
 }

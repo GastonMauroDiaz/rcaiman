@@ -2,18 +2,22 @@
 % Please edit documentation in R/reproject_image.R
 \name{reproject_image}
 \alias{reproject_image}
-\title{Reproject hemispherical image between radial projection models}
+\title{Reproject an image to a radial destination}
 \usage{
 reproject_image(
   r,
-  z,
-  a,
-  m,
-  projection_coef,
-  diameter,
+  d,
+  dim,
+  geometry,
+  sensor_rotation = 0,
+  azimuth_rotation = 0,
+  elevation = 90,
+  m = NULL,
   k = 1,
   p = 1,
   search_radius = 10,
+  rigorous = FALSE,
+  engine = "cpp",
   parallel = TRUE,
   cores = NULL,
   logical = TRUE,
@@ -21,20 +25,37 @@ reproject_image(
 )
 }
 \arguments{
-\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster}}
+\item{r}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with one or more layers.
+Apply radiometric corrections to these original data before reprojection.}
 
-\item{z}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=zenith_image]{zenith_image()}}.}
+\item{d}{numeric \link[terra:SpatRaster-class]{terra::SpatRaster} describing the source directions,
+as returned by \code{\link[=direction_image]{direction_image()}}. Must contain uniquely named \code{zenith}
+and \code{azimuth} layers in degrees and have the same grid as \code{r}.}
 
-\item{a}{\link[terra:SpatRaster-class]{terra::SpatRaster} generated with \code{\link[=azimuth_image]{azimuth_image()}}.}
+\item{dim}{numeric vector of length two with positive integer-like values.
+Destination dimensions in the order \code{c(width, height)}.}
 
-\item{m}{logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer. A binary mask with
-\code{TRUE} for selected pixels.}
+\item{geometry}{named list following \code{\link[=set_internal_geometry]{set_internal_geometry()}}, with
+\code{model = "radial_projection"}. Describes the destination, including its
+center of vision, projection coefficients, normalization radius and angle,
+and optional \code{max_off_axis_angle} (90 deg when absent). Additional fields
+and list classes are accepted.}
 
-\item{projection_coef}{numeric vector. Polynomial coefficients defining
-the radial projection model evaluated in radians.}
+\item{sensor_rotation}{numeric vector of length one. Clockwise rotation of
+the destination sensor in degrees, using the convention of
+\code{\link[=direction_image]{direction_image()}}. Defaults to zero (landscape).}
 
-\item{diameter}{numeric vector of length one. Diameter in pixels
-expressed as an even integer.}
+\item{azimuth_rotation}{numeric vector of length one. Horizontal turn of
+the destination to the right from south, in degrees, as in
+\code{\link[=direction_image]{direction_image()}}. Defaults to zero.}
+
+\item{elevation}{numeric vector of length one. Elevation of the destination
+optical axis above the horizontal in degrees, in \verb{[-90, 90]}, as in
+\code{\link[=direction_image]{direction_image()}}. Defaults to 90 (zenith).}
+
+\item{m}{optional logical \link[terra:SpatRaster-class]{terra::SpatRaster} with one layer, no \code{NA},
+and the same grid as \code{r}. Only source cells where \code{m} is \code{TRUE} supply
+interpolation samples. If \code{NULL}, all source cells are considered.}
 
 \item{k}{numeric vector of length one. Must be positive and interpreted as
 integer. Number of nearest neighbors to retrieve.}
@@ -44,60 +65,112 @@ integer. Number of nearest neighbors to retrieve.}
 \item{search_radius}{numeric vector of length one. Maximum distance (pixels) to
 include neighbors.}
 
-\item{parallel}{logical vector of length one. If \code{TRUE}, operations are
-executed in parallel.}
+\item{rigorous}{logical vector of length one. By default (\code{FALSE}), the
+method interpolates as long as there is at least one point not farther than
+\code{search_radius}. If it is \code{TRUE}, it requires \code{k} points at range.}
 
-\item{cores}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to use when
-\code{parallel = TRUE}. If \code{NULL}, the function uses all available
-cores detected internally. Values greater than the number of available
-cores are silently reduced to the maximum allowed. If the resulting number
-of cores is less than 2, \code{parallel} is silently set to \code{FALSE}.}
+\item{engine}{character vector of length one. Interpolation engine to be
+used. Allowed choices are \code{"cpp"} (default), an in-package C++ implementation,
+or \code{"terra"}, which delegates to \code{\link[terra:interpIDW]{terra::interpIDW()}}, passing \code{k}, \code{p},
+and \code{search_radius} to \code{maxPoints}, \code{power}, and \code{radius}, respectively,
+and when \code{rigorous = TRUE}, changes from \code{minPoints = 1} (default) to
+\code{minPoints = k}. When \code{"terra"} is used, arguments \code{parallel}, \code{cores},
+\code{logical} and \code{leave_free} are ignored. Both engines use continuous input
+positions.}
 
-\item{logical}{logical vector of length one. Internally it is passed unchanged
-to the argument \code{logical} in \code{\link[parallel:detectCores]{parallel::detectCores()}}. Ignored when
-\code{parallel = FALSE}.}
+\item{parallel}{logical vector of length one. If \code{TRUE}, evaluate queries
+in parallel. Result order follows \code{query_data} in either mode.}
 
-\item{leave_free}{numeric vector of length one. Must be positive and interpreted as
-integer. Number of CPU cores to leave
-free when \code{parallel = TRUE}. Ignored when \code{cores} is not \code{NULL}. Must be
-greater than or equal to 0. If \code{total_cores - leave_free} is less than 2,
-\code{parallel} is silently set to \code{FALSE}.}
+\item{cores}{positive integer-like numeric vector of length one, or \code{NULL}.
+Number of CPU cores when \code{parallel = TRUE}, capped at the number detected.
+With \code{NULL}, use the detected number minus \code{leave_free}. Fewer than two
+available cores results in sequential evaluation.}
+
+\item{logical}{logical vector of length one. Passed to
+\code{\link[parallel:detectCores]{parallel::detectCores()}} when \code{parallel = TRUE}.}
+
+\item{leave_free}{nonnegative integer-like numeric vector of length one.
+Number of cores to leave free when \code{parallel = TRUE} and \code{cores = NULL}.}
 }
 \value{
-numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with the same number of layers as
-\code{r}, reprojected under the target radial projection model.
+numeric \link[terra:SpatRaster-class]{terra::SpatRaster} with dimensions \code{dim}, the same
+layers as \code{r}, and the standardized grid of \code{\link[=set_rcaiman_geometry]{set_rcaiman_geometry()}}.
 }
 \description{
-Recompute raster values after changing the radial projection model that
-defines pixel radial distances.
+Resample image values onto a radial destination grid using planar
+inverse-distance interpolation.
 }
 \details{
-The function samples all the pixels of the cicular image with
-\code{\link[=raster_grid_in_circle]{raster_grid_in_circle()}}, reprojects with \code{\link[=reproject_points]{reproject_points()}}, and produce
-and image with \code{\link[=interpolate_planar]{interpolate_planar()}}.
+By default, the destination is centered on zenith with North at the top.
+Use \code{sensor_rotation}, \code{azimuth_rotation}, and \code{elevation} to orient the
+destination as in \code{\link[=direction_image]{direction_image()}}. Source orientation is already
+described by \code{d}. Supply the same
+\code{dim} and radial \code{geometry} that would construct its synthetic internal
+geometry with \code{\link[=set_internal_geometry]{set_internal_geometry()}}. The source can be rectangular,
+cropped, or inclined, and its directions can come from either lens model.
 
-Arguments \code{z}, \code{a}, and \code{m} describe \code{r}, while \code{projection_coef} and
-\code{diameter} describe the target, and \code{k}, \code{p}, and \code{search_radius} control
-the interpolation.
+To align acquisitions on a common representation, adjust their source
+orientations through \code{d} and keep the destination geometry, dimensions, and
+orientation the same. See "Describing an imperfectly levelled acquisition"
+in \code{\link[=direction_image]{direction_image()}} for an example starting from an upward-looking
+position.
+
+Source pixel centers are mapped to continuous destination coordinates with
+\code{\link[=reproject_points]{reproject_points()}}. Their values are interpolated onto the destination
+grid with \code{\link[=interpolate_planar]{interpolate_planar()}}. Each band uses its own available samples;
+missing values and directions do not supply observations. The number and
+names of bands are preserved.
+
+\code{search_radius} is measured in destination pixels. Together with \code{k}, \code{p},
+and \code{rigorous}, it controls interpolation. A source mask selects samples;
+it does not become a destination mask. Interpolation can fill gaps and
+extend values near the edges of the sampled region. Its reach should not
+be interpreted as the observed coverage. Destination cells without enough
+neighbors, or outside the radial angular limit, contain \code{NA}.
+
+Reprojection resamples image values and is generally not reversible.
 }
 \examples{
-\dontrun{
-require(rcaiman.registry)
-path <- system.file("external/Nikon_Coolpix5700.FCE9_raw.yaml", package = "rcaiman")
-my_entry <- read_registry_snapshot(path)
-spec <- get_geometry_spec(my_entry,  "exif_01", "simple_method")
-caim <- read_caim()
-r <- caim$Cyan
-z <- zenith_image(ncol(r), spec$parameters)
-a <- azimuth_image(z)
-m <- !is.na(z)
+source_geometry <- list(
+  model = "radial_projection",
+  center_of_vision = c(20, 15),
+  parameters = 1 / (pi / 3),
+  normalization_radius = 25,
+  normalization_angle = 60
+)
+g <- set_internal_geometry(c(40, 30), source_geometry)
+d <- direction_image(g, elevation = 32.5)
 
-r1 <- reproject_image(r, z, a, m, equidistant_coef, ncol(r))
-r2 <- reproject_image(r, z, a, m, orthographic_coef, ncol(r))
+# A synthetic radiometrically corrected band for this example.
+r <- g[[1]] * 0 + 1
+names(r) <- "radiance"
+target_geometry <- list(
+  model = "radial_projection",
+  center_of_vision = c(30, 30),
+  parameters = equidistant_coef,
+  normalization_radius = 30,
+  normalization_angle = 90
+)
+standard <- reproject_image(
+  r, d,
+  dim = c(60, 60),
+  geometry = target_geometry,
+  search_radius = 1,
+  parallel = FALSE
+)
+plot(standard)
 
-plot(r)
-plot(r1)
-plot(r2)
+# A destination inclined toward south, with its sensor in portrait.
+inclined <- reproject_image(
+  r, d,
+  dim = c(60, 60),
+  geometry = target_geometry,
+  sensor_rotation = 90,
+  elevation = 32.5,
+  search_radius = 1,
+  parallel = FALSE
+)
 }
+\seealso{
+\code{\link[=reproject_points]{reproject_points()}}, \code{\link[=direction_image]{direction_image()}}
 }
