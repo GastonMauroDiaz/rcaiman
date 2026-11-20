@@ -204,8 +204,9 @@ w <- area_weight_image(g, raw_geometry)
 caim <- split_cfa(sensor_data, cfa_pattern = cygm$cfa_pattern)
 caim
 r <- caim$Cyan
+aperture <- as.character(metadata$aperture)
 ff <- trend_surface_image(r,
-                          raw_radiometry$parameters[[metadata$aperture]]$Cyan,
+                          raw_radiometry$parameters[[aperture]]$Cyan,
                           m = !is.na(g$off_axis))
 r <- apply_flat_field(r, ff)
 

@@ -68,7 +68,8 @@
 #'
 #' raw_radiometry <- get_radiometry_spec(raw_geometry, "photometric_sphere")
 #'
-#' ff <- trend_surface_image(r, raw_radiometry$parameters[[metadata$aperture]]$Cyan,
+#' aperture <- as.character(metadata$aperture)
+#' ff <- trend_surface_image(r, raw_radiometry$parameters[[aperture]]$Cyan,
 #'                           m = !is.na(g$off_axis))
 #' corrected_r <- apply_flat_field(r, ff)
 #' plot(corrected_r)
